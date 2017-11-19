@@ -1,0 +1,42 @@
+package com.zssq.service;
+
+import com.zssq.dao.pojo.RepositoryCollect;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.vo.RepositoryCollectVo;
+import com.zssq.vo.RepositoryKnowledgeVo;
+/**
+ * 
+ * @ClassName: RepositoryCollectService  
+ * @Description: 知识库收藏  
+ * @author sry  
+ * @date 2017年4月28日  
+ *
+ */
+public interface RepositoryCollectService {
+	
+	/**
+	 * 
+	 * @Title: doCollect  
+	 * @Description: 收藏
+	 * @param infoVo
+	 * @return    参数  
+	 * @return: boolean    返回类型
+	 */
+	boolean doCollect(RepositoryCollect infoVo) throws BusinessException;
+	/**
+	 * 
+	 * @Title: deleteCollect  
+	 * @Description: 取消收藏
+	 * @param rv
+	 * @return    参数  
+	 * @return: boolean    返回类型
+	 */
+	boolean deleteCollect(RepositoryCollectVo rv) throws BusinessException;
+	
+	
+	
+	PageBean getUserCollectKnowledgeList(PageParam pageParam, RepositoryKnowledgeVo infoVo) throws BusinessException;
+	
+}

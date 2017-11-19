@@ -1,0 +1,115 @@
+package com.zssq.vote.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.vote.VoteTrConstants;
+import com.zssq.vote.dao.mapper.VoteCommentMapper;
+import com.zssq.vote.dao.mapper.VoteInfoMapper;
+import com.zssq.vote.dao.mapper.VoteJoinAuthMapper;
+import com.zssq.vote.dao.mapper.VoteJoinMapper;
+import com.zssq.vote.pojo.CountResult;
+import com.zssq.vote.pojo.VoteInfo;
+import com.zssq.vote.pojo.VoteInfoExample;
+import com.zssq.vote.pojo.VoteJoinAuth;
+import com.zssq.vote.service.IVoteCountService;
+
+@Transactional
+@Service("voteCountService")
+public class VoteCountServiceImpl implements IVoteCountService{
+
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private VoteCommentMapper voteCommentMapper;
+	@Autowired
+	private VoteJoinMapper voteJoinMapper;
+	@Autowired
+	private VoteInfoMapper voteInfoMapper;
+	@Autowired
+	private VoteJoinAuthMapper voteJoinAuthMapper;
+	
+	
+	@Override
+	@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = false, rollbackFor = Throwable.class)
+	public void countJoinAndComment() {
+		try {
+			log.info("*********开始统计投票的参与数和评论数*********");
+			List<CountResult> commentList = voteCommentMapper.countComment();
+			
+			List<CountResult> joinList = voteJoinMapper.countJoin();
+			
+			if (commentList.size() > 0) {
+				voteInfoMapper.batchUpdateCommentCount(commentList);
+			}
+			if (joinList.size() > 0) {
+				voteInfoMapper.batchUpdateJoinCount(joinList);
+			}
+			log.info("*********结束*********");
+		} catch (Exception e) {
+			log.error("统计投票的参与数和评论数出错了");
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = false, rollbackFor = Throwable.class)
+	public void addJoinAuth() {
+		try {
+			log.info("*********开始添加参与权限数据*********");
+			/**分页处理*/
+			VoteInfoExample example = new VoteInfoExample();
+			//总共条数
+			int total = voteInfoMapper.countByExample(example);
+			//每页条数
+			int count = 1000;
+			
+			//共有多少页数据
+			int totalPage = total % count == 0 ? total / count : total / count + 1;
+			
+			int thisPage = 1;
+			
+			List<VoteJoinAuth> authList = new ArrayList<VoteJoinAuth>();
+			while(thisPage <= totalPage){
+				List<VoteInfo> voteList = voteInfoMapper.selectVoteInfoForAuth((thisPage-1)*count,count);
+				for (VoteInfo vote : voteList) {
+					VoteJoinAuth auth = new VoteJoinAuth();
+					auth.setCode(UUIDHelper.getUUID());
+					auth.setTenantCode(vote.getTenantCode());
+					auth.setOrgCode(vote.getOrgCode());
+					auth.setCreateTime(vote.getCreateTime());
+					auth.setModifyTime(vote.getModifyTime());
+					auth.setVoteInfoCode(vote.getCode());
+					auth.setRangeType((byte)1);
+					auth.setIsCascade((byte)1);
+					auth.setgRangeCode(VoteTrConstants.GROUP_CODE);
+					auth.setgRangeName(VoteTrConstants.GROUP_NAME);
+					
+					authList.add(auth);
+				}
+				//批量插入
+				if(authList.size()>0){
+					voteJoinAuthMapper.batchInsert(authList);
+					authList.clear();
+				}
+				thisPage = thisPage + 1;
+			}
+			
+			log.info("*********结束*********");
+		} catch (Exception e) {
+			e.printStackTrace();
+			log.error("添加参与权限数据出错了");
+			throw e;
+		}
+	}
+
+}

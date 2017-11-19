@@ -1,0 +1,84 @@
+package com.zssq.service.impl.kafka;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.dao.mapper.UserMsgATMapper;
+import com.zssq.dao.pojo.UserMsgAT;
+import com.zssq.kafka.KafkaService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.util.RedisUtil;
+import com.zssq.utils.DateUtils;
+
+/**
+ * 
+ * @ClassName: MsgAddAtServiceImpl  
+ * @Description: 添加At消息  
+ * @author YDB  
+ * @date 2017年4月12日  
+ *
+ */
+@Service("msgAddAtService")
+public class MsgAddAtServiceImpl implements  KafkaService{
+	
+	private Logger logger = LoggerFactory.getLogger(this.getClass());	
+
+	
+	@Autowired
+	private  UserMsgATMapper	userMsgATMapper;
+	@Autowired
+	private RedisUtil redisUtil;
+	
+	@SuppressWarnings("rawtypes")
+	@Override
+	public void invokeService(ConsumerRecord record) throws Exception {
+		
+		String value=(String) record.value();
+		
+		try {
+			
+			JSONObject json=JSONObject.parseObject(value);
+			
+			JSONArray userArray=json.getJSONArray("userList");
+			List<UserMsgAT> userList=new ArrayList<>();
+			
+			for (int i = 0; i < userArray.size(); i++) {
+				
+				UserMsgAT userMsgAT=new UserMsgAT();
+				userMsgAT.setAtCode(UUIDHelper.getUUID());
+				userMsgAT.setCreateTime(DateUtils.getTime());
+				userMsgAT.setIsDelete((byte)0);
+				userMsgAT.setUserCode(userArray.getJSONObject(i).getString("userCode"));
+				userMsgAT.setAtUserCode(json.getString("atUserCode"));
+				userMsgAT.setOrgCode(userArray.getJSONObject(i).getString("orgCode"));
+				userMsgAT.setTenantCode(userArray.getJSONObject(i).getString("tenantCode"));
+				userMsgAT.setAtType(Byte.parseByte(json.getString("atType")));
+				userMsgAT.setOriginalCode(json.getString("originalCode"));
+				//转发微博时候才会有一句话
+				userMsgAT.setContent(json.getString("content"));
+				userList.add(userMsgAT);
+			}
+			
+			int state=userMsgATMapper.batchMsg(userList);
+			
+			//添加用户消息数量
+			if(state==1){
+				redisUtil.addNumber(json.getString("userCode"), 1, 1);
+			}
+		
+		} catch (Exception e) {
+			logger.error("MsgKafka-添加at消息失败-入参:"+value,e);
+			
+		}
+		
+	}
+
+}

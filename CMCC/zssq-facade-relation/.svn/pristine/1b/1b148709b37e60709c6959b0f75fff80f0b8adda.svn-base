@@ -1,0 +1,40 @@
+package com.zssq.service;
+
+import com.zssq.dao.pojo.RelationDynamic;
+import com.zssq.dao.pojo.RelationShare;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.vo.RelationSharevO;
+
+public interface RelationShareService {
+
+	/**
+	 * @Function getUserQualityPageBean
+	 * @Description  获取个人分享列表
+	 * @param pageParam
+	 * @param share
+	 * @return
+	 */
+
+	PageBean getUserSharePageBean(PageParam pageParam, RelationSharevO share)throws BusinessException;
+
+	/**
+	 * @Function delShare
+	 * @Description 删除分享
+	 * @param share
+	 * @param dynamic
+	 * @return
+	 */
+	boolean delShare(RelationShare share, RelationDynamic dynamic)throws BusinessException;
+
+	/**
+	 * @Function getShareInfoByCode
+	 * @Description 获取分享信息
+	 * @param share
+	 * @return
+	 * @throws BusinessException 
+	 */
+	RelationShare getShareInfoByCode(RelationShare share) throws BusinessException;
+
+}

@@ -1,0 +1,18 @@
+package com.zssq.dao.mapper;
+
+import java.util.List;
+
+import com.zssq.dao.pojo.TeamFriend;
+
+public interface TeamFriendMapper {
+	
+    int deleteByCode(String code);
+
+    int insertSelective(TeamFriend record);
+
+    TeamFriend selectByCode(Long id);
+
+    List<TeamFriend> selectPage(TeamFriend record);
+    
+    int selectCount(TeamFriend record);
+}

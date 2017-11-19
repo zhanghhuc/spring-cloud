@@ -1,0 +1,127 @@
+package com.zssq.model;
+
+import java.io.Serializable;
+
+public class EtRelationShareModel implements Serializable{
+	private static final long serialVersionUID = 1L;
+	
+	private String  shareCode;//分享编号
+	private Byte  shareClass;//分享类型：1.博客；2.投票；3.活动；4.新闻公告；
+	private String  subjectCode;//内容编号
+	private String  subjectTitle;//内容标题
+	private String  subjectDigest;//内容摘要
+	private Byte  subjectSource;// 内容来源：1.原创；2.转发
+	private Byte  subjectDepend;// 内容从属
+	private String userCode;//内容发布人编号
+	private String userName;//内容发布人名称
+	private String userPhotoUrl;//内容发布人头像链接
+	private Byte sourceDepend;//从属关系：1.个人；2.班组
+	private String teamCode;//班组编号
+	private String teamName;//班组名称
+	private String orgCode;//内容所属组织编号
+	private String orgName;//内容所属组织名称
+	private String dynamicCode;//动态编号
+	
+	
+	
+	public Byte getSubjectDepend() {
+		return subjectDepend;
+	}
+	public void setSubjectDepend(Byte subjectDepend) {
+		this.subjectDepend = subjectDepend;
+	}
+	public String getUserCode() {
+		return userCode;
+	}
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
+	}
+	public String getUserName() {
+		return userName;
+	}
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+	public String getUserPhotoUrl() {
+		return userPhotoUrl;
+	}
+	public void setUserPhotoUrl(String userPhotoUrl) {
+		this.userPhotoUrl = userPhotoUrl;
+	}
+	public Byte getSourceDepend() {
+		return sourceDepend;
+	}
+	public void setSourceDepend(Byte sourceDepend) {
+		this.sourceDepend = sourceDepend;
+	}
+	public String getTeamCode() {
+		return teamCode;
+	}
+	public void setTeamCode(String teamCode) {
+		this.teamCode = teamCode;
+	}
+	public String getTeamName() {
+		return teamName;
+	}
+	public void setTeamName(String teamName) {
+		this.teamName = teamName;
+	}
+	public String getOrgCode() {
+		return orgCode;
+	}
+	public void setOrgCode(String orgCode) {
+		this.orgCode = orgCode;
+	}
+	public String getOrgName() {
+		return orgName;
+	}
+	public void setOrgName(String orgName) {
+		this.orgName = orgName;
+	}
+	public String getDynamicCode() {
+		return dynamicCode;
+	}
+	public void setDynamicCode(String dynamicCode) {
+		this.dynamicCode = dynamicCode;
+	}
+	public static long getSerialversionuid() {
+		return serialVersionUID;
+	}
+	public String getShareCode() {
+		return shareCode;
+	}
+	public void setShareCode(String shareCode) {
+		this.shareCode = shareCode;
+	}
+	public Byte getShareClass() {
+		return shareClass;
+	}
+	public void setShareClass(Byte shareClass) {
+		this.shareClass = shareClass;
+	}
+	public String getSubjectCode() {
+		return subjectCode;
+	}
+	public void setSubjectCode(String subjectCode) {
+		this.subjectCode = subjectCode;
+	}
+	public String getSubjectTitle() {
+		return subjectTitle;
+	}
+	public void setSubjectTitle(String subjectTitle) {
+		this.subjectTitle = subjectTitle;
+	}
+	public String getSubjectDigest() {
+		return subjectDigest;
+	}
+	public void setSubjectDigest(String subjectDigest) {
+		this.subjectDigest = subjectDigest;
+	}
+	public Byte getSubjectSource() {
+		return subjectSource;
+	}
+	public void setSubjectSource(Byte subjectSource) {
+		this.subjectSource = subjectSource;
+	}
+	
+}

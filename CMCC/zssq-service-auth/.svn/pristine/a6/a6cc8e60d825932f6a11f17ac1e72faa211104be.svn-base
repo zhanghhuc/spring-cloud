@@ -1,0 +1,466 @@
+package com.zssq.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSON;
+import com.mdcl.smap.bean.OrgInfo;
+import com.mdcl.smap.bean.UserInfo;
+import com.zssq.common.cache.client.JedisClusterService;
+import com.zssq.constants.AuthConstants;
+import com.zssq.dao.mapper.SmapOrgMapper;
+import com.zssq.dao.mapper.SmapUserMapper;
+import com.zssq.dao.mapper.SysOrgInfoMapper;
+import com.zssq.dao.mapper.SysOrgLevelMapper;
+import com.zssq.dao.mapper.SysUserInfoMapper;
+import com.zssq.dao.pojo.OrgLinkList;
+import com.zssq.dao.pojo.SysOrgInfo;
+import com.zssq.dao.pojo.SysOrgLevel;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.pojo.Message;
+import com.zssq.service.ISysOrgService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.utils.PropertiesUtil;
+import com.zssq.utils.StringTools;
+
+/**
+ * @ClassName SysOrgInfoServiceImpl
+ * @Description 组织机构实现
+ * @author JiPengChun
+ * @date 2017年3月15日 上午11:13:57
+ * @version 1.0
+ * @since JDK 1.7
+ */
+@Service("sysOrgService")
+public class SysOrgServiceImpl implements ISysOrgService {
+
+	/** 日志记录操作 */
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	/** Redis 缓存服务操作 */
+	@Autowired
+	private JedisClusterService jedisClusterService;
+
+	/** 组织信息持久化操作接口 */
+	@Autowired
+	private SysOrgInfoMapper sysOrgInfoMapper;
+	
+	/** 用户信息持久化操作接口 */
+	@Autowired
+	private SysUserInfoMapper sysUserInfoMapper;
+	
+	/** 组织级别持久化操作接口 */
+	@Autowired
+	private SysOrgLevelMapper sysOrgLevelMapper;
+	
+	/** SMAP 同步组织信息持久化接口 */
+	@Autowired
+	private SmapOrgMapper smapOrgMapper;
+	
+	/** SMAP 同步员工信息持久化接口 */
+	@Autowired
+	private SmapUserMapper smapUserMapper;
+	
+	@Override
+	public SysOrgInfo selectByCode(String orgCode) throws BusinessException {
+		
+		try {
+			SysOrgInfo sysOrgInfo = null;
+			// 从缓存服务器中获取组织机构信息
+			// TODO 测试期统一从数据库中取数据 
+//			String orgJson = jedisClusterService.get(orgCode);
+			String orgJson = null;
+			if(StringUtils.isNotBlank(orgJson)) {
+				log.debug("SysOrgInfoServiceImpl.selectByCode：从缓存中获取到了组织机构信息 " + orgCode);
+				sysOrgInfo = JSON.parseObject(orgJson, SysOrgInfo.class);
+				return sysOrgInfo;
+			} else {
+				// 缓存中获取不到时，从数据库中获取，并将数据放入缓存
+				sysOrgInfo = sysOrgInfoMapper.selectByCode(orgCode);
+				if(sysOrgInfo != null) {
+					log.debug("SysOrgInfoServiceImpl.selectByCode：从数据库中获取到了组织机构信息 " + orgCode);
+					orgJson = JSON.toJSONString(sysOrgInfo);
+					jedisClusterService.set(sysOrgInfo.getSysOrgCode(), orgJson);
+				}
+				return sysOrgInfo;
+			}
+		} catch (Exception e) {
+			log.error("获取组织机构信息出错", e);
+			throw new BusinessException("获取组织机构信息出错", e);
+		}
+	}
+
+	@Override
+	public List<SysOrgInfo> selectByCodes(List<String> orgCodes) throws BusinessException {
+		
+		try {
+			List<SysOrgInfo> orgList = new ArrayList<SysOrgInfo>();
+			
+			for(String orgCode : orgCodes){
+				SysOrgInfo orgInfo = selectByCode(orgCode);
+				orgList.add(orgInfo);
+			}
+			return orgList;
+		} catch (Exception e) {
+			log.error("获取组织机构信息出错", e);
+			throw new BusinessException("获取组织机构信息出错", e);
+		}
+	}
+	
+	@Override
+	public SysOrgInfo selectBySrcCode(String srcCode)  throws BusinessException {
+
+		try {
+			return sysOrgInfoMapper.selectBySrcCode(srcCode);
+		} catch (Exception e) {
+			log.error("根据 SMAP 同步组织编码查询组织信息", e);
+			throw new BusinessException("根据 SMAP 同步组织编码查询组织信息", e);
+		}		
+	}
+	
+	@Override
+	public List<SysOrgInfo> selectSubManOrg(String orgCode) throws BusinessException {
+		
+		try {
+			return sysOrgInfoMapper.selectSubManOrg(orgCode);
+		} catch (Exception e) {
+			log.error("获取指定组织的下级行政组织出错", e);
+			throw new BusinessException("获取指定组织的下级行政组织出错", e);
+		}
+	}
+	
+	@Override
+	public OrgLinkList getOrgLinkList(SysOrgInfo param) throws BusinessException{
+		
+		OrgLinkList link = new OrgLinkList();
+		try{
+			String orgType = param.getSysOrgType();
+			String orgCode = param.getSysOrgCode();
+			
+			SysOrgInfo record = new SysOrgInfo();
+			record.setIsEnable(AuthConstants.BOOLEAN_TRUE);
+			if(AuthConstants.ORG_TYPE_A.equals(orgType)) {
+				// 入参组织级别为“A”时，获取级别为“A”和“B”的组织信息
+				record.setSysOrgType(AuthConstants.ORG_TYPE_A);
+				List<SysOrgInfo> groupList = sysOrgInfoMapper.selectByRecord(record);
+				link.setTopOrg(groupList.get(0));
+				
+				record.setSysOrgType(AuthConstants.ORG_TYPE_B);
+				List<SysOrgInfo> proList = sysOrgInfoMapper.selectByRecord(record);
+				link.setProList(proList);
+				
+				link.setCityList(new ArrayList<SysOrgInfo>());
+			}else if(AuthConstants.ORG_TYPE_B.equals(orgType)) {
+				// 入参组织级别为“B”时，获取级别为“A”、“B”、“C”的组织信息
+				record.setSysOrgType(AuthConstants.ORG_TYPE_A);
+				List<SysOrgInfo> groupList = sysOrgInfoMapper.selectByRecord(record);
+				link.setTopOrg(groupList.get(0));
+				
+				record.setSysOrgType(AuthConstants.ORG_TYPE_B);
+				record.setSysOrgCode(orgCode);
+				List<SysOrgInfo> proList = sysOrgInfoMapper.selectByRecord(record);
+				link.setProList(proList);
+				
+				record.setSysOrgType(AuthConstants.ORG_TYPE_C);
+				record.setSysOrgCode(null);
+				record.setParentCode(orgCode);
+				List<SysOrgInfo> cityList = sysOrgInfoMapper.selectByRecord(record);
+				link.setCityList(cityList);
+			}else if(AuthConstants.ORG_TYPE_C.equals(orgType)){
+				// 入参组织级别为“C”时，获取级别为“A”、“B”、“C”的组织信息
+				record.setSysOrgType(AuthConstants.ORG_TYPE_A);
+				List<SysOrgInfo> groupList = sysOrgInfoMapper.selectByRecord(record);
+				link.setTopOrg(groupList.get(0));
+				
+				record.setSysOrgType(AuthConstants.ORG_TYPE_C);
+				record.setSysOrgCode(orgCode);
+				List<SysOrgInfo> cityList = sysOrgInfoMapper.selectByRecord(record);
+				link.setCityList(cityList);
+				
+				if(cityList.size()>0){
+					record.setSysOrgType(AuthConstants.ORG_TYPE_B);
+					record.setSysOrgCode(cityList.get(0).getParentCode());
+					List<SysOrgInfo> proList = sysOrgInfoMapper.selectByRecord(record);
+					link.setProList(proList);
+				}
+			}
+			return link;
+		} catch (Exception e) {
+			log.error("获取级联下拉出错", e);
+			throw new BusinessException("获取级联下拉出错", e);
+		}
+	}
+
+	@Override
+	public List<SysOrgInfo> selectByRecord(SysOrgInfo record) throws BusinessException{
+		
+		try{
+			return sysOrgInfoMapper.selectByRecord(record);
+		} catch (Exception e) {
+			log.error("获取组织机构集合出错", e);
+			throw new BusinessException("获取组织机构集合出错", e);
+		}
+	}
+	
+	@Override
+	public List<String> selectOrgCodes(SysOrgInfo record) throws BusinessException{
+		
+		try{
+			return sysOrgInfoMapper.selectCodesByRecord(record);
+		} catch (Exception e) {
+			log.error("获取组织机构CODE集合出错", e);
+			throw new BusinessException("获取组织机构CODE集合出错", e);
+		}
+	}
+	
+	@Override
+	public List<SysOrgInfo> selectCascadeUpManOrg(String manOrgCode) throws BusinessException {
+
+		try{
+			List<SysOrgInfo> cascadeOrgs = new ArrayList<SysOrgInfo>();			
+			return getCascadeUpManOrg(cascadeOrgs, manOrgCode);
+		} catch (Exception e) {
+			log.error("级联向上查询行政组织信息出错", e);
+			throw new BusinessException("级联向上查询行政组织信息出错", e);
+		}
+	}
+	
+	private List<SysOrgInfo> getCascadeUpManOrg(List<SysOrgInfo> cascadeOrgs, String manOrgCode) throws BusinessException{
+
+		try{
+			SysOrgInfo originManOrg = selectByCode(manOrgCode);
+	
+			if(originManOrg != null) {
+				if(StringUtils.isNotBlank(originManOrg.getSysOrgType())) {
+					cascadeOrgs.add(originManOrg);
+				}
+				if(StringUtils.equals(AuthConstants.ORG_TYPE_A, originManOrg.getSysOrgType())) {
+					return cascadeOrgs;
+				}
+				getCascadeUpManOrg(cascadeOrgs, originManOrg.getParentCode());
+			}
+		} catch (Exception e) {
+			log.error("级联向上查询行政组织信息出错", e);
+			throw new BusinessException("级联向上查询行政组织信息出错", e);
+		}
+		return cascadeOrgs;
+	}
+
+	@Override
+	public SysOrgInfo selectManageOrgByCode(String orgCode) throws BusinessException {
+		
+		try {
+			SysOrgInfo orgInfo = selectByCode(orgCode);
+			if(orgInfo == null) {
+				return null;
+			}else if (StringTools.isNotEmpty(orgInfo.getSysOrgType())){
+				return orgInfo;
+			}else {
+				return selectManageOrgByCode(orgInfo.getParentCode());
+			}
+		} catch (Exception e) {
+			log.error("获取组织机构信息出错", e);
+			throw new BusinessException("获取组织机构信息出错", e);
+		}
+	}
+
+	@Override
+	public PageBean selectPage(PageParam pageParam, SysOrgInfo info) throws BusinessException {
+		
+		try {
+			info.setLimitStart(pageParam.getPageNo()*pageParam.getPageSize());
+			info.setLimitEnd(pageParam.getPageSize());
+			
+			List<SysOrgInfo> list= sysOrgInfoMapper.selectPage(info);
+			int count = sysOrgInfoMapper.selectPageCount(info);
+			PageBean result = new PageBean(info.getLimitStart(),info.getLimitStart(),count,list);
+			
+			return result;			
+		} catch (Exception e) {
+			log.error("SysUserServiceImpl.selectPage 获取组织分页信息出错", e);
+			throw new BusinessException("获取组织分页信息出错", e);
+		}
+	}
+	
+	@Override
+	public String addSubOrg(String smapOrgCode, String parentOrgCode, String isManager) throws BusinessException {
+		
+		try {
+			// 获取 SMAP 同步的组织信息
+			OrgInfo smapOrgInfo = smapOrgMapper.selectByOrgCode(smapOrgCode);
+			// 获取系统内部使用的组织信息，该组织做为将要添加的组织的上级组织
+			SysOrgInfo sysOrgInfo = sysOrgInfoMapper.selectByCode(parentOrgCode);
+			// 获取行政组织信息
+			SysOrgInfo manOrgInfo = selectManageOrgByCode(sysOrgInfo.getSysOrgCode());
+			// 获取系统内所有的组织级别信息
+			List<SysOrgLevel> sysOrgLevels = sysOrgLevelMapper.selectByTenantCode(AuthConstants.TENANT_CODE);
+			
+			String newSysOrgLevel = null;
+			if(StringUtils.equals(AuthConstants.BOOLEAN_1, isManager)) {
+				if(StringUtils.equals(AuthConstants.ORG_TYPE_A, manOrgInfo.getSysOrgType())) {
+					// 上级行政组织为“A”时，新添加的下级行政组织设置为“B”
+					for(SysOrgLevel sysOrgLevel : sysOrgLevels) {
+						if(StringUtils.equals(AuthConstants.ORG_TYPE_B, sysOrgLevel.getLevel())) {
+							newSysOrgLevel = sysOrgLevel.getLevelCode();
+							break;
+						}
+					}
+				} else if(StringUtils.equals(AuthConstants.ORG_TYPE_B, manOrgInfo.getSysOrgType())) {
+					// 上级行政组织为“B”时，新添加的下级行政组织设置为“C”
+					for(SysOrgLevel sysOrgLevel : sysOrgLevels) {
+						if(StringUtils.equals(AuthConstants.ORG_TYPE_C, sysOrgLevel.getLevel())) {
+							newSysOrgLevel = sysOrgLevel.getLevelCode();
+							break;
+						}
+					}				
+				}				
+			} 
+			
+			// 构造新增的组织信息
+			SysOrgInfo newSysOrgInfo = new SysOrgInfo();
+			newSysOrgInfo.setSysOrgCode(UUIDHelper.getUUID());				// 组织编码，uuid
+			newSysOrgInfo.setSrcCode(smapOrgCode);							// 对应的 SMAP 组织编码 
+			newSysOrgInfo.setParentCode(parentOrgCode);						// 上级组织编码
+			newSysOrgInfo.setSysOrgName(smapOrgInfo.getInitials());			// 组织名称	
+			newSysOrgInfo.setSysOrgFullname(smapOrgInfo.getDisplayName());	// 组织全名
+			newSysOrgInfo.setSysOrgType(newSysOrgLevel);					// 组织类型（级别）
+			newSysOrgInfo.setSaasTenantCode(AuthConstants.TENANT_CODE); 	// 租户编码
+			// 所属行政组织
+			newSysOrgInfo.setManOrgCode(newSysOrgLevel != null ? newSysOrgInfo.getSysOrgCode() : manOrgInfo.getSysOrgCode());
+			
+			
+			// TODO SMAP 同步到的组织状态0：正常，1：锁定；
+			// 在拿到该数据之前，各研发组已经在使用自定义的状态0：停用，1，启用，为避免批量返工，此处做状态转换处理
+			String isEnable = StringUtils.equals("0", smapOrgInfo.getStatus()) ? "1" : "0";
+			newSysOrgInfo.setIsEnable(Byte.valueOf(isEnable));
+			
+			// 保存新增的组织信息
+			sysOrgInfoMapper.insert(newSysOrgInfo);
+			
+			// 获取 SMAP 同步用户信息
+			List<UserInfo> smapUserInfos = smapUserMapper.selectByOrgCode(smapOrgCode);
+			if(CollectionUtils.isNotEmpty(smapUserInfos)) {
+				List<SysUserInfo> sysUserInfos = new ArrayList<SysUserInfo>();
+				for(UserInfo smapUserInfo : smapUserInfos) {
+					// 构造新增的用户信息
+					SysUserInfo sysUserInfo = new SysUserInfo();
+					sysUserInfo.setUserCode(smapUserInfo.getUid());						// 用户Code
+					sysUserInfo.setUserName(smapUserInfo.getCn());						// 用户名称
+					sysUserInfo.setUserSex(Byte.valueOf(smapUserInfo.getGender()));		// 用户性别
+					sysUserInfo.setUserOfficePhone(smapUserInfo.getPreferredMobile());	// 用户手机号
+					sysUserInfo.setOrgCode(newSysOrgInfo.getSysOrgCode());				// 所属组织
+					sysUserInfo.setUserStatus(Byte.valueOf(smapUserInfo.getStatus()));	// 用户状态
+					sysUserInfo.setTenantCode(AuthConstants.TENANT_CODE);
+					sysUserInfos.add(sysUserInfo);
+				}
+				// 保存用户信息
+				sysUserInfoMapper.insertValues(sysUserInfos);
+			}
+			
+			return newSysOrgInfo.getSysOrgCode();
+		} catch (Exception e) {
+			log.error("SysUserServiceImpl.addTreeNode 组织数据清洗出错", e);
+			throw new BusinessException("组织数据清洗出错", e);
+		}
+	}
+	
+	@Override
+	public int deleteByCode(String orgCode) throws BusinessException {
+		
+		try {
+        	List<String> userCodes = sysUserInfoMapper.selectUserCodesByOrgCode(orgCode);
+        	if(CollectionUtils.isNotEmpty(userCodes)) {
+            	int delUserRoleRelationCount = sysUserInfoMapper.deleteRoleByCodes(userCodes);
+            	log.info("组织清洗，删除节点：删除员工与角色关系数量：" + delUserRoleRelationCount);        		
+        	}
+			
+			int delUserCount = sysUserInfoMapper.deleteByOrgCode(orgCode);
+			log.info("组织清洗，删除节点：删除员工数量：" + delUserCount);
+			
+			int delOrgCount = sysOrgInfoMapper.deleteByCode(orgCode);
+			log.info("组织清洗，删除节点：删除组织数量：" + delOrgCount);
+			
+			return 	delOrgCount;
+		} catch (Exception e) {
+			log.error("SysUserServiceImpl.deleteOrg 删除组织信息出错", e);
+			throw new BusinessException("删除组织信息出错", e);
+		}
+	}
+
+	/**
+	 * 根据orgName查询code(模糊)
+	 * @see com.zssq.service.ISysOrgService#selectManOrgCodeByOrgName(java.lang.String)
+	 */
+	@Override
+	public List<String> selectManOrgCodeByOrgName(String orgName,List<String> orgCodes) throws BusinessException {
+		try {
+			Map<String,Object> map = new HashMap<String,Object>();
+			map.put("orgName", orgName);
+			map.put("orgCodes", orgCodes);
+			return sysOrgInfoMapper.selectManOrgCodeByOrgName(map);
+		} catch (Exception e) {
+			log.error("SysUserServiceImpl.selectManOrgCodeByOrgName 根据orgName查询code(模糊)", e);
+			throw new BusinessException("根据orgName查询code(模糊)出错", e);
+		}
+	}
+
+	/**
+	 * 组织机构启禁用(允许启用目录下禁用,不允许禁用目录下启用)
+	 * @see com.zssq.service.ISysOrgService#setIsEnable(java.lang.String, java.lang.Byte)
+	 */
+	@Override
+	public void setIsEnable(String orgCode, Byte isEnable, String tenantCode) throws BusinessException {
+		Message m = null;
+		
+		try {
+			//根据orgCode查询
+			SysOrgInfo orgInfo = selectByCode(orgCode);
+			if(orgInfo == null || StringTools.isEmpty(orgInfo.getSysOrgType())){
+				m = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10004);
+				throw new BusinessException(m.getCode(),String.format(m.getTip(),"组织机构启禁用","组织机构编码无效"));
+			}
+			//非集团  并且 启用,校验上级是否为启用状态
+			if(!AuthConstants.ORG_TYPE_A.equals(orgInfo.getSysOrgType()) && AuthConstants.BOOLEAN_TRUE.equals(isEnable)){//启用
+				SysOrgInfo parentInfo = selectByCode(orgInfo.getParentCode());
+				if(parentInfo != null && AuthConstants.BOOLEAN_FALSE.equals(parentInfo.getIsEnable())){
+					m = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10004);
+					throw new BusinessException(m.getCode(),String.format(m.getTip(),"组织机构启禁用","请从上级目录开始启用"));
+				}
+			}
+			
+			SysOrgInfo record = new SysOrgInfo();
+			record.setIsEnable(isEnable);
+			if(AuthConstants.ORG_TYPE_A.equals(orgInfo.getSysOrgType())){
+				//A,该租户全部
+				record.setSaasTenantCode(tenantCode);
+				sysOrgInfoMapper.setIsEnable(record);
+			}else if(AuthConstants.ORG_TYPE_B.equals(orgInfo.getSysOrgType())){
+				//B,
+				record.setParentCode(orgCode);
+				sysOrgInfoMapper.setIsEnable(record);
+			}else if(AuthConstants.ORG_TYPE_C.equals(orgInfo.getSysOrgType())){
+				//C,
+				record.setManOrgCode(orgCode);
+				sysOrgInfoMapper.setIsEnable(record);
+			}
+			
+		} catch(BusinessException e){
+			throw e;
+		}catch (Exception e) {
+			log.error("组织机构启禁用", e);
+			throw new BusinessException("组织机构启禁用", e);
+		}
+		
+	}
+}

@@ -1,0 +1,52 @@
+package com.zssq.model;
+
+import java.io.Serializable;
+import java.util.List;
+
+/**
+ * 
+ * @ClassName: MessageAtAddModel  
+ * @Description: 添加@消息model  
+ * @author YDB  
+ * @date 2017年3月21日  
+ *
+ */
+public class MessageAtAddModel implements Serializable{
+	
+	//@人用户code
+	private String atUserCode;
+	//at分类:'at类型:1发表微博@用户,2转发微博@用户,3评论微博@用户,4回复微博@用户',
+	private int atType;
+	//原文code
+	private String originalCode;
+	//用户model 
+	private List<MessageATUserModels> userList;
+	
+	
+	public List<MessageATUserModels> getUserList() {
+		return userList;
+	}
+	public void setUserList(List<MessageATUserModels> userList) {
+		this.userList = userList;
+	}
+	public String getAtUserCode() {
+		return atUserCode;
+	}
+	public void setAtUserCode(String atUserCode) {
+		this.atUserCode = atUserCode;
+	}
+	public int getAtType() {
+		return atType;
+	}
+	public void setAtType(int atType) {
+		this.atType = atType;
+	}
+	public String getOriginalCode() {
+		return originalCode;
+	}
+	public void setOriginalCode(String originalCode) {
+		this.originalCode = originalCode;
+	}
+	
+	
+} 

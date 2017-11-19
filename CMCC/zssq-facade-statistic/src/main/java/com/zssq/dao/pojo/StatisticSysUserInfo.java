@@ -1,0 +1,97 @@
+package com.zssq.dao.pojo;
+
+public class StatisticSysUserInfo {
+
+	private String id;
+
+	/** 编号 */
+	private String userCode;
+	
+	/** 姓名 */
+	private String userName;
+	
+	/** 性别 */
+	private String userSex;
+
+	/** 电话 */
+	private String userOfficePhone;
+	
+	/** 所属组织编号 */
+	private String orgCode;
+	
+	/** 状态 */
+	private String userStatus;
+	
+	/**
+	 * saas票据
+	 */
+	private String saasTenantCode;
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getUserCode() {
+		return userCode;
+	}
+
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public String getUserSex() {
+		return userSex;
+	}
+
+	public void setUserSex(String userSex) {
+		this.userSex = userSex;
+	}
+
+	public String getUserOfficePhone() {
+		return userOfficePhone;
+	}
+
+	public void setUserOfficePhone(String userOfficePhone) {
+		this.userOfficePhone = userOfficePhone;
+	}
+
+	public String getOrgCode() {
+		return orgCode;
+	}
+
+	public void setOrgCode(String orgCode) {
+		this.orgCode = orgCode;
+	}
+
+	public String getUserStatus() {
+		return userStatus;
+	}
+
+	public void setUserStatus(String userStatus) {
+		this.userStatus = userStatus;
+	}
+
+	public String getSaasTenantCode() {
+		return saasTenantCode;
+	}
+
+	public void setSaasTenantCode(String saasTenantCode) {
+		this.saasTenantCode = saasTenantCode;
+	}
+
+
+
+
+}

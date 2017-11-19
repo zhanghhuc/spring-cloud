@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.MblogForwardMapper" >
+  <!-- 自定义mblogModelMap -->
+  <resultMap id="forwardMap" type="com.zssq.dao.pojo.MblogForward" >
+    <result column="cur_mblog_code" property="curMblogCode" jdbcType="VARCHAR" />
+    <result column="source_mblog_code" property="sourceMblogCode" jdbcType="LONGVARCHAR" />
+  	<result column="user_code" property="userCode" jdbcType="VARCHAR"/>
+  </resultMap>
+  
+  <insert id="insert" parameterType="com.zssq.dao.pojo.MblogForward" >
+    insert into mblog_forward (cur_mblog_code,source_mblog_code,user_code)
+    values ( 
+    #{curMblogCode,jdbcType=VARCHAR},
+    #{sourceMblogCode,jdbcType=VARCHAR},
+    #{userCode,jdbcType=VARCHAR}
+    )
+  </insert>
+  
+  <!-- 获取转发树形 数据 -->
+  <select id="queryForwardInfo" resultType="java.lang.String" parameterType="java.lang.String" >
+    SELECT 
+   		source_mblog_code AS sourceMblogCode
+    FROM
+    	mblog_forward
+    WHERE
+    	cur_mblog_code = #{curMblogCode}
+  </select>
+  
+  <!-- 获取转发树形 数据 -->
+  <select id="checkIsFored" resultType="java.lang.Integer" parameterType="java.util.Map" >
+    SELECT 
+   		COUNT(1)
+    FROM
+    	mblog_forward
+    WHERE
+    	source_mblog_code = #{mblogCode}
+    AND
+    	user_code = #{userCode}
+  </select>
+</mapper>

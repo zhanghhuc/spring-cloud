@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.mblog.dao.mapper.TransferIdCodeMapper" >
+  <!-- 批处理 -->
+  <insert id="batchInsert" parameterType="com.zssq.mblog.pojo.TransferIdCode">
+	insert into transfer_id_code (
+		mblog_id,
+		mblog_code,
+		user_code,
+		music_id,
+		video_id,
+		org_code,
+		tenant_code,
+		put_time,
+		com_num,
+		for_num
+	)
+	values 
+	<foreach collection="list" item="item" index="index" separator=",">
+		(
+			#{item.mblogId,jdbcType=BIGINT}, 
+			#{item.mblogCode,jdbcType=VARCHAR}, 
+       		#{item.userCode,jdbcType=VARCHAR},
+       		#{item.musicId,jdbcType=INTEGER},
+       		#{item.videoId,jdbcType=INTEGER},
+       		#{item.orgCode,jdbcType=VARCHAR},
+       		#{item.tenantCode,jdbcType=VARCHAR},
+			#{item.putTime,jdbcType=BIGINT}, 
+			#{item.comNum,jdbcType=INTEGER}, 
+			#{item.forNum,jdbcType=INTEGER}
+       		 
+    	)
+	</foreach>
+  </insert>
+  
+  
+</mapper>

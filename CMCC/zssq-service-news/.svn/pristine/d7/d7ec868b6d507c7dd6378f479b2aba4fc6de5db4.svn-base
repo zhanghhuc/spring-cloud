@@ -1,0 +1,778 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.NewsInfoContentMapper">
+    <resultMap id="BaseResultMap" type="com.zssq.news.dao.pojo.NewsInfoContent">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="news_code" property="newsCode" jdbcType="VARCHAR"/>
+        <result column="info_title" property="infoTitle" jdbcType="VARCHAR"/>
+        <result column="info_content_text" property="infoContentText" jdbcType="LONGVARCHAR"/>
+        <result column="info_content_html" property="infoContentHtml" jdbcType="LONGVARCHAR"/>
+        <result column="info_status" property="infoStatus" jdbcType="TINYINT"/>
+        <result column="info_operator_code" property="infoOperatorCode" jdbcType="VARCHAR"/>
+        <result column="info_creator_code" property="infoCreatorCode" jdbcType="VARCHAR"/>
+        <result column="org_level" property="orgLevel" jdbcType="TINYINT"/>
+        <result column="org_code" property="orgCode" jdbcType="VARCHAR"/>
+        <result column="file_url" property="fileUrl" jdbcType="VARCHAR"/>
+        <result column="is_top" property="isTop" jdbcType="TINYINT"/>
+        <result column="is_delete" property="isDelete" jdbcType="TINYINT"/>
+        <result column="is_shield" property="isShield" jdbcType="TINYINT"/>
+        <result column="info_sort" property="infoSort" jdbcType="INTEGER"/>
+        <result column="is_hidden" property="isHidden" jdbcType="INTEGER"/>
+        <result column="is_archived" property="isArchived" jdbcType="INTEGER"/>
+        <result column="info_good_count" property="infoGoodCount" jdbcType="INTEGER"/>
+        <result column="info_comment_count" property="infoCommentCount" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="BIGINT"/>
+        <result column="modify_time" property="modifyTime" jdbcType="BIGINT"/>
+        <result column="publish_time" property="publishTime" jdbcType="BIGINT"/>
+        <result column="top_time" property="topTime" jdbcType="BIGINT"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <resultMap id="NewsInfoContentPcResultMap" type="com.zssq.news.dao.pojo.NewsInfoContent">
+        <result column="news_code" property="newsCode" jdbcType="VARCHAR"/>
+        <result column="info_title" property="infoTitle" jdbcType="VARCHAR"/>
+        <result column="info_content_text" property="infoContentText" jdbcType="LONGVARCHAR"/>
+        <result column="info_content_html" property="infoContentHtml" jdbcType="LONGVARCHAR"/>
+        <result column="info_status" property="infoStatus" jdbcType="TINYINT"/>
+        <result column="info_operator_code" property="infoOperatorCode" jdbcType="VARCHAR"/>
+        <result column="info_creator_code" property="infoCreatorCode" jdbcType="VARCHAR"/>
+        <result column="org_level" property="orgLevel" jdbcType="TINYINT"/>
+        <result column="org_code" property="orgCode" jdbcType="VARCHAR"/>
+        <result column="file_url" property="fileUrl" jdbcType="VARCHAR"/>
+        <result column="is_top" property="isTop" jdbcType="TINYINT"/>
+        <result column="info_sort" property="infoSort" jdbcType="INTEGER"/>
+        <result column="is_hidden" property="isHidden" jdbcType="INTEGER"/>
+        <result column="is_archived" property="isArchived" jdbcType="INTEGER"/>
+        <result column="isCollect" property="isCollect" jdbcType="INTEGER"/>
+        <result column="isPraise" property="isPraise" jdbcType="INTEGER"/>
+        <result column="info_good_count" property="infoGoodCount" jdbcType="INTEGER"/>
+        <result column="info_comment_count" property="infoCommentCount" jdbcType="INTEGER"/>
+        <result column="transmitNumber" property="transmitNumber" jdbcType="INTEGER"/>
+        <result column="collectNumber" property="collectNumber" jdbcType="INTEGER"/>
+        <result column="is_delete" property="isDelete" jdbcType="TINYINT"/>
+        <result column="is_shield" property="isShield" jdbcType="TINYINT"/>
+        <result column="create_time" property="createTime" jdbcType="BIGINT"/>
+        <result column="modify_time" property="modifyTime" jdbcType="BIGINT"/>
+        <result column="publish_time" property="publishTime" jdbcType="BIGINT"/>
+        <result column="top_time" property="topTime" jdbcType="BIGINT"/>
+        <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR"/>
+        <collection property="newsInfoUploadList" resultMap="NewsInfoUploadResultMap" ofType="com.zssq.news.dao.pojo.NewsInfoUpload"/>
+    </resultMap>
+    <resultMap id="NewsInfoUploadResultMap" type="com.zssq.news.dao.pojo.NewsInfoUpload">
+        <result column="info_upload_code" property="infoUploadCode" jdbcType="VARCHAR"/>
+        <result column="info_type" property="infoType" jdbcType="TINYINT"/>
+        <result column="info_path" property="infoPath" jdbcType="VARCHAR"/>
+        <result column="info_org_name" property="infoOrgName" jdbcType="VARCHAR"/>
+        <result column="info_new_name" property="infoNewName" jdbcType="VARCHAR"/>
+        <result column="info_org_ext" property="infoOrgExt" jdbcType="VARCHAR"/>
+        <result column="info_new_ext" property="infoNewExt" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+    id, news_code, info_title, info_content_text, info_content_html, info_status, info_operator_code, 
+    info_creator_code, org_level, org_code, file_url, is_top, info_sort,is_hidden, is_archived, info_good_count,
+    info_comment_count,is_delete, is_shield, create_time, modify_time, publish_time, top_time, remark, tenant_code
+  </sql>
+    <sql id="BelongMain_Column_List">
+    t.id, t.news_code, t.info_title, t.info_content_text, t.info_content_html, t.info_status, t.info_operator_code,
+    t.info_creator_code, t.org_level, t.org_code, t.file_url, t.is_top, t.info_sort,t.is_hidden,is_archived, t.info_good_count,
+    t.info_comment_count,t.is_delete, t.is_shield, t.create_time, t.modify_time, publish_time, t.top_time, t.remark, t.tenant_code
+  </sql>
+
+    <!-- 自定义查询我是否点赞 -->
+    <sql id="queryIsPraise">
+        IF(
+        EXISTS(
+        SELECT
+        praise_people_code
+        FROM
+        news_praise
+        WHERE
+        praise_people_code = #{userCode}
+        AND
+        news_code = t.news_code
+        ),1,0)
+    </sql>
+    <!-- 自定义查询我是否收藏 -->
+    <sql id="queryIsCollect">
+        IF(
+        EXISTS(
+        SELECT
+        collect_people_code
+        FROM
+        news_collect
+        WHERE
+        collect_people_code = #{userCode}
+        AND
+        news_code = t.news_code
+        ),1,0)
+    </sql>
+    <sql id="news-where-condition">
+        <where>
+            <if test="selfFlag != null and selfFlag!='' ">
+                AND t.info_operator_code = #{userCode}
+            </if>
+            <if test="infoTitle != null and infoTitle!='' ">
+                AND t.info_title LIKE CONCAT('%',#{infoTitle},'%')
+            </if>
+            <if test="orgCode != null">
+                AND t.org_code = #{orgCode}
+            </if>
+            <if test="newsCode != null">
+                AND t.news_code = #{newsCode}
+            </if>
+            <if test="infoStatus != null">
+                AND t.info_status = #{infoStatus}
+            </if>
+            <if test="isDelete != null">
+                AND t.is_delete = #{isDelete}
+            </if>
+            <if test="isHidden != null">
+                AND t.is_hidden = #{isHidden}
+            </if>
+            <if test="isArchived != null">
+                AND t.is_archived = #{isArchived}
+            </if>
+            <if test="isShield != null">
+                AND t.is_shield = #{isShield}
+            </if>
+            <if test="isTop != null">
+                AND t.is_top = #{isTop}
+            </if>
+            <if test="sortStart != null">
+                AND info_sort &gt; ${sortStart}
+            </if>
+            <if test="sortEnd != null">
+                AND info_sort &lt; ${sortEnd}
+            </if>
+            <if test=" startTime != null and startTime >0">
+                AND ${startTime} &lt;= t.modify_time
+            </if>
+            <if test=" endTime != null and endTime >0">
+                AND t.modify_time &lt;= ${endTime}
+            </if>
+        </where>
+    </sql>
+    <sql id="collect-where-condition">
+        <where>
+            <if test="orgCode != null">
+                AND c.org_code = #{orgCode}
+            </if>
+            <if test="orgCode != null">
+                AND c.collect_people_code = #{userCode}
+            </if>
+            <if test="isDelete != null">
+                AND t.is_delete = #{isDelete}
+            </if>
+            <if test="isShield != null">
+                AND t.is_shield = #{isShield}
+            </if>
+            <if test="isHidden != null">
+                AND t.is_hidden = #{isHidden}
+            </if>
+            <if test="isArchived != null">
+                AND t.is_archived = #{isArchived}
+            </if>
+
+        </where>
+    </sql>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from news_info_content t
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+    <select id="selectByNewsCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List"/>
+        from news_info_content t
+        where news_code = #{newsCode,jdbcType=VARCHAR}
+    </select>
+    <select id="selectByNewsSort" resultMap="BaseResultMap" parameterType="com.zssq.news.model.NewsQuery">
+        select
+        <include refid="Base_Column_List"/>
+        from news_info_content t
+        <if test="_parameter != null">
+            <include refid="news-where-condition"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+        <if test="limitStart != null ">
+            limit #{limitStart} , #{pageSize}
+        </if>
+    </select>
+
+    <select id="selectCount" parameterType="com.zssq.news.model.NewsQuery" resultType="java.lang.Integer">
+        select count(*) from news_info_content t
+        <if test="_parameter != null">
+            <include refid="news-where-condition"/>
+        </if>
+    </select>
+
+    <select id="selectCollectNewsCount" parameterType="com.zssq.news.model.NewsQuery" resultType="java.lang.Integer">
+        select count(1) from news_collect c
+        left join news_info_content t on c.news_code = t.news_code
+        <if test="_parameter != null">
+            <include refid="collect-where-condition"/>
+        </if>
+    </select>
+
+    <select id="selectByQuery" parameterType="com.zssq.news.model.NewsQuery" resultMap="BaseResultMap">
+        select
+        DISTINCT
+        <include refid="Base_Column_List"/>
+        from news_info_content t
+        <if test="_parameter != null">
+            <include refid="news-where-condition"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+        <if test="limitStart != null ">
+            limit #{limitStart} , #{pageSize}
+        </if>
+    </select>
+
+    <select id="selectByArchivedCodes" parameterType="java.util.List" resultMap="BaseResultMap">
+        select
+        DISTINCT
+        <include refid="Base_Column_List"/>
+        from news_info_content t
+        WHERE t.info_status = 5
+        AND t.news_code IN
+        <foreach collection="list" item="newsCode" index="index"
+                 open="(" close=")" separator=",">
+            #{newsCode}
+        </foreach>
+    </select>
+
+    <select id="selectUserCollectNews" parameterType="com.zssq.news.model.NewsQuery" resultMap="NewsInfoContentPcResultMap">
+        select
+        <include refid="BelongMain_Column_List"/>,
+        <include refid="queryIsPraise"/>
+        AS isPraise,
+        <include refid="queryIsCollect"/>
+        AS isCollect,a.collectNumber, b.transmitNumber
+        from news_collect c
+        left join news_info_content t on c.news_code = t.news_code
+        LEFT JOIN
+        (SELECT DISTINCT
+        news_code,
+        COUNT(news_code) collectNumber
+        FROM
+        news_collect c
+        GROUP BY news_code) a
+        ON t.news_code = a.news_code
+        LEFT JOIN
+        (SELECT DISTINCT
+        news_code,
+        COUNT(news_code) transmitNumber
+        FROM
+        news_transmit s) b
+        ON t.news_code = b.news_code
+        <if test="_parameter != null">
+            <include refid="collect-where-condition"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+        <if test="limitStart != null ">
+            limit #{limitStart} , #{pageSize}
+        </if>
+    </select>
+
+    <select id="selectBySort" parameterType="com.zssq.news.model.NewsQuery" resultMap="BaseResultMap">
+        select
+        DISTINCT
+        <include refid="Base_Column_List"/>
+        from news_info_content t
+        <if test="_parameter != null">
+            <include refid="news-where-condition"/>
+        </if>
+        <if test="orderByClause != null">
+            order by #{orderByClause}
+        </if>
+        <if test="limitStart != null ">
+            limit #{limitStart} , #{pageSize}
+        </if>
+    </select>
+
+    <select id="selectMinSort" resultType="java.lang.Integer">
+        select
+        MIN(info_sort) -1
+        from news_info_content
+    </select>
+
+    <select id="selectByQueryPc" parameterType="com.zssq.news.model.NewsQuery" resultMap="NewsInfoContentPcResultMap">
+        SELECT DISTINCT
+        t.*,
+        <include refid="queryIsPraise"/>
+        AS isPraise,
+        <include refid="queryIsCollect"/>
+        AS isCollect,
+        a.collectNumber, b.transmitNumber,
+        u.*
+        FROM
+        news_info_content t
+        LEFT JOIN
+        (SELECT DISTINCT
+        news_code,
+        COUNT(news_code) collectNumber
+        FROM
+        news_collect c
+        GROUP BY news_code) a
+        ON t.news_code = a.news_code
+        LEFT JOIN
+        (SELECT DISTINCT
+        news_code,
+        COUNT(news_code) transmitNumber
+        FROM
+        news_transmit s GROUP BY news_code) b
+        ON t.news_code = b.news_code
+        LEFT JOIN news_info_upload u
+        ON t.news_code = u.news_code
+        <if test="_parameter != null">
+            <include refid="news-where-condition"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+        <if test="limitStart != null and limitStart&gt;=0">
+            limit #{limitStart} , #{pageSize}
+        </if>
+    </select>
+    <select id="getNewsInfoDetail" parameterType="com.zssq.news.model.NewsQuery" resultMap="BaseResultMap">
+        SELECT DISTINCT
+        t.*,
+        <include refid="queryIsPraise"/>
+        AS isPraise,
+        <include refid="queryIsCollect"/>
+        AS isCollect,
+        a.collectNumber, b.transmitNumber,
+        u.*
+        FROM
+        news_info_content t
+        LEFT JOIN
+        (SELECT DISTINCT
+        news_code,
+        COUNT(news_code) collectNumber
+        FROM
+        news_collect c
+        GROUP BY news_code) a
+        ON t.news_code = a.news_code
+        LEFT JOIN
+        (SELECT DISTINCT
+        news_code,
+        COUNT(news_code) transmitNumber
+        FROM
+        news_transmit s GROUP BY news_code) b
+        ON t.news_code = b.news_code
+        LEFT JOIN news_info_upload u
+        ON t.news_code = u.news_code
+        <if test="_parameter != null">
+            <include refid="news-where-condition"/>
+        </if>
+    </select>
+
+    <delete id="deleteByNewsCode" parameterType="com.zssq.news.model.NewsModel">
+         update news_info_content
+    set
+       is_delete =#{isDelete }
+    where news_code = #{newsCode }
+    </delete>
+
+    <insert id="insert" parameterType="com.zssq.news.dao.pojo.NewsInfoContent">
+    insert into news_info_content (id, news_code, info_title, 
+      info_content_text, info_content_html, info_status, 
+      info_operator_code, info_creator_code, org_level,
+      org_code, file_url, is_top, 
+      info_sort,is_hidden, is_archived, info_good_count, info_comment_count,is_delete,is_shield,
+      create_time, modify_time,publish_time, top_time, remark,
+      tenant_code)
+    values (#{id,jdbcType=BIGINT}, #{newsCode,jdbcType=VARCHAR}, #{infoTitle,jdbcType=VARCHAR}, 
+      #{infoContentText,jdbcType=LONGVARCHAR}, #{infoContentHtml,jdbcType=LONGVARCHAR}, #{infoStatus,jdbcType=TINYINT}, 
+      #{infoOperatorCode,jdbcType=VARCHAR}, #{infoCreatorCode,jdbcType=VARCHAR}, #{orgLevel,jdbcType=TINYINT},
+      #{orgCode,jdbcType=VARCHAR}, #{fileUrl,jdbcType=VARCHAR}, #{isTop,jdbcType=TINYINT},
+      #{infoSort,jdbcType=INTEGER},#{isHidden,jdbcType=INTEGER},#{isArchived,jdbcType=INTEGER}, #{infoGoodCount,jdbcType=INTEGER},
+      #{infoCommentCount,jdbcType=INTEGER},#{isDelete,jdbcType=INTEGER},#{isShield,jdbcType=INTEGER},
+      #{createTime,jdbcType=BIGINT}, #{modifyTime,jdbcType=BIGINT},#{publishTime,jdbcType=BIGINT}, #{topTime,jdbcType=BIGINT},
+      #{remark,jdbcType=VARCHAR},
+      #{tenantCode,jdbcType=VARCHAR})
+  </insert>
+    <insert id="insertSelective" parameterType="com.zssq.news.dao.pojo.NewsInfoContent">
+        insert into news_info_content
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="newsCode != null">
+                news_code,
+            </if>
+            <if test="infoTitle != null">
+                info_title,
+            </if>
+            <if test="infoContentText != null">
+                info_content_text,
+            </if>
+            <if test="infoContentHtml != null">
+                info_content_html,
+            </if>
+            <if test="infoStatus != null">
+                info_status,
+            </if>
+            <if test="infoOperatorCode != null">
+                info_operator_code,
+            </if>
+            <if test="infoCreatorCode != null">
+                info_creator_code,
+            </if>
+            <if test="orgLevel != null">
+                org_level,
+            </if>
+            <if test="orgCode != null">
+                org_code,
+            </if>
+            <if test="fileUrl != null">
+                file_url,
+            </if>
+            <if test="isTop != null">
+                is_top,
+            </if>
+            <if test="infoSort != null">
+                info_sort,
+            </if>
+            <if test="isHidden != null">
+                is_hidden,
+            </if>
+            <if test="isArchived != null">
+                is_archived,
+            </if>
+            <if test="infoGoodCount != null">
+                info_good_count,
+            </if>
+            <if test="infoCommentCount != null">
+                info_comment_count,
+            </if>
+            <if test="isDelete != null">
+                is_delete,
+            </if>
+            <if test="isShield != null">
+                is_shield,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="modifyTime != null">
+                modify_time,
+            </if>
+            <if test="publishTime != null">
+                publish_time,
+            </if>
+            <if test="topTime != null">
+                top_time,
+            </if>
+            <if test="remark != null">
+                remark,
+            </if>
+            <if test="tenantCode != null">
+                tenant_code,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=BIGINT},
+            </if>
+            <if test="newsCode != null">
+                #{newsCode,jdbcType=VARCHAR},
+            </if>
+            <if test="infoTitle != null">
+                #{infoTitle,jdbcType=VARCHAR},
+            </if>
+            <if test="infoContentText != null">
+                #{infoContentText,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="infoContentHtml != null">
+                #{infoContentHtml,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="infoStatus != null">
+                #{infoStatus,jdbcType=TINYINT},
+            </if>
+            <if test="infoOperatorCode != null">
+                #{infoOperatorCode,jdbcType=VARCHAR},
+            </if>
+            <if test="infoCreatorCode != null">
+                #{infoCreatorCode,jdbcType=VARCHAR},
+            </if>
+            <if test="orgLevel != null">
+                #{orgLevel,jdbcType=TINYINT},
+            </if>
+            <if test="orgCode != null">
+                #{orgCode,jdbcType=VARCHAR},
+            </if>
+            <if test="fileUrl != null">
+                #{fileUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="isTop != null">
+                #{isTop,jdbcType=TINYINT},
+            </if>
+            <if test="infoSort != null">
+                #{infoSort,jdbcType=INTEGER},
+            </if>
+            <if test="isHidden != null">
+                #{isHidden,jdbcType=INTEGER},
+            </if>
+            <if test="isArchived != null">
+                #{isArchived,jdbcType=INTEGER},
+            </if>
+            <if test="infoGoodCount != null">
+                #{infoGoodCount,jdbcType=INTEGER},
+            </if>
+            <if test="infoCommentCount != null">
+                #{infoCommentCount,jdbcType=INTEGER},
+            </if>
+            <if test="isDelete != null">
+                #{isDelete,jdbcType=INTEGER},
+            </if>
+            <if test="isShield != null">
+                #{isShield,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=BIGINT},
+            </if>
+            <if test="modifyTime != null">
+                #{modifyTime,jdbcType=BIGINT},
+            </if>
+            <if test="publishTime != null">
+                #{publishTime,jdbcType=BIGINT},
+            </if>
+            <if test="topTime != null">
+                #{topTime,jdbcType=BIGINT},
+            </if>
+            <if test="remark != null">
+                #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="tenantCode != null">
+                #{tenantCode,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.zssq.news.dao.pojo.NewsInfoContent">
+        update news_info_content
+        <set>
+            <if test="newsCode != null">
+                news_code = #{newsCode,jdbcType=VARCHAR},
+            </if>
+            <if test="infoTitle != null">
+                info_title = #{infoTitle,jdbcType=VARCHAR},
+            </if>
+            <if test="infoContentText != null">
+                info_content_text = #{infoContentText,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="infoContentHtml != null">
+                info_content_html = #{infoContentHtml,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="infoStatus != null">
+                info_status = #{infoStatus,jdbcType=TINYINT},
+            </if>
+            <if test="infoOperatorCode != null">
+                info_operator_code = #{infoOperatorCode,jdbcType=VARCHAR},
+            </if>
+            <if test="infoCreatorCode != null">
+                info_creator_code = #{infoCreatorCode,jdbcType=VARCHAR},
+            </if>
+            <if test="orgLevel != null">
+                org_level = #{orgLevel,jdbcType=TINYINT},
+            </if>
+            <if test="orgCode != null">
+                org_code = #{orgCode,jdbcType=VARCHAR},
+            </if>
+            <if test="fileUrl != null">
+                file_url = #{fileUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="isTop != null">
+                is_top = #{isTop,jdbcType=TINYINT},
+            </if>
+            <if test="infoSort != null">
+                info_sort = #{infoSort,jdbcType=INTEGER},
+            </if>
+            <if test="isHidden != null">
+                is_hidden = #{isHidden,jdbcType=INTEGER},
+            </if>
+            <if test="isArchived != null">
+                is_archived = #{isArchived,jdbcType=INTEGER},
+            </if>
+            <if test="infoGoodCount != null">
+                info_good_count = #{infoGoodCount,jdbcType=INTEGER},
+            </if>
+            <if test="infoCommentCount != null">
+                info_comment_count = #{infoCommentCount,jdbcType=INTEGER},
+            </if>
+            <if test="isDelete != null">
+                is_delete = #{isDelete,jdbcType=INTEGER},
+            </if>
+            <if test="isShield != null">
+                is_shield = #{isShield,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=BIGINT},
+            </if>
+            <if test="modifyTime != null">
+                modify_time = #{modifyTime,jdbcType=BIGINT},
+            </if>
+            <if test="publishTime != null">
+                publish_time = #{publishTime,jdbcType=BIGINT},
+            </if>
+            <if test="topTime != null">
+                top_time = #{topTime,jdbcType=BIGINT},
+            </if>
+            <if test="remark != null">
+                remark = #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="tenantCode != null">
+                tenant_code = #{tenantCode,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.zssq.news.dao.pojo.NewsInfoContent">
+    update news_info_content
+    set news_code = #{newsCode,jdbcType=VARCHAR},
+      info_title = #{infoTitle,jdbcType=VARCHAR},
+      info_content_text = #{infoContentText,jdbcType=LONGVARCHAR},
+      info_content_html = #{infoContentHtml,jdbcType=LONGVARCHAR},
+      info_status = #{infoStatus,jdbcType=TINYINT},
+      info_operator_code = #{infoOperatorCode,jdbcType=VARCHAR},
+      info_creator_code = #{infoCreatorCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      file_url = #{fileUrl,jdbcType=VARCHAR},
+      is_top = #{isTop,jdbcType=TINYINT},
+      info_sort = #{infoSort,jdbcType=INTEGER},
+      is_hidden = #{isHidden,jdbcType=INTEGER},
+      is_archived = #{isArchived,jdbcType=INTEGER},
+      info_good_count = #{infoGoodCount,jdbcType=INTEGER},
+      info_comment_count = #{infoCommentCount,jdbcType=INTEGER},
+      is_delete = #{isDelete,jdbcType=INTEGER},
+      is_shield = #{isShield,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      publish_time = #{publishTime,jdbcType=BIGINT},
+      top_time = #{topTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+    <update id="updateNewsHidden" parameterType="com.zssq.news.dao.pojo.NewsInfoContent">
+    update news_info_content
+    set
+        is_hidden = #{isHidden,jdbcType=INTEGER},
+       info_status =  #{infoStatus,jdbcType=INTEGER}
+    where news_code = #{newsCode,jdbcType=VARCHAR}
+  </update>
+
+    <update id="updateArchiveNews" parameterType="map">
+        update news_info_content
+        set
+        is_archived = #{isArchived,jdbcType=INTEGER},
+        info_status = #{infoStatus,jdbcType=INTEGER} ,
+        modify_time = #{modifyTime,jdbcType=BIGINT}
+        where t.news_code IN
+        <foreach collection="newsCodeList" item="newsCode" index="index"
+                 open="(" close=")" separator=",">
+            #{newsCode}
+        </foreach>
+    </update>
+
+    <update id="updateNewsCommentCount" parameterType="map">
+        update news_info_content
+        set
+        is_archived = #{isArchived,jdbcType=INTEGER},
+        info_status = #{infoStatus,jdbcType=INTEGER} ,
+        modify_time = #{modifyTime,jdbcType=BIGINT}
+        where t.news_code IN
+        <foreach collection="newsCodeList" item="newsCode" index="index"
+                 open="(" close=")" separator=",">
+            #{newsCode}
+        </foreach>
+    </update>
+
+    <update id="updateNews" parameterType="map">
+        update news_info_content
+        <set>
+            <if test="infoTitle != null">
+                info_title = #{infoTitle,jdbcType=VARCHAR},
+            </if>
+            <if test="infoContentText != null">
+                info_content_text = #{infoContentText,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="infoContentHtml != null">
+                info_content_html = #{infoContentHtml,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="infoStatus != null">
+                info_status = #{infoStatus,jdbcType=TINYINT},
+            </if>
+            <if test="infoOperatorCode != null">
+                info_operator_code = #{infoOperatorCode,jdbcType=VARCHAR},
+            </if>
+            <if test="infoCreatorCode != null">
+                info_creator_code = #{infoCreatorCode,jdbcType=VARCHAR},
+            </if>
+            <if test="orgLevel != null">
+                org_level = #{orgLevel,jdbcType=TINYINT},
+            </if>
+            <if test="orgCode != null">
+                org_code = #{orgCode,jdbcType=VARCHAR},
+            </if>
+            <if test="fileUrl != null">
+                file_url = #{fileUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="isTop != null">
+                is_top = #{isTop,jdbcType=TINYINT},
+            </if>
+            <if test="infoSort != null">
+                info_sort = #{infoSort,jdbcType=INTEGER},
+            </if>
+            <if test="isHidden != null">
+                is_hidden = #{isHidden,jdbcType=INTEGER},
+            </if>
+            <if test="isArchived != null">
+                is_archived = #{isArchived,jdbcType=INTEGER},
+            </if>
+            <if test="infoGoodCount != null">
+                info_good_count = #{infoGoodCount,jdbcType=INTEGER},
+            </if>
+            <if test="infoCommentCount != null">
+                info_comment_count = #{infoCommentCount,jdbcType=INTEGER},
+            </if>
+            <if test="isDelete != null">
+                is_delete = #{isDelete,jdbcType=INTEGER},
+            </if>
+            <if test="isShield != null">
+                is_shield = #{isShield,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=BIGINT},
+            </if>
+            <if test="modifyTime != null">
+                modify_time = #{modifyTime,jdbcType=BIGINT},
+            </if>
+            <if test="publishTime != null">
+                publish_time = #{publishTime,jdbcType=BIGINT},
+            </if>
+            <if test="topTime != null">
+                top_time = #{topTime,jdbcType=BIGINT},
+            </if>
+            <if test="remark != null">
+                remark = #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="tenantCode != null">
+                tenant_code = #{tenantCode,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where news_code = #{newsCode,jdbcType=VARCHAR}
+    </update>
+</mapper>

@@ -1,0 +1,372 @@
+package com.zssq.msg.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.constants.CreditConstants;
+import com.zssq.dao.pojo.MessageIntegral;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.dao.pojo.UserMsgBoard;
+import com.zssq.dao.pojo.UserMsgSys;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.model.MessageAddSystemModel;
+import com.zssq.model.MessageSystemModel;
+import com.zssq.msg.vo.AddSystemVO;
+import com.zssq.msg.vo.BoardMsgVO;
+import com.zssq.msg.vo.DeleteBoardVO;
+import com.zssq.msg.vo.DeleteSystemVO;
+import com.zssq.msg.vo.MsgInfoVO;
+import com.zssq.msg.vo.SystemListVO;
+import com.zssq.pojo.Message;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.ISysUserService;
+import com.zssq.service.MessageSystemService;
+import com.zssq.service.MessagerBoradService;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PropertiesUtil;
+
+
+/**
+ * 
+ * @ClassName: MsgSystemController  
+ * @Description: 系統消息  
+ * @author YDB  
+ * @date 2017年4月5日  
+ *
+ */
+@Controller
+@RequestMapping("/msg")
+public class MsgSystemController {
+
+	private Logger logger = LoggerFactory.getLogger(this.getClass());	
+
+	
+	@Autowired
+	private MessageSystemService messageSystemService;
+	
+	@Autowired
+	private ISysUserService userService;
+	
+	@Autowired
+	private MessagerBoradService boardService;
+	
+	
+	/**
+	 * 
+	 * @Title: getSystemMsgList  
+	 * @Description: 获取系统消息列表
+	 * @param vo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping("/getSystemMsgList")
+	@ResponseBody
+	public ResultJSON getSystemMsgList(@RequireValid SystemListVO vo) throws BusinessException{
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		
+		JSONObject json=new JSONObject();
+		JSONArray jsonArray=new JSONArray();
+		try {
+			
+			MessageSystemModel sysModel =new MessageSystemModel();
+			sysModel.setPageNo(Integer.parseInt(vo.getPageNo()));
+			sysModel.setPageSize(Integer.parseInt(vo.getPageSize()));
+			sysModel.setTitle(vo.getTitle());
+			sysModel.setUserCode(vo.getUserCode());
+			
+			
+			//查询条件
+			PageBean pageBean=messageSystemService.getSystemMsgList(sysModel);
+			List<UserMsgSys> list=pageBean.getRecordList();
+			
+			List<String> userCodeList=new ArrayList<>();
+			for (int i = 0; i < list.size(); i++) {
+				userCodeList.add(list.get(i).getUserCode());
+			}
+			List<SysUserInfo> userInfoList=userService.selectByCodes(userCodeList);
+			
+		
+			for(int i=0;i<list.size();i++){
+				UserMsgSys temp=list.get(i);
+				json.put("infoCode",temp.getSysCode());
+				json.put("infoTitle",temp.getTitle());
+				json.put("infoPublisherTime",temp.getCreateTime());
+				
+				json.put("userMsgCode",temp.getUserCode());
+				
+				for (int k=0;k<userInfoList.size();k++) {
+					if(list.get(i).getUserCode().equals(userInfoList.get(k).getUserCode())){
+						json.put("infoPublisher",userInfoList.get(k).getUserName());
+						continue;
+					}
+				}
+				
+				
+				jsonArray.add(json);
+				json=new JSONObject();
+			}
+			
+			json.put("totalCount", pageBean.getTotalCount());
+			json.put("msgList", jsonArray);
+			
+			m = PropertiesUtil.getMessage("COMMON_200");
+			resJson.setReturnCode(m.getCode());
+			resJson.setReturnTip(m.getTip());
+			resJson.setBody(JSONObject.toJSON(json));
+        	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			logger.error("获取系统消息列表-gl-getSystemMsgList:"+JSONObject.toJSONString(vo), e);
+			throw new BusinessException().build("MSG_26001","获取列表");
+		}
+		
+		return resJson;
+		
+	}
+	
+	
+	
+	/**
+	 * 
+	 * @Title: delMessageSystem  
+	 * @Description:删除系统消息
+	 * @param vo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping("/delMessageSystem")
+	@ResponseBody
+	public ResultJSON delMessageSystem(@RequireValid DeleteSystemVO vo) throws BusinessException{
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		JSONObject json=new JSONObject();
+
+		try {
+			
+			boolean state=false;
+			state=messageSystemService.delMessageSystem(vo.getMsgCode(),vo.getUserCode());
+					
+			
+			//成功
+			m = PropertiesUtil.getMessage("COMMON_200");
+			json.put("result",state?0:1);
+			
+			if(state){
+				resJson.setReturnCode(m.getCode());
+				resJson.setReturnTip(m.getTip());
+				
+			}else{
+				resJson.setReturnCode(m.getCode());
+				resJson.setReturnTip("删除失败");
+				
+			}
+			resJson.setBody(JSONObject.toJSON(json));
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			logger.error("删除系统消息-gl-delMessageSystem"+JSONObject.toJSONString(vo), e);
+			
+			throw new BusinessException().build("MSG_26001","删除");
+		}
+		
+		return resJson;
+		
+	}
+	
+	
+	/**
+	 * 
+	 * @Title: addMsgInfo  
+	 * @Description: 添加消息
+	 * @param vo
+	 * @return    参数  
+	 * @return: ResultJSON    返回类型
+	 * @throws BusinessException 
+	 */
+	@RequestMapping("/addMsgInfo")
+	@ResponseBody
+	public ResultJSON addMsgInfo(@RequireValid AddSystemVO vo) throws BusinessException{
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		JSONObject json=new JSONObject();
+		SysUserInfo userInfo=userService.selectByCode(vo.getUserCode());
+		
+		
+		String userOrgType=userInfo.getManageOrgInfo().getSysOrgType();
+		int showType=0;
+		
+		if(userOrgType.equals("A")){
+			showType=1;
+		}
+		if(userOrgType.equals("B")){
+			showType=2;
+		}
+		if(userOrgType.equals("C")){
+			showType=3;
+		}
+		//此版本只在当前级别显示,如果扩展显示当前级别以下，去掉 showType=3;
+		showType=3;
+		
+		MessageAddSystemModel sysModel=new MessageAddSystemModel();
+		sysModel.setContent(vo.getInfoContent());
+		sysModel.setOrgCode(userInfo.getManageOrgInfo().getSysOrgCode());
+		sysModel.setShowOrgCode(userInfo.getManageOrgInfo().getSysOrgCode());
+		sysModel.setTenantCode(userInfo.getTenantCode());
+		sysModel.setTitle(vo.getInfoTitle());
+		sysModel.setUserCode(vo.getUserCode());
+		sysModel.setShowType(showType);
+		
+		try {
+			
+			boolean state=false;
+			state=messageSystemService.addMessageSystem(sysModel);
+			//成功
+			m = PropertiesUtil.getMessage("COMMON_200");
+			json.put("result",state?0:1);
+        	
+			resJson.setReturnCode(m.getCode());
+			resJson.setReturnTip(state?m.getTip():"添加失败");
+			resJson.setBody(JSONObject.toJSON(json));
+			
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			logger.error("添加系统消息-gl-addMsgInfo:"+JSONObject.toJSONString(vo),e);
+			throw new BusinessException().build("MSG_26001","添加消息");
+		}
+		
+		return resJson;
+	}
+	
+	/**
+	 * 
+	 * @Title: 查看系统消息详情
+	 * @Description:查看系统消息详情
+	 * @param vo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping("/getMsgInfo")
+	@ResponseBody
+	public ResultJSON getMsgInfo(@RequireValid MsgInfoVO vo) throws BusinessException{
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		JSONObject json=new JSONObject();
+		try {
+			
+			SysUserInfo userInfo=userService.selectByCode(vo.getUserCode());
+			UserMsgSys msgInfo=messageSystemService.getMsgSysInfo(vo.getMsgCode());
+			
+			m = PropertiesUtil.getMessage("COMMON_200");
+			json.put("result",0);
+			json.put("msgInfo", msgInfo.getContent());
+			json.put("title", msgInfo.getTitle());
+			json.put("creatTime", msgInfo.getCreateTime());
+			json.put("userName", userInfo.getUserName());
+			
+			resJson.setReturnCode(m.getCode());
+			resJson.setReturnTip(m.getTip());
+			resJson.setBody(JSONObject.toJSON(json));
+        	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			logger.error("获取系统消息详情-gl-getMsgInfo:"+JSONObject.toJSONString(vo), e);
+			throw new BusinessException().build("MSG_26001","获取详情");
+		}
+		
+		return resJson;
+		
+	}
+	
+	
+	
+	
+	/**
+	 * 
+	 * @Title: 管理端获取留言板  
+	 * @Description: 留言板
+	 * @param vo 
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping("/getMsgBoardList")
+	@ResponseBody
+	public ResultJSON getBoardMsgList(@RequireValid BoardMsgVO vo) throws BusinessException{
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		
+		JSONObject json=new JSONObject();
+		JSONArray jsonList=new JSONArray();
+		try {
+			
+			PageBean pageBean=boardService.ManagementBoardMsg(Integer.parseInt(vo.getPageSize()), Integer.parseInt(vo.getPageNo()), vo.getOrgCode());	
+
+			List<UserMsgBoard> boardList= pageBean.getRecordList();
+			List<String> userCodeList=new ArrayList<>();
+			
+			for(UserMsgBoard temp:boardList){
+				userCodeList.add(temp.getUserCode());
+			}
+
+			Map<String, Object>  userMap=userService.selectMapByCodes(userCodeList);
+			
+			for(UserMsgBoard board:boardList){
+				SysUserInfo userInfo=(SysUserInfo) userMap.get(board.getUserCode());
+				
+				json.put("userName",userInfo.getUserName());
+				json.put("orgName",userInfo.getManageOrgInfo().getSysOrgName());
+				json.put("createTime",board.getCreateTime());
+				json.put("content",board.getContent());
+				json.put("userCode",board.getUserCode());
+				json.put("receiveUserCode",board.getUserCode());
+				json.put("msgCode",board.getMessageBoardCode());
+				jsonList.add(json);
+				json=new JSONObject();
+			}
+			
+			m = PropertiesUtil.getMessage("COMMON_200");
+			
+			json.put("totalCount", pageBean.getTotalCount());
+			json.put("msgList", jsonList);
+			resJson.setReturnCode(m.getCode());
+			resJson.setReturnTip(m.getTip());
+			resJson.setBody(JSONObject.toJSON(json));
+			
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			logger.error("获取留言表-getMsgBoardList():"+JSONObject.toJSONString(vo),e);
+			throw new BusinessException().build("MSG_26001", "留言");
+		}
+		
+		return resJson;
+		
+	}
+	
+	
+	
+	
+}

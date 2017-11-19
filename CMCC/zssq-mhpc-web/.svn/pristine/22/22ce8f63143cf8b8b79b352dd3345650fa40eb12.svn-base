@@ -1,0 +1,92 @@
+package com.zssq.knowledgeLib.controller;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+/**
+ * 
+ * @ClassName: RepositoryKnowledgeContentController  
+ * @Description: 知识正文  
+ * @author sry  
+ * @date 2017年4月28日  
+ *
+ */
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.knowledgeLib.vo.GetPortalKnowledgeContentVo;
+import com.zssq.model.RepositoryKnowledgeContentMH;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.RepositoryKnowledgeContentService;
+import com.zssq.utils.StringTools;
+import com.zssq.vo.RepositoryKnowledgeContentVo;
+/**
+ * 
+ * @ClassName: RepositoryKnowledgeContentController  
+ * @Description: 知识内容  
+ * @author sry  
+ * @date 2017年6月13日  
+ *
+ */
+@Controller
+@RequestMapping("/knowledgeLib")
+public class RepositoryKnowledgeContentController {
+
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private RepositoryKnowledgeContentService knowledgeContentService;
+	/**
+	 * 
+	 * @Title: getPortalKnowledgeInfo  
+	 * @Description: TODO
+	 * @param param
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping(value="getPortalKnowledgeInfo",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getPortalKnowledgeInfo(@RequireValid GetPortalKnowledgeContentVo param) throws BusinessException {
+		
+		//返回值
+		ResultJSON resultJSON = null;
+		
+		try {
+			//方法进入
+			log.info("RepositoryKnowledgeContentController.getPortalKnowledgeInfo:查询知识正文");
+			
+			String contentCode = StringTools.formatToString(param.getContentCode());//正文编号
+			//String userCode = StringTools.formatToString(param.getUserCode());//用户编号
+			
+			//拼接参数
+			RepositoryKnowledgeContentVo infoVo = new RepositoryKnowledgeContentVo();
+			infoVo.setContentCode(contentCode);
+			RepositoryKnowledgeContentMH content = knowledgeContentService.getKnowledgeContentForMH(infoVo);
+			if(content==null){
+				log.error("RepositoryKnowledgeContentController.getPortalKnowledgeInfo：查询失败");
+				throw BusinessException.build("KNOWLEDGELIB_27002", "查询");
+			}
+			//组装 返回参数
+			JSONObject body = new JSONObject();
+			body.put("contentInfo", content.getContentInfo());
+			resultJSON = new ResultJSON("COMMON_200", "查询知识正文");
+			resultJSON.setBody(body);
+			
+			//方法出去
+			log.info("RepositoryKnowledgeContentController.getPortalKnowledgeInfo:查询知识正文成功");
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("RepositoryKnowledgeContentController.getPortalKnowledgeInfo", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+		return resultJSON;
+		
+	}
+}

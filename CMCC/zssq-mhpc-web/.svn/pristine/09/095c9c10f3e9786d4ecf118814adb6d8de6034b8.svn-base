@@ -1,0 +1,1078 @@
+package com.zssq.disk.controller;
+
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.constants.CreditConstants;
+import com.zssq.constants.RelationConstants;
+import com.zssq.dao.pojo.DiskFile;
+import com.zssq.dao.pojo.MessageIntegral;
+import com.zssq.dao.pojo.RelationDynamic;
+import com.zssq.dao.pojo.RelationSubjectInfo;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.disk.vo.AddFileVo;
+import com.zssq.disk.vo.CopyFoladerVO;
+import com.zssq.disk.vo.CopyVO;
+import com.zssq.disk.vo.CreateVO;
+import com.zssq.disk.vo.DelFileVO;
+import com.zssq.disk.vo.DiskManListVO;
+import com.zssq.disk.vo.GetFolderVO;
+import com.zssq.disk.vo.GetIndexFileVO;
+import com.zssq.disk.vo.MoveVO;
+import com.zssq.disk.vo.NewNameVO;
+import com.zssq.disk.vo.OpenFolderListVO;
+import com.zssq.disk.vo.QueryFileNameVO;
+import com.zssq.disk.vo.ReductionVO;
+import com.zssq.disk.vo.ShareFileVO;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.kafka.core.KafkaProducerTemplate;
+import com.zssq.model.CopyFileAllVO;
+import com.zssq.model.CopyFileVO;
+import com.zssq.model.CreatFolderVO;
+import com.zssq.model.FileVO;
+import com.zssq.model.MoveFileVO;
+import com.zssq.model.RFileVO;
+import com.zssq.model.ReturnMsg;
+import com.zssq.model.RnameVO;
+import com.zssq.pojo.Message;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.DiskFileService;
+import com.zssq.service.ISysUserService;
+import com.zssq.service.RelationThirdDynamicService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.DateUtils;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PropertiesUtil;
+
+/**
+ * 
+ * @ClassName: DiskController  
+ * @Description: 网盘
+ * @author YDB  
+ * @date 2017年4月17日  
+ *
+ */
+
+@Controller
+@RequestMapping("disk")
+public class DiskController {
+
+	private Logger logger = LoggerFactory.getLogger(this.getClass());	
+
+	
+	@Autowired
+	private RelationThirdDynamicService dynamicService;
+	
+	@Autowired
+	private DiskFileService diskFileService;
+	
+	@Autowired
+	private ISysUserService userService;
+	
+	@SuppressWarnings("rawtypes")
+	@Autowired
+	private KafkaProducerTemplate producerTeplate;
+	/**
+	 * 
+	 * @Title: getDiskMainList  
+	 * @Description: 获取网盘主列表
+	 * @param vo
+	 * @return    参数  
+	 * @return: ResultJSON    返回类型
+	 * @throws BusinessException 
+	 */
+	@RequestMapping("/getDiskMainList")
+	@ResponseBody
+	public ResultJSON getDiskMainList(@RequireValid DiskManListVO vo) throws BusinessException{
+		
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		JSONArray jsonList=new JSONArray();	
+		JSONObject json=new JSONObject();
+		
+		try {
+			
+			//查询条件
+			PageBean pageBean =diskFileService.getDiskMainList(vo.getFileName(),vo.getOrgCode(),Integer.parseInt(vo.getPageSize()),Integer.parseInt(vo.getPageNo()));
+			List<DiskFile> list=pageBean.getRecordList();
+				
+			List<String> userCodeList=new ArrayList<>();
+			
+			for (int i = 0; i < list.size(); i++) {
+				userCodeList.add(list.get(i).getUserCode());
+			}
+			
+			Map<String, Object> userMap=userService.selectMapByCodes(userCodeList);
+
+			//返回值封装
+			for(int i=0;i<list.size();i++){
+				DiskFile file=list.get(i);
+				json.put("fileName",file.getFileName());
+				json.put("suffix",file.getFileSuffix());
+				json.put("size",file.getFileSize());
+				
+				SysUserInfo userInfo=(SysUserInfo)userMap.get(file.getUserCode());
+				json.put("fileType",file.getFileType());
+				json.put("editTime",file.getEditTime());
+				json.put("fileUrl",file.getFileUrl());
+				json.put("fileCode",file.getFileCode());
+				json.put("parentCode",file.getParentCode());
+				json.put("userCode",file.getUserCode());
+				json.put("suffix",file.getFileSuffix());
+				
+				if(userInfo!=null){
+				   json.put("userName", userInfo.getUserName());
+				}else{
+					json.put("userName","");
+				}
+				
+				jsonList.add(json);
+				json=new JSONObject();
+			}
+
+			m = PropertiesUtil.getMessage("COMMON_200");
+			
+			json.put("list", jsonList);
+			
+			json.put("totalCount", pageBean.getTotalCount());
+			resJson.setReturnCode(m.getCode());
+			resJson.setReturnTip(m.getTip());
+			resJson.setBody(JSONObject.toJSON(json));
+        	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			logger.error("网盘获取主列表-getDiskMainList:"+JSONObject.toJSONString(vo),e);
+			
+			throw new BusinessException().build("DISK_24001","获取列表");
+		}
+		
+		return resJson;
+		
+	}
+	
+	
+	
+	
+	
+	/**
+	 * 
+	 * @Title: openFolderList  
+	 * @Description: 打开文件夹
+	 * @param vo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping("/openFolderList")
+	@ResponseBody
+	public ResultJSON openFolderList(@RequireValid OpenFolderListVO openVo) throws BusinessException{
+		
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		JSONArray jsonList=new JSONArray();	
+		JSONObject json=new JSONObject();
+		
+		try {
+			
+			//查询条件
+			PageBean pageBean=diskFileService.OpentDiskFolderList(openVo.getFileCode(),Integer.parseInt(openVo.getPageSize()),Integer.parseInt(openVo.getPageNo()));				
+			
+			List<DiskFile> list=pageBean.getRecordList();
+			
+			List<String> userCodeList=new ArrayList<>();
+			for (int i = 0; i < list.size(); i++) {
+				userCodeList.add(list.get(i).getUserCode());
+			}
+			
+			Map<String, Object> userMap=userService.selectMapByCodes(userCodeList);
+
+			//返回值封装
+			for(int i=0;i<list.size();i++){
+				DiskFile file=list.get(i);
+				json.put("fileName",file.getFileName());
+				json.put("suffix",file.getFileSuffix());
+				json.put("size",file.getFileSize());
+				
+				SysUserInfo userInfo=(SysUserInfo)userMap.get(file.getUserCode());
+				json.put("fileType",file.getFileType());
+				json.put("editTime",file.getEditTime());
+				json.put("fileUrl",file.getFileUrl());
+				json.put("fileCode",file.getFileCode());
+				json.put("parentCode",file.getParentCode());
+				json.put("userCode",file.getUserCode());
+				json.put("suffix",file.getFileSuffix());
+				if(userInfo!=null){
+					json.put("userName",userInfo.getUserName());
+				}else{
+					json.put("userName","");
+				}
+				
+				
+				jsonList.add(json);
+				json=new JSONObject();
+			}
+
+			m = PropertiesUtil.getMessage("COMMON_200");
+			
+			json.put("list", jsonList);
+			json.put("totalCount", pageBean.getTotalCount());
+			resJson.setReturnCode(m.getCode());
+			resJson.setReturnTip(m.getTip());
+			resJson.setBody(JSONObject.toJSON(json));
+        	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			logger.error("打开文件夹-openFolderList:"+JSONObject.toJSONString(openVo),e);
+			throw new BusinessException().build("DISK_24001", "打开");
+		}
+		
+		return resJson;
+		
+	}
+		
+	/**
+	 * 
+	 * @Title: delFile  
+	 * @Description: 删除文件
+	 * @param vo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping("/delFile")
+	@ResponseBody
+	public ResultJSON delFile(@RequireValid DelFileVO vo) throws BusinessException{
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		JSONObject json=new JSONObject();
+
+		try {
+			
+			 FileVO  filVo=new FileVO();
+			 
+			 filVo.setEditUserCode(vo.getUserCode());
+			 filVo.setFileCode(vo.getFileCode());
+			ReturnMsg retMsg=diskFileService.delFile(filVo);
+			
+				
+				m = PropertiesUtil.getMessage("COMMON_200");
+				json.put("result",retMsg.isState()?0:1);
+				resJson.setReturnCode(m.getCode());
+				resJson.setReturnTip(m.getTip());
+				resJson.setBody(JSONObject.toJSON(json));
+				
+        	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			logger.error("删除文件-delFile:"+JSONObject.toJSONString(vo),e);
+			
+			m = PropertiesUtil.getMessage("DISK_24002");
+			throw new BusinessException(m.getCode(), m.getTip());
+		}
+		
+		return resJson;
+		
+	}
+
+
+	
+	/**
+	 * 
+	 * @Title: getDiskFolderList  
+	 * @Description: 获取文件夹列表
+	 * @param vo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping("/getFolderList")
+	@ResponseBody
+	public ResultJSON getFolderList(@RequireValid GetFolderVO folderVo) throws BusinessException{
+		
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		JSONArray jsonList=new JSONArray();	
+		JSONObject json=new JSONObject();
+		
+		try {
+			FileVO vo=new FileVO();
+			vo.setFileCode(folderVo.getFileCode());
+			vo.setUserCode(folderVo.getUserCode());
+			vo.setOrgCode(folderVo.getOrgCode());
+			//查询条件
+			List<DiskFile> list=diskFileService.getFolderList(vo);				
+			//返回值封装
+			for(int i=0;i<list.size();i++){
+				DiskFile file=new DiskFile();
+				json.put("fileName",file.getFileName());
+				json.put("suffix",file.getFileSuffix());
+				json.put("size",file.getFileSize());
+				json.put("userName","");
+				json.put("fileType",file.getFileType());
+				json.put("editTime",file.getEditTime());
+				json.put("fileUrl",file.getFileUrl());
+				json.put("fileCode",file.getFileCode());
+				json.put("parentCode",file.getParentCode());
+				json.put("userCode",file.getUserCode());
+				json.put("suffix",file.getFileSuffix());
+				jsonList.add(json);
+				json=new JSONObject();
+			}
+
+			m = PropertiesUtil.getMessage("COMMON_200");
+			
+			json.put("list", list);
+			resJson.setReturnCode(m.getCode());
+			resJson.setReturnTip(m.getTip());
+			resJson.setBody(JSONObject.toJSON(json));
+        	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			logger.error("获取文件夹列表-getFolderList:"+JSONObject.toJSONString(folderVo),e);
+			m = PropertiesUtil.getMessage("DISK_24001");
+			throw new BusinessException(m.getCode(), m.getTip());
+		}
+		
+		return resJson;
+		
+	}	
+	
+	
+	/**
+	 * 
+	 * @Title: moveFile  
+	 * @Description: 移动文件
+	 * @param vo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping("/moveFile")
+	@ResponseBody
+	public ResultJSON moveFile(@RequireValid MoveVO vo) throws BusinessException{
+		
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		JSONObject json=new JSONObject();
+		
+		try {
+			MoveFileVO filVo=new MoveFileVO();
+			filVo.setFileCode(vo.getFileCode());
+			filVo.setFileName(vo.getFileName());
+			filVo.setFileSuffix(vo.getFileSuffix());
+			filVo.setNewFolderCode(vo.getNewFolderCode());
+			filVo.setUserCode(vo.getUserCode());
+			filVo.setParentCode(vo.getParentCode());
+			filVo.setEditTime(DateUtils.getTime());
+			
+			ReturnMsg retMsg=diskFileService.moveFile(filVo);
+			
+			if(retMsg.isState()){
+				
+				m = PropertiesUtil.getMessage("COMMON_200");
+				json.put("result",retMsg.isState()?0:1);
+				json.put("msg",retMsg.getMsg());
+				resJson.setReturnCode(m.getCode());
+				resJson.setReturnTip(m.getTip());
+				resJson.setBody(JSONObject.toJSON(json));
+				
+			}else{
+				
+				throw new BusinessException();
+			}
+       	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			logger.error("移动文件-moveFile："+JSONObject.toJSONString(vo),e);
+			m = PropertiesUtil.getMessage("DISK_24002");
+			throw new BusinessException(m.getCode(), m.getTip());
+		}
+		
+		return resJson;
+	}	
+	
+	
+	/**
+	 * 
+	 * @Title: copyFile
+	 * @Description: 复制到
+	 * @param vo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping("/copyFile")
+	@ResponseBody
+	public ResultJSON copyFile(@RequireValid CopyVO vo) throws BusinessException{
+		
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		JSONObject json=new JSONObject();
+		
+		try {
+			CopyFileVO fileVo=new CopyFileVO();
+			
+			fileVo.setCopyFileCode(vo.getCopyFolderCode());
+			fileVo.setFileCode(vo.getFileCode());
+			fileVo.setFileName(vo.getFileName());
+			fileVo.setFileSuffix(vo.getFileSuffix());
+			fileVo.setParentCode(vo.getParentCode());
+			
+			ReturnMsg retMsg=diskFileService.copyFile(fileVo);
+			
+			if(retMsg.isState()){
+				
+				m = PropertiesUtil.getMessage("COMMON_200");
+				json.put("result",retMsg.isState()?0:1);
+				json.put("msg",retMsg.getMsg());
+				resJson.setReturnCode(m.getCode());
+				resJson.setReturnTip(m.getTip());
+				resJson.setBody(JSONObject.toJSON(json));
+				
+			}else{
+				
+				throw new BusinessException();
+			}
+       	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			m = PropertiesUtil.getMessage("DISK_24002");
+			throw new BusinessException(m.getCode(), m.getTip());
+		}
+		
+		return resJson;
+	}	
+	
+	
+	
+
+	/**
+	 * 
+	 * @Title: 
+	 * @Description: 复制文件夹
+	 * @param vo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	/*@RequestMapping("/copyFolder")
+	@ResponseBody
+	public ResultJSON copyFolder(@RequireValid CopyFoladerVO vo) throws BusinessException{
+		
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		JSONObject json=new JSONObject();
+		
+		try {
+			CopyFileAllVO fileVo=new CopyFileAllVO();
+			fileVo.setFileCode(vo.getFileCode());
+			fileVo.setParentCode(vo.getParentCode());
+			fileVo.setUserCode(vo.getUserCode());
+			
+			ReturnMsg retMsg=diskFileService.copyFolder(fileVo);
+			
+			if(retMsg.isState()){
+				
+				m = PropertiesUtil.getMessage("COMMON_200");
+				json.put("result",retMsg.isState()?0:1);
+				json.put("msg",retMsg.getMsg());
+				resJson.setReturnCode(m.getCode());
+				resJson.setReturnTip(m.getTip());
+				resJson.setBody(JSONObject.toJSON(json));
+				
+			}else{
+				
+				throw new BusinessException();
+			}
+       	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			m = PropertiesUtil.getMessage("DISK_24002");
+			throw new BusinessException(m.getCode(), m.getTip());
+		}
+		
+		return resJson;
+	}	*/
+	
+	
+	
+	/**
+	 * 
+	 * @Title: 
+	 * @Description: 重命名
+	 * @param vo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping("/rname")
+	@ResponseBody
+	public ResultJSON Rname(@RequireValid NewNameVO vo) throws BusinessException{
+		
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		JSONObject json=new JSONObject();
+		
+		try {
+			RnameVO  fileVo=new RnameVO();
+			fileVo.setFileCode(vo.getFileCode());
+			fileVo.setNewName(vo.getNewName());
+			fileVo.setUserCode(vo.getUserCode());
+			fileVo.setSuffix(vo.getSuffix());
+			fileVo.setEditUserCode(vo.getUserCode());
+			fileVo.setParentCode(vo.getParentCode());
+			ReturnMsg retMsg=diskFileService.rnameFile(fileVo);
+			
+			m = PropertiesUtil.getMessage("COMMON_200");
+			
+			json.put("result",retMsg.isState()?0:1);
+			json.put("msg",retMsg.getMsg());
+			resJson.setReturnCode(m.getCode());
+			resJson.setReturnTip(m.getTip());
+			resJson.setBody(JSONObject.toJSON(json));
+			
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			m = PropertiesUtil.getMessage("DISK_24002");
+			throw new BusinessException(m.getCode(), m.getTip());
+		}
+		
+		return resJson;
+	}	
+	
+	
+	
+	
+	
+	/**
+	 * 
+	 * @Title: 
+	 * @Description: 创建新文件夹
+	 * @param vo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping("/creatFile")
+	@ResponseBody
+	public ResultJSON creatFile(@RequireValid CreateVO vo) throws BusinessException{
+		
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		JSONObject json=new JSONObject();
+		
+		try {
+			CreatFolderVO fileVo=new CreatFolderVO();
+			fileVo.setNewFileName(vo.getNewFileName());
+			fileVo.setOrgCode(vo.getOrgCode());
+			fileVo.setParentCode(vo.getParentCode());
+			fileVo.setUserCode(vo.getUserCode());
+			
+			ReturnMsg retMsg=diskFileService.creatFolder(fileVo);
+			
+			if(retMsg.isState()){
+				
+				m = PropertiesUtil.getMessage("COMMON_200");
+				json.put("result",retMsg.isState()?0:1);
+				json.put("msg",retMsg.getMsg());
+				resJson.setReturnCode(m.getCode());
+				resJson.setReturnTip(m.getTip());
+				resJson.setBody(JSONObject.toJSON(json));
+				
+			}else{
+				
+				throw new BusinessException();
+			}
+       	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			m = PropertiesUtil.getMessage("DISK_24002");
+			throw new BusinessException(m.getCode(), m.getTip());
+		}
+		
+		return resJson;
+	}	
+	
+	
+	
+	
+
+	/**
+	 * 
+	 * @Title: ReductionFile
+	 * @Description: 还原文件
+	 * @param vo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping("/reductionFile")
+	@ResponseBody
+	public ResultJSON ReductionFile(@RequireValid ReductionVO vo) throws BusinessException{
+		
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		JSONObject json=new JSONObject();
+		
+		try {
+			
+			RFileVO fileVo=new RFileVO();
+			
+			fileVo.setFileCode(vo.getFileCode());
+			fileVo.setOrgCode(vo.getOrgCode());
+			fileVo.setEditUserCode(vo.getUserCode());
+			
+			ReturnMsg retMsg=diskFileService.ReductionFile(fileVo);
+			
+			if(retMsg.isState()){
+				
+				m = PropertiesUtil.getMessage("COMMON_200");
+				json.put("result",retMsg.isState()?0:1);
+				json.put("msg",retMsg.getMsg());
+				resJson.setReturnCode(m.getCode());
+				resJson.setReturnTip(m.getTip());
+				resJson.setBody(JSONObject.toJSON(json));
+				
+			}else{
+				
+				throw new BusinessException();
+			}
+       	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			m = PropertiesUtil.getMessage("DISK_24002");
+			throw new BusinessException(m.getCode(), m.getTip());
+		}
+		
+		return resJson;
+	}	
+	
+	
+	/**
+	 * 
+	 * @Title: copyFolder
+	 * @Description: 复制文件夹到
+	 * @param vo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping("/copyFolder")
+	@ResponseBody
+	public ResultJSON copyFileAll(@RequireValid CopyFoladerVO vo) throws BusinessException{
+		
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		JSONObject json=new JSONObject();
+		
+		try {
+			CopyFileAllVO folderVo=new CopyFileAllVO();
+			
+			folderVo.setFileName(vo.getFileName());
+			folderVo.setNewParentCode(vo.getCopyFolderCode());
+			folderVo.setSourceFileCode(vo.getFileCode());
+			folderVo.setSourceParentCode(vo.getParentCode());
+			folderVo.setUserCode(vo.getUserCode());
+		
+			
+			ReturnMsg retMsg=diskFileService.copyFolder(folderVo);
+			
+			if(retMsg.isState()){
+				
+				m = PropertiesUtil.getMessage("COMMON_200");
+				json.put("result",retMsg.isState()?0:1);
+				json.put("msg",retMsg.getMsg());
+				resJson.setReturnCode(m.getCode());
+				resJson.setReturnTip(m.getTip());
+				resJson.setBody(JSONObject.toJSON(json));
+				
+			}else{
+				
+				throw new BusinessException();
+			}
+       	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			m = PropertiesUtil.getMessage("DISK_24002");
+			throw new BusinessException(m.getCode(), m.getTip());
+		}
+		
+		return resJson;
+	}	
+	
+	
+	/**
+	 * 
+	 * @Title: addFile
+	 * @Description: 添加文件
+	 * @param vo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping("/addFile")
+	@ResponseBody
+	public ResultJSON addFile(@RequireValid AddFileVo vo) throws BusinessException{
+		
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		JSONObject json=new JSONObject();
+		
+		try {
+			String fileCode=UUIDHelper.getUUID();
+			SysUserInfo userInfo=userService.selectByCode(vo.getUserCode());
+			String orgCode=userInfo.getManageOrgInfo().getSysOrgCode();
+			
+			
+			DiskFile folderVo=new DiskFile();
+			folderVo.setUserCode(vo.getUserCode());
+			folderVo.setParentCode(vo.getParentCode());
+			folderVo.setFileName(vo.getFileName());
+			folderVo.setFileSize(vo.getFileSize());
+			folderVo.setFileSuffix(vo.getFileSuffix());
+			folderVo.setFileUrl(vo.getFileUrl());
+			folderVo.setOrgCode(orgCode);
+			folderVo.setEditUserCode(vo.getUserCode());
+			folderVo.setFileCode(fileCode);
+			ReturnMsg retMsg=diskFileService.addFile(folderVo);
+			
+			
+			m = PropertiesUtil.getMessage("COMMON_200");
+			json.put("result",retMsg.isState()?0:1);
+			json.put("msg",retMsg.getMsg());
+			resJson.setReturnCode(m.getCode());
+			resJson.setReturnTip(m.getTip());
+			resJson.setBody(JSONObject.toJSON(json));
+			
+			//添加动态
+			RelationDynamic relationDynamic=new RelationDynamic();
+			RelationSubjectInfo relationSubjectInfo=new RelationSubjectInfo();
+			Long date=DateUtils.getTime();
+		
+			
+			//动态表
+			relationDynamic.setDynamicCode(UUIDHelper.getUUID());
+			relationDynamic.setTenantCode(userInfo.getTenantCode());
+			relationDynamic.setOrgCode(orgCode);
+			relationDynamic.setCreateTime(date);
+			relationDynamic.setModifyTime(date);
+			relationDynamic.setDynamicClass(RelationConstants.RELATION_DYNAMIC_SEND_TO_OD);
+			relationDynamic.setUserCode(userInfo.getUserCode());
+			relationDynamic.setOperateTime(date);
+			relationDynamic.setSubjectCode(fileCode);
+			relationDynamic.setDynamicDepend(RelationConstants.RELATION_DYNAMIC_DEPEND_USER);
+			relationDynamic.setDynamicIsDelete(RelationConstants.RELATION_NO);
+			relationDynamic.setDynamicIsShield(RelationConstants.RELATION_NO);
+			relationDynamic.setIsSubjectShow(RelationConstants.RELATION_YES);
+			relationDynamic.setIsSubjectDataShow(RelationConstants.RELATION_YES);
+			
+			//内容信息表
+			relationSubjectInfo.setSubjectCode(fileCode);
+			relationSubjectInfo.setTenantCode(userInfo.getTenantCode());
+			relationSubjectInfo.setOrgCode(orgCode);
+			relationSubjectInfo.setCreateTime(date);
+			relationSubjectInfo.setModifyTime(date);
+			relationSubjectInfo.setSubjectClass(RelationConstants.RELATION_SUBJECT_OD);
+			relationSubjectInfo.setSubjectDepend(RelationConstants.RELATION_SUBJECT_DEPEND_USER);
+			relationSubjectInfo.setUserCode(userInfo.getUserCode());
+			relationSubjectInfo.setSubjectTitle(vo.getFileName()+vo.getFileSuffix());
+			relationSubjectInfo.setSubjectUrl(vo.getFileUrl());
+			relationSubjectInfo.setSubjectSource(RelationConstants.RELATION_NO);
+			relationSubjectInfo.setSubjectIsDelete(RelationConstants.RELATION_NO);
+			relationSubjectInfo.setSubjectIsShield(RelationConstants.RELATION_NO);
+			relationSubjectInfo.setSubjectPublishTime(date);
+			dynamicService.saveDynamic(relationDynamic, null, relationSubjectInfo, null);
+			
+			
+			
+			MessageIntegral data=new MessageIntegral();
+			data.setAccountCode(vo.getUserCode());
+			data.setAccountType((byte)1);
+			data.setActionCode(CreditConstants.COMMAND_FILETODISC_UPLOAD);
+			data.setManageOrgCode(userInfo.getManageOrgInfo().getManOrgCode());
+			producerTeplate.send(CreditConstants.CREDIT_INCREMENT,JSONObject.toJSONString(data));
+			
+			
+				
+       	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("添加文件-addFile:"+JSONObject.toJSONString(vo),e);
+			m = PropertiesUtil.getMessage("DISK_24002");
+			throw new BusinessException(m.getCode(), m.getTip());
+		}
+		
+		return resJson;
+	}	
+	
+	
+	
+	
+	
+	/**
+	 * 
+	 * @Title: shareFile
+	 * @Description: 分享文件
+	 * @param vo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping("/shareFile")
+	@ResponseBody
+	public ResultJSON shareFile(@RequireValid ShareFileVO vo) throws BusinessException{
+		
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		JSONObject json=new JSONObject();
+		
+	try {
+				
+			//添加动态
+			RelationDynamic relationDynamic=new RelationDynamic();
+			Long date=DateUtils.getTime();
+			SysUserInfo userInfo=userService.selectByCode(vo.getUserCode());
+			
+			//动态表
+			relationDynamic.setDynamicCode(UUIDHelper.getUUID());
+			relationDynamic.setTenantCode(userInfo.getTenantCode());
+			relationDynamic.setOrgCode(userInfo.getManageOrgInfo().getManOrgCode());
+			relationDynamic.setCreateTime(date);
+			relationDynamic.setModifyTime(date);
+			relationDynamic.setDynamicClass(RelationConstants.RELATION_DYNAMIC_OD);
+			relationDynamic.setUserCode(userInfo.getUserCode());
+			relationDynamic.setOperateTime(date);
+			relationDynamic.setSubjectCode(vo.getFileCode());
+			
+			relationDynamic.setDynamicDepend(Byte.parseByte(RelationConstants.NUM_ONE+""));
+			relationDynamic.setDynamicIsDelete(RelationConstants.RELATION_NO);
+			relationDynamic.setDynamicIsShield(RelationConstants.RELATION_NO);
+			relationDynamic.setIsSubjectShow(RelationConstants.RELATION_YES);
+			relationDynamic.setIsSubjectDataShow(RelationConstants.RELATION_NO);
+			
+			boolean state=dynamicService.saveDynamic(relationDynamic, null, null, null);
+			
+			m = PropertiesUtil.getMessage("COMMON_200");
+			json.put("result",state?0:1);
+			json.put("msg",state?"分享成功":"分享失败");
+			resJson.setReturnCode(m.getCode());
+			resJson.setReturnTip(m.getTip());
+			resJson.setBody(JSONObject.toJSON(json));
+				
+       	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			logger.error("分享文件-shareFile:"+JSONObject.toJSONString(vo),vo);
+			
+			m = PropertiesUtil.getMessage("DISK_24002");
+			throw new BusinessException(m.getCode(), m.getTip());
+		}
+		
+		return resJson;
+	}	
+	
+	
+
+
+	
+	
+	
+	
+
+	/**
+	 * 
+	 * @Title: queryFileName  
+	 * @Description: 文件名称查找
+	 * @param vo
+	 * @return    参数  
+	 * @return: ResultJSON    返回类型
+	 * @throws BusinessException 
+	 */
+	@RequestMapping("/queryFileName")
+	@ResponseBody
+	public ResultJSON queryFileName(@RequireValid QueryFileNameVO vo) throws BusinessException{
+		
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		JSONArray jsonList=new JSONArray();	
+		JSONObject json=new JSONObject();
+		
+		try {
+			
+			//查询条件
+			List<DiskFile> list=diskFileService.queryFileName(vo.getFileName(),vo.getOrgCode());
+				
+			List<String> userCodeList=new ArrayList<>();
+			
+			for (int i = 0; i < list.size(); i++) {
+				userCodeList.add(list.get(i).getUserCode());
+			}
+			
+			Map<String, Object> userMap=userService.selectMapByCodes(userCodeList);
+
+			//返回值封装
+			for(int i=0;i<list.size();i++){
+				DiskFile file=list.get(i);
+				json.put("fileName",file.getFileName());
+				json.put("suffix",file.getFileSuffix());
+				json.put("size",file.getFileSize());
+				
+				SysUserInfo userInfo=(SysUserInfo)userMap.get(file.getUserCode());
+				json.put("userName", userInfo.getUserName());
+				json.put("fileType",file.getFileType());
+				json.put("editTime",file.getEditTime());
+				json.put("fileUrl",file.getFileUrl());
+				json.put("fileCode",file.getFileCode());
+				json.put("parentCode",file.getParentCode());
+				json.put("userCode",file.getUserCode());
+				json.put("suffix",file.getFileSuffix());
+				
+				
+				jsonList.add(json);
+				json=new JSONObject();
+			}
+
+			m = PropertiesUtil.getMessage("COMMON_200");
+			
+			json.put("list", jsonList);
+			resJson.setReturnCode(m.getCode());
+			resJson.setReturnTip(m.getTip());
+			resJson.setBody(JSONObject.toJSON(json));
+        	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			logger.error("文件名称查找-queryFileName:"+JSONObject.toJSONString(vo),e);
+			throw new BusinessException().build("DISK_24001","获取列表");
+		}
+		
+		return resJson;
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * 
+	 * @Title: getIndexFile  
+	 * @Description: 获取首页文件
+	 * @param vo
+	 * @return    参数  
+	 * @return: ResultJSON    返回类型
+	 * @throws BusinessException 
+	 */
+	@RequestMapping("/getIndexFile")
+	@ResponseBody
+	public ResultJSON getIndexFile(@RequireValid GetIndexFileVO vo) throws BusinessException{
+		
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		JSONArray jsonList=new JSONArray();	
+		JSONObject json=new JSONObject();
+		
+		try {
+			
+			//查询条件
+			List<DiskFile> list=diskFileService.getIndexFile(vo.getOrgCode(),vo.getPageSize());
+				
+			List<String> userCodeList=new ArrayList<>();
+			
+			for (int i = 0; i < list.size(); i++) {
+				userCodeList.add(list.get(i).getUserCode());
+			}
+			
+			Map<String, Object> userMap=userService.selectMapByCodes(userCodeList);
+
+			//返回值封装
+			for(int i=0;i<list.size();i++){
+				DiskFile file=list.get(i);
+				json.put("fileName",file.getFileName());
+				json.put("suffix",file.getFileSuffix());
+				json.put("size",file.getFileSize());
+				
+				SysUserInfo userInfo=(SysUserInfo)userMap.get(file.getUserCode());
+				json.put("userName", userInfo.getUserName());
+				json.put("fileType",file.getFileType());
+				json.put("editTime",file.getEditTime());
+				json.put("fileUrl",file.getFileUrl());
+				json.put("fileCode",file.getFileCode());
+				json.put("parentCode",file.getParentCode());
+				json.put("userCode",file.getUserCode());
+				json.put("suffix",file.getFileSuffix());
+				
+				
+				jsonList.add(json);
+				json=new JSONObject();
+			}
+
+			m = PropertiesUtil.getMessage("COMMON_200");
+			
+			json.put("list", jsonList);
+			resJson.setReturnCode(m.getCode());
+			resJson.setReturnTip(m.getTip());
+			resJson.setBody(JSONObject.toJSON(json));
+        	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			logger.error("获取首页文件-getIndexFile:"+JSONObject.toJSONString(vo),e);
+			
+			throw new BusinessException().build("DISK_24001","获取列表");
+		}
+		
+		return resJson;
+		
+	}
+	
+	
+	
+	
+	
+	
+}

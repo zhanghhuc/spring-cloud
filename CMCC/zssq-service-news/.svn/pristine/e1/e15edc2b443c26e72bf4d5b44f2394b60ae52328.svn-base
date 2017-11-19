@@ -1,0 +1,41 @@
+package com.zssq.biz;
+
+import com.zssq.dao.mapper.NewsTransmitMapper;
+import com.zssq.news.dao.pojo.NewsTransmit;
+import com.zssq.news.model.NewsTransmitModel;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+/**
+ * Created by admin on 2017-04-05.
+ */
+@Service
+public class NewsTransmitBiz {
+
+    @Autowired
+    private NewsTransmitMapper newsTransmitMapper;
+
+
+    public boolean addNewsInfoCollect(NewsTransmitModel newsTransmitModel) {
+        long currentTime = System.currentTimeMillis() ;
+        NewsTransmit record = generateNewsCollect(newsTransmitModel,currentTime,currentTime) ;
+        int number = newsTransmitMapper.insertSelective(record);
+        return number >0;
+    }
+
+    private NewsTransmit generateNewsCollect(NewsTransmitModel newsTransmitModel, long createTime, long modifyTime) {
+        NewsTransmit record = new NewsTransmit() ;
+        record.setTransmitCode(newsTransmitModel.getTransmitCode());
+        record.setTransmitPeopleCode(newsTransmitModel.getUserCode());
+        record.setNewsCode(newsTransmitModel.getNewsCode());
+        record.setOrgCode(newsTransmitModel.getOrgCode());
+        record.setOrgLevel(newsTransmitModel.getOrgLevel());
+        record.setTenantCode(newsTransmitModel.getTenantCode());
+        if(modifyTime > 0){
+            record.setCreateTime(createTime);
+        }
+        record.setModifyTime(modifyTime);
+        return record ;
+    }
+
+}

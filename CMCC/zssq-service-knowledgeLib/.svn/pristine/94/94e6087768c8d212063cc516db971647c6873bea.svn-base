@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.RepositoryKnowledgeBySryMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.RepositoryKnowledge" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="knowledge_code" property="knowledgeCode" jdbcType="VARCHAR" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="add_time" property="addTime" jdbcType="BIGINT" />
+    <result column="append_time" property="appendTime" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="repository_code" property="repositoryCode" jdbcType="VARCHAR" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="knowledge_title" property="knowledgeTitle" jdbcType="VARCHAR" />
+    <result column="knowledge_digest" property="knowledgeDigest" jdbcType="VARCHAR" />
+    <result column="content_code" property="contentCode" jdbcType="VARCHAR" />
+    <result column="share_num" property="shareNum" jdbcType="INTEGER" />
+    <result column="praise_num" property="praiseNum" jdbcType="INTEGER" />
+    <result column="collect_num" property="collectNum" jdbcType="INTEGER" />
+    <result column="append_num" property="appendNum" jdbcType="INTEGER" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+  </resultMap>
+  <resultMap id="RepositoryKnowledgeMHMap" type="com.zssq.model.RepositoryKnowledgeMH" >
+    <result column="knowledge_code" property="knowledgeCode" jdbcType="VARCHAR" />
+    <result column="knowledge_title" property="knowledgeTitle" jdbcType="VARCHAR" />
+    <result column="knowledge_digest" property="knowledgeDigest" jdbcType="VARCHAR" />
+    <result column="content_code" property="contentCode" jdbcType="VARCHAR" />
+    <result column="content_info" property="contentInfo" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="append_num" property="appendNum" jdbcType="INTEGER" />
+    <result column="collect_num" property="collectNum" jdbcType="INTEGER" />
+    <result column="share_num" property="shareNum" jdbcType="INTEGER" />
+    <result column="praise_num" property="praiseNum" jdbcType="INTEGER" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="isCollect" property="isCollect" jdbcType="TINYINT" />
+    <result column="isPraised" property="isPraised" jdbcType="TINYINT" />
+    <result column="can_open" property="canOpen" jdbcType="TINYINT" />
+  </resultMap>
+  <resultMap id="RepositoryKnowledgeHotMHMap" type="com.zssq.model.RepositoryKnowledgeFrontMH" >
+    <result column="knowledge_code" property="knowledgeCode" jdbcType="VARCHAR" />
+    <result column="knowledge_title" property="knowledgeTitle" jdbcType="VARCHAR" />
+    <result column="knowledge_digest" property="knowledgeDigest" jdbcType="VARCHAR" />
+    <result column="content_code" property="contentCode" jdbcType="VARCHAR" />
+    <result column="createTime" property="createTime" jdbcType="BIGINT" />
+    <result column="append_num" property="appendNum" jdbcType="INTEGER" />
+    <result column="collect_num" property="collectNum" jdbcType="INTEGER" />
+    <result column="share_num" property="shareNum" jdbcType="INTEGER" />
+    <result column="praise_num" property="praiseNum" jdbcType="INTEGER" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="showType" property="showType" jdbcType="TINYINT" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, knowledge_code, tenant_code, org_code, create_time, modify_time, add_time, append_time, 
+    remark, repository_code, user_code, knowledge_title, knowledge_digest, content_code, 
+    share_num, praise_num, collect_num, append_num, is_delete
+  </sql>
+  
+  <insert id="insert" parameterType="com.zssq.dao.pojo.RepositoryKnowledge" >
+    insert into repository_knowledge 
+    	(
+    		knowledge_code,
+    		tenant_code, 
+      		org_code, 
+      		create_time, 
+      		modify_time, 
+      		add_time, 
+      		append_time, 
+      		remark, 
+      		repository_code, 
+      		user_code, 
+      		knowledge_title, 
+      		knowledge_digest, 
+      		content_code, 
+      		share_num, 
+      		praise_num, 
+      		collect_num, 
+      		append_num, 
+      		is_delete,
+      		can_open)
+    values (
+    		  #{knowledgeCode,jdbcType=VARCHAR}, 
+    		  #{tenantCode,jdbcType=VARCHAR}, 
+		      #{orgCode,jdbcType=VARCHAR}, 
+		      #{createTime,jdbcType=BIGINT}, 
+		      #{modifyTime,jdbcType=BIGINT}, 
+		      #{addTime,jdbcType=BIGINT}, 
+		      #{appendTime,jdbcType=BIGINT},
+		      #{remark,jdbcType=VARCHAR}, 
+		      #{repositoryCode,jdbcType=VARCHAR}, 
+		      #{userCode,jdbcType=VARCHAR}, 
+		      #{knowledgeTitle,jdbcType=VARCHAR}, 
+		      #{knowledgeDigest,jdbcType=VARCHAR}, 
+		      #{contentCode,jdbcType=VARCHAR}, 
+		      #{shareNum,jdbcType=INTEGER}, 
+		      #{praiseNum,jdbcType=INTEGER}, 
+		      #{collectNum,jdbcType=INTEGER}, 
+		      #{appendNum,jdbcType=INTEGER}, 
+		      #{isDelete,jdbcType=TINYINT},
+		      #{canOpen,jdbcType=TINYINT})
+  </insert>
+  
+  <update id="updateNumTime" parameterType="map">
+    update repository_knowledge
+    <set>
+      
+      <if test="shareNum != null" >
+        share_num = share_num+#{shareNum,jdbcType=INTEGER},
+      </if>
+      <if test="praiseNum != null" >
+        praise_num = praise_num+#{praiseNum,jdbcType=INTEGER},
+      </if>
+      <if test="collectNum != null" >
+        collect_num = collect_num+#{collectNum,jdbcType=INTEGER},
+      </if>
+      <if test="appendNum != null" >
+        append_num = append_num+#{appendNum,jdbcType=INTEGER},
+      </if>
+      <if test="modifyTime !=null">
+      	modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="addTime !=null">
+      	add_time = #{addTime,jdbcType=BIGINT},
+      </if>
+      <if test="appendTime !=null">
+      	append_time = #{appendTime,jdbcType=BIGINT},
+      </if>
+    </set>
+    where knowledge_code = #{knowledgeCode,jdbcType=VARCHAR}
+  </update>
+  <!-- 是否自己 发文 -->
+  <select id="selectCountForIsSelf" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+			FROM repository_knowledge
+		where org_code = #{orgCode}
+			and is_delete = 0
+		  <if test="userCode !=null">
+	      	and user_code = #{userCode,jdbcType=VARCHAR}
+	      </if>
+	      <if test="knowledgeCode !=null">
+	      	and knowledge_code = #{knowledgeCode,jdbcType=VARCHAR}
+	      </if>
+	      <if test="repositoryCode != null">
+	      	and repository_code = #{repositoryCode,jdbcType=VARCHAR}
+	      </if>
+  </select>
+  <select id="selectCount" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+			FROM repository_knowledge
+		where is_delete = 0
+			<if test="orgCode !=null">
+	      	and org_code = #{orgCode}
+	      </if>
+	      <if test="knowledgeCode !=null">
+	      	and knowledge_code = #{knowledgeCode,jdbcType=VARCHAR}
+	      </if>
+	      <if test="repositoryCode != null">
+	      	and repository_code = #{repositoryCode,jdbcType=VARCHAR}
+	      </if>
+	       <if test="keywords != null and keywords !=''">
+	      	and knowledge_title like concat('%',#{keywords,jdbcType=VARCHAR},'%')
+	      </if>
+  </select>
+  <select id="list" parameterType="map" resultMap="RepositoryKnowledgeMHMap">
+  		select  rk.knowledge_code,
+  				rk.knowledge_title,
+  				rk.knowledge_digest,
+  				rk.content_code,
+  				rk.create_time,
+  				rk.append_num,
+  				rk.collect_num,
+  				rk.share_num,
+  				rk.praise_num,
+  				rk.user_code,
+  				rk.can_open,
+  				(
+					CASE 
+					WHEN rc.id IS NULL
+					THEN 0
+					ELSE 1
+					END
+				) AS isCollect,
+  				(
+					CASE 
+					WHEN rp.id IS NULL
+					THEN 0
+					ELSE 1
+					END
+				) AS isPraised
+  			from 
+  			(	select 
+  					 	ryk.knowledge_code,
+		  				ryk.knowledge_title,
+		  				ryk.knowledge_digest,
+		  				ryk.content_code,
+		  				ryk.create_time,
+		  				ryk.append_num,
+		  				ryk.collect_num,
+		  				ryk.share_num,
+		  				ryk.praise_num,
+		  				ryk.user_code,
+		  				ryk.can_open
+  				from repository_knowledge  ryk
+  				where ryk.is_delete = 0
+  				<if test="orgCode !=null">
+			      	and ryk.org_code = #{orgCode}
+			      </if>
+		      <if test="knowledgeCode !=null">
+		      	and ryk.knowledge_code = #{knowledgeCode,jdbcType=VARCHAR}
+		      </if>
+		      <if test="repositoryCode != null">
+		      	and ryk.repository_code = #{repositoryCode,jdbcType=VARCHAR}
+		      </if>
+		       <if test="keywords != null and keywords !=''">
+		      	and ryk.knowledge_title like concat('%',#{keywords,jdbcType=VARCHAR},'%')
+		      </if>
+		      order by ryk.create_time desc
+		      limit #{limitStart} , #{limitCount} 
+  			
+  			)rk
+  			LEFT JOIN repository_praise rp ON rk.knowledge_code = rp.object_code AND rp.user_code = #{userCode,jdbcType=VARCHAR} and rp.praise_type=1
+  			LEFT JOIN repository_collect rc ON rk.knowledge_code = rc.knowledge_code AND rc.user_code = #{userCode,jdbcType=VARCHAR}
+  			order by rk.create_time desc
+  </select>
+  <select id="selectByCode" parameterType="map" resultMap="BaseResultMap">
+  	select <include refid="Base_Column_List"/>
+  		from repository_knowledge
+  		where knowledge_code = #{knowledgeCode,jdbcType=VARCHAR}
+  			and is_delete = 0
+   </select>
+   
+   <!-- 门户首页知识热区  -->
+   <select id="getPortalFrontHotKnowledgeLibListForMH" parameterType="map" resultMap="RepositoryKnowledgeHotMHMap">
+   		select  rp.knowledge_code,
+  				rp.knowledge_title,
+  				rp.knowledge_digest,
+  				rp.content_code,
+  				rp.append_num,
+  				rp.collect_num,
+  				rp.share_num,
+  				rp.praise_num,
+  				rp.user_code,
+  				(
+					CASE 
+					WHEN rp.add_time &gt; rp.append_time and rp.add_time &gt; rp.create_time
+					THEN 1
+					WHEN rp.append_time &gt; rp.create_time and rp.append_time &gt; rp.create_time
+					THEN 2
+					ELSE 3
+					END
+				) AS showType,
+  				(
+  					CASE 
+					WHEN rp.add_time &gt; rp.append_time and rp.add_time &gt; rp.create_time
+					THEN rp.add_time
+					WHEN rp.append_time &gt; rp.create_time and rp.append_time &gt; rp.create_time
+					THEN rp.append_time
+					ELSE rp.create_time
+					END
+  				) AS createTime
+  			from repository_knowledge rp
+  		where rp.org_code = #{orgCode} AND rp.is_delete = 0
+  			order by createTime desc 
+  			limit #{showSize}
+  			
+   </select>
+   
+   <select id="selectKnowledgeContent" parameterType="map" resultMap="RepositoryKnowledgeMHMap">
+   		select  rk.knowledge_code,
+  				rk.knowledge_title,
+  				rk.knowledge_digest,
+  				rkc.content_info,
+  				rk.content_code,
+  				rk.create_time,
+  				rk.append_num,
+  				rk.collect_num,
+  				rk.share_num,
+  				rk.praise_num,
+  				rk.user_code,
+  				rk.can_open,
+  				(
+					CASE 
+					WHEN rc.id IS NULL
+					THEN 0
+					ELSE 1
+					END
+				) AS isCollect,
+  				(
+					CASE 
+					WHEN rp.id IS NULL
+					THEN 0
+					ELSE 1
+					END
+				) AS isPraised
+  			from repository_knowledge rk
+  			LEFT JOIN repository_praise rp ON rk.knowledge_code = rp.object_code AND rp.user_code = #{userCode,jdbcType=VARCHAR} and rp.praise_type=1
+  			LEFT JOIN repository_collect rc ON rk.knowledge_code = rc.knowledge_code AND rc.user_code = #{userCode,jdbcType=VARCHAR}
+  			LEFT JOIN repository_knowledge_content rkc ON rkc.content_code = rk.content_code
+  			where rk.is_delete = 0
+		      	and rk.knowledge_code = #{knowledgeCode,jdbcType=VARCHAR}
+   </select>
+   
+</mapper>

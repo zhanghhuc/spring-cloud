@@ -1,0 +1,30 @@
+package com.zssq.dao.mapper;
+
+import java.util.List;
+
+import com.zssq.dao.pojo.TeamMessageReply;
+
+public interface TeamMessageReplyMapper {
+
+	/** 根据唯一标识删除 */
+	int deleteByCode(String code);
+	
+	/** 根据留言标识删除 */
+	int deleteByMesCode(String mesCode);
+
+	/** 动态插入 */
+    int insertSelective(TeamMessageReply record);
+
+    /** 根据唯一标识查询 */
+    TeamMessageReply selectByCode(String code);
+    
+    /** 根据留言标识查询 */
+    List<TeamMessageReply> selectByMesCode(String mesCode);
+    
+    /** 根据留言标识查询 */
+    List<TeamMessageReply> selectByMesCodes(List<String> mesCodes);
+    
+    /** 举报/取消举报 */
+    int complaintMessageReply(TeamMessageReply record);
+
+}

@@ -1,0 +1,137 @@
+package com.zssq.interceptor;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.common.cache.client.JedisClusterService;
+import com.zssq.constants.AppConstants;
+import com.zssq.constants.AuthConstants;
+import com.zssq.dao.pojo.SysOrgInfo;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.pojo.Message;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.ISysUserService;
+import com.zssq.utils.PropertiesUtil;
+
+/**
+ * SSO 单点登录身份验证拦截器，仅用于本地验证用户合法性
+ * 
+ * @since JDK 1.7
+ */
+public class SSOAuthInterceptor implements HandlerInterceptor {
+
+	/** 日志记录器 */
+	private Logger log = Logger.getLogger(this.getClass());
+
+	/** 员工信息业务组件 */
+	@Autowired
+	private ISysUserService sysUserService;
+	
+	/** redis 操作组件 */
+	@Autowired
+	private JedisClusterService jedisClusterService;	
+
+	/**
+	 * 验证员工身份，验证项如下：
+	 * 		员工状态是否正常
+	 * 		员工所属行政组织是否被禁用
+	 * 		票据是否有效
+	 * 
+	 * 无论验证成功与失败，该拦截器都不阻断程序的执行；
+	 * 验证失败时，在请求对象 request 中设置 ticketMsgAuth 属性，后续有 SpringAspect 公用切面做返回处理
+	 */
+	@Override
+	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+			throws Exception {
+
+		String path = request.getServletPath();				// 请求接口				
+		String uid = request.getParameter("userCode");		// 员工 uid
+		String app = request.getParameter("app");			// 应用类型【mhpc,mhh5,glpc,saas】		
+		String ticket = request.getParameter("token");		// 票据
+		
+		// 验证员工 uid
+		log.info("身份验证拦截器，员工 uid = " + uid + "，app = " + app + "，token = " + ticket + "，请求接口：" + path);
+		
+		// 不拦截saas操作
+		if(path.contains("/saas/login") || StringUtils.contains(ticket, AppConstants.SAAS)) {
+			log.info("身份验证拦截器，不拦截 saas 管理员操作");
+			return true;
+		}		
+
+		ResultJSON resultJSON = new ResultJSON();
+		Message m = PropertiesUtil.getMessage("SSO_0005");
+		resultJSON.setReturnCode(m.getCode());
+		resultJSON.setBody(new JSONObject());
+		
+		SysUserInfo userInfo = sysUserService.selectByCode(uid);		
+		if (userInfo != null) { 
+			int userStatus = Integer.valueOf(userInfo.getUserStatus());			
+
+			// 验证员工状态
+			if (userStatus == 1) {
+				resultJSON.setReturnTip(m.getTip().replace("%s", "员工状态：锁定"));
+				request.setAttribute("ticketMsgAuth", JSONObject.toJSONString(resultJSON));
+			} else if (userStatus == 2) {
+				resultJSON.setReturnTip(m.getTip().replace("%s", "员工状态：未启用"));
+				request.setAttribute("ticketMsgAuth", JSONObject.toJSONString(resultJSON));
+			} else if (userStatus == 3) {
+				resultJSON.setReturnTip(m.getTip().replace("%s", "员工状态：注销"));
+				request.setAttribute("ticketMsgAuth", JSONObject.toJSONString(resultJSON));
+			}
+			
+			// 验证员工所属行政组织状态：禁用、删除
+			SysOrgInfo manOrgInfo = userInfo.getManageOrgInfo();
+			SysOrgInfo orgInfo = userInfo.getOrgInfo();
+			if(StringUtils.equals(AuthConstants.LOCAL_ORGSTATUS_DISABLE, manOrgInfo.getIsEnable().toString())
+					|| StringUtils.equals(AuthConstants.LOCAL_ORGSTATUS_DELETE, orgInfo.getIsEnable().toString())) {
+				resultJSON.setReturnTip(m.getTip().replace("%s", "员工所属组织状态：禁用"));
+				request.setAttribute("ticketMsgAuth", JSONObject.toJSONString(resultJSON));					
+			}
+		} else {
+			// 查询不到员工时，说明传入的员工 uid 不存在
+			resultJSON.setReturnTip(m.getTip().replace("%s", "登陆账号") + uid + "不存在");
+			request.setAttribute("ticketMsgAuth", JSONObject.toJSONString(resultJSON));
+		}
+		
+		if(!path.contains("login") && !path.contains("validate")){
+			// 员工状态验证通过时，验证票据
+			Object ticketMsgAuth = request.getAttribute("ticketMsgAuth");
+			if(ticketMsgAuth == null) {
+				String key = uid + "-" + app;				
+				String redisTicket = jedisClusterService.get(key);
+				
+				log.info("身份验证拦截器，验证票据，clientTicket = " + ticket + "，redisTicket = " + redisTicket);
+				
+				if(!StringUtils.equals(ticket, redisTicket)) {
+					resultJSON.setReturnTip(m.getTip().replace("%s", "未登录或登录已超时，请重新登录"));
+					request.setAttribute("ticketMsgAuth", JSONObject.toJSONString(resultJSON));				
+				} else {
+					// 每次请求都更新redis中票据的过期时间
+					jedisClusterService.set(key, ticket, 3*60*60);
+				}
+			}			
+		}
+		
+		return true;
+	}
+
+	@Override
+	public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
+			ModelAndView modelAndView) throws Exception {
+
+	}
+
+	@Override
+	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+			throws Exception {
+
+	}
+
+}

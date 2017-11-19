@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.RelationLikeMapper">
+
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.RelationLike">
+		<id column="id" jdbcType="BIGINT" property="id" />
+		<result column="like_code" jdbcType="VARCHAR" property="likeCode" />
+		<result column="tenant_code" jdbcType="VARCHAR" property="tenantCode" />
+		<result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+		<result column="create_time" jdbcType="BIGINT" property="createTime" />
+		<result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+		<result column="remark" jdbcType="VARCHAR" property="remark" />
+		<result column="subject_code" jdbcType="VARCHAR" property="subjectCode" />
+		<result column="subject_class" jdbcType="TINYINT" property="subjectClass" />
+		<result column="user_code" jdbcType="VARCHAR" property="userCode" />
+	</resultMap>
+	
+	<!-- 列列表 -->
+	<sql id="Base_Column_List">
+		id, like_code, tenant_code, org_code, create_time, modify_time, remark,
+		subject_code, subject_class, user_code
+	</sql>
+
+	<!-- 插入 -->
+	<insert id="insert" parameterType="com.zssq.dao.pojo.RelationLike">
+		insert into relation_like
+		(like_code,
+		tenant_code,
+		org_code,
+		create_time,
+		modify_time,
+		remark,
+		subject_code,
+		subject_class,
+		user_code)
+		values
+		(#{likeCode,jdbcType=VARCHAR},
+		#{tenantCode,jdbcType=VARCHAR},
+		#{orgCode,jdbcType=VARCHAR},
+		#{createTime,jdbcType=BIGINT},
+		#{modifyTime,jdbcType=BIGINT},
+		#{remark,jdbcType=VARCHAR},
+		#{subjectCode,jdbcType=VARCHAR},
+		#{subjectClass,jdbcType=TINYINT},
+		#{userCode,jdbcType=VARCHAR})
+	</insert>
+
+	<!-- 删除 -->
+	<delete id="delete" parameterType="map">
+		DELETE
+		FROM relation_like
+		WHERE subject_code = #{subjectCode,jdbcType=VARCHAR}
+		AND user_code = #{userCode,jdbcType=VARCHAR}
+	</delete>
+</mapper>

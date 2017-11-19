@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.forum.dao.mapper.ForumPlatesMemberMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.forum.pojo.ForumPlatesMember" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="forum_plates_member_code" property="forumPlatesMemberCode" jdbcType="VARCHAR" />
+    <result column="is_disable" property="isDisable" jdbcType="TINYINT" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="org_level" property="orgLevel" jdbcType="TINYINT" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="forum_plates_code" property="forumPlatesCode" jdbcType="VARCHAR" />
+    <result column="member_code" property="memberCode" jdbcType="VARCHAR" />
+    <result column="member_name" property="memberName" jdbcType="VARCHAR" />
+    <result column="is_moderator" property="isModerator" jdbcType="TINYINT" />
+    <result column="is_send" property="isSend" jdbcType="TINYINT" />
+    <result column="is_reply" property="isReply" jdbcType="TINYINT" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, forum_plates_member_code, is_disable, is_delete, tenant_code, org_code, org_level, 
+    create_time, modify_time, remark, forum_plates_code, member_code, member_name, is_moderator, 
+    is_send, is_reply
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.zssq.forum.pojo.ForumPlatesMemberExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from forum_plates_member
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+    <if test="limitStart != null and limitStart>=0" >
+      limit #{limitStart} , #{limitEnd}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from forum_plates_member
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from forum_plates_member
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.zssq.forum.pojo.ForumPlatesMemberExample" >
+    delete from forum_plates_member
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.zssq.forum.pojo.ForumPlatesMember" >
+    insert into forum_plates_member (id, forum_plates_member_code, is_disable, 
+      is_delete, tenant_code, org_code, 
+      org_level, create_time, modify_time, 
+      remark, forum_plates_code, member_code, 
+      member_name, is_moderator, is_send, 
+      is_reply)
+    values (#{id,jdbcType=BIGINT}, #{forumPlatesMemberCode,jdbcType=VARCHAR}, #{isDisable,jdbcType=TINYINT}, 
+      #{isDelete,jdbcType=TINYINT}, #{tenantCode,jdbcType=VARCHAR}, #{orgCode,jdbcType=VARCHAR}, 
+      #{orgLevel,jdbcType=TINYINT}, #{createTime,jdbcType=BIGINT}, #{modifyTime,jdbcType=BIGINT}, 
+      #{remark,jdbcType=VARCHAR}, #{forumPlatesCode,jdbcType=VARCHAR}, #{memberCode,jdbcType=VARCHAR}, 
+      #{memberName,jdbcType=VARCHAR}, #{isModerator,jdbcType=TINYINT}, #{isSend,jdbcType=TINYINT}, 
+      #{isReply,jdbcType=TINYINT})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.forum.pojo.ForumPlatesMember" >
+    insert into forum_plates_member
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="forumPlatesMemberCode != null" >
+        forum_plates_member_code,
+      </if>
+      <if test="isDisable != null" >
+        is_disable,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="orgLevel != null" >
+        org_level,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="forumPlatesCode != null" >
+        forum_plates_code,
+      </if>
+      <if test="memberCode != null" >
+        member_code,
+      </if>
+      <if test="memberName != null" >
+        member_name,
+      </if>
+      <if test="isModerator != null" >
+        is_moderator,
+      </if>
+      <if test="isSend != null" >
+        is_send,
+      </if>
+      <if test="isReply != null" >
+        is_reply,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="forumPlatesMemberCode != null" >
+        #{forumPlatesMemberCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isDisable != null" >
+        #{isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="forumPlatesCode != null" >
+        #{forumPlatesCode,jdbcType=VARCHAR},
+      </if>
+      <if test="memberCode != null" >
+        #{memberCode,jdbcType=VARCHAR},
+      </if>
+      <if test="memberName != null" >
+        #{memberName,jdbcType=VARCHAR},
+      </if>
+      <if test="isModerator != null" >
+        #{isModerator,jdbcType=TINYINT},
+      </if>
+      <if test="isSend != null" >
+        #{isSend,jdbcType=TINYINT},
+      </if>
+      <if test="isReply != null" >
+        #{isReply,jdbcType=TINYINT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.zssq.forum.pojo.ForumPlatesMemberExample" resultType="java.lang.Integer" >
+    select count(*) from forum_plates_member
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update forum_plates_member
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.forumPlatesMemberCode != null" >
+        forum_plates_member_code = #{record.forumPlatesMemberCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDisable != null" >
+        is_disable = #{record.isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="record.isDelete != null" >
+        is_delete = #{record.isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="record.tenantCode != null" >
+        tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgCode != null" >
+        org_code = #{record.orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgLevel != null" >
+        org_level = #{record.orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.modifyTime != null" >
+        modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.remark != null" >
+        remark = #{record.remark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.forumPlatesCode != null" >
+        forum_plates_code = #{record.forumPlatesCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.memberCode != null" >
+        member_code = #{record.memberCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.memberName != null" >
+        member_name = #{record.memberName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isModerator != null" >
+        is_moderator = #{record.isModerator,jdbcType=TINYINT},
+      </if>
+      <if test="record.isSend != null" >
+        is_send = #{record.isSend,jdbcType=TINYINT},
+      </if>
+      <if test="record.isReply != null" >
+        is_reply = #{record.isReply,jdbcType=TINYINT},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update forum_plates_member
+    set id = #{record.id,jdbcType=BIGINT},
+      forum_plates_member_code = #{record.forumPlatesMemberCode,jdbcType=VARCHAR},
+      is_disable = #{record.isDisable,jdbcType=TINYINT},
+      is_delete = #{record.isDelete,jdbcType=TINYINT},
+      tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      org_code = #{record.orgCode,jdbcType=VARCHAR},
+      org_level = #{record.orgLevel,jdbcType=TINYINT},
+      create_time = #{record.createTime,jdbcType=BIGINT},
+      modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      forum_plates_code = #{record.forumPlatesCode,jdbcType=VARCHAR},
+      member_code = #{record.memberCode,jdbcType=VARCHAR},
+      member_name = #{record.memberName,jdbcType=VARCHAR},
+      is_moderator = #{record.isModerator,jdbcType=TINYINT},
+      is_send = #{record.isSend,jdbcType=TINYINT},
+      is_reply = #{record.isReply,jdbcType=TINYINT}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.forum.pojo.ForumPlatesMember" >
+    update forum_plates_member
+    <set >
+      <if test="forumPlatesMemberCode != null" >
+        forum_plates_member_code = #{forumPlatesMemberCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isDisable != null" >
+        is_disable = #{isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        org_level = #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="forumPlatesCode != null" >
+        forum_plates_code = #{forumPlatesCode,jdbcType=VARCHAR},
+      </if>
+      <if test="memberCode != null" >
+        member_code = #{memberCode,jdbcType=VARCHAR},
+      </if>
+      <if test="memberName != null" >
+        member_name = #{memberName,jdbcType=VARCHAR},
+      </if>
+      <if test="isModerator != null" >
+        is_moderator = #{isModerator,jdbcType=TINYINT},
+      </if>
+      <if test="isSend != null" >
+        is_send = #{isSend,jdbcType=TINYINT},
+      </if>
+      <if test="isReply != null" >
+        is_reply = #{isReply,jdbcType=TINYINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.forum.pojo.ForumPlatesMember" >
+    update forum_plates_member
+    set forum_plates_member_code = #{forumPlatesMemberCode,jdbcType=VARCHAR},
+      is_disable = #{isDisable,jdbcType=TINYINT},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      forum_plates_code = #{forumPlatesCode,jdbcType=VARCHAR},
+      member_code = #{memberCode,jdbcType=VARCHAR},
+      member_name = #{memberName,jdbcType=VARCHAR},
+      is_moderator = #{isModerator,jdbcType=TINYINT},
+      is_send = #{isSend,jdbcType=TINYINT},
+      is_reply = #{isReply,jdbcType=TINYINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

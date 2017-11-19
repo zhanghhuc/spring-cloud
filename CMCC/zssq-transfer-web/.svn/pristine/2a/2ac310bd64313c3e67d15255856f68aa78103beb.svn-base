@@ -1,0 +1,62 @@
+package com.zssq.blog.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.zssq.blog.dao.mapper.BlogCommentMapper;
+
+/**
+ * 
+ * @ClassName: BlogCommentService  
+ * @Description: 评论数据迁移Service  
+ * @author ZKZ  
+ * @date 2017年5月22日  
+ *
+ */
+@Service("blogCommentService")
+public class BlogCommentService {
+	
+	@Autowired
+	private BlogCommentMapper blogCommentMapper;
+
+	/**
+	 * 
+	 * @Title: addColumn  
+	 * @Description: 往评论表中添加字段
+	 * @return: void    返回类型
+	 */
+	@Transactional
+	public void addColumn() {
+		// 查看old_id字段是否存在
+		String tableName = blogCommentMapper.isColumnExists();
+		if (tableName != null) {
+			return;
+		}
+		
+		// 添加字段
+		blogCommentMapper.addColumn();
+	}
+
+	/**
+	 * 
+	 * @Title: createIndex  
+	 * @Description: 为old_id字段创建索引
+	 * @return: void    返回类型
+	 */
+	public void createIndex() {
+		blogCommentMapper.createIndex();
+	}
+	
+	/**
+	 * 
+	 * @Title: insertSourceComment  
+	 * @Description: 导入原评论数据
+	 * @return: void    返回类型
+	 */
+	@Transactional
+	public void insertSourceComment() {
+		blogCommentMapper.insertSourceComment();
+	}
+
+}

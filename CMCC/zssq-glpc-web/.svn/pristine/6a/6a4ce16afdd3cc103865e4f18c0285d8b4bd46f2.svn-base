@@ -1,0 +1,752 @@
+package com.zssq.activity.controller;
+
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.activity.vo.CreateActivityTypeOneVo;
+import com.zssq.activity.vo.GetActivityDetailVo;
+import com.zssq.activity.vo.GetActivityListVo;
+import com.zssq.activity.vo.GetTemplateListVo;
+import com.zssq.activity.vo.OnOffTemplateVo;
+import com.zssq.activity.vo.Prize;
+import com.zssq.activity.vo.Resource;
+import com.zssq.activity.vo.UpdateActivityOneVo;
+import com.zssq.annotation.RequireValid;
+import com.zssq.constants.ActivityConstants;
+import com.zssq.constants.AuthConstants;
+import com.zssq.constants.CreditConstants;
+import com.zssq.constants.VoteConstants;
+import com.zssq.dao.pojo.ActivityInfo;
+import com.zssq.dao.pojo.ActivityInfoWithBLOBs;
+import com.zssq.dao.pojo.ActivityJoinAuth;
+import com.zssq.dao.pojo.ActivityPrize;
+import com.zssq.dao.pojo.ActivityResource;
+import com.zssq.dao.pojo.ActivityTemplate;
+import com.zssq.dao.pojo.OrgLinkList;
+import com.zssq.dao.pojo.SysOrgInfo;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.IActivityManageService;
+import com.zssq.utils.DateUtils;
+import com.zssq.utils.PageInfo;
+import com.zssq.utils.StringTools;
+import com.zssq.vote.controller.BaseController;
+
+/**
+ * 活动模块一controller
+ * 
+ * @author POWER
+ *
+ */
+@Controller
+@RequestMapping("/activity")
+public class ActivityModelOneController extends BaseController {
+
+	private Logger log = Logger.getLogger(this.getClass());
+
+	@Autowired
+	private IActivityManageService activityManageService;
+
+	/**
+	 * 查询模板列表
+	 * 
+	 * @param vo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/getTemplateList", method = RequestMethod.POST)
+	public ResultJSON getTemplateList(@RequireValid GetTemplateListVo vo) throws BusinessException {
+		try {
+			// 根据userCode信息查询tenant_code(租户标识)、org_code(组织机构编码)、org_level(组织机构等级)
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			if(userInfo == null){
+				//用户信息不存在
+				throw BusinessException.build("ACTIVITY_23002","用户信息");
+			}
+			String tenantCode = userInfo.getTenantCode();
+
+			// 组织查询条件
+			ActivityTemplate template = new ActivityTemplate();
+			template.setTenantCode(tenantCode);
+			Long startTime = 0L;
+			if (StringTools.isNotEmpty(vo.getStartTime())) {
+				startTime = DateUtils.stringToLong(vo.getStartTime(), "yyyy-MM-dd HH:mm:ss");
+				template.setStartTime(startTime);
+			}
+			Long endTime = 0L;
+			if (StringTools.isNotEmpty(vo.getEndTime())) {
+				endTime = DateUtils.stringToLong(vo.getEndTime(), "yyyy-MM-dd HH:mm:ss");
+				template.setEndTime(endTime);
+			}
+			if (startTime != 0L && endTime != 0L && startTime > endTime) {
+				//开始时间不能大于结束时间
+				throw BusinessException.build("ACTIVITY_23003");
+			}
+			template.setTemplateName(vo.getTemplateName());
+			if (StringTools.isNotEmpty(vo.getSellStatus())) {
+				template.setSellStatus(Byte.parseByte(vo.getSellStatus()));
+			}
+			template.setOrderBy(Byte.parseByte(vo.getOrderBy()));
+
+			// 设置分页数据
+			PageInfo page = new PageInfo(Integer.parseInt(vo.getPageNo()) + 1, Integer.parseInt(vo.getPageSize()));
+
+			// 查询数据库
+			page = activityManageService.selectTemplateList(template, page);
+
+			// 组织返回数据
+			List<ActivityTemplate> list = page.getList();
+			JSONArray array = new JSONArray();
+			if (list.size() > 0) {
+				for (ActivityTemplate t : list) {
+					JSONObject item = new JSONObject();
+					item.put("templateId", StringTools.formatToString(t.getId()));
+					item.put("templateCode", t.getCode());
+					item.put("templateName", t.getTemplateName());
+					item.put("templateType", StringTools.formatToString(t.getTemplateType()));
+					item.put("thumbnail", StringTools.formatToString(t.getThumbnail()));
+					item.put("introduce", StringTools.formatToString(t.getIntroduce()));
+					item.put("usedNum", StringTools.formatToString(t.getUsedNum()));
+					item.put("sellStatus", StringTools.formatToString(t.getSellStatus()));
+					array.add(item);
+				}
+			}
+			JSONObject body = new JSONObject();
+			body.put("totalCount", StringTools.formatToString(page.getTotalItem()));
+			body.put("templateList", array);
+
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(body);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelOneController.getTemplateList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	/**
+	 * 上架/下架活动模板
+	 * 
+	 * @param vo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/OnOrOffTheShelvesForTemplate", method = RequestMethod.POST)
+	public ResultJSON onOffTemplate(@RequireValid OnOffTemplateVo vo) throws BusinessException {
+
+		try {
+			// 根据userCode信息查询tenant_code(租户标识)、org_code(组织机构编码)、org_level(组织机构等级)
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			if(userInfo == null){
+				//用户信息不存在
+				throw BusinessException.build("ACTIVITY_23002","用户信息");
+			}
+			String tenantCode = userInfo.getTenantCode();
+
+			// 组织查询条件
+			ActivityTemplate template = new ActivityTemplate();
+			template.setTenantCode(tenantCode);
+			template.setCode(vo.getTemplateCode());
+			template.setSellStatus(Byte.parseByte(vo.getSellStatus()));
+
+			activityManageService.updateOnOffTemplate(template);
+
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(new JSONObject());
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelOneController.onOffTemplate", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	/**
+	 * 创建文章征集活动
+	 * @param vo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/createActivityOfTypeOne", method = RequestMethod.POST)
+	public ResultJSON createActivityTypeOne(@RequireValid CreateActivityTypeOneVo vo) throws BusinessException {
+		try {
+			/** 参数校验 */
+			checkParameter(vo.getPreheatTime(),vo.getStartTime(),vo.getEndTime(),vo.getOfflineTime(),vo.getPrize());
+			
+			// 根据userCode信息查询tenant_code(租户标识)、org_code(组织机构编码)、org_level(组织机构等级)
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			if (userInfo == null) {
+				// 用户信息不存在
+				throw BusinessException.build("ACTIVITY_23002", "用户信息");
+			}
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+
+			/** 组织活动数据 */
+			ActivityInfoWithBLOBs activityInfo = new ActivityInfoWithBLOBs();
+			activityInfo.setTenantCode(tenantCode);
+			activityInfo.setOrgCode(orgCode);
+			activityInfo.setTemplateCode(vo.getTemplateCode());
+			activityInfo.setActivityName(vo.getActivityName());
+			activityInfo.setIntroduce(vo.getIntroduce());
+			activityInfo.setActivityRule(vo.getRule());
+			if (StringTools.isNotEmpty(vo.getPreheatTime())) {
+				activityInfo.setPreheatTime(DateUtils.stringToLong(vo.getPreheatTime() + " 00:00:00", "yyyy-MM-dd HH:mm:ss"));
+			}
+			activityInfo.setStartTime(DateUtils.stringToLong(vo.getStartTime() + " 00:00:00", "yyyy-MM-dd HH:mm:ss"));
+			activityInfo.setEndTime(DateUtils.stringToLong(vo.getEndTime() + " 23:59:59", "yyyy-MM-dd HH:mm:ss"));
+			activityInfo.setOfflineTime(DateUtils.stringToLong(vo.getOfflineTime() + " 00:00:00", "yyyy-MM-dd HH:mm:ss"));
+			activityInfo.setOrganizer(vo.getOrganizer());
+			activityInfo.setEnableComment(Byte.parseByte(vo.getEnableComment()));
+			if (ActivityConstants.YES.equals(Byte.parseByte(vo.getIsSubmitExamine()))) {
+				activityInfo.setActivityStatus(ActivityConstants.AUDITING);
+			} else {
+				activityInfo.setActivityStatus(ActivityConstants.DRAFT);
+			}
+			activityInfo.setCreateUserCode(vo.getUserCode());
+			activityInfo.setCreateUserName(userInfo.getUserName());
+			activityInfo.setLastOperationUserCode(vo.getUserCode());
+			activityInfo.setIsCascade(Byte.parseByte(vo.getIsCascade()));
+			activityInfo.setJoinRangeCode(vo.getJoinRangeCode());
+			activityInfo.setJoinRangeName(vo.getJoinRangeName());
+			
+			/** 设置权限对象参数 */
+			ActivityJoinAuth joinAuth = createJoinAuthDate(tenantCode, orgCode, vo.getIsCascade(), vo.getJoinRange(),
+					vo.getJoinRangeCode());
+
+			/** 组织活动奖项集合 */
+			/** 组织活动资源集合 */
+			List<ActivityPrize> prizeList = new ArrayList<ActivityPrize>();
+			List<Prize> ps = vo.getPrize();
+			List<ActivityResource> resourceList = new ArrayList<ActivityResource>();
+			List<Resource> rs = vo.getResource();
+			generatePrizeAndResource(tenantCode, orgCode, prizeList, ps, resourceList, rs);
+
+			// 操作数据库
+			String activityCode = activityManageService.insertCreateActivityOne(activityInfo, joinAuth, prizeList, resourceList);
+
+			//积分操作
+			String orgType = userInfo.getManageOrgInfo().getSysOrgType();
+			// A级门户:集团 
+			if (AuthConstants.ORG_TYPE_A.equals(orgType)) {
+				noticeAction(orgCode, CreditConstants.COMMAND_ACTIVITY_GROUPPUBLISH, orgCode, CreditConstants.TYPE_CORPORATION);
+			}
+			// B级门户:省
+			if (AuthConstants.ORG_TYPE_B.equals(orgType)) {
+				noticeAction(orgCode, CreditConstants.COMMAND_ACTIVITY_PROVINCEPUBLISH, orgCode, CreditConstants.TYPE_CORPORATION);
+			}
+			// C级门户:市
+			if (AuthConstants.ORG_TYPE_C.equals(orgType)) {
+				noticeAction(orgCode, CreditConstants.COMMAND_ACTIVITY_CITYPUBLISH, orgCode, CreditConstants.TYPE_CORPORATION);
+			}
+			
+			
+			JSONObject body = new JSONObject();
+			body.put("activityCode", activityCode);
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(body);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelOneController.createActivityTypeOne", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	/**
+	 * 查询活动列表
+	 * 
+	 * @param vo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/getActivityList", method = RequestMethod.POST)
+	public ResultJSON getActivityList(@RequireValid GetActivityListVo vo) throws BusinessException {
+		try {
+			/** 参数校验 */
+			long start = 0L;
+			long end = 0L;
+			if(StringTools.isNotEmpty(vo.getStartQueryTime())){	
+				start = DateUtils.stringToLong(vo.getStartQueryTime(), "yyyy-MM-dd HH:mm:ss");
+			}
+			if(StringTools.isNotEmpty(vo.getEndQueryTime())){
+				end = DateUtils.stringToLong(vo.getEndQueryTime(), "yyyy-MM-dd HH:mm:ss");
+			}
+			if (start != 0L && end != 0L && start > end) {
+				// 开始时间不能大于结束时间
+				throw BusinessException.build("ACTIVITY_23003");
+			}
+
+			/**
+			 * 根据userCode信息查询tenant_code(租户标识)、org_code(组织机构编码)、org_level(
+			 * 组织机构等级)
+			 */
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			if(userInfo == null){
+				//用户信息不存在
+				throw BusinessException.build("ACTIVITY_23002","用户信息");
+			}
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+
+			/** 组织查询参数实体 */
+			ActivityInfo info = new ActivityInfo();
+			info.setTenantCode(tenantCode);
+			info.setOrgCode(orgCode);
+			info.setCreateUserCode(vo.getCreatorCode());
+			info.setActivityName(vo.getActivityName());
+			if(StringTools.isNotEmpty(vo.getStartQueryTime())){	
+				info.setStart(DateUtils.stringToLong(vo.getStartQueryTime() + " 00:00:00", "yyyy-MM-dd HH:mm:ss"));
+			}
+			if(StringTools.isNotEmpty(vo.getEndQueryTime())){
+				info.setEnd(DateUtils.stringToLong(vo.getEndQueryTime() + " 23:59:59", "yyyy-MM-dd HH:mm:ss"));
+			}
+			if (StringTools.isNotEmpty(vo.getActivityStatus())) {
+				info.setActivityStatus(Byte.parseByte(vo.getActivityStatus()));
+			}
+
+			// 设置分页数据
+			PageInfo page = new PageInfo(Integer.parseInt(vo.getPageNo()) + 1, Integer.parseInt(vo.getPageSize()));
+			
+			/**查询数据库*/
+			page = activityManageService.selectActivityList(info, page);
+			
+			/**组织返回数据*/
+			List<ActivityInfo> list = page.getList();
+			JSONArray array = new JSONArray();
+			if (list.size() > 0) {
+				for (ActivityInfo a : list) {
+					JSONObject item = new JSONObject();
+					item.put("activityId", StringTools.formatToString(a.getId()));
+					item.put("activityCode", a.getCode());
+					item.put("templateCode", a.getTemplateCode());
+					item.put("activityNo", a.getActivityNo());
+					item.put("activityType", StringTools.formatToString(a.getActivityType()));
+					item.put("activityName", a.getActivityName());
+					item.put("detailUrl", StringTools.formatToString(a.getDetailUrl()));
+					item.put("preheatTime", StringTools.formatToString(a.getPreheatTime()));
+					item.put("startTime", StringTools.formatToString(a.getStartTime()));
+					item.put("endTime", StringTools.formatToString(a.getEndTime()));
+					item.put("offlineTime", StringTools.formatToString(a.getOfflineTime()));
+					item.put("modifyTime", StringTools.formatToString(a.getModifyTime()));
+					item.put("isCascade", StringTools.formatToString(a.getIsCascade()));
+					item.put("joinRangeCode", a.getJoinRangeCode());
+					item.put("joinRangeName", a.getJoinRangeName());
+					item.put("lastOptUserCode", a.getLastOperationUserCode());
+					SysUserInfo optUser = getUserInfo(a.getLastOperationUserCode());
+					if (optUser != null) {
+						item.put("lastOptUserName", optUser.getUserName());
+					} else {
+						item.put("lastOptUserName", "");
+					}
+					item.put("joinNum", StringTools.formatToString(a.getJoinNum()));
+					array.add(item);
+				}
+			}
+			
+			JSONObject body = new JSONObject();
+			body.put("totalCount", StringTools.formatToString(page.getTotalItem()));
+			body.put("activityList", array);
+						
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(body);
+			return result;
+	    } catch (BusinessException e) {
+			 throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelOneController.getActivityList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * 查询文章征集活动详情
+	 * @param vo
+	 * @return
+	 * @throws BusinessException 
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/queryActivityOfTypeOne", method = RequestMethod.POST)
+	public ResultJSON getActivityDetail(@RequireValid GetActivityDetailVo vo) throws BusinessException{
+		try {
+			/**
+			 * 根据userCode信息查询tenant_code(租户标识)、org_code(组织机构编码)、org_level(
+			 * 组织机构等级)
+			 */
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			if(userInfo == null){
+				//用户信息不存在
+				throw BusinessException.build("ACTIVITY_23002","用户信息");
+			}
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+
+			/** 组织查询参数实体 */
+			ActivityInfo info = new ActivityInfo();
+			info.setTenantCode(tenantCode);
+			info.setOrgCode(orgCode);
+			if (StringTools.isNotEmpty(vo.getTemplateCode())) {
+				info.setTemplateCode(vo.getTemplateCode());
+			}
+			info.setCode(vo.getActivityCode());
+			
+			/** 查询数据库*/
+			ActivityInfoWithBLOBs detail = activityManageService.selectActivityDetail(info);
+			
+			/** 组织返回数据*/
+			JSONObject body = new JSONObject();
+			if(detail != null){
+				body.put("templateCode", detail.getTemplateCode());
+				body.put("activityCode", detail.getCode());
+				body.put("activityName", detail.getActivityName());
+				body.put("introduce", detail.getIntroduce());
+				body.put("rule", detail.getActivityRule());
+				body.put("preheatTime", StringTools.formatToString(detail.getPreheatTime()));
+				body.put("startTime", StringTools.formatToString(detail.getStartTime()));
+				body.put("endTime", StringTools.formatToString(detail.getEndTime()));
+				body.put("offlineTime", StringTools.formatToString(detail.getOfflineTime()));
+				body.put("organizer", detail.getOrganizer());
+				body.put("enableComment", StringTools.formatToString(detail.getEnableComment()));
+				body.put("isCascade", StringTools.formatToString(detail.getIsCascade()));
+				body.put("joinRangeCode", detail.getJoinRangeCode());
+				body.put("joinRangeName", detail.getJoinRangeName());
+				
+				List<ActivityPrize> prizes = detail.getPrizes();
+				JSONArray arrayPrize = new JSONArray();
+				for (ActivityPrize p : prizes) {
+					JSONObject item = new JSONObject();
+					item.put("prizeName", p.getPrizeName());
+					item.put("isJoinPrize", StringTools.formatToString(p.getIsJoinPrize()));
+					item.put("sequenceNo", StringTools.formatToString(p.getSequenceNo()));
+					item.put("prizeIntro", p.getIntroduce());
+					item.put("rule", p.getRule());
+					item.put("isRewardGold", StringTools.formatToString(p.getIsRewardGold()));
+					item.put("rewardGoldNum", StringTools.formatToString(p.getRewardGoldNum()));
+					item.put("isAwardHonor", StringTools.formatToString(p.getIsAwardHonor()));
+					item.put("awardHonorCode", StringTools.formatToString(p.getAwardHonorCode()));
+					item.put("awardHonorName", StringTools.formatToString(p.getAwardHonorName()));
+					item.put("awardHonorUrl", StringTools.formatToString(p.getAwardHonorUrl()));
+					arrayPrize.add(item);
+				}
+				body.put("prizeList", arrayPrize);
+				
+				List<ActivityResource> resources = detail.getResources();
+				JSONArray arrayRes = new JSONArray();
+				for (ActivityResource r : resources) {
+					JSONObject item = new JSONObject();
+					item.put("type", StringTools.formatToString(r.getType()));
+					item.put("url", r.getUrl());
+					item.put("sequenceNo", StringTools.formatToString(r.getSequenceNo()));
+					arrayRes.add(item);
+				}
+				body.put("resourceList", arrayRes);
+			}
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(body);
+			return result;
+		} catch (BusinessException e) {
+			 throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelOneController.getActivityDetail", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * 修改文章征集活动
+	 * @param vo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/updateActivityOfTypeOne", method = RequestMethod.POST)
+	public ResultJSON updateActivityOne(@RequireValid UpdateActivityOneVo vo) throws BusinessException{
+		try {
+			/** 参数校验 */
+			checkParameter(vo.getPreheatTime(),vo.getStartTime(),vo.getEndTime(),vo.getOfflineTime(),vo.getPrize());
+
+			// 根据userCode信息查询tenant_code(租户标识)、org_code(组织机构编码)、org_level(组织机构等级)
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			if (userInfo == null) {
+				// 用户信息不存在
+				throw BusinessException.build("ACTIVITY_23002", "用户信息");
+			}
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+		
+			/** 组织活动数据 */
+			ActivityInfoWithBLOBs activityInfo = new ActivityInfoWithBLOBs();
+			activityInfo.setTenantCode(tenantCode);
+			activityInfo.setOrgCode(orgCode);
+			activityInfo.setTemplateCode(vo.getTemplateCode());
+			activityInfo.setCode(vo.getActivityCode());
+			activityInfo.setActivityName(vo.getActivityName());
+			activityInfo.setIntroduce(vo.getIntroduce());
+			activityInfo.setActivityRule(vo.getRule());
+			if (StringTools.isNotEmpty(vo.getPreheatTime())) {
+				activityInfo.setPreheatTime(DateUtils.stringToLong(vo.getPreheatTime() + " 00:00:00", "yyyy-MM-dd HH:mm:ss"));
+			}
+			activityInfo.setStartTime(DateUtils.stringToLong(vo.getStartTime() + " 00:00:00", "yyyy-MM-dd HH:mm:ss"));
+			activityInfo.setEndTime(DateUtils.stringToLong(vo.getEndTime() + " 23:59:59", "yyyy-MM-dd HH:mm:ss"));
+			activityInfo.setOfflineTime(DateUtils.stringToLong(vo.getOfflineTime() + " 00:00:00", "yyyy-MM-dd HH:mm:ss"));
+			activityInfo.setOrganizer(vo.getOrganizer());
+			activityInfo.setEnableComment(Byte.parseByte(vo.getEnableComment()));
+			if (ActivityConstants.YES.equals(Byte.parseByte(vo.getIsSubmitExamine()))) {
+				activityInfo.setActivityStatus(ActivityConstants.AUDITING);
+			} else {
+				activityInfo.setActivityStatus(ActivityConstants.DRAFT);
+			}
+			activityInfo.setLastOperationUserCode(vo.getUserCode());
+			activityInfo.setLastOperationUserName(userInfo.getUserName());
+			activityInfo.setIsCascade(Byte.parseByte(vo.getIsCascade()));
+			activityInfo.setJoinRangeCode(vo.getJoinRangeCode());
+			activityInfo.setJoinRangeName(vo.getJoinRangeName());
+			
+			/** 设置权限对象参数 */
+			ActivityJoinAuth joinAuth = createJoinAuthDate(tenantCode, orgCode, vo.getIsCascade(), vo.getJoinRange(),
+					vo.getJoinRangeCode());
+			joinAuth.setActivityCode(vo.getActivityCode());
+			
+			/** 组织活动奖项集合 */
+			List<ActivityPrize> prizeList = new ArrayList<ActivityPrize>();
+			List<Prize> ps = vo.getPrize();
+			/** 组织活动资源集合 */
+			List<ActivityResource> resourceList = new ArrayList<ActivityResource>();
+			List<Resource> rs = vo.getResource();
+			
+			generatePrizeAndResource(tenantCode, orgCode, prizeList, ps, resourceList, rs);
+			
+			activityManageService.updateActivityOne(activityInfo, joinAuth, prizeList, resourceList);
+			
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(new JSONObject());
+			return result;
+		} catch (BusinessException e) {
+			 throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelOneController.updateActivityOne", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	/**
+	 * 删除活动
+	 * @param vo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/deleteActivity", method = RequestMethod.POST)
+	public ResultJSON deleteOneActivity(@RequireValid GetActivityDetailVo vo) throws BusinessException{
+		
+		try {
+			/**
+			 * 根据userCode信息查询tenant_code(租户标识)、org_code(组织机构编码)、org_level(
+			 * 组织机构等级)
+			 */
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			if(userInfo == null){
+				//用户信息不存在
+				throw BusinessException.build("ACTIVITY_23002","用户信息");
+			}
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+
+			/** 组织查询参数实体 */
+			ActivityInfo info = new ActivityInfo();
+			info.setTenantCode(tenantCode);
+			info.setOrgCode(orgCode);
+			info.setCode(vo.getActivityCode());
+			/** 权限校验 */
+			ActivityInfo activity = activityManageService.selectActivityByCode(info);
+			if(activity == null){
+				//活动不存在
+				throw BusinessException.build("ACTIVITY_23002","活动信息");
+			}
+			if(! ActivityConstants.DRAFT.equals(activity.getActivityStatus())){
+				//不是草稿状态不能删除
+				throw BusinessException.build("ACTIVITY_23015");
+			}
+			/** 操作数据库 */
+			if (StringTools.isNotEmpty(vo.getTemplateCode())) {
+				info.setTemplateCode(vo.getTemplateCode());
+			}
+			info.setLastOperationUserCode(vo.getUserCode());
+			info.setLastOperationUserName(userInfo.getUserName());
+			activityManageService.deleteActivity(info);
+			
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(new JSONObject());
+			return result;
+		} catch (BusinessException e) {
+			 throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelOneController.deleteOneActivity", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * 生成奖项集合和活动资源集合
+	 * @param tenantCode
+	 * @param orgCode
+	 * @param prizeList
+	 * @param ps
+	 * @param resourceList
+	 * @param rs
+	 */
+	private void generatePrizeAndResource(String tenantCode, String orgCode, List<ActivityPrize> prizeList,
+			List<Prize> ps, List<ActivityResource> resourceList, List<Resource> rs) {
+		for (Prize p : ps) {
+			ActivityPrize prize = new ActivityPrize();
+			prize.setTenantCode(tenantCode);
+			prize.setOrgCode(orgCode);
+			prize.setPrizeName(p.getPrizeName());
+			prize.setIsJoinPrize(Byte.parseByte(p.getIsJoinPrize()));
+			prize.setSequenceNo(Integer.parseInt(p.getSequenceNo()));
+			prize.setIntroduce(p.getPrizeIntro());
+			prize.setRule(p.getRule());
+			prize.setIsRewardGold(Byte.parseByte(p.getIsRewardGold()));
+			if (ActivityConstants.YES.equals(Byte.parseByte(p.getIsRewardGold()))) {
+				prize.setRewardGoldNum(Integer.parseInt(p.getRewardGoldNum()));
+			}
+			prize.setIsAwardHonor(Byte.parseByte(p.getIsAwardHonor()));
+			prize.setAwardHonorCode(p.getAwardHonorCode());
+			prize.setAwardHonorName(p.getAwardHonorName());
+			prize.setAwardHonorUrl(p.getAwardHonorUrl());
+			prizeList.add(prize);
+		}
+
+		for (Resource r : rs) {
+			ActivityResource resource = new ActivityResource();
+			resource.setTenantCode(tenantCode);
+			resource.setOrgCode(orgCode);
+			resource.setType(Byte.parseByte(r.getType()));
+			resource.setUrl(r.getUrl());
+			resource.setSequenceNo(Integer.parseInt(r.getSequenceNo()));
+			resourceList.add(resource);
+		}
+	}
+
+	/**
+	 * 校验添加修改活动的输入参数
+	 * @param vo
+	 * @throws ParseException
+	 * @throws BusinessException
+	 */
+	private void checkParameter(String preTime,String startT,String endT,String offTime,List<Prize> list) throws  BusinessException {
+		try {
+			Long preheatTime = 0L;
+			if (StringTools.isNotEmpty(preTime)) {
+				preheatTime = DateUtils.stringToLong(preTime, "yyyy-MM-dd");
+			}
+			Long startTime = DateUtils.stringToLong(startT, "yyyy-MM-dd");
+			if (preheatTime != 0L && startTime <= preheatTime) {
+				// 预热时间不能大于等于开始时间
+				throw BusinessException.build("ACTIVITY_23004");
+			}
+			Long endTime = DateUtils.stringToLong(endT, "yyyy-MM-dd");
+			if (startTime >= endTime) {
+				// 开始时间不能大于等于结束时间
+				throw BusinessException.build("ACTIVITY_23005");
+			}
+			Long offlineTime = DateUtils.stringToLong(offTime, "yyyy-MM-dd");
+			if (endTime >= offlineTime) {
+				// 结束时间不能大于等于下线时间
+				throw BusinessException.build("ACTIVITY_23006");
+			}
+			for (Prize p : list) {
+				if (ActivityConstants.YES.equals(Byte.parseByte(p.getIsRewardGold()))
+						&& StringTools.isEmpty(p.getRewardGoldNum())) {
+					// 奖励金币时金币数不能为空
+					throw BusinessException.build("COMMON_402", "rewardGoldNum");
+				}
+				if (ActivityConstants.YES.equals(Byte.parseByte(p.getIsAwardHonor()))
+						&& StringTools.isEmpty(p.getAwardHonorCode())) {
+					// 奖励荣誉时荣誉信息不能为空
+					throw BusinessException.build("COMMON_402", "awardHonorCode");
+				}
+				if (ActivityConstants.YES.equals(Byte.parseByte(p.getIsAwardHonor()))
+						&& StringTools.isEmpty(p.getAwardHonorName())) {
+					// 奖励荣誉时荣誉信息不能为空
+					throw BusinessException.build("COMMON_402", "awardHonorName");
+				}
+				if (ActivityConstants.YES.equals(Byte.parseByte(p.getIsAwardHonor()))
+						&& StringTools.isEmpty(p.getAwardHonorUrl())) {
+					// 奖励荣誉时荣誉信息不能为空
+					throw BusinessException.build("COMMON_402", "awardHonorUrl");
+				}
+			}
+		} catch (BusinessException e) {
+			 throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelOneController.checkParameter", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	/**
+	 * 组织活动参与权限对象
+	 * @Function createJoinAuthDate
+	 * @Description 
+	 * @param tenantCode     租户编码
+	 * @param orgCode        组织机构编码
+	 * @param isCascade      是否范围级联:0-否  1-是
+	 * @param joinRange      参与范围:1-集团；2-省；3-市
+	 * @param joinRangeCode  参与范围CODE
+	 * @return
+	 * @throws BusinessException
+	 */
+	private ActivityJoinAuth createJoinAuthDate(String tenantCode, String orgCode, String isCascade, String joinRange, String joinRangeCode) throws BusinessException {
+		try {
+			ActivityJoinAuth joinAuth = new ActivityJoinAuth();
+			joinAuth.setTenantCode(tenantCode);
+			joinAuth.setOrgCode(orgCode);
+			joinAuth.setIsCascade(Byte.parseByte(isCascade));// 是否范围级联:0-否  1-是
+			joinAuth.setRangeType(Byte.parseByte(joinRange));// 参与范围:1-集团；2-省；3-市
+			
+			OrgLinkList orgLinkList = getOrgTreeByAnyOrgCode(joinRange, joinRangeCode);
+			String gRangeCode = orgLinkList.getTopOrg().getSysOrgCode();
+			String gRangeName = orgLinkList.getTopOrg().getSysOrgName();
+			joinAuth.setgRangeCode(gRangeCode);// 参与范围集团CODE
+			joinAuth.setgRangeName(gRangeName);// 参与方集团名称
+			if (ActivityConstants.RANGE_TYPE_PRO.equals(Byte.parseByte(joinRange))
+					|| ActivityConstants.RANGE_TYPE_CITY.equals(Byte.parseByte(joinRange))) {
+				// 如果是省范围，则新增省CODE和省名称
+				SysOrgInfo province = orgLinkList.getProList().get(0);
+				joinAuth.setpRangeCode(province.getSysOrgCode());// 参与范围省CODE
+				joinAuth.setpRangeName(province.getSysOrgName());// 参与方省名
+				if (VoteConstants.RANGE_TYPE_CITY.equals(Byte.parseByte(joinRange))) {
+					// 如果是市范围，再新增市CODE和市名称
+					SysOrgInfo city = orgLinkList.getCityList().get(0);
+					joinAuth.setcRangeCode(city.getSysOrgCode());// 参与范围市CODE
+					joinAuth.setcRangeName(city.getSysOrgName());// 参与方市名称
+				}
+			}
+			return joinAuth;
+		} catch (BusinessException e) {
+			 throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelOneController.createJoinAuthDate", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+}

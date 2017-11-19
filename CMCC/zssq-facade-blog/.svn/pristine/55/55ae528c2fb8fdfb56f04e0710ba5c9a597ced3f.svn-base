@@ -1,0 +1,50 @@
+package com.zssq.service;
+
+import java.util.List;
+
+import com.zssq.dao.model.BlogTitleData;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.pojo.RssReturnPo;
+import com.zssq.vo.BlogThirdVO;
+
+/**
+ * 
+ * @ClassName: BlogThirdService  
+ * @Description: 博客  
+ * @author ZKZ  
+ * @date 2017年3月20日  
+ *
+ */
+public interface BlogThirdService {
+	
+	/**
+	 * 
+	 * @Title: updateShieldStatus  
+	 * @Description: 屏蔽/恢复博客
+	 * @param blogThirdVO
+	 * @throws BusinessException    参数  
+	 * @return: boolean    返回类型
+	 */
+	public boolean updateShieldStatus(BlogThirdVO blogThirdVO) throws BusinessException;
+	
+	/**
+	 * 
+	 * @Title: getRssBlogList  
+	 * @Description: 获取订阅博客列表
+	 * @param blogThirdVO
+	 * @throws BusinessException    参数  
+	 * @return: List<RssReturnPo>    返回类型
+	 */
+	public List<RssReturnPo> getRssBlogList(BlogThirdVO blogThirdVO) throws BusinessException;
+	
+	/**
+	 * 
+	 * @Title: getBlogTitalAndDateByCode  
+	 * @Description: 根据code获取博客标题和date
+	 * @param list
+	 * @throws BusinessException    参数  
+	 * @return: List<BlogInfo>    返回类型
+	 */
+	public List<BlogTitleData> getBlogTitleAndDataByCode(List<String> list) throws BusinessException;
+
+}

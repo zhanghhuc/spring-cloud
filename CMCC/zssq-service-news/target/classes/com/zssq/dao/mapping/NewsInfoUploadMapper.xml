@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.NewsInfoUploadMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.news.dao.pojo.NewsInfoUpload" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="info_upload_code" property="infoUploadCode" jdbcType="VARCHAR" />
+    <result column="news_code" property="newsCode" jdbcType="VARCHAR" />
+    <result column="info_type" property="infoType" jdbcType="TINYINT" />
+    <result column="info_path" property="infoPath" jdbcType="VARCHAR" />
+    <result column="info_org_name" property="infoOrgName" jdbcType="VARCHAR" />
+    <result column="info_new_name" property="infoNewName" jdbcType="VARCHAR" />
+    <result column="info_org_ext" property="infoOrgExt" jdbcType="VARCHAR" />
+    <result column="info_new_ext" property="infoNewExt" jdbcType="VARCHAR" />
+    <result column="info_upload_time" property="infoUploadTime" jdbcType="BIGINT" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="org_level" property="orgLevel" jdbcType="TINYINT" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, info_upload_code, news_code, info_type, info_path, info_org_name, info_new_name, 
+    info_org_ext, info_new_ext, info_upload_time, create_time, modify_time, remark, tenant_code, 
+    org_level, org_code
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from news_info_upload
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from news_info_upload
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.news.dao.pojo.NewsInfoUpload" >
+    insert into news_info_upload (id, info_upload_code, news_code, 
+      info_type, info_path, info_org_name, 
+      info_new_name, info_org_ext, info_new_ext, 
+      info_upload_time, create_time, modify_time, 
+      remark, tenant_code, org_level, 
+      org_code)
+    values (#{id,jdbcType=BIGINT}, #{infoUploadCode,jdbcType=VARCHAR}, #{newsCode,jdbcType=VARCHAR}, 
+      #{infoType,jdbcType=TINYINT}, #{infoPath,jdbcType=VARCHAR}, #{infoOrgName,jdbcType=VARCHAR}, 
+      #{infoNewName,jdbcType=VARCHAR}, #{infoOrgExt,jdbcType=VARCHAR}, #{infoNewExt,jdbcType=VARCHAR}, 
+      #{infoUploadTime,jdbcType=BIGINT}, #{createTime,jdbcType=BIGINT}, #{modifyTime,jdbcType=BIGINT}, 
+      #{remark,jdbcType=VARCHAR}, #{tenantCode,jdbcType=VARCHAR}, #{orgLevel,jdbcType=TINYINT}, 
+      #{orgCode,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.news.dao.pojo.NewsInfoUpload" >
+    insert into news_info_upload
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="infoUploadCode != null" >
+        info_upload_code,
+      </if>
+      <if test="newsCode != null" >
+        news_code,
+      </if>
+      <if test="infoType != null" >
+        info_type,
+      </if>
+      <if test="infoPath != null" >
+        info_path,
+      </if>
+      <if test="infoOrgName != null" >
+        info_org_name,
+      </if>
+      <if test="infoNewName != null" >
+        info_new_name,
+      </if>
+      <if test="infoOrgExt != null" >
+        info_org_ext,
+      </if>
+      <if test="infoNewExt != null" >
+        info_new_ext,
+      </if>
+      <if test="infoUploadTime != null" >
+        info_upload_time,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="orgLevel != null" >
+        org_level,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="infoUploadCode != null" >
+        #{infoUploadCode,jdbcType=VARCHAR},
+      </if>
+      <if test="newsCode != null" >
+        #{newsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="infoType != null" >
+        #{infoType,jdbcType=TINYINT},
+      </if>
+      <if test="infoPath != null" >
+        #{infoPath,jdbcType=VARCHAR},
+      </if>
+      <if test="infoOrgName != null" >
+        #{infoOrgName,jdbcType=VARCHAR},
+      </if>
+      <if test="infoNewName != null" >
+        #{infoNewName,jdbcType=VARCHAR},
+      </if>
+      <if test="infoOrgExt != null" >
+        #{infoOrgExt,jdbcType=VARCHAR},
+      </if>
+      <if test="infoNewExt != null" >
+        #{infoNewExt,jdbcType=VARCHAR},
+      </if>
+      <if test="infoUploadTime != null" >
+        #{infoUploadTime,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.news.dao.pojo.NewsInfoUpload" >
+    update news_info_upload
+    <set >
+      <if test="infoUploadCode != null" >
+        info_upload_code = #{infoUploadCode,jdbcType=VARCHAR},
+      </if>
+      <if test="newsCode != null" >
+        news_code = #{newsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="infoType != null" >
+        info_type = #{infoType,jdbcType=TINYINT},
+      </if>
+      <if test="infoPath != null" >
+        info_path = #{infoPath,jdbcType=VARCHAR},
+      </if>
+      <if test="infoOrgName != null" >
+        info_org_name = #{infoOrgName,jdbcType=VARCHAR},
+      </if>
+      <if test="infoNewName != null" >
+        info_new_name = #{infoNewName,jdbcType=VARCHAR},
+      </if>
+      <if test="infoOrgExt != null" >
+        info_org_ext = #{infoOrgExt,jdbcType=VARCHAR},
+      </if>
+      <if test="infoNewExt != null" >
+        info_new_ext = #{infoNewExt,jdbcType=VARCHAR},
+      </if>
+      <if test="infoUploadTime != null" >
+        info_upload_time = #{infoUploadTime,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        org_level = #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.news.dao.pojo.NewsInfoUpload" >
+    update news_info_upload
+    set info_upload_code = #{infoUploadCode,jdbcType=VARCHAR},
+      news_code = #{newsCode,jdbcType=VARCHAR},
+      info_type = #{infoType,jdbcType=TINYINT},
+      info_path = #{infoPath,jdbcType=VARCHAR},
+      info_org_name = #{infoOrgName,jdbcType=VARCHAR},
+      info_new_name = #{infoNewName,jdbcType=VARCHAR},
+      info_org_ext = #{infoOrgExt,jdbcType=VARCHAR},
+      info_new_ext = #{infoNewExt,jdbcType=VARCHAR},
+      info_upload_time = #{infoUploadTime,jdbcType=BIGINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT},
+      org_code = #{orgCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

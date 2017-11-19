@@ -1,0 +1,301 @@
+package com.zssq.auth.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.auth.vo.AddTenantVo;
+import com.zssq.auth.vo.SaasPassVo;
+import com.zssq.auth.vo.TenantEnableVo;
+import com.zssq.auth.vo.TenantPassVo;
+import com.zssq.constants.AuthConstants;
+import com.zssq.dao.pojo.SaasTenantInfo;
+import com.zssq.dao.pojo.SysAdminInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.pojo.Message;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.ISaasTenantService;
+import com.zssq.utils.PropertiesUtil;
+import com.zssq.utils.StringTools;
+
+/**
+ * 提供Saas用户登录以及对租户操作的接口，使用SpringMVC映射请求Url
+ * 
+ * @since  JDK 1.7
+ * @author 赵翊
+ */
+@Controller  
+@RequestMapping("/saas")
+public class SaasTenantController {
+	
+	/** 日志记录器 */
+	private Logger logger = Logger.getLogger(this.getClass());
+	
+	/** Saas用户登录以及对租户操作业务组件 */
+	@Autowired
+	private ISaasTenantService saasTenantService;
+	
+	/**
+	 * Saas用户登录，成功时为其生成token
+	 * 
+	 * @param request
+	 * 			Http请求参数
+	 * @return	通用返回结果 ResultJSON
+	 */
+	@RequestMapping("/login")  
+	@ResponseBody	
+	public ResultJSON saasLogin(HttpServletRequest request) throws BusinessException {
+		
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		Map<String, String> resultBody = new HashMap<String, String>();
+		try {
+			SysAdminInfo sysAdminInfo = saasTenantService.saasLogin(request.getParameter("account"), request.getParameter("password"), request.getParameter("adminType"));
+			if(sysAdminInfo != null) {
+				if(sysAdminInfo.getIsEnable().equals(AuthConstants.BOOLEAN_TRUE)){
+					resultBody.put("account", sysAdminInfo.getAdminAccount());
+					resultBody.put("token", sysAdminInfo.getToken());
+					resultBody.put("saasTenantCode", sysAdminInfo.getTenantCode());
+					message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_200);
+				}else{
+					message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+					rj.setReturnTip("账户已禁用");
+				}
+			} else {
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+				rj.setReturnTip(String.format(message.getTip(), "登录"));
+			}
+			rj.setReturnCode(message.getCode());
+	        rj.setBody(resultBody);
+			
+			return rj;
+		} catch (Exception e) {
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "登录"));
+		}
+	}
+	
+	/**
+	 * Saas用户退出登录
+	 * 
+	 * @param request
+	 * 			Http请求参数
+	 * @return	通用返回结果 ResultJSON
+	 */
+	@RequestMapping("/logout")  
+	@ResponseBody	
+	public ResultJSON saasLogout(HttpServletRequest request) throws BusinessException {
+		
+		Message message = null;
+		Map<String, String> resultBody = new HashMap<String, String>();
+		try {
+			saasTenantService.saasLogout(request.getParameter("userCode"));
+			
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_200);
+			
+			ResultJSON rj = new ResultJSON();
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "退出登录"));
+	        rj.setBody(resultBody);
+			
+			return rj;
+		} catch (Exception e) {
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "退出登录"));
+		}
+	}
+	
+	/**
+	 * 新增租户
+	 * 
+	 * @param param
+	 * 			封装操作所需参数信息
+	 * @return 通用返回对象
+	 * @throws BusinessException
+	 */
+	@ResponseBody	
+	@RequestMapping("/tenant/add")  
+	public ResultJSON addTenant(@RequireValid AddTenantVo param) throws BusinessException {
+		
+		Message message = null;
+		try {
+			boolean isSuccess = saasTenantService.addTenant(param.getName(), param.getAccount(), param.getPassWord());
+			if(isSuccess) {
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_200);
+			} else {
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			}
+			ResultJSON rj = new ResultJSON();
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "新增租户"));
+	        rj.setBody(new JSONObject());
+			return rj;
+		} catch(BusinessException e){
+			throw e;
+		} catch (Exception e) {
+			e.printStackTrace();
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "新增租户"));
+		}
+	}
+	
+	/**
+	 * 获取租户列表
+	 * 
+	 * @return 通用返回对象
+	 * @throws BusinessException
+	 */
+	@ResponseBody	
+	@RequestMapping("/tenant/list")  
+	public ResultJSON getTenantList() throws BusinessException {
+		
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			List<SaasTenantInfo> tenantList = saasTenantService.selectTenant();
+			JSONObject body = new JSONObject();
+			if(tenantList.size() > 0) {
+				JSONArray jsonArray = new JSONArray();
+				for (int i = 0; i < tenantList.size(); i++) {
+					JSONObject tenantInfo = new JSONObject();
+					tenantInfo.put("id", StringTools.formatToString(tenantList.get(i).getId()));
+					tenantInfo.put("tenantCode", StringTools.formatToString(tenantList.get(i).getSaasTenantCode()));
+					tenantInfo.put("tenantName", StringTools.formatToString(tenantList.get(i).getSaasTenantName()));
+					tenantInfo.put("adminAccount", StringTools.formatToString(tenantList.get(i).getSysAdminAccount()));
+					tenantInfo.put("isEnable", StringTools.formatToString(tenantList.get(i).getIsEnable()));
+					jsonArray.add(tenantInfo);
+				}
+				body.put("dataList", jsonArray);
+				
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_200);
+			} else {
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			}
+			
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "租户查询"));
+	        rj.setBody(body);
+			return rj;
+		} catch (Exception e) {
+			e.printStackTrace();
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "租户查询"));
+		}
+	}
+	
+	/**
+	 * 租户启禁用
+	 * 
+	 * @param param
+	 * 			封装操作所需参数信息
+	 * @return 通用返回对象
+	 * @throws BusinessException
+	 */
+	@ResponseBody	
+	@RequestMapping("/tenant/isEnable")  
+	public ResultJSON tenantEnable(@RequireValid TenantEnableVo param) throws BusinessException {
+		
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			boolean isSuccess = saasTenantService.setTenantState(param.getTenantList(),param.getIsEnable());
+			if(isSuccess) {
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_200);
+			} else {
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			}
+			rj.setReturnCode(message.getCode());
+			if(param.getIsEnable().equals(AuthConstants.BOOLEAN_0)){
+				rj.setReturnTip(String.format(message.getTip(), "租户禁用"));
+			}else{
+				rj.setReturnTip(String.format(message.getTip(), "租户启用"));
+			}
+	        rj.setBody(new JSONObject());
+			return rj;
+		} catch (Exception e) {
+			e.printStackTrace();
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "租户启禁用"));
+		}
+	}
+	
+	/**
+	 * 重置租户密码
+	 * 
+	 * @param param
+	 * 			封装操作所需参数信息
+	 * @return 通用返回对象
+	 * @throws BusinessException
+	 */
+	@ResponseBody	
+	@RequestMapping("/tenant/modifyPass")  
+	public ResultJSON tenantPassModify(@RequireValid TenantPassVo param) throws BusinessException {
+		
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			boolean isSuccess = saasTenantService.updatePassword(param.getAccount(), param.getPassWord());
+			if(isSuccess) {
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_200);
+			} else {
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			}
+			rj.setReturnCode(message.getCode());
+			rj.setReturnTip(String.format(message.getTip(), "重置租户密码"));
+	        rj.setBody(new JSONObject());
+			return rj;
+		} catch (Exception e) {
+			e.printStackTrace();
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "重置租户密码"));
+		}
+	}
+	
+	/**
+	 * 修改 SaaS 账号密码
+	 * 
+	 * @param request
+	 * 			http 请求对象
+	 * @param param
+	 * 			封装操作所需参数信息
+	 * @return 通用返回对象
+	 * @throws BusinessException
+	 */
+	@ResponseBody	
+	@RequestMapping("/modifyPass")  
+	public ResultJSON passModify(HttpServletRequest request, @RequireValid SaasPassVo param) throws BusinessException {
+		
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			boolean isSuccess = saasTenantService.updateSaasPass(request.getParameter("userCode"), param.getOldPass(), param.getNewPass());
+			if(isSuccess) {
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_200);
+			} else {
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			}
+
+			rj.setReturnCode(message.getCode());
+			rj.setReturnTip(String.format(message.getTip(), "修改密码"));
+	        rj.setBody(new JSONObject());
+			return rj;
+		} catch(BusinessException e){
+			throw e;
+		} catch (Exception e) {
+			logger.error("修改密码异常", e);
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "修改密码"));
+		}
+	}
+}

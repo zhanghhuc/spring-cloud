@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.RelationSubjectDataBySryMapper">
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.RelationSubjectData">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="subject_data_code" jdbcType="VARCHAR" property="subjectDataCode" />
+    <result column="tenant_code" jdbcType="VARCHAR" property="tenantCode" />
+    <result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+    <result column="create_time" jdbcType="BIGINT" property="createTime" />
+    <result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="subject_code" jdbcType="VARCHAR" property="subjectCode" />
+    <result column="team_quality_num" jdbcType="INTEGER" property="teamQualityNum" />
+    <result column="group_quality_num" jdbcType="INTEGER" property="groupQualityNum" />
+    <result column="province_quality_num" jdbcType="INTEGER" property="provinceQualityNum" />
+    <result column="city_quality_num" jdbcType="INTEGER" property="cityQualityNum" />
+    <result column="join_num" jdbcType="INTEGER" property="joinNum" />
+    <result column="read_num" jdbcType="INTEGER" property="readNum" />
+    <result column="like_num" jdbcType="INTEGER" property="likeNum" />
+    <result column="collect_num" jdbcType="INTEGER" property="collectNum" />
+    <result column="forward_num" jdbcType="INTEGER" property="forwardNum" />
+    <result column="comment_num" jdbcType="INTEGER" property="commentNum" />
+    <result column="share_num" jdbcType="INTEGER" property="shareNum" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, subject_data_code, tenant_code, org_code, create_time, modify_time, 
+    remark, subject_code, team_quality_num, group_quality_num, province_quality_num, 
+    city_quality_num, join_num, read_num, like_num, collect_num, forward_num, comment_num, 
+    share_num
+  </sql>
+ 
+  <!-- 修改班组置精次数 -->
+  <update id="updateTeamQualityNum" parameterType="map">
+   	update relation_subject_data
+   		set team_quality_num = team_quality_num+#{updateNumber,jdbcType=INTEGER},
+   		modify_time = #{modifyTime,jdbcType=BIGINT}
+   	where 
+   		subject_code = #{subjectCode,jdbcType=VARCHAR}
+  </update>
+  
+  <!-- 修改集团级别置精次数 -->
+  <update id="updateGroupQualityNum" parameterType="map">
+   	update relation_subject_data
+   		set group_quality_num = group_quality_num+#{updateNumber,jdbcType=INTEGER},
+   		modify_time = #{modifyTime,jdbcType=BIGINT}
+   	where 
+   		subject_code = #{subjectCode,jdbcType=VARCHAR}
+  </update>
+  
+  <!-- 修改省级别置精次数 -->
+  <update id="updateProvinceQualityNum" parameterType="map">
+   	update relation_subject_data
+   		set province_quality_num = province_quality_num+#{updateNumber,jdbcType=INTEGER},
+   		modify_time = #{modifyTime,jdbcType=BIGINT}
+   	where 
+   		subject_code = #{subjectCode,jdbcType=VARCHAR}
+  </update>
+  
+  <!-- 修改市级别置精次数 -->
+  <update id="updateCityQualityNum" parameterType="map">
+   	update relation_subject_data
+   		set city_quality_num = city_quality_num+#{updateNumber,jdbcType=INTEGER},
+   		modify_time = #{modifyTime,jdbcType=BIGINT}
+   	where 
+   		subject_code = #{subjectCode,jdbcType=VARCHAR}
+  </update>
+  
+  <!-- 修改参与量 -->
+  <update id="updateJoinNum" parameterType="map">
+   	update relation_subject_data
+   		set join_num = join_num+#{updateNumber,jdbcType=INTEGER},
+   		modify_time = #{modifyTime,jdbcType=BIGINT}
+   	where 
+   		subject_code = #{subjectCode,jdbcType=VARCHAR}
+  </update>
+  
+  <!-- 修改浏览量 -->
+  <update id="updateReadNum" parameterType="map">
+   	update relation_subject_data
+   		set read_num = read_num+#{updateNumber,jdbcType=INTEGER},
+   		modify_time = #{modifyTime,jdbcType=BIGINT}
+   	where 
+   		subject_code = #{subjectCode,jdbcType=VARCHAR}
+  </update>
+  
+  <!-- 修改点赞量 -->
+  <update id="updateLikeNum" parameterType="map">
+   	update relation_subject_data
+   		set like_num = like_num+#{updateNumber,jdbcType=INTEGER},
+   		modify_time = #{modifyTime,jdbcType=BIGINT}
+   	where 
+   		subject_code = #{subjectCode,jdbcType=VARCHAR}
+  </update>
+  
+  <!-- 修改收藏量 -->
+  <update id="updateCollectNum" parameterType="map">
+   	update relation_subject_data
+   		set collect_num = collect_num+#{updateNumber,jdbcType=INTEGER},
+   		modify_time = #{modifyTime,jdbcType=BIGINT}
+   	where 
+   		subject_code = #{subjectCode,jdbcType=VARCHAR}
+  </update>
+  
+  <!-- 修改转发量 -->
+  <update id="updateForwardNum" parameterType="map">
+   	update relation_subject_data
+   		set forward_num = forward_num+#{updateNumber,jdbcType=INTEGER},
+   		modify_time = #{modifyTime,jdbcType=BIGINT}
+   	where 
+   		subject_code = #{subjectCode,jdbcType=VARCHAR}
+  </update>
+  
+  <!-- 修改评论量 -->
+  <update id="updateCommentNum" parameterType="map">
+   	update relation_subject_data
+   		set comment_num = comment_num+#{updateNumber,jdbcType=INTEGER},
+   		modify_time = #{modifyTime,jdbcType=BIGINT}
+   	where
+   		subject_code = #{subjectCode,jdbcType=VARCHAR}
+  </update>
+  
+  <!-- 修改分享量 -->
+  <update id="updateShareNum" parameterType="map">
+   	update relation_subject_data
+   		set share_num = share_num+#{updateNumber,jdbcType=INTEGER},
+   		modify_time = #{modifyTime,jdbcType=BIGINT}
+   	where 
+   		subject_code = #{subjectCode,jdbcType=VARCHAR}
+  </update>
+</mapper>

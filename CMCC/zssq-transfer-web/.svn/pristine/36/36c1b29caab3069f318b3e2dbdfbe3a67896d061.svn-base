@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.blog.dao.mapper.BlogDataMapper">
+
+	<!-- 修改分类下博客数量  -->
+	<update id="updateClassBlogNum">
+		UPDATE blog_class bc
+		RIGHT JOIN (
+			SELECT
+				class_code,
+				count(class_code) ccount
+			FROM
+				blog_info
+			GROUP BY
+				class_code
+		) AS cc ON bc.class_code = cc.class_code
+		SET bc.class_blog_num = cc.ccount
+	</update>
+
+	<!-- 修改博客评论量  -->
+	<update id="updateBlogCommentNum">
+		UPDATE blog_data bd
+		RIGHT JOIN (
+			SELECT
+				blog_code,
+				count(blog_code) bcount
+			FROM
+				blog_comment
+			GROUP BY
+				blog_code
+		) bc ON bd.blog_code = bc.blog_code
+		SET bd.comment_num = bc.bcount
+	</update>
+
+	<!-- 修改评论回复量  -->
+	<update id="updateCommentReplyNum">
+		UPDATE blog_comment bc
+		RIGHT JOIN (
+			SELECT
+				comment_code,
+				count(comment_code) ccount
+			FROM
+				blog_reply
+			GROUP BY
+				comment_code
+		) br ON bc.comment_code = br.comment_code
+		SET bc.comment_reply_num = br.ccount
+	</update>
+	
+</mapper>

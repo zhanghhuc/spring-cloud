@@ -1,0 +1,51 @@
+package com.zssq.service.impl;
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSON;
+import com.zssq.dao.pojo.MessageIntegral;
+import com.zssq.kafka.core.KafkaProducerTemplate;
+import com.zssq.service.IIntegralService;
+
+/**
+ * 
+ * @ClassName: IntegralServiceImpl  
+ * @Description: 模拟kafka生产者 服务 
+ * @author power  
+ * @date 2017年5月5日  
+ *
+ */
+@Service("integralService")
+public class IntegralServiceImpl implements IIntegralService {
+	
+	/** kafka生产者模板 */
+	@SuppressWarnings("rawtypes")
+	@Autowired
+	private KafkaProducerTemplate producerTemplate;
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public void sendMessage() {
+		MessageIntegral message=new MessageIntegral();
+		message.setAccountCode("chushanwen@qh.cmcc");
+		message.setAccountType((byte)1);
+		message.setActionCode("100");
+		message.setManageOrgCode("02d8dffa8f0c416cba4702524asdfb12");
+		String jsonInfo=JSON.toJSONString(message);
+		
+		producerTemplate.send("credit", jsonInfo);
+		
+//		ListenableFuture future = producerTemplate.send("credit", jsonInfo);
+//		try {
+//			if(future.get()!=null){
+//				System.out.println("---------向topic中发送消息成功------------");
+//			}
+//		} catch (InterruptedException|ExecutionException e) {
+//			e.printStackTrace();
+//		}
+		
+	}
+	
+}

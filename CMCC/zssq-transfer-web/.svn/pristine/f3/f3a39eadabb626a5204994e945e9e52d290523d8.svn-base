@@ -1,0 +1,231 @@
+package com.zssq.blog.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.blog.pojo.SourceClassModel;
+import com.zssq.blog.service.BlogClassService;
+import com.zssq.constants.BlogConstants;
+import com.zssq.pojo.ResultJSON;
+
+/**
+ * 
+ * @ClassName: BlogClassController  
+ * @Description: 博客分类数据迁移Controller  
+ * @author ZKZ  
+ * @date 2017年5月19日  
+ *
+ */
+@Controller
+@RequestMapping("blogClassController")
+public class BlogClassController {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private BlogClassService blogClassService;
+	
+	@RequestMapping(value = "/transferClassData")  
+	@ResponseBody
+	public ResultJSON transferClassData(int startClassId) {
+		// 返回值
+		ResultJSON result = new ResultJSON("COMMON_200");
+		JSONObject body = new JSONObject();
+		
+		try {
+			// 开始时间
+			long beginTime = System.currentTimeMillis(); 
+			log.info("开始时间：" + beginTime);
+
+			// 参数校验
+			if (startClassId < 0) {
+				startClassId = 0;
+			}
+			
+			// 往评论表中添加字段
+			log.info("开始在blog_class表中添加old_id字段...");
+			boolean addColumnFlag = addColumn();
+			if (!addColumnFlag) {
+				body.put("message", "添加old_id字段时失败");
+				throw new Exception();
+			}
+			log.info("在blog_class表中添加old_id字段成功");
+			
+			// 创建默认分类
+			log.info("开始创建默认分类...");
+			boolean insertDefaultClassFlag = insertDefaultClass();
+			if (!insertDefaultClassFlag) {
+				body.put("message", "创建默认分类时失败");
+				log.error("创建默认分类时失败");
+				throw new Exception();
+			}
+			log.info("创建默认分类成功");
+			
+			// 查询原分类数据
+			log.info("开始查询原分类数据...");
+			List<SourceClassModel> sourceClassModelList = blogClassService.getSourceClassList();
+			if (sourceClassModelList == null || sourceClassModelList.isEmpty()) {
+				body.put("message", "原分类数据为空");
+				log.error("原分类数据为空");
+				throw new Exception();
+			}
+			log.info("查询原分类数据成功");
+			
+			// 循环插入数据
+			for (SourceClassModel sourceClassModel : sourceClassModelList) {
+				Integer oldId = sourceClassModel.getCataId();
+				if (oldId < startClassId) {
+					continue;
+				}
+				
+				log.info("开始导入分类：" + sourceClassModel.getCataName() + "...");
+				
+				// 拼接参数
+				Map<String, Object> paramMap = new HashMap<String, Object>();
+				paramMap.put("remark", ""); // 默认分类标识
+				paramMap.put("className", sourceClassModel.getCataName()); // 分类名称
+				paramMap.put("createTime", sourceClassModel.getCreateTime().getTime()); // 创建时间
+				paramMap.put("oldId", oldId); // 原id
+				
+				// 插入
+				boolean insertClassFlag = insertClass(paramMap);
+				if (!insertClassFlag) {
+					body.put("message", "导入分类时失败，分类id：" + oldId);
+					log.error("导入分类时失败，分类id：" + oldId);
+					throw new Exception();
+				}
+				
+				log.info("导入成功：" + sourceClassModel.getCataName());
+			}
+			
+			// 创建索引
+			log.info("开始为old_id字段创建索引...");
+			boolean createIndexFlag = createIndex();
+			if (!createIndexFlag) {
+				body.put("message", "为old_id字段创建索引时失败");
+				log.error("为old_id字段创建索引时失败");
+				throw new Exception();
+			}
+			log.info("为old_id字段创建索引成功");
+			
+			// 结束时间
+			long endTime = System.currentTimeMillis(); 
+			log.info("结束时间：" + endTime);
+			
+			// 用时
+			long useTime = endTime - beginTime;
+			log.info("使用时间：" + useTime);
+			
+			// 返回值
+			body.put("message", "导入分类成功，共用时:" + useTime);
+			result.setBody(body);
+		} catch (Exception e) {
+			result = new ResultJSON("COMMON_400");
+			result.setBody(body);
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @Title: addColumn  
+	 * @Description: 往评论表中添加字段
+	 * @return: boolean    返回类型
+	 */
+	private boolean addColumn() {
+		// 返回值
+		boolean result = true;
+		
+		try {
+			// 往评论表中添加字段
+			blogClassService.addColumn();
+		} catch (Exception e) {
+			result = false;
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @Title: createIndex  
+	 * @Description: 为old_id字段创建索引
+	 * @return: boolean    返回类型
+	 */
+	private boolean createIndex() {
+		// 返回值
+		boolean result = true;
+		
+		try {
+			// 为old_id字段创建索引
+			blogClassService.createIndex();
+		} catch (Exception e) {
+			result = false;
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @Title: insertDefaultClass  
+	 * @Description: 创建默认分类
+	 * @return: boolean    返回类型
+	 */
+	private boolean insertDefaultClass() {
+		// 返回值
+		boolean result = true;
+		
+		try {
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("remark", BlogConstants.BLOG_CLASS_DEFAULT_FLAG); // 默认分类标识
+			paramMap.put("className", BlogConstants.BLOG_CLASS_DEFAULT); // 分类名称
+			paramMap.put("createTime", 0L); // 创建时间
+			paramMap.put("oldId", -1); // 原id
+			
+			// 插入
+			blogClassService.insertDefaultClass(paramMap);
+		} catch (Exception e) {
+			result = false;
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @Title: insertClass  
+	 * @Description: 导入原数据
+	 * @param paramMap
+	 * @return: boolean    返回类型
+	 */
+	private boolean insertClass(Map<String, Object> paramMap) {
+		// 返回值
+		boolean result = true;
+		
+		try {
+			// 插入
+			blogClassService.insertClass(paramMap);
+		} catch (Exception e) {
+			result = false;
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+}

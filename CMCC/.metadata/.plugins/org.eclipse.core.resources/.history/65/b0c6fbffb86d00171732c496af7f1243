@@ -1,0 +1,708 @@
+package com.zssq.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.constants.ForumConstants;
+import com.zssq.dao.mapper.ForumCollectionMapper;
+import com.zssq.dao.mapper.ForumCommentReplyMapper;
+import com.zssq.dao.mapper.ForumPlatesMapper;
+import com.zssq.dao.mapper.ForumTopicsFollowMapper;
+import com.zssq.dao.mapper.ForumTopicsMapper;
+import com.zssq.dao.mapper.ForumTopicsViewerMapper;
+import com.zssq.dao.pojo.CollectionResultEntity;
+import com.zssq.dao.pojo.ForumCollection;
+import com.zssq.dao.pojo.ForumCollectionExample;
+import com.zssq.dao.pojo.ForumCommentReply;
+import com.zssq.dao.pojo.ForumCommentReplyExample;
+import com.zssq.dao.pojo.ForumPlates;
+import com.zssq.dao.pojo.ForumTopics;
+import com.zssq.dao.pojo.ForumTopicsExample;
+import com.zssq.dao.pojo.ForumTopicsFollow;
+import com.zssq.dao.pojo.ForumTopicsFollowExample;
+import com.zssq.dao.pojo.ForumTopicsViewer;
+import com.zssq.dao.pojo.ForumTopicsExample.Criteria;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.service.CommonService;
+import com.zssq.service.IForumService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.DateUtils;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageInfo;
+import com.zssq.utils.StringTools;
+/**
+ * 论坛接口实现
+ * @ClassName ForumServiceImpl
+ * @Description 
+ * @author liurong
+ * @date 2017年3月16日 下午4:18:25
+ * @version 1.0
+ * @since JDK 1.7
+ */
+@Service("forumService")
+public class ForumServiceImpl extends CommonService implements IForumService {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private ForumTopicsMapper forumTopicsMapper;
+	@Autowired
+	private ForumTopicsFollowMapper forumTopicsFollowMapper;
+	@Autowired
+	private ForumCommentReplyMapper forumCommentReplyMapper;
+	@Autowired
+	private ForumCollectionMapper forumCollectionMapper;
+	@Autowired
+	private ForumTopicsViewerMapper forumTopicsViewerMapper;
+	@Autowired
+	private ForumPlatesMapper forumPlatesMapper;
+	
+	@Override
+	public PageInfo getTopicsList(ForumTopics topic, PageInfo pageInfo) throws BusinessException {
+		List<ForumTopics> list = new ArrayList<ForumTopics>();
+		try {
+			
+			ForumTopicsExample example = new ForumTopicsExample();
+			ForumTopicsExample.Criteria criteria = example.createCriteria();
+			
+			// 是否禁用:0-否
+			criteria.andIsDisableEqualTo(ForumConstants.NO);
+			// 是否删除:0-否
+			criteria.andIsDeleteEqualTo(ForumConstants.NO);
+			// 租户标识
+			criteria.andTenantCodeEqualTo(topic.getTenantCode());
+			// 论坛板块CODE
+			criteria.andForumPlatesCodeEqualTo(topic.getForumPlatesCode());
+			
+			/**1.统计总数*/
+			int total = forumTopicsMapper.countByExample(example);
+			
+			/**2.分页查询列表数据*/
+			if (total > 0) {
+				if (pageInfo.isPageFlag()) {
+					example.setLimitStart(pageInfo.getStartRow());
+					example.setLimitEnd(pageInfo.getPerPageSize());
+				}
+				// 首先按照是否置顶字段排倒序，加精字段排倒序，然后再按照最后回复时间排倒序，最后按照ID排倒序
+				example.setOrderByClause("is_top desc, is_best desc, last_reply_time desc, id desc");
+				list = forumTopicsMapper.selectByExample(example);
+			}
+			pageInfo.setTotalItem(total);
+			pageInfo.setList(list);
+			return pageInfo;
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.getTopicsList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	@Override
+	public PageInfo getTopicListByPageWithLoadMore(ForumTopics topic, int startRowId, int endRowId)
+			throws BusinessException {
+		List<ForumTopics> list = new ArrayList<ForumTopics>();
+		PageInfo pageInfo = new PageInfo();
+		try {
+			/**1.统计总数*/
+			ForumTopicsExample example = new ForumTopicsExample();
+			ForumTopicsExample.Criteria criteria = example.createCriteria();
+			// 是否禁用:0-否
+			criteria.andIsDisableEqualTo(ForumConstants.NO);
+			// 是否删除:0-否
+			criteria.andIsDeleteEqualTo(ForumConstants.NO);
+			// 租户标识
+			criteria.andTenantCodeEqualTo(topic.getTenantCode());
+			// 论坛板块CODE
+			criteria.andForumPlatesCodeEqualTo(topic.getForumPlatesCode());
+			
+			int total = forumTopicsMapper.countByExample(example);
+			
+			/**2.分页查询列表数据*/
+			if (total > 0) {
+				Map<String, Object> paramMap = new HashMap<String, Object>();
+				paramMap.put("forumPlatesCode", topic.getForumPlatesCode());
+				paramMap.put("tenantCode", topic.getTenantCode());
+				paramMap.put("startRowId", startRowId);
+				paramMap.put("endRowId", endRowId);
+				list = forumTopicsMapper.queryByPageWithLoadMore(paramMap);
+			}
+			
+			pageInfo.setTotalItem(total);
+			pageInfo.setList(list);
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.getTopicListByPageWithLoadMore", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		return pageInfo;
+	}
+	
+	@Override
+	public Integer countDailyTopic(String tenantCode, String platesCode) throws BusinessException {
+		
+		try {
+			ForumTopicsExample example = new ForumTopicsExample();
+			ForumTopicsExample.Criteria criteria = example.createCriteria();
+
+			// 是否禁用:0-否
+			criteria.andIsDisableEqualTo(ForumConstants.NO);
+			// 是否删除:0-否
+			criteria.andIsDeleteEqualTo(ForumConstants.NO);
+			// 租户标识
+			criteria.andTenantCodeEqualTo(tenantCode);
+			// 论坛板块CODE
+			criteria.andForumPlatesCodeEqualTo(platesCode);
+			// 条件：>=当前日期0点0分0秒
+			criteria.andCreateTimeGreaterThanOrEqualTo(DateUtils.getCurDayStart());
+			// 条件：<=当前日期23点59分59秒
+			criteria.andCreateTimeLessThanOrEqualTo(DateUtils.getCurDayEnd());
+			
+			return forumTopicsMapper.countByExample(example);
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.countDailyTopic", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public String insertTopic(ForumTopics topic) throws BusinessException {
+		String topicCode = "";
+		try {
+			ForumPlates forumPlates = queyrPlateByBelongCode(topic.getBelongCode(), topic.getTenantCode());
+			if (forumPlates == null) {
+				// 当前论坛信息不存在
+				throw BusinessException.build("FORUM_16000", "论坛信息");
+			}
+			// 论坛版块CODE
+			String forumPlatesCode = forumPlates.getForumPlatesCode();
+			topicCode = UUIDHelper.getUUID();
+			long curTime = DateUtils.getFormatDateLong();
+			
+			topic.setForumTopicsCode(topicCode);//CODE值
+			topic.setCreateTime(curTime);//创建时间
+			topic.setModifyTime(curTime);//修改时间
+			topic.setLastReplyTime(curTime);//最后回复时间
+			
+			topic.setForumPlatesCode(forumPlatesCode);//论坛板块CODE
+			
+			forumTopicsMapper.insertSelective(topic);
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.insertTopic", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		return topicCode;
+	}
+	
+	@Override
+	public String insertTopicFollow(ForumTopicsFollow follow) throws BusinessException {
+		String topicFollowCode = "";
+		try {
+			topicFollowCode = UUIDHelper.getUUID();
+			
+			follow.setForumTopicsFollowCode(topicFollowCode);//CODE值
+			follow.setCreateTime(DateUtils.getFormatDateLong());//创建时间
+			follow.setModifyTime(DateUtils.getFormatDateLong());//修改时间
+			follow.setFollowCount(0);// 跟帖回复数量默认为0
+			
+			int count = forumTopicsFollowMapper.insertSelective(follow);
+			if (count > 0) {
+				// 主帖标回复数+1，更新最后回复时间
+				updateTopicReplyCountAndTime(follow.getTopicCode(), Operator.ADD, count);
+			}
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.insertTopicFollow", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		return topicFollowCode;
+	}
+	
+	/**
+	 * 根据租户标识和论坛所属CODE查询论坛版块信息
+	 * @Function queyrPlateByBelongCode
+	 * @Description 
+	 * @param belongCode 论坛所属CODE
+	 * @param tenantCode 租户标识
+	 * @return
+	 * @throws BusinessException
+	 */
+	@Override
+	public ForumPlates queyrPlateByBelongCode(String belongCode, String tenantCode) throws BusinessException {
+		try {
+			return super.queryPlateByBelongCode(belongCode, tenantCode);
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.queyrPlateByBelongCode", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public ForumTopics selectTopicInfo(String tenantCode, String topicCode, String... params) throws BusinessException {
+		ForumTopics forumTopics = new ForumTopics();
+		try {
+			ForumTopicsExample example = new ForumTopicsExample();
+			Criteria criteria = example.createCriteria();
+			
+			// 是否禁用:0-否
+			criteria.andIsDisableEqualTo(ForumConstants.NO);
+			// 是否删除:0-否
+			criteria.andIsDeleteEqualTo(ForumConstants.NO);
+			// 租户标识
+			criteria.andTenantCodeEqualTo(tenantCode);
+			// 主贴code
+			criteria.andForumTopicsCodeEqualTo(topicCode);
+			
+			List<ForumTopics> list = forumTopicsMapper.selectByExampleWithBLOBs(example);
+			
+			if (list.size() > 0) {
+				forumTopics = list.get(0);
+				// 满足条件则：新增浏览记录，主帖浏览数+1
+				if (params != null && params.length == 3) {
+					saveVisitRecords(tenantCode, params[0], params[1], topicCode);
+				}
+			}
+			return forumTopics;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.selectTopicInfo", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public boolean isCollectionTopic(String tenantCode, String userCode, String forumTopicsCode) throws BusinessException {
+		try {
+			ForumCollectionExample example = new ForumCollectionExample();
+			ForumCollectionExample.Criteria criteria = example.createCriteria();
+			
+			// 是否禁用:0-否
+			criteria.andIsDisableEqualTo(ForumConstants.NO);
+			// 是否删除:0-否
+			criteria.andIsDeleteEqualTo(ForumConstants.NO);
+			// 租户标识
+			criteria.andTenantCodeEqualTo(tenantCode);
+			//用户code
+			criteria.andMemberCodeEqualTo(userCode);
+			//主贴code
+			criteria.andTopicCodeEqualTo(forumTopicsCode);
+			
+			int count = forumCollectionMapper.countByExample(example);
+			if (count == 0) {
+				return false;
+			} else {
+				return true;
+			}
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.isCollectionTopic", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	
+	
+	
+	@Override
+	public void updateTopic(ForumTopics t) throws BusinessException {
+		try {
+			ForumTopicsExample example = new ForumTopicsExample();
+			ForumTopicsExample.Criteria criteria = example.createCriteria();
+			
+			// 是否禁用:0-否
+			criteria.andIsDisableEqualTo(ForumConstants.NO);
+			// 是否删除:0-否
+			criteria.andIsDeleteEqualTo(ForumConstants.NO);
+			// 租户标识
+			criteria.andTenantCodeEqualTo(t.getTenantCode());
+			//主贴code
+			criteria.andForumTopicsCodeEqualTo(t.getForumTopicsCode());
+			
+			forumTopicsMapper.updateByExampleSelective(t, example);
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.updateTopic", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public void addCollection(ForumCollection collection) throws BusinessException {
+		try {
+			/*//论坛是否存在
+			ForumPlates plate = this.queyrPlateByBelongCode(collection.getBelongCode(), collection.getTenantCode());
+			if (plate == null) {
+				// 当前论坛信息不存在
+				throw BusinessException.build("FORUM_16000","论坛信息");
+			}
+			
+			//帖子是否存在
+			ForumTopics topic = getTopicByCode(collection.getTenantCode(),collection.getTopicCode());
+			if(topic == null){
+				//帖子不存在
+				throw BusinessException.build("FORUM_16000","帖子信息");
+			}*/
+			//添加收藏信息
+			Long time = DateUtils.getFormatDateLong();
+			collection.setForumCollectionCode(UUIDHelper.getUUID());
+			collection.setCreateTime(time);
+			collection.setModifyTime(time);
+			
+			forumCollectionMapper.insertSelective(collection);
+			
+		} catch (org.springframework.dao.DuplicateKeyException e) {
+			// 您已%s过该信息，不可重复操作。
+			throw BusinessException.build("FORUM_16004", "收藏");
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.addCollection", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public void deleteCollection(ForumCollection collection) throws BusinessException {
+		try {
+			ForumCollectionExample example = new ForumCollectionExample();
+			ForumCollectionExample.Criteria criteria = example.createCriteria();
+			
+			// 是否禁用:0-否
+			criteria.andIsDisableEqualTo(ForumConstants.NO);
+			// 是否删除:0-否
+			criteria.andIsDeleteEqualTo(ForumConstants.NO);
+			// 租户标识
+			criteria.andTenantCodeEqualTo(collection.getTenantCode());
+			//用户code
+			criteria.andMemberCodeEqualTo(collection.getMemberCode());
+			//主贴code
+			criteria.andTopicCodeEqualTo(collection.getTopicCode());
+			
+			forumCollectionMapper.deleteByExample(example);
+			
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.deleteCollection", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	@Override
+	public PageBean selectCollectionList(PageInfo pageInfo, String userCode, String tenantCode)
+			throws BusinessException {
+		try {
+			PageBean pageBean = new PageBean();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			map.put("memberCode", userCode);
+			map.put("tenantCode", tenantCode);
+			
+			int count = forumCollectionMapper.countCollectionList(map);
+			
+			List<CollectionResultEntity> list = new ArrayList<CollectionResultEntity>();
+			if(count > 0){
+				map.put("limitStart", pageInfo.getStartRow());
+				map.put("limitEnd", pageInfo.getPerPageSize());
+				
+				list = forumCollectionMapper.selectCollectionList(map);
+			}
+			pageBean.setTotalCount(count);
+			pageBean.setRecordList(list);
+			
+			return pageBean;
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.selectCollectionList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public String addComment(ForumCommentReply comment) throws BusinessException {
+		try {
+			//添加评论
+			Long time = DateUtils.getFormatDateLong();
+			String commentCode  = UUIDHelper.getUUID();
+			
+			comment.setForumCommentReplyCode(commentCode);
+			comment.setCreateTime(time);
+			comment.setModifyTime(time);
+			
+			int result = forumCommentReplyMapper.insertSelective(comment);
+			if (result > 0) {
+				// 更新回复信息
+				updateTopicFollowReplyProc(comment.getTopicCode(), comment.getTopicFollowCode(), Operator.ADD, result);
+			}
+			return commentCode;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.addComment", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public String addReply(ForumCommentReply reply) throws BusinessException {
+		try {
+			Long time = DateUtils.getFormatDateLong();
+			String replyCode  = UUIDHelper.getUUID();
+			
+			reply.setForumCommentReplyCode(replyCode);
+			reply.setCreateTime(time);
+			reply.setModifyTime(time);
+			
+			int result = forumCommentReplyMapper.insertSelective(reply);
+			
+			if(result > 0){
+				// 更新回复信息
+				updateTopicFollowReplyProc(reply.getTopicCode(), reply.getTopicFollowCode(), Operator.ADD, result);
+			}
+			return replyCode;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.addReply", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	@Override
+	public PageBean selectCollectionList(String id, String pageSize, String userCode, String tenantCode)
+			throws BusinessException {
+		try {
+			PageBean pageBean = new PageBean();
+			
+			Map<String,Object> map = new HashMap<String,Object>();
+			map.put("memberCode", userCode);
+			map.put("tenantCode", tenantCode);
+			if(StringTools.isNotEmpty(id)){
+				map.put("id", Integer.parseInt(id));
+			}
+			map.put("limitEnd", Integer.parseInt(pageSize));
+			
+			List<CollectionResultEntity> list = forumCollectionMapper.selectCollectionList(map);
+			
+			pageBean.setRecordList(list);
+			
+			return pageBean;
+		} catch (NumberFormatException e) {
+			throw BusinessException.build("COMMON_402", "id");
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.selectCollectionList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public void deleteFollowTopic(String tenantCode, String code) throws BusinessException {
+		try {
+			ForumTopicsFollowExample  example = new ForumTopicsFollowExample();
+			ForumTopicsFollowExample.Criteria criteria = example.createCriteria();
+			
+			// 是否禁用:0-否
+			criteria.andIsDisableEqualTo(ForumConstants.NO);
+			// 是否删除:0-否
+			criteria.andIsDeleteEqualTo(ForumConstants.NO);
+			// 租户标识
+			criteria.andTenantCodeEqualTo(tenantCode);
+			// 跟帖信息CODE
+			criteria.andForumTopicsFollowCodeEqualTo(code);
+			
+			List<ForumTopicsFollow> list = forumTopicsFollowMapper.selectByExample(example);
+			if (list.size() == 0) {
+				throw BusinessException.build("FORUM_16000", "跟帖信息");
+			}
+			
+			ForumTopicsFollow follow = new ForumTopicsFollow();
+			follow.setIsDelete(ForumConstants.YES);
+			follow.setModifyTime(DateUtils.getFormatDateLong());
+			
+			int result = forumTopicsFollowMapper.updateByExampleSelective(follow, example);
+			if (result > 0) {
+				// 获得主帖CODE
+				String topicCode = list.get(0).getTopicCode();
+				// 减主帖回复数
+				updateTopicReplyCountAndTime(topicCode, Operator.SUB, result);
+			}
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.deleteFollowTopic", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+	}
+
+	@Override
+	public ForumCommentReply deleteCommentAndReply(String tenantCode, String code) throws BusinessException {
+		ForumCommentReply fcr = new ForumCommentReply();
+		try {
+			ForumCommentReplyExample example = new ForumCommentReplyExample();
+			ForumCommentReplyExample.Criteria criteria = example.createCriteria();
+			
+			// 是否禁用:0-否
+			criteria.andIsDisableEqualTo(ForumConstants.NO);
+			// 是否删除:0-否
+			criteria.andIsDeleteEqualTo(ForumConstants.NO);
+			// 租户标识
+			criteria.andTenantCodeEqualTo(tenantCode);
+			// 评论及回复信息CODE
+			criteria.andForumCommentReplyCodeEqualTo(code);
+			
+			List<ForumCommentReply> list = forumCommentReplyMapper.selectByExample(example);
+			if (list.size() == 0) {
+				throw BusinessException.build("FORUM_16000", "评论及回复信息");
+			}
+			
+			ForumCommentReply record = new ForumCommentReply();
+			record.setIsDelete(ForumConstants.YES);
+			record.setModifyTime(DateUtils.getFormatDateLong());
+			int result = forumCommentReplyMapper.updateByExampleSelective(record, example);
+			if(result>0){
+				fcr = list.get(0);
+				// 获得主帖CODE
+				String topicCode = fcr.getTopicCode();
+				// 获得跟帖CODE
+				String followCode = fcr.getTopicFollowCode();
+				
+				updateTopicFollowReplyProc(topicCode, followCode, Operator.SUB, result);
+				
+			}
+			return fcr;
+			
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.deleteCommentAndReply", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+	}
+
+	@Override
+	public void shieldFollowTopic(String tenantCode, String code) throws BusinessException {
+		try {
+			ForumTopicsFollowExample  example = new ForumTopicsFollowExample();
+			ForumTopicsFollowExample.Criteria criteria = example.createCriteria();
+			
+			// 是否禁用:0-否
+			criteria.andIsDisableEqualTo(ForumConstants.NO);
+			// 是否删除:0-否
+			criteria.andIsDeleteEqualTo(ForumConstants.NO);
+			// 租户标识
+			criteria.andTenantCodeEqualTo(tenantCode);
+			// 跟帖信息CODE
+			criteria.andForumTopicsFollowCodeEqualTo(code);
+			
+			ForumTopicsFollow follow = new ForumTopicsFollow();
+			follow.setIsHide(ForumConstants.YES);
+			follow.setModifyTime(DateUtils.getFormatDateLong());
+			
+			forumTopicsFollowMapper.updateByExampleSelective(follow, example);
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.shieldFollowTopic", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public void shieldCommentAndReply(String tenantCode, String code) throws BusinessException {
+		try {
+			ForumCommentReplyExample example = new ForumCommentReplyExample();
+			ForumCommentReplyExample.Criteria criteria = example.createCriteria();
+			
+			// 是否禁用:0-否
+			criteria.andIsDisableEqualTo(ForumConstants.NO);
+			// 是否删除:0-否
+			criteria.andIsDeleteEqualTo(ForumConstants.NO);
+			// 租户标识
+			criteria.andTenantCodeEqualTo(tenantCode);
+			// 评论及回复信息CODE
+			criteria.andForumCommentReplyCodeEqualTo(code);
+			
+			ForumCommentReply record = new ForumCommentReply();
+			record.setIsHide(ForumConstants.YES);
+			record.setModifyTime(DateUtils.getFormatDateLong());
+			
+			forumCommentReplyMapper.updateByExampleSelective(record, example);
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.shieldCommentAndReply", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	@Override
+	public void addTopicViewer(String topicCode,String viewerCode,String orgCode,String tenantCode)throws BusinessException{
+		
+		/** 1、增加一条浏览信息 */
+		ForumTopicsViewer forumTopicsViewer = new ForumTopicsViewer();
+		Long time = DateUtils.getFormatDateLong();
+		forumTopicsViewer.setForumTopicsViewerCode(UUIDHelper.getUUID());
+		forumTopicsViewer.setTenantCode(tenantCode);
+		forumTopicsViewer.setOrgCode(orgCode);
+		forumTopicsViewer.setCreateTime(time);
+		forumTopicsViewer.setModifyTime(time);
+		forumTopicsViewer.setForumTopicsCode(topicCode);
+		forumTopicsViewer.setViewerCode(viewerCode);
+		forumTopicsViewerMapper.insertSelective(forumTopicsViewer);
+		
+		/** 2、相应主贴浏览数+1 */
+		Map<String,Object> paramMap = new HashMap<>();
+		paramMap.put("topicCode", topicCode);
+		paramMap.put("tenantCode", tenantCode);
+		paramMap.put("modifyTime", time);
+		forumTopicsViewerMapper.updateViewCount(paramMap);
+		
+	}
+
+	@Override
+	public List<ForumTopicsFollow> getFollowListByPageWithLoadMore(ForumTopicsFollow follow)
+			throws BusinessException {
+		List<ForumTopicsFollow> list = new ArrayList<ForumTopicsFollow>();
+		try {
+			
+			list = forumTopicsFollowMapper.queryByPageWithLoadMore(follow);
+			
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.getFollowListByPageWithLoadMore", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		return list;
+	}
+
+	@Override
+	public List<ForumCommentReply> getReplyListByPageWithLoadMore(ForumCommentReply reply) throws BusinessException {
+		List<ForumCommentReply> list = new ArrayList<ForumCommentReply>();
+		try {
+			
+			list = forumCommentReplyMapper.queryByPageWithLoadMore(reply);
+			
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.getReplyListByPageWithLoadMore", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		return list;
+	}
+
+	@Override
+	public String selectTeamCodeByPlate(String plateCode) throws BusinessException {
+		
+		try {
+			return forumPlatesMapper.queryTeamCode(plateCode);
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.selectTeamName", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public int countReply(ForumCommentReply record) throws BusinessException {
+		
+		return 0;
+	}
+
+}

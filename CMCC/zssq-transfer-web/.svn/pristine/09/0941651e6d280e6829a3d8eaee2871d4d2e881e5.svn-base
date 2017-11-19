@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.credit.dao.mapper.GoldUserStaMapper">
+	<resultMap id="BaseResultMap" type="com.zssq.credit.pojo.GoldUserSta">
+		<result column="ID" property="id" jdbcType="VARCHAR" />
+		<result column="USER_ID" property="userId" jdbcType="INTEGER" />
+		<result column="POINT_NUM" property="pointNum" jdbcType="DOUBLE" />
+		<result column="CREATE_TIME" property="createTime" jdbcType="VARCHAR" />
+		<result column="UPDATE_TIME" property="updateTime" jdbcType="VARCHAR" />
+		<result column="DEL_FALG" property="delFalg" jdbcType="INTEGER" />
+		<result column="TEAM_ID" property="teamId" jdbcType="INTEGER" />
+		<result column="CITY_ID" property="cityId" jdbcType="INTEGER" />
+		<result column="PROVINCE_ID" property="provinceId" jdbcType="INTEGER" />
+		<result column="POINT_ID" property="pointId" jdbcType="INTEGER" />
+		<result column="GOLD_COIN" property="goldCoin" jdbcType="DOUBLE" />
+		<result column="LEVEL" property="level" jdbcType="INTEGER" />
+	</resultMap>
+	
+	<sql id="Base_Column_List">
+		ID, USER_ID, POINT_NUM, CREATE_TIME, UPDATE_TIME, DEL_FALG,
+		TEAM_ID, CITY_ID, PROVINCE_ID, POINT_ID, GOLD_COIN, LEVEL
+	</sql>
+	
+	<select id="selectPage" parameterType="hashmap" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List"/>
+		from gold_user_sta
+		limit ${limitStart}, ${limitEnd} 
+	</select>
+	
+	<select id="selectPageCount" resultType="java.lang.Integer">
+		select count(1) from gold_user_sta
+	</select>
+	
+</mapper>

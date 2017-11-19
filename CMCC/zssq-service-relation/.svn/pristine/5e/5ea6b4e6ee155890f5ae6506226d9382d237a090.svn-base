@@ -1,0 +1,1267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.RelationDynamicMapper">
+
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.RelationDynamic">
+		<id column="id" jdbcType="BIGINT" property="id" />
+		<result column="dynamic_code" jdbcType="VARCHAR" property="dynamicCode" />
+		<result column="tenant_code" jdbcType="VARCHAR" property="tenantCode" />
+		<result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+		<result column="create_time" jdbcType="BIGINT" property="createTime" />
+		<result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+		<result column="remark" jdbcType="VARCHAR" property="remark" />
+		<result column="dynamic_class" jdbcType="TINYINT" property="dynamicClass" />
+		<result column="dynamic_depend" jdbcType="TINYINT" property="dynamicDepend" />
+		<result column="team_code" jdbcType="VARCHAR" property="teamCode" />
+		<result column="user_code" jdbcType="VARCHAR" property="userCode" />
+		<result column="operate_team_code" jdbcType="VARCHAR" property="operateTeamCode" />
+		<result column="operate_org_code" jdbcType="VARCHAR" property="operateOrgCode" />
+		<result column="operate_time" jdbcType="BIGINT" property="operateTime" />
+		<result column="subject_code" jdbcType="VARCHAR" property="subjectCode" />
+		<result column="subject_name" jdbcType="VARCHAR" property="subjectName" />
+		<result column="subject_url_honor" jdbcType="VARCHAR" property="subjectUrlHonor" />
+		<result column="dynamic_is_delete" jdbcType="TINYINT" property="dynamicIsDelete" />
+		<result column="dynamic_is_shield" jdbcType="TINYINT" property="dynamicIsShield" />
+		<result column="is_subject_show" jdbcType="TINYINT" property="isSubjectShow" />
+		<result column="is_subject_data_show" jdbcType="TINYINT" property="isSubjectDataShow" />
+	</resultMap>
+	
+	<!-- 动态详情返回集合 -->
+	<resultMap id="DynamicResultMap" type="com.zssq.model.RelationDynamicModel">
+		<result column="dynamic_code" jdbcType="VARCHAR" property="dynamicCode" />
+		<result column="dynamic_class" jdbcType="TINYINT" property="dynamicClass" />
+		<result column="dynamic_depend" jdbcType="TINYINT" property="dynamicDepend" />
+		<result column="team_code" jdbcType="VARCHAR" property="teamCode" />
+		<result column="user_code" jdbcType="VARCHAR" property="userCode" />
+		<result column="operate_team_code" jdbcType="VARCHAR" property="operateTeamCode" />
+		<result column="operate_org_code" jdbcType="VARCHAR" property="operateOrgCode" />
+		<result column="operate_time" jdbcType="BIGINT" property="operateTime" />
+		<result column="subject_code" jdbcType="VARCHAR" property="subjectCode" />
+		<result column="subject_name" jdbcType="VARCHAR" property="subjectName" />
+		<result column="subject_url_honor" jdbcType="VARCHAR" property="subjectUrlHonor" />
+		<result column="is_subject_show" jdbcType="TINYINT" property="isSubjectShow" />
+		<result column="subject_class" jdbcType="TINYINT" property="subjectClass" />
+		<result column="subject_depend" jdbcType="TINYINT" property="subjectDepend" />
+		<result column="subject_team_code" jdbcType="VARCHAR" property="subjectTeamCode" />
+		<result column="subject_user_code" jdbcType="VARCHAR" property="subjectUserCode" />
+		<result column="subject_publish_time" jdbcType="BIGINT" property="subjectPublishTime" />
+		<result column="disk_org_code" jdbcType="VARCHAR" property="diskOrgCode" />
+		<result column="subject_title" jdbcType="VARCHAR" property="subjectTitle" />
+		<result column="subject_digest" jdbcType="LONGVARCHAR" property="subjectDigest" />
+		<result column="subject_url" jdbcType="VARCHAR" property="subjectUrl" />
+		<result column="subject_source" jdbcType="TINYINT" property="subjectSource" />
+		<result column="source_code" jdbcType="VARCHAR" property="sourceCode" />
+		<result column="source_depend" jdbcType="TINYINT" property="sourceDepend" />
+		<result column="source_team_code" jdbcType="VARCHAR" property="sourceTeamCode" />
+		<result column="source_user_code" jdbcType="VARCHAR" property="sourceUserCode" />
+		<result column="source_publish_time" jdbcType="BIGINT" property="sourcePublishTime" />
+		<result column="source_is_delete" jdbcType="TINYINT" property="sourceIsDelete" />
+		<result column="source_is_shield" jdbcType="TINYINT" property="sourceIsShield" />
+		<result column="content_tips" jdbcType="LONGVARCHAR" property="contentTips" />
+		<result column="subject_is_delete" jdbcType="TINYINT" property="subjectIsDelete" />
+		<result column="subject_is_shield" jdbcType="TINYINT" property="subjectIsShield" />
+		<result column="subject_status" jdbcType="TINYINT" property="subjectStatus" />
+		<result column="subject_begin_time" jdbcType="BIGINT" property="subjectBeginTime" />
+		<result column="subject_end_time" jdbcType="BIGINT" property="subjectEndTime" />
+		<result column="team_quality_num" jdbcType="INTEGER" property="teamQualityNum" />
+		<result column="group_quality_num" jdbcType="INTEGER" property="groupQualityNum" />
+		<result column="province_quality_num" jdbcType="INTEGER" property="provinceQualityNum" />
+		<result column="city_quality_num" jdbcType="INTEGER" property="cityQualityNum" />
+		<result column="join_num" jdbcType="INTEGER" property="joinNum" />
+		<result column="read_num" jdbcType="INTEGER" property="readNum" />
+		<result column="like_num" jdbcType="INTEGER" property="likeNum" />
+		<result column="collect_num" jdbcType="INTEGER" property="collectNum" />
+		<result column="forward_num" jdbcType="INTEGER" property="forwardNum" />
+		<result column="comment_num" jdbcType="INTEGER" property="commentNum" />
+		<result column="share_num" jdbcType="INTEGER" property="shareNum" />
+		<result column="is_like" jdbcType="INTEGER" property="isLike" />
+		<result column="is_collect" jdbcType="INTEGER" property="isCollect" />
+		<result column="team_front_show" jdbcType="INTEGER" property="teamFrontShow" />
+		<result column="team_quality" jdbcType="INTEGER" property="teamQuality" />
+		<collection property="resourceList" resultMap="ResourceResultMap" ofType="com.zssq.model.RelationSubjectResourceModel"/>
+	</resultMap>
+	<resultMap id="ResourceResultMap" type="com.zssq.model.RelationSubjectResourceModel">
+		<result column="subject_res_code" property="subjectResCode" jdbcType="VARCHAR" />
+		<result column="res_url" property="resUrl" jdbcType="VARCHAR" />
+		<result column="res_class" property="resClass" jdbcType="TINYINT" />
+	</resultMap>
+	
+	<!-- 列列表 -->
+	<sql id="Base_Column_List">
+		id, dynamic_code, tenant_code, org_code, create_time, modify_time, remark, 
+		dynamic_class, dynamic_depend, team_code, user_code, operate_team_code, 
+		operate_org_code, operate_time, subject_code, subject_name, subject_url_honor, 
+		dynamic_is_delete, dynamic_is_shield, is_subject_show, is_subject_data_show
+	</sql>
+	
+	<!-- 查询个人空间动态公共SQL -->
+	<sql id="select_user_space_dynamic_sql">
+		FROM relation_dynamic rd
+		LEFT JOIN relation_dynamic_team_rel rdtr
+		ON rd.dynamic_code = rdtr.dynamic_code
+		WHERE rd.dynamic_is_delete = '0'
+		AND	rd.dynamic_is_shield = '0'
+		AND rd.operate_time &lt; #{queryTime,jdbcType=BIGINT}
+		AND 
+		(
+			<if test="teamCodeList != null and teamCodeList.size() > 0">
+				(
+					(
+							rd.dynamic_depend = '2'
+						AND rd.team_code IN
+						<foreach collection="teamCodeList" open="(" close=")" item="teamCode" index="index" separator=",">
+							#{teamCode,jdbcType=VARCHAR}
+						</foreach>
+					)
+					OR
+					(
+							rd.dynamic_depend = '1'
+						AND rdtr.team_code IN
+						<foreach collection="teamCodeList" open="(" close=")" item="teamCode" index="index" separator=",">
+							#{teamCode,jdbcType=VARCHAR}
+						</foreach>
+						AND rdtr.rel_is_home_show = '1'
+					)
+				)
+				OR
+			</if>
+			(
+					rd.dynamic_depend = '1'
+				AND rd.user_code IN 
+				<foreach collection="userCodeList" open="(" close=")" item="userCode" index="index" separator=",">
+					#{userCode,jdbcType=VARCHAR}
+				</foreach>
+			)
+		)
+	</sql>
+	
+	<!-- 查询个人空间动态个数 -->
+	<select id="selectUserSpaceDynamicCount" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+		<include refid="select_user_space_dynamic_sql" />
+	</select>
+	
+	<!-- 查询个人空间动态列表 -->
+	<select id="selectUserSpaceDynamicList" parameterType="map" resultMap="DynamicResultMap">
+		SELECT
+			rds.dynamic_code,
+			rds.dynamic_class,
+			rds.dynamic_depend,
+			rds.team_code,
+			rds.user_code,
+			rds.operate_team_code,
+			rds.operate_org_code,
+			rds.operate_time,
+			rds.subject_code,
+			rds.subject_name,
+			rds.subject_url_honor,
+			rds.is_subject_show,
+			rsi.subject_class,
+			rsi.subject_depend,
+			rsi.team_code AS subject_team_code,
+			rsi.user_code AS subject_user_code,
+			rsi.subject_publish_time,
+			rsi.org_code AS disk_org_code,
+			rsi.subject_title,
+			rsi.subject_digest,
+			rsi.subject_url,
+			rsi.subject_source,
+			rsi.source_code,
+			rsi.source_depend,
+			rsi.source_team_code,
+			rsi.source_user_code,
+			rsi.source_publish_time,
+			rsi.source_is_delete,
+			rsi.source_is_shield,
+			rsi.content_tips,
+			rsi.subject_is_delete,
+			rsi.subject_is_shield,
+			rsi.subject_status,
+			rsi.subject_begin_time,
+			rsi.subject_end_time,
+			rsd.team_quality_num,
+			rsd.group_quality_num,
+			rsd.province_quality_num,
+			rsd.city_quality_num,
+			rsd.join_num,
+			rsd.read_num,
+			rsd.like_num,
+			rsd.collect_num,
+			rsd.forward_num,
+			rsd.comment_num,
+			rsd.share_num,
+			rsr.subject_res_code,
+			rsr.res_url,
+			rsr.res_class,
+			(
+				CASE 
+				WHEN rl.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_like,
+			(
+				CASE 
+				WHEN rc.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_collect
+		FROM 
+		(
+			SELECT 
+				rd.dynamic_code,
+				rd.dynamic_class,
+				rd.dynamic_depend,
+				rd.team_code,
+				rd.user_code,
+				rd.operate_team_code,
+				rd.operate_org_code,
+				rd.operate_time,
+				rd.subject_code,
+				rd.subject_name,
+				rd.subject_url_honor,
+				rd.is_subject_show,
+				rd.is_subject_data_show
+			<include refid="select_user_space_dynamic_sql" />
+			ORDER BY rd.operate_time DESC
+			LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+		) rds
+		LEFT JOIN relation_subject_info rsi
+		ON rds.is_subject_show = '1'
+		AND rds.subject_code = rsi.subject_code
+		LEFT JOIN relation_subject_data rsd
+		ON rds.is_subject_data_show = '1'
+		AND rds.subject_code = rsd.subject_code
+		LEFT JOIN relation_subject_resource rsr
+		ON rsi.subject_class = '1'
+		AND rds.subject_code = rsr.subject_code
+		LEFT JOIN relation_like rl
+		ON rds.subject_code = rl.subject_code
+		AND rl.user_code = #{userCode,jdbcType=VARCHAR}
+		LEFT JOIN relation_collect rc
+		ON rds.subject_code = rc.subject_code
+		AND rc.user_code = #{userCode,jdbcType=VARCHAR}
+		ORDER BY rds.operate_time DESC
+	</select>
+	
+	<!-- 查询个人主页动态公共SQL -->
+	<sql id="select_user_dynamic_sql">
+		FROM relation_dynamic
+		WHERE dynamic_depend = '1'
+		AND user_code = #{dynamicUserCode,jdbcType=VARCHAR}
+		AND dynamic_is_delete = '0'
+		AND	dynamic_is_shield = '0'
+		AND operate_time &lt; #{queryTime,jdbcType=BIGINT}
+	</sql>
+	
+	<!-- 查询个人主页动态个数 -->
+	<select id="selectUserDynamicCount" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+		<include refid="select_user_dynamic_sql" />
+	</select>
+	
+	<!-- 查询个人主页动态列表 -->
+	<select id="selectUserDynamicList" parameterType="map" resultMap="DynamicResultMap">
+		SELECT
+			rd.dynamic_code,
+			rd.dynamic_class,
+			rd.operate_team_code,
+			rd.operate_org_code,
+			rd.operate_time,
+			rd.subject_code,
+			rd.subject_name,
+			rd.subject_url_honor,
+			rd.is_subject_show,
+			rsi.subject_class,
+			rsi.subject_depend,
+			rsi.team_code AS subject_team_code,
+			rsi.user_code AS subject_user_code,
+			rsi.subject_publish_time,
+			rsi.org_code AS disk_org_code,
+			rsi.subject_title,
+			rsi.subject_digest,
+			rsi.subject_url,
+			rsi.subject_source,
+			rsi.source_code,
+			rsi.source_depend,
+			rsi.source_team_code,
+			rsi.source_user_code,
+			rsi.source_publish_time,
+			rsi.source_is_delete,
+			rsi.source_is_shield,
+			rsi.content_tips,
+			rsi.subject_is_delete,
+			rsi.subject_is_shield,
+			rsi.subject_status,
+			rsi.subject_begin_time,
+			rsi.subject_end_time,
+			rsd.team_quality_num,
+			rsd.group_quality_num,
+			rsd.province_quality_num,
+			rsd.city_quality_num,
+			rsd.join_num,
+			rsd.read_num,
+			rsd.like_num,
+			rsd.collect_num,
+			rsd.forward_num,
+			rsd.comment_num,
+			rsd.share_num,
+			rsr.subject_res_code,
+			rsr.res_url,
+			rsr.res_class,
+			(
+				CASE 
+				WHEN rl.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_like,
+			(
+				CASE 
+				WHEN rc.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_collect
+		FROM 
+		(
+			SELECT 
+				dynamic_code,
+				dynamic_class,
+				operate_team_code,
+				operate_org_code,
+				operate_time,
+				subject_code,
+				subject_name,
+				subject_url_honor,
+				is_subject_show,
+				is_subject_data_show
+			<include refid="select_user_dynamic_sql" />
+			ORDER BY operate_time DESC
+			LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+		) rd
+		LEFT JOIN relation_subject_info rsi
+		ON rd.is_subject_show = '1'
+		AND rd.subject_code = rsi.subject_code
+		LEFT JOIN relation_subject_data rsd
+		ON rd.is_subject_data_show = '1'
+		AND rd.subject_code = rsd.subject_code
+		LEFT JOIN relation_subject_resource rsr
+		ON rsi.subject_class = '1'
+		AND rd.subject_code = rsr.subject_code
+		LEFT JOIN relation_like rl
+		ON rd.subject_code = rl.subject_code
+		AND rl.user_code = #{userCode,jdbcType=VARCHAR}
+		LEFT JOIN relation_collect rc
+		ON rd.subject_code = rc.subject_code
+		AND rc.user_code = #{userCode,jdbcType=VARCHAR}
+		ORDER BY rd.operate_time DESC
+	</select>
+	
+	<!-- 查询班组动态公共SQL -->
+	<sql id="select_team_dynamic_sql">
+		FROM relation_dynamic rd
+		LEFT JOIN relation_dynamic_team_rel rdtr
+		ON rd.dynamic_code = rdtr.dynamic_code
+		WHERE rd.dynamic_is_delete = '0'
+		AND	rd.dynamic_is_shield = '0'
+		AND rd.operate_time &lt; #{queryTime,jdbcType=BIGINT}
+		AND 
+		(
+			(
+					rd.dynamic_depend = '2'
+				AND rd.team_code = #{teamCode,jdbcType=VARCHAR}
+			)
+			OR
+			(
+					rd.dynamic_depend = '1'
+				AND rdtr.team_code = #{teamCode,jdbcType=VARCHAR}
+				AND rdtr.rel_is_home_show = '1'
+			)
+		)
+	</sql>
+	
+	<!-- 查询班组动态个数 -->
+	<select id="selectTeamDynamicCount" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+		<include refid="select_team_dynamic_sql" />
+	</select>
+	
+	<!-- 查询班组动态列表 -->
+	<select id="selectTeamDynamicList" parameterType="map" resultMap="DynamicResultMap">
+		SELECT
+			rds.dynamic_code,
+			rds.dynamic_class,
+			rds.dynamic_depend,
+			rds.team_code,
+			rds.user_code,
+			rds.operate_team_code,
+			rds.operate_org_code,
+			rds.operate_time,
+			rds.subject_code,
+			rds.subject_name,
+			rds.subject_url_honor,
+			rds.is_subject_show,
+			rsi.subject_class,
+			rsi.subject_depend,
+			rsi.team_code AS subject_team_code,
+			rsi.user_code AS subject_user_code,
+			rsi.subject_publish_time,
+			rsi.org_code AS disk_org_code,
+			rsi.subject_title,
+			rsi.subject_digest,
+			rsi.subject_url,
+			rsi.subject_source,
+			rsi.source_code,
+			rsi.source_depend,
+			rsi.source_team_code,
+			rsi.source_user_code,
+			rsi.source_publish_time,
+			rsi.source_is_delete,
+			rsi.source_is_shield,
+			rsi.content_tips,
+			rsi.subject_is_delete,
+			rsi.subject_is_shield,
+			rsi.subject_status,
+			rsi.subject_begin_time,
+			rsi.subject_end_time,
+			rsd.team_quality_num,
+			rsd.group_quality_num,
+			rsd.province_quality_num,
+			rsd.city_quality_num,
+			rsd.join_num,
+			rsd.read_num,
+			rsd.like_num,
+			rsd.collect_num,
+			rsd.forward_num,
+			rsd.comment_num,
+			rsd.share_num,
+			rsr.subject_res_code,
+			rsr.res_url,
+			rsr.res_class,
+			(
+				CASE 
+				WHEN rl.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_like,
+			(
+				CASE 
+				WHEN rc.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_collect,
+			(
+				CASE 
+				WHEN rq.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS team_quality
+		FROM 
+		(
+			SELECT 
+				rd.dynamic_code,
+				rd.dynamic_class,
+				rd.dynamic_depend,
+				rd.team_code,
+				rd.user_code,
+				rd.operate_team_code,
+				rd.operate_org_code,
+				rd.operate_time,
+				rd.subject_code,
+				rd.subject_name,
+				rd.subject_url_honor,
+				rd.is_subject_show,
+				rd.is_subject_data_show
+			<include refid="select_team_dynamic_sql" />
+			ORDER BY rd.operate_time DESC
+			LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+		) rds
+		LEFT JOIN relation_subject_info rsi
+		ON rds.is_subject_show = '1'
+		AND rds.subject_code = rsi.subject_code
+		LEFT JOIN relation_subject_data rsd
+		ON rds.is_subject_data_show = '1'
+		AND rds.subject_code = rsd.subject_code
+		LEFT JOIN relation_subject_resource rsr
+		ON rsi.subject_class = '1'
+		AND rds.subject_code = rsr.subject_code
+		LEFT JOIN relation_like rl
+		ON rds.subject_code = rl.subject_code
+		AND rl.user_code = #{userCode,jdbcType=VARCHAR}
+		LEFT JOIN relation_collect rc
+		ON rds.subject_code = rc.subject_code
+		AND rc.user_code = #{userCode,jdbcType=VARCHAR}
+		LEFT JOIN relation_quality rq
+		ON rds.subject_code = rq.subject_code
+		AND rq.team_code = #{teamCode,jdbcType=VARCHAR}
+		ORDER BY rds.operate_time DESC
+	</select>
+	
+	<!-- 查询班组成员动态公共SQL -->
+	<sql id="select_team_user_dynamic_sql">
+		FROM relation_dynamic
+		WHERE dynamic_depend = '1'
+		AND dynamic_is_delete = '0'
+		AND	dynamic_is_shield = '0'
+		AND operate_time &lt; #{queryTime,jdbcType=BIGINT}
+		AND user_code IN 
+		<foreach collection="userCodeList" open="(" close=")" item="userCode" index="index" separator=",">
+			#{userCode,jdbcType=VARCHAR}
+		</foreach>
+	</sql>
+	
+	<!-- 查询班组成员动态个数 -->
+	<select id="selectTeamUserDynamicCount" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+		<include refid="select_team_user_dynamic_sql" />
+	</select>
+	
+	<!-- 查询班组成员动态列表 -->
+	<select id="selectTeamUserDynamicList" parameterType="map" resultMap="DynamicResultMap">
+		SELECT
+			rd.dynamic_code,
+			rd.dynamic_class,
+			rd.dynamic_depend,
+			rd.team_code,
+			rd.user_code,
+			rd.operate_team_code,
+			rd.operate_org_code,
+			rd.operate_time,
+			rd.subject_code,
+			rd.subject_name,
+			rd.subject_url_honor,
+			rd.is_subject_show,
+			rsi.subject_class,
+			rsi.subject_depend,
+			rsi.team_code AS subject_team_code,
+			rsi.user_code AS subject_user_code,
+			rsi.subject_publish_time,
+			rsi.org_code AS disk_org_code,
+			rsi.subject_title,
+			rsi.subject_digest,
+			rsi.subject_url,
+			rsi.subject_source,
+			rsi.source_code,
+			rsi.source_depend,
+			rsi.source_team_code,
+			rsi.source_user_code,
+			rsi.source_publish_time,
+			rsi.source_is_delete,
+			rsi.source_is_shield,
+			rsi.content_tips,
+			rsi.subject_is_delete,
+			rsi.subject_is_shield,
+			rsi.subject_status,
+			rsi.subject_begin_time,
+			rsi.subject_end_time,
+			rsd.team_quality_num,
+			rsd.group_quality_num,
+			rsd.province_quality_num,
+			rsd.city_quality_num,
+			rsd.join_num,
+			rsd.read_num,
+			rsd.like_num,
+			rsd.collect_num,
+			rsd.forward_num,
+			rsd.comment_num,
+			rsd.share_num,
+			rsr.subject_res_code,
+			rsr.res_url,
+			rsr.res_class,
+			rdtr.rel_is_home_show AS team_front_show,
+			(
+				CASE 
+				WHEN rl.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_like,
+			(
+				CASE 
+				WHEN rc.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_collect,
+			(
+				CASE 
+				WHEN rq.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS team_quality
+		FROM 
+		(
+			SELECT 
+				dynamic_code,
+				dynamic_class,
+				dynamic_depend,
+				team_code,
+				user_code,
+				operate_team_code,
+				operate_org_code,
+				operate_time,
+				subject_code,
+				subject_name,
+				subject_url_honor,
+				is_subject_show,
+				is_subject_data_show
+			<include refid="select_team_user_dynamic_sql" />
+			ORDER BY operate_time DESC
+			LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+		) rd
+		LEFT JOIN relation_subject_info rsi
+		ON rd.is_subject_show = '1'
+		AND rd.subject_code = rsi.subject_code
+		LEFT JOIN relation_subject_data rsd
+		ON rd.is_subject_data_show = '1'
+		AND rd.subject_code = rsd.subject_code
+		LEFT JOIN relation_subject_resource rsr
+		ON rsi.subject_class = '1'
+		AND rd.subject_code = rsr.subject_code
+		LEFT JOIN relation_like rl
+		ON rd.subject_code = rl.subject_code
+		AND rl.user_code = #{userCode,jdbcType=VARCHAR}
+		LEFT JOIN relation_collect rc
+		ON rd.subject_code = rc.subject_code
+		AND rc.user_code = #{userCode,jdbcType=VARCHAR}
+		LEFT JOIN relation_dynamic_team_rel rdtr
+		ON rd.dynamic_code = rdtr.dynamic_code
+		AND rdtr.team_code = #{teamCode,jdbcType=VARCHAR}
+		LEFT JOIN relation_quality rq
+		ON rd.subject_code = rq.subject_code
+		AND rq.team_code = #{teamCode,jdbcType=VARCHAR}
+		ORDER BY rd.operate_time DESC
+	</select>
+	
+	<!-- 查询门户成员动态公共SQL -->
+	<sql id="select_portal_user_dynamic_sql">
+		FROM relation_dynamic
+		WHERE dynamic_depend = '1'
+		AND dynamic_is_delete = '0'
+		AND	dynamic_is_shield = '0'
+		AND org_code = #{orgCode,jdbcType=VARCHAR}
+		AND operate_time &lt; #{queryTime,jdbcType=BIGINT}
+	</sql>
+	
+	<!-- 查询门户成员动态个数 -->
+	<select id="selectPortalUserDynamicCount" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+		<include refid="select_portal_user_dynamic_sql" />
+	</select>
+	
+	<!-- 查询门户成员动态列表 -->
+	<select id="selectPortalUserDynamicList" parameterType="map" resultMap="DynamicResultMap">
+		SELECT
+			rd.dynamic_code,
+			rd.dynamic_class,
+			rd.dynamic_depend,
+			rd.team_code,
+			rd.user_code,
+			rd.operate_team_code,
+			rd.operate_org_code,
+			rd.operate_time,
+			rd.subject_code,
+			rd.subject_name,
+			rd.subject_url_honor,
+			rd.is_subject_show,
+			rsi.subject_class,
+			rsi.subject_depend,
+			rsi.team_code AS subject_team_code,
+			rsi.user_code AS subject_user_code,
+			rsi.subject_publish_time,
+			rsi.org_code AS disk_org_code,
+			rsi.subject_title,
+			rsi.subject_digest,
+			rsi.subject_url,
+			rsi.subject_source,
+			rsi.source_code,
+			rsi.source_depend,
+			rsi.source_team_code,
+			rsi.source_user_code,
+			rsi.source_publish_time,
+			rsi.source_is_delete,
+			rsi.source_is_shield,
+			rsi.content_tips,
+			rsi.subject_is_delete,
+			rsi.subject_is_shield,
+			rsi.subject_status,
+			rsi.subject_begin_time,
+			rsi.subject_end_time,
+			rsd.team_quality_num,
+			rsd.group_quality_num,
+			rsd.province_quality_num,
+			rsd.city_quality_num,
+			rsd.join_num,
+			rsd.read_num,
+			rsd.like_num,
+			rsd.collect_num,
+			rsd.forward_num,
+			rsd.comment_num,
+			rsd.share_num,
+			rsr.subject_res_code,
+			rsr.res_url,
+			rsr.res_class,
+			(
+				CASE 
+				WHEN rl.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_like,
+			(
+				CASE 
+				WHEN rc.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_collect
+		FROM 
+		(
+			SELECT 
+				dynamic_code,
+				dynamic_class,
+				dynamic_depend,
+				team_code,
+				user_code,
+				operate_team_code,
+				operate_org_code,
+				operate_time,
+				subject_code,
+				subject_name,
+				subject_url_honor,
+				is_subject_show,
+				is_subject_data_show
+			<include refid="select_portal_user_dynamic_sql" />
+			ORDER BY operate_time DESC
+			LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+		) rd
+		LEFT JOIN relation_subject_info rsi
+		ON rd.is_subject_show = '1'
+		AND rd.subject_code = rsi.subject_code
+		LEFT JOIN relation_subject_data rsd
+		ON rd.is_subject_data_show = '1'
+		AND rd.subject_code = rsd.subject_code
+		LEFT JOIN relation_subject_resource rsr
+		ON rsi.subject_class = '1'
+		AND rd.subject_code = rsr.subject_code
+		LEFT JOIN relation_like rl
+		ON rd.subject_code = rl.subject_code
+		AND rl.user_code = #{userCode,jdbcType=VARCHAR}
+		LEFT JOIN relation_collect rc
+		ON rd.subject_code = rc.subject_code
+		AND rc.user_code = #{userCode,jdbcType=VARCHAR}
+		ORDER BY rd.operate_time DESC
+	</select>
+	
+	<!-- 查询门户班组动态公共SQL -->
+	<sql id="select_portal_team_dynamic_sql">
+		FROM relation_dynamic rd
+		LEFT JOIN relation_dynamic_team_rel rdtr
+		ON rd.dynamic_code = rdtr.dynamic_code
+		WHERE rd.dynamic_is_delete = '0'
+		AND	rd.dynamic_is_shield = '0'
+		AND rd.org_code = #{orgCode,jdbcType=VARCHAR}
+		AND rd.operate_time &lt; #{queryTime,jdbcType=BIGINT}
+		AND 
+		(
+			(
+					rd.dynamic_depend = '2'
+			)
+			OR
+			(
+					rd.dynamic_depend = '1'
+				AND rdtr.rel_is_home_show = '1'
+			)
+		)
+	</sql>
+	
+	<!-- 查询门户班组动态个数 -->
+	<select id="selectPortalTeamDynamicCount" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+		<include refid="select_portal_team_dynamic_sql" />
+	</select>
+	
+	<!-- 查询门户班组动态列表 -->
+	<select id="selectPortalTeamDynamicList" parameterType="map" resultMap="DynamicResultMap">
+		SELECT
+			rds.dynamic_code,
+			rds.dynamic_class,
+			rds.dynamic_depend,
+			rds.team_code,
+			rds.user_code,
+			rds.operate_team_code,
+			rds.operate_org_code,
+			rds.operate_time,
+			rds.subject_code,
+			rds.subject_name,
+			rds.subject_url_honor,
+			rds.is_subject_show,
+			rsi.subject_class,
+			rsi.subject_depend,
+			rsi.team_code AS subject_team_code,
+			rsi.user_code AS subject_user_code,
+			rsi.subject_publish_time,
+			rsi.org_code AS disk_org_code,
+			rsi.subject_title,
+			rsi.subject_digest,
+			rsi.subject_url,
+			rsi.subject_source,
+			rsi.source_code,
+			rsi.source_depend,
+			rsi.source_team_code,
+			rsi.source_user_code,
+			rsi.source_publish_time,
+			rsi.source_is_delete,
+			rsi.source_is_shield,
+			rsi.content_tips,
+			rsi.subject_is_delete,
+			rsi.subject_is_shield,
+			rsi.subject_status,
+			rsi.subject_begin_time,
+			rsi.subject_end_time,
+			rsd.team_quality_num,
+			rsd.group_quality_num,
+			rsd.province_quality_num,
+			rsd.city_quality_num,
+			rsd.join_num,
+			rsd.read_num,
+			rsd.like_num,
+			rsd.collect_num,
+			rsd.forward_num,
+			rsd.comment_num,
+			rsd.share_num,
+			rsr.subject_res_code,
+			rsr.res_url,
+			rsr.res_class,
+			(
+				CASE 
+				WHEN rl.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_like,
+			(
+				CASE 
+				WHEN rc.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_collect
+		FROM 
+		(
+			SELECT 
+				rd.dynamic_code,
+				rd.dynamic_class,
+				rd.dynamic_depend,
+				rd.team_code,
+				rd.user_code,
+				rd.operate_team_code,
+				rd.operate_org_code,
+				rd.operate_time,
+				rd.subject_code,
+				rd.subject_name,
+				rd.subject_url_honor,
+				rd.is_subject_show,
+				rd.is_subject_data_show
+			<include refid="select_portal_team_dynamic_sql" />
+			ORDER BY rd.operate_time DESC
+			LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+		) rds
+		LEFT JOIN relation_subject_info rsi
+		ON rds.is_subject_show = '1'
+		AND rds.subject_code = rsi.subject_code
+		LEFT JOIN relation_subject_data rsd
+		ON rds.is_subject_data_show = '1'
+		AND rds.subject_code = rsd.subject_code
+		LEFT JOIN relation_subject_resource rsr
+		ON rsi.subject_class = '1'
+		AND rds.subject_code = rsr.subject_code
+		LEFT JOIN relation_like rl
+		ON rds.subject_code = rl.subject_code
+		AND rl.user_code = #{userCode,jdbcType=VARCHAR}
+		LEFT JOIN relation_collect rc
+		ON rds.subject_code = rc.subject_code
+		AND rc.user_code = #{userCode,jdbcType=VARCHAR}
+		ORDER BY rds.operate_time DESC
+	</select>
+	
+	<!-- 查询门户1号班组动态公共SQL -->
+	<sql id="select_portal_top_team_dynamic_sql">
+		FROM relation_dynamic rd
+		LEFT JOIN relation_dynamic_team_rel rdtr
+		ON rd.dynamic_code = rdtr.dynamic_code
+		WHERE rd.dynamic_is_delete = '0'
+		AND	rd.dynamic_is_shield = '0'
+		AND rd.org_code = #{orgCode,jdbcType=VARCHAR}
+		AND rdtr.team_is_no_one = '1'
+		AND rd.operate_time &lt; #{queryTime,jdbcType=BIGINT}
+		AND 
+		(
+			(
+					rd.dynamic_depend = '2'
+			)
+			OR
+			(
+					rd.dynamic_depend = '1'
+				AND rdtr.rel_is_home_show = '1'
+			)
+		)
+	</sql>
+	
+	<!-- 查询门户1号班组动态个数 -->
+	<select id="selectPortalTopTeamDynamicCount" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+		<include refid="select_portal_top_team_dynamic_sql" />
+	</select>
+	
+	<!-- 查询门户1号班组动态列表 -->
+	<select id="selectPortalTopTeamDynamicList" parameterType="map" resultMap="DynamicResultMap">
+		SELECT
+			rds.dynamic_code,
+			rds.dynamic_class,
+			rds.dynamic_depend,
+			rds.team_code,
+			rds.user_code,
+			rds.operate_team_code,
+			rds.operate_org_code,
+			rds.operate_time,
+			rds.subject_code,
+			rds.subject_name,
+			rds.subject_url_honor,
+			rds.is_subject_show,
+			rsi.subject_class,
+			rsi.subject_depend,
+			rsi.team_code AS subject_team_code,
+			rsi.user_code AS subject_user_code,
+			rsi.subject_publish_time,
+			rsi.org_code AS disk_org_code,
+			rsi.subject_title,
+			rsi.subject_digest,
+			rsi.subject_url,
+			rsi.subject_source,
+			rsi.source_code,
+			rsi.source_depend,
+			rsi.source_team_code,
+			rsi.source_user_code,
+			rsi.source_publish_time,
+			rsi.source_is_delete,
+			rsi.source_is_shield,
+			rsi.content_tips,
+			rsi.subject_is_delete,
+			rsi.subject_is_shield,
+			rsi.subject_status,
+			rsi.subject_begin_time,
+			rsi.subject_end_time,
+			rsd.team_quality_num,
+			rsd.group_quality_num,
+			rsd.province_quality_num,
+			rsd.city_quality_num,
+			rsd.join_num,
+			rsd.read_num,
+			rsd.like_num,
+			rsd.collect_num,
+			rsd.forward_num,
+			rsd.comment_num,
+			rsd.share_num,
+			rsr.subject_res_code,
+			rsr.res_url,
+			rsr.res_class,
+			(
+				CASE 
+				WHEN rl.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_like,
+			(
+				CASE 
+				WHEN rc.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_collect
+		FROM 
+		(
+			SELECT 
+				rd.dynamic_code,
+				rd.dynamic_class,
+				rd.dynamic_depend,
+				rd.team_code,
+				rd.user_code,
+				rd.operate_team_code,
+				rd.operate_org_code,
+				rd.operate_time,
+				rd.subject_code,
+				rd.subject_name,
+				rd.subject_url_honor,
+				rd.is_subject_show,
+				rd.is_subject_data_show
+			<include refid="select_portal_top_team_dynamic_sql" />
+			ORDER BY rd.operate_time DESC
+			LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+		) rds
+		LEFT JOIN relation_subject_info rsi
+		ON rds.is_subject_show = '1'
+		AND rds.subject_code = rsi.subject_code
+		LEFT JOIN relation_subject_data rsd
+		ON rds.is_subject_data_show = '1'
+		AND rds.subject_code = rsd.subject_code
+		LEFT JOIN relation_subject_resource rsr
+		ON rsi.subject_class = '1'
+		AND rds.subject_code = rsr.subject_code
+		LEFT JOIN relation_like rl
+		ON rds.subject_code = rl.subject_code
+		AND rl.user_code = #{userCode,jdbcType=VARCHAR}
+		LEFT JOIN relation_collect rc
+		ON rds.subject_code = rc.subject_code
+		AND rc.user_code = #{userCode,jdbcType=VARCHAR}
+		ORDER BY rds.operate_time DESC
+	</select>
+	
+	<!-- 查询门户百强班组动态公共SQL -->
+	<sql id="select_portal_ex_team_dynamic_sql">
+		FROM relation_dynamic rd
+		LEFT JOIN relation_dynamic_team_rel rdtr
+		ON rd.dynamic_code = rdtr.dynamic_code
+		WHERE rd.dynamic_is_delete = '0'
+		AND	rd.dynamic_is_shield = '0'
+		AND rd.org_code = #{orgCode,jdbcType=VARCHAR}
+		AND rdtr.team_is_excellent = '1'
+		AND rd.operate_time &lt; #{queryTime,jdbcType=BIGINT}
+		AND 
+		(
+			(
+					rd.dynamic_depend = '2'
+			)
+			OR
+			(
+					rd.dynamic_depend = '1'
+				AND rdtr.rel_is_home_show = '1'
+			)
+		)
+	</sql>
+	
+	<!-- 查询门户百强班组动态个数 -->
+	<select id="selectPortalExTeamDynamicCount" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+		<include refid="select_portal_ex_team_dynamic_sql" />
+	</select>
+	
+	<!-- 查询门户百强班组动态列表 -->
+	<select id="selectPortalExTeamDynamicList" parameterType="map" resultMap="DynamicResultMap">
+		SELECT
+			rds.dynamic_code,
+			rds.dynamic_class,
+			rds.dynamic_depend,
+			rds.team_code,
+			rds.user_code,
+			rds.operate_team_code,
+			rds.operate_org_code,
+			rds.operate_time,
+			rds.subject_code,
+			rds.subject_name,
+			rds.subject_url_honor,
+			rds.is_subject_show,
+			rsi.subject_class,
+			rsi.subject_depend,
+			rsi.team_code AS subject_team_code,
+			rsi.user_code AS subject_user_code,
+			rsi.subject_publish_time,
+			rsi.org_code AS disk_org_code,
+			rsi.subject_title,
+			rsi.subject_digest,
+			rsi.subject_url,
+			rsi.subject_source,
+			rsi.source_code,
+			rsi.source_depend,
+			rsi.source_team_code,
+			rsi.source_user_code,
+			rsi.source_publish_time,
+			rsi.source_is_delete,
+			rsi.source_is_shield,
+			rsi.content_tips,
+			rsi.subject_is_delete,
+			rsi.subject_is_shield,
+			rsi.subject_status,
+			rsi.subject_begin_time,
+			rsi.subject_end_time,
+			rsd.team_quality_num,
+			rsd.group_quality_num,
+			rsd.province_quality_num,
+			rsd.city_quality_num,
+			rsd.join_num,
+			rsd.read_num,
+			rsd.like_num,
+			rsd.collect_num,
+			rsd.forward_num,
+			rsd.comment_num,
+			rsd.share_num,
+			rsr.subject_res_code,
+			rsr.res_url,
+			rsr.res_class,
+			(
+				CASE 
+				WHEN rl.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_like,
+			(
+				CASE 
+				WHEN rc.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_collect
+		FROM 
+		(
+			SELECT 
+				rd.dynamic_code,
+				rd.dynamic_class,
+				rd.dynamic_depend,
+				rd.team_code,
+				rd.user_code,
+				rd.operate_team_code,
+				rd.operate_org_code,
+				rd.operate_time,
+				rd.subject_code,
+				rd.subject_name,
+				rd.subject_url_honor,
+				rd.is_subject_show,
+				rd.is_subject_data_show
+			<include refid="select_portal_ex_team_dynamic_sql" />
+			ORDER BY rd.operate_time DESC
+			LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+		) rds
+		LEFT JOIN relation_subject_info rsi
+		ON rds.is_subject_show = '1'
+		AND rds.subject_code = rsi.subject_code
+		LEFT JOIN relation_subject_data rsd
+		ON rds.is_subject_data_show = '1'
+		AND rds.subject_code = rsd.subject_code
+		LEFT JOIN relation_subject_resource rsr
+		ON rsi.subject_class = '1'
+		AND rds.subject_code = rsr.subject_code
+		LEFT JOIN relation_like rl
+		ON rds.subject_code = rl.subject_code
+		AND rl.user_code = #{userCode,jdbcType=VARCHAR}
+		LEFT JOIN relation_collect rc
+		ON rds.subject_code = rc.subject_code
+		AND rc.user_code = #{userCode,jdbcType=VARCHAR}
+		ORDER BY rds.operate_time DESC
+	</select>
+	
+	<!-- 查询动态被哪些关注的班组首页展示 -->
+	<select id="getDynamicTeamCodes" parameterType="map" resultType="string">
+		SELECT
+			teamCode
+		FROM relation_dynamic_team_rel
+		WHERE dynamic_code = #{dynamicCode,jdbcType=VARCHAR}
+		<if test="teamCodeList != null and teamCodeList.size() > 0">
+			AND team_code IN
+			<foreach collection="teamCodeList" open="(" close=")" item="teamCode" index="index" separator=",">
+				#{teamCode,jdbcType=VARCHAR}
+			</foreach>
+			AND rel_is_home_show = '1'
+		</if>
+	</select>
+	
+	<!-- 插入 -->
+	<insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.zssq.dao.pojo.RelationDynamic">
+		INSERT INTO relation_dynamic ( 
+			dynamic_code, 
+			tenant_code,
+			org_code, 
+			create_time, 
+			modify_time,
+			remark, 
+			dynamic_class,
+			dynamic_depend,
+			team_code, 
+			user_code, 
+			operate_team_code,
+			operate_org_code, 
+			operate_time, 
+			subject_code,
+			subject_name, 
+			subject_url_honor, 
+			dynamic_is_delete,
+			dynamic_is_shield, 
+			is_subject_show, 
+			is_subject_data_show
+		) VALUES (
+			#{dynamicCode,jdbcType=VARCHAR},
+			#{tenantCode,jdbcType=VARCHAR},
+			#{orgCode,jdbcType=VARCHAR}, 
+			#{createTime,jdbcType=BIGINT}, 
+			#{modifyTime,jdbcType=BIGINT},
+			#{remark,jdbcType=VARCHAR}, 
+			#{dynamicClass,jdbcType=TINYINT},
+			#{dynamicDepend,jdbcType=TINYINT},
+			#{teamCode,jdbcType=VARCHAR}, 
+			#{userCode,jdbcType=VARCHAR}, 
+			#{operateTeamCode,jdbcType=VARCHAR},
+			#{operateOrgCode,jdbcType=VARCHAR}, 
+			#{operateTime,jdbcType=BIGINT},
+			#{subjectCode,jdbcType=VARCHAR},
+			#{subjectName,jdbcType=VARCHAR}, 
+			#{subjectUrlHonor,jdbcType=VARCHAR}, 
+			#{dynamicIsDelete,jdbcType=TINYINT},
+			#{dynamicIsShield,jdbcType=TINYINT},
+			#{isSubjectShow,jdbcType=TINYINT},
+			#{isSubjectDataShow,jdbcType=TINYINT}
+		)
+	</insert>
+	
+	<!-- 删除 -->
+	<update id="delete" parameterType="map">
+		UPDATE relation_dynamic SET 
+			modify_time = #{modifyTime,jdbcType=BIGINT},
+			dynamic_is_delete = #{dynamicIsDelete,jdbcType=TINYINT}
+		WHERE dynamic_code = #{dynamicCode,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 批量删除 -->
+	<update id="batchDelete" parameterType="map">
+		UPDATE relation_dynamic SET 
+			modify_time = #{modifyTime,jdbcType=BIGINT},
+			dynamic_is_delete = #{dynamicIsDelete,jdbcType=TINYINT}
+		WHERE dynamic_class = #{dynamicClass,jdbcType=VARCHAR}
+		AND subject_code IN
+		<foreach collection="subjectCodeList" open="(" close=")" item="subjectCode" index="index" separator=",">
+			#{subjectCode,jdbcType=VARCHAR}
+		</foreach>
+	</update>
+	
+	<!-- 删除知识库动态 -->
+	<update id="deleteRepo" parameterType="map">
+		UPDATE relation_dynamic SET 
+			modify_time = #{modifyTime,jdbcType=BIGINT},
+			dynamic_is_delete = #{dynamicIsDelete,jdbcType=TINYINT}
+		WHERE dynamic_class = #{dynamicClass,jdbcType=VARCHAR}
+		AND remark = #{remark,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 屏蔽/恢复 -->
+	<update id="shield" parameterType="map">
+		UPDATE relation_dynamic SET 
+			modify_time = #{modifyTime,jdbcType=BIGINT},
+			dynamic_is_shield = #{dynamicIsShield,jdbcType=TINYINT}
+		where dynamic_code = #{dynamicCode,jdbcType=VARCHAR}
+	</update>
+	
+</mapper>

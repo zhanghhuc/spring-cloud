@@ -1,0 +1,8 @@
+## driverClassName
+jdbc.mysql.driverClassName=com.mysql.jdbc.Driver
+## validationQuery
+jdbc.pool.validationQuery=select current_timestamp()
+
+jdbc.url=jdbc\:mysql\://172.16.126.133\:3306/file_upload?autoReconnect\=true&useUnicode\=true&characterEncoding\=utf-8
+jdbc.username=root
+jdbc.password=Biyu5YzU+6sxDRbmWEa3B2uUcImzDo0BuXjTlL505+/pTb+/0Oqd3ou1R6J8+9Fy3CYrM18nBDqf6wAaPgUGOg==

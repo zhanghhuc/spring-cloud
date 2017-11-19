@@ -1,0 +1,27 @@
+package com.zssq.dao.mapper;
+
+import java.util.List;
+
+import com.zssq.dao.pojo.TeamMessage;
+
+public interface TeamMessageMapper {
+    
+	int deleteByCode(String code);
+
+    int insertSelective(TeamMessage record);
+
+    TeamMessage selectByCode(String code);
+    
+    List<TeamMessage> selectPage(TeamMessage record);
+    
+    int selectCount(TeamMessage record);
+    
+    /**
+     * @Function complaintMessage
+     * @Description 举报/取消举报
+     * @param record
+     * @return
+     */
+    int complaintMessage(TeamMessage record);
+    
+}

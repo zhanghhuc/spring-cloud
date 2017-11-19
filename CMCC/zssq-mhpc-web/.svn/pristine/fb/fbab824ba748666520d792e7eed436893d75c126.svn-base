@@ -1,0 +1,592 @@
+package com.zssq.knowledgeLib.controller;
+
+import java.util.Date;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.constants.KnowledgeLibConstants;
+import com.zssq.constants.RelationConstants;
+import com.zssq.dao.pojo.RelationDynamic;
+import com.zssq.dao.pojo.RelationSubjectInfo;
+import com.zssq.dao.pojo.RepositoryKnowledge;
+import com.zssq.dao.pojo.RepositoryKnowledgeContent;
+import com.zssq.dao.pojo.SysOrgInfo;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.knowledgeLib.vo.GetPortalFrontHotKnowledgeLibListVo;
+import com.zssq.knowledgeLib.vo.GetPortalKnowledgeByCodeVo;
+import com.zssq.knowledgeLib.vo.GetPortalKnowledgeListByLibVo;
+import com.zssq.knowledgeLib.vo.GetPortalSearchKnowledgeListVo;
+import com.zssq.knowledgeLib.vo.PublishKnowledgeVo;
+import com.zssq.model.RepositoryKnowledgeFrontMH;
+import com.zssq.model.RepositoryKnowledgeMH;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.ISysUserService;
+import com.zssq.service.RelationThirdDynamicService;
+import com.zssq.service.RepositoryKnowledgeService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.utils.StringTools;
+import com.zssq.vo.RepositoryKnowledgeVo;
+import com.zssq.vo.RepositorySearchVo;
+/**
+ * 
+ * @ClassName: RepositoryKnowledgeController  
+ * @Description: 知识  
+ * @author sry  
+ * @date 2017年4月28日  
+ *
+ */
+@Controller
+@RequestMapping("/knowledgeLib")
+public class RepositoryKnowledgeController {
+
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private RepositoryKnowledgeService repositoryKnowledgeService;
+	@Autowired
+	private ISysUserService sysUserService;
+	@Autowired
+	private RelationThirdDynamicService relationThirdDynamicService;
+	/**
+	 * 
+	 * @Title: getPortalKnowledgeListByLib  
+	 * @Description: 查询知识库下知识列表
+	 * @param param
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping(value="getPortalKnowledgeListByLib",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getPortalKnowledgeListByLib(@RequireValid GetPortalKnowledgeListByLibVo param) throws BusinessException {
+		
+		//返回值
+		ResultJSON resultJSON = null;
+		
+		try {
+			//方法进入
+			log.info("RepositoryKnowledgeController.getPortalKnowledgeListByLib:查询知识库下知识列表");
+			
+			String repositoryCode = param.getRepositoryCode();//知识库编号
+			String queryTime = param.getQueryTime();//查询时间
+			String userCode = param.getUserCode();//用户编号
+			String pageSize = param.getPageSize(); // 每页条数
+			String pageNo = param.getPageNo(); // 页码
+			
+			
+			//拼接参数
+			SysUserInfo qsysUserInfo = sysUserService.selectByCode(userCode);
+			if(qsysUserInfo == null){
+				log.error("RepositoryKnowledgeController.getPortalKnowledgeListByLib:用户信息不存在");
+				throw BusinessException.build("KNOWLEDGELIB_27001", "查询");
+			}
+			PageParam pageParam = new PageParam(Integer.valueOf(pageNo), Integer.valueOf(pageSize));
+			RepositoryKnowledgeVo infoVo = new RepositoryKnowledgeVo();
+			infoVo.setRepositoryCode(repositoryCode);
+			infoVo.setUserCode(userCode);
+			infoVo.setQueryTime(Long.valueOf(queryTime));
+			infoVo.setOrgCode(qsysUserInfo.getManageOrgInfo().getSysOrgCode());
+			PageBean pageBean = repositoryKnowledgeService.getPortalKnowledgeListByLibForMH(pageParam,infoVo);
+			
+			if (pageBean == null) {
+				log.error("RepositoryKnowledgeController.getPortalKnowledgeListByLib：查询失败");
+				throw BusinessException.build("KNOWLEDGELIB_27001", "查询");
+			}
+			
+			// 获取数据
+			List<RepositoryKnowledgeMH> recordList = pageBean.getRecordList();
+			//组装 返回参数
+			JSONArray ja = new JSONArray();
+			for(RepositoryKnowledgeMH ri:recordList){
+				JSONObject jo = new JSONObject();
+				jo.put("knowledgeCode", StringTools.formatToString(ri.getKnowledgeCode()));
+				jo.put("knowledgeTitle", StringTools.formatToString(ri.getKnowledgeTitle()));
+				jo.put("knowledgeDigest", StringTools.formatToString(ri.getKnowledgeDigest()));
+				jo.put("contentCode", StringTools.formatToString(ri.getContentCode()));
+				jo.put("createTime", StringTools.formatToString(ri.getCreateTime()));
+				jo.put("appendNum", StringTools.formatToString(ri.getAppendNum()));
+				jo.put("collectNum", StringTools.formatToString(ri.getCollectNum()));
+				jo.put("shareNum", StringTools.formatToString(ri.getShareNum()));
+				jo.put("praiseNum", StringTools.formatToString(ri.getPraiseNum()));
+				jo.put("userCode", StringTools.formatToString(ri.getUserCode()));
+				jo.put("canOpen", StringTools.formatToString(ri.getCanOpen()));
+				//拼接用户参数
+				String userName = "";
+				String userPhotoUrl = "";
+				String orgCode = "";
+				String orgName = "";
+				if(StringTools.isNotEmpty(ri.getUserCode())){
+					// 获取动态所属人员信息
+					SysUserInfo sysUserInfo = sysUserService.selectByCode(ri.getUserCode());
+					if(sysUserInfo!=null){
+						userName = sysUserInfo.getUserName();
+						userPhotoUrl = sysUserInfo.getHeadPortrait();
+						orgCode = sysUserInfo.getOrgCode();
+						SysOrgInfo manageOrgInfo = sysUserInfo.getManageOrgInfo();
+						if(manageOrgInfo!=null){
+							orgName = manageOrgInfo.getSysOrgFullname();
+						}
+					}
+				}
+				jo.put("userName", StringTools.formatToString(userName));
+				jo.put("userPhotoUrl", StringTools.formatToString(userPhotoUrl));
+				jo.put("orgCode", StringTools.formatToString(orgCode));
+				jo.put("orgName", StringTools.formatToString(orgName));
+				
+				jo.put("isCollect", StringTools.formatToString(ri.getIsCollect()));
+				jo.put("isPraised", StringTools.formatToString(ri.getIsPraised()));
+
+				ja.add(jo);
+			}
+			JSONObject body = new JSONObject();
+			body.put("kgList", ja);
+			body.put("total", pageBean.getTotalCount());
+			resultJSON = new ResultJSON("COMMON_200", "查询知识库下知识列表");
+			resultJSON.setBody(body);
+			
+			//方法出去
+			log.info("RepositoryKnowledgeController.getPortalKnowledgeListByLib:查询知识库下知识列表");
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("RepositoryKnowledgeController.getPortalKnowledgeListByLib", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+		return resultJSON;
+		
+	}
+	/**
+	 * 
+	 * @Title: publishKnowledge  
+	 * @Description: 发布知识
+	 * @param param
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@ResponseBody
+	@RequestMapping(value = "publishKnowledge",method=RequestMethod.POST)
+	public ResultJSON publishKnowledge(@RequireValid PublishKnowledgeVo param) throws BusinessException{
+	ResultJSON resultJSON = null;
+		
+		try {
+			//方法进入
+			log.info("RepositoryKnowledgeController.publishKnowledge:发布知识");
+			
+			String repositoryCode = param.getRepositoryCode();//知识库编号
+			String contentInfo = param.getContentInfo();//知识内容
+			String knowledgeDigest = param.getKnowledgeDigest();//知识摘要
+			String knowledgeTitle = param.getKnowledgeTitle(); // 知识标题
+			String userCode = param.getUserCode(); // 用户编号
+			String canOpen = param.getCanOpen();//是否可以展开
+			String orgCode = "";
+			String tenantCode = "";
+			SysUserInfo sysUserInfo = sysUserService.selectByCode(userCode);
+			if(sysUserInfo==null){
+				log.error("RepositoryKnowledgeController.publishKnowledge：获取不到人员信息userCode=" + userCode);
+				throw BusinessException.build("COMMON_400");
+			}
+			orgCode = sysUserInfo.getManageOrgInfo().getSysOrgCode();
+			tenantCode = sysUserInfo.getTenantCode();
+			//拼接参数
+			long now = new Date().getTime();
+			String knowledgeCode = UUIDHelper.getUUID();
+			String contentCode = UUIDHelper.getUUID();
+			String dynamicCode = UUIDHelper.getUUID();
+			RepositoryKnowledge kgVo = new RepositoryKnowledge();
+			
+			kgVo.setAddTime(now);
+			kgVo.setAppendTime(now);
+			kgVo.setAppendNum(KnowledgeLibConstants.NUM_ZERO);
+			kgVo.setCollectNum(KnowledgeLibConstants.NUM_ZERO);
+			kgVo.setContentCode(contentCode);
+			kgVo.setCreateTime(now);
+			kgVo.setIsDelete(KnowledgeLibConstants.REPOSITORY_NO);
+			kgVo.setKnowledgeCode(knowledgeCode);
+			kgVo.setKnowledgeDigest(knowledgeDigest);
+			kgVo.setKnowledgeTitle(knowledgeTitle);
+			kgVo.setModifyTime(now);
+			kgVo.setOrgCode(orgCode);
+			kgVo.setPraiseNum(KnowledgeLibConstants.NUM_ZERO);
+			kgVo.setRepositoryCode(repositoryCode);
+			kgVo.setShareNum(KnowledgeLibConstants.NUM_ZERO);
+			kgVo.setTenantCode(tenantCode);
+			kgVo.setUserCode(userCode);
+			kgVo.setCanOpen(new Byte(canOpen));
+			RepositoryKnowledgeContent kgcVo = new RepositoryKnowledgeContent();
+			kgcVo.setContentInfo(contentInfo);
+			kgcVo.setContentCode(contentCode);
+			kgcVo.setCreateTime(now);
+			kgcVo.setIsDelete(KnowledgeLibConstants.REPOSITORY_NO);
+			kgcVo.setModifyTime(now);
+			kgcVo.setOrgCode(orgCode);
+			kgcVo.setTenantCode(tenantCode);
+			Boolean addFlag = repositoryKnowledgeService.addPortalKnowledgeForMH(kgVo,kgcVo);
+			
+			if(!addFlag){
+				log.error("RepositoryKnowledgeController.publishKnowledge：发布知识失败");
+				throw BusinessException.build("KNOWLEDGELIB_27001", "发布知识");
+			}
+			// 动态信息
+			RelationDynamic relationDynamic = new RelationDynamic();
+			relationDynamic.setDynamicCode(dynamicCode);
+			relationDynamic.setTenantCode(tenantCode);
+			relationDynamic.setOrgCode(orgCode);
+			relationDynamic.setCreateTime(now);
+			relationDynamic.setModifyTime(now);
+			relationDynamic.setDynamicClass(RelationConstants.RELATION_DYNAMIC_SEND_TO_KB);
+			relationDynamic.setDynamicDepend(RelationConstants.RELATION_DYNAMIC_DEPEND_USER);
+			relationDynamic.setUserCode(userCode);
+			relationDynamic.setOperateTime(now);
+			relationDynamic.setSubjectCode(knowledgeCode);
+			relationDynamic.setDynamicIsDelete(RelationConstants.RELATION_NO);
+			relationDynamic.setDynamicIsShield(RelationConstants.RELATION_NO);
+			relationDynamic.setIsSubjectShow(RelationConstants.RELATION_YES);
+			relationDynamic.setIsSubjectDataShow(RelationConstants.RELATION_YES);
+			relationDynamic.setRemark(repositoryCode);
+			
+			// 内容信息
+			RelationSubjectInfo relationSubjectInfo = new RelationSubjectInfo();
+			relationSubjectInfo.setSubjectCode(knowledgeCode);
+			relationSubjectInfo.setTenantCode(tenantCode);
+			relationSubjectInfo.setOrgCode(orgCode);
+			relationSubjectInfo.setCreateTime(now);
+			relationSubjectInfo.setModifyTime(now);
+			relationSubjectInfo.setSubjectClass(RelationConstants.RELATION_SUBJECT_KB);
+			relationSubjectInfo.setSubjectDepend(RelationConstants.RELATION_SUBJECT_DEPEND_USER);
+			relationSubjectInfo.setUserCode(userCode);
+			relationSubjectInfo.setSubjectPublishTime(now);
+			relationSubjectInfo.setSubjectTitle(knowledgeTitle);
+			relationSubjectInfo.setSubjectDigest(knowledgeDigest);
+			relationSubjectInfo.setSubjectSource(RelationConstants.RELATION_SUBJECT_SOURCE_ORIGINAL);
+			relationSubjectInfo.setSubjectIsDelete(RelationConstants.RELATION_NO);
+			relationSubjectInfo.setSubjectIsShield(RelationConstants.RELATION_NO);
+			relationSubjectInfo.setRemark(repositoryCode);
+			
+			// 保存动态信息
+			boolean saveDynamicFlag = relationThirdDynamicService.saveDynamic(relationDynamic, null, relationSubjectInfo, null);
+			if (!saveDynamicFlag) {
+				log.error("RepositoryKnowledgeController.publishKnowledge：保存动态失败");
+				throw BusinessException.build("KNOWLEDGELIB_27001", "保存");
+			}
+			
+			resultJSON = new ResultJSON("COMMON_200", "发布知识");
+			resultJSON.setBody(new JSONObject());
+			
+			//方法出去
+			log.info("RepositoryKnowledgeController.publishKnowledge:发布知识");
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("RepositoryKnowledgeController.publishKnowledge", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+		return resultJSON;
+
+	}
+	
+	
+	/**
+	 * 
+	 * @Title: getPortalFrontHotKnowledgeLibList  
+	 * @Description: 查询集团首页知识库热区
+	 * @param param
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping(value="getPortalFrontHotKnowledgeLibList",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getPortalFrontHotKnowledgeLibList(@RequireValid GetPortalFrontHotKnowledgeLibListVo param) throws BusinessException {
+		
+		//返回值
+		ResultJSON resultJSON = null;
+		
+		try {
+			//方法进入
+			log.info("RepositoryKnowledgeController.getPortalFrontHotKnowledgeLibList:查询集团首页知识库热区");
+			
+			String qorgCode = param.getOrgCode();//组织编号
+			//String queryTime = param.getQueryTime();//查询时间
+			String quserCode = param.getUserCode();//用户编号
+			String showSize = param.getShowSize(); // 显示数量
+			//拼接参数
+			RepositoryKnowledgeVo infoVo = new RepositoryKnowledgeVo();
+			infoVo.setUserCode(quserCode);
+			infoVo.setOrgCode(qorgCode);
+			infoVo.setShowSize(Integer.valueOf(showSize));
+			List<RepositoryKnowledgeFrontMH> recordList = repositoryKnowledgeService.getPortalFrontHotKnowledgeLibListForMH(infoVo);
+			
+			//组装 返回参数
+			JSONArray ja = new JSONArray();
+			for(RepositoryKnowledgeFrontMH ri:recordList){
+				JSONObject jo = new JSONObject();
+				jo.put("knowledgeCode", StringTools.formatToString(ri.getKnowledgeCode()));
+				jo.put("knowledgeTitle", StringTools.formatToString(ri.getKnowledgeTitle()));
+				jo.put("knowledgeDigest", StringTools.formatToString(ri.getKnowledgeDigest()));
+				jo.put("contentCode", StringTools.formatToString(ri.getContentCode()));
+				jo.put("createTime", StringTools.formatToString(ri.getCreateTime()));
+				jo.put("appendNum", StringTools.formatToString(ri.getAppendNum()));
+				jo.put("collectNum", StringTools.formatToString(ri.getCollectNum()));
+				jo.put("shareNum", StringTools.formatToString(ri.getShareNum()));
+				jo.put("praiseNum", StringTools.formatToString(ri.getPraiseNum()));
+				jo.put("userCode", StringTools.formatToString(ri.getUserCode()));
+				//拼接用户参数
+				String userName = "";
+				String userPhotoUrl = "";
+				String orgCode = "";
+				String orgName = "";
+				if(StringTools.isNotEmpty(ri.getUserCode())){
+					// 获取动态所属人员信息
+					SysUserInfo sysUserInfo = sysUserService.selectByCode(ri.getUserCode());
+					if(sysUserInfo!=null){
+						userName = sysUserInfo.getUserName();
+						userPhotoUrl = sysUserInfo.getHeadPortrait();
+						orgCode = sysUserInfo.getOrgCode();
+						SysOrgInfo manageOrgInfo = sysUserInfo.getManageOrgInfo();
+						if(manageOrgInfo!=null){
+							orgName = manageOrgInfo.getSysOrgFullname();
+						}
+					}
+				}
+				jo.put("userName", StringTools.formatToString(userName));
+				jo.put("userPhotoUrl", StringTools.formatToString(userPhotoUrl));
+				jo.put("orgCode", StringTools.formatToString(orgCode));
+				jo.put("orgName", StringTools.formatToString(orgName));
+
+				ja.add(jo);
+			}
+			JSONObject body = new JSONObject();
+			body.put("kgList", ja);
+			resultJSON = new ResultJSON("COMMON_200", "查询集团首页知识库热区");
+			resultJSON.setBody(body);
+			
+			//方法出去
+			log.info("RepositoryKnowledgeController.getPortalFrontHotKnowledgeLibList:查询集团首页知识库热区");
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("RepositoryKnowledgeController.getPortalFrontHotKnowledgeLibList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+		return resultJSON;
+		
+	}
+	
+	
+	/**
+	 * 
+	 * @Title: getPortalSearchKnowledgeList  
+	 * @Description: 搜索知识
+	 * @param param
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping(value="getPortalSearchKnowledgeList",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getPortalSearchKnowledgeList(@RequireValid GetPortalSearchKnowledgeListVo param) throws BusinessException {
+		
+		//返回值
+		ResultJSON resultJSON = null;
+		
+		try {
+			//方法进入
+			log.info("RepositoryKnowledgeController.getPortalSearchKnowledgeList:查询知识库下知识列表");
+			
+			String qorgCode = param.getOrgCode();//知识库编号
+			//String queryTime = param.getQueryTime();//查询时间
+			String quserCode = param.getUserCode();//用户编号
+			String pageSize = param.getPageSize(); // 每页条数
+			String pageNo = param.getPageNo(); // 页码
+			String keywords = param.getKeywords();//关键字
+			//拼接参数
+			PageParam pageParam = new PageParam(Integer.valueOf(pageNo), Integer.valueOf(pageSize));
+			RepositorySearchVo infoVo = new RepositorySearchVo();
+			infoVo.setOrgCode(qorgCode);
+			infoVo.setKeywords(keywords);
+			infoVo.setUserCode(quserCode);
+			PageBean pageBean = repositoryKnowledgeService.getPortalSearchKnowledgeListForMH(pageParam,infoVo);
+			
+			if (pageBean == null) {
+				log.error("RepositoryKnowledgeController.getPortalSearchKnowledgeList：查询失败");
+				throw BusinessException.build("KNOWLEDGELIB_27001", "查询");
+			}
+			
+			// 获取数据
+			List<RepositoryKnowledgeMH> recordList = pageBean.getRecordList();
+			//组装 返回参数
+			JSONArray ja = new JSONArray();
+			for(RepositoryKnowledgeMH ri:recordList){
+				JSONObject jo = new JSONObject();
+				jo.put("knowledgeCode", StringTools.formatToString(ri.getKnowledgeCode()));
+				jo.put("knowledgeTitle", StringTools.formatToString(ri.getKnowledgeTitle()));
+				jo.put("knowledgeDigest", StringTools.formatToString(ri.getKnowledgeDigest()));
+				jo.put("contentCode", StringTools.formatToString(ri.getContentCode()));
+				jo.put("createTime", StringTools.formatToString(ri.getCreateTime()));
+				jo.put("appendNum", StringTools.formatToString(ri.getAppendNum()));
+				jo.put("collectNum", StringTools.formatToString(ri.getCollectNum()));
+				jo.put("shareNum", StringTools.formatToString(ri.getShareNum()));
+				jo.put("praiseNum", StringTools.formatToString(ri.getPraiseNum()));
+				jo.put("userCode", StringTools.formatToString(ri.getUserCode()));
+				jo.put("canOpen", StringTools.formatToString(ri.getCanOpen()));
+				//拼接用户参数
+				String userName = "";
+				String userPhotoUrl = "";
+				String orgCode = "";
+				String orgName = "";
+				if(StringTools.isNotEmpty(ri.getUserCode())){
+					// 获取动态所属人员信息
+					SysUserInfo sysUserInfo = sysUserService.selectByCode(ri.getUserCode());
+					if(sysUserInfo!=null){
+						userName = sysUserInfo.getUserName();
+						userPhotoUrl = sysUserInfo.getHeadPortrait();
+						orgCode = sysUserInfo.getOrgCode();
+						SysOrgInfo manageOrgInfo = sysUserInfo.getManageOrgInfo();
+						if(manageOrgInfo!=null){
+							orgName = manageOrgInfo.getSysOrgFullname();
+						}
+					}
+				}
+				jo.put("userName", StringTools.formatToString(userName));
+				jo.put("userPhotoUrl", StringTools.formatToString(userPhotoUrl));
+				jo.put("orgCode", StringTools.formatToString(orgCode));
+				jo.put("orgName", StringTools.formatToString(orgName));
+				
+				jo.put("isCollect", StringTools.formatToString(ri.getIsCollect()));
+				jo.put("isPraised", StringTools.formatToString(ri.getIsPraised()));
+
+				ja.add(jo);
+			}
+			JSONObject body = new JSONObject();
+			body.put("kgList", ja);
+			body.put("total", pageBean.getTotalCount());
+			resultJSON = new ResultJSON("COMMON_200", "查询知识库下知识列表");
+			resultJSON.setBody(body);
+			
+			//方法出去
+			log.info("RepositoryKnowledgeController.getPortalSearchKnowledgeList:查询知识库下知识列表");
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("RepositoryKnowledgeController.getPortalSearchKnowledgeList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+		return resultJSON;
+		
+	}
+	
+	/**
+	 * 
+	 * @Title: getPortalKnowledgeByCode  
+	 * @Description: 知识code 获取知识
+	 * @param param
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping(value="getPortalKnowledgeByCode",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getPortalKnowledgeByCode(@RequireValid GetPortalKnowledgeByCodeVo param) throws BusinessException {
+		
+		//返回值
+		ResultJSON resultJSON = null;
+		
+		try {
+			//方法进入
+			log.info("RepositoryKnowledgeController.getPortalKnowledgeListByLib:查询知识库下知识列表");
+			
+			String knowledgeCode = param.getKnowledgeCode();//知识编号
+			//String queryTime = param.getQueryTime();//查询时间
+			String userCode = param.getUserCode();//用户编号
+			
+			
+			//拼接参数
+			SysUserInfo qsysUserInfo = sysUserService.selectByCode(userCode);
+			if(qsysUserInfo == null){
+				log.error("RepositoryKnowledgeController.getPortalKnowledgeListByLib:用户信息不存在");
+				throw BusinessException.build("KNOWLEDGELIB_27001", "查询");
+			}
+			RepositoryKnowledgeVo infoVo = new RepositoryKnowledgeVo();
+			infoVo.setUserCode(userCode);
+			infoVo.setKnowledgeCode(knowledgeCode);
+			RepositoryKnowledgeMH ri = repositoryKnowledgeService.getPortalKnowledgeByCodeForMH(infoVo);
+			
+			if (ri == null) {
+				log.error("RepositoryKnowledgeController.getPortalKnowledgeListByLib：查询失败");
+				throw BusinessException.build("KNOWLEDGELIB_27001", "查询");
+			}
+			
+				JSONObject jo = new JSONObject();
+				jo.put("knowledgeCode", StringTools.formatToString(ri.getKnowledgeCode()));
+				jo.put("knowledgeTitle", StringTools.formatToString(ri.getKnowledgeTitle()));
+				jo.put("knowledgeDigest", StringTools.formatToString(ri.getKnowledgeDigest()));
+				jo.put("contentCode", StringTools.formatToString(ri.getContentCode()));
+				jo.put("contentInfo", StringTools.formatToString(ri.getContentInfo()));
+				jo.put("createTime", StringTools.formatToString(ri.getCreateTime()));
+				jo.put("appendNum", StringTools.formatToString(ri.getAppendNum()));
+				jo.put("collectNum", StringTools.formatToString(ri.getCollectNum()));
+				jo.put("shareNum", StringTools.formatToString(ri.getShareNum()));
+				jo.put("praiseNum", StringTools.formatToString(ri.getPraiseNum()));
+				jo.put("userCode", StringTools.formatToString(ri.getUserCode()));
+				//拼接用户参数
+				String userName = "";
+				String userPhotoUrl = "";
+				String orgCode = "";
+				String orgName = "";
+				if(StringTools.isNotEmpty(ri.getUserCode())){
+					// 获取动态所属人员信息
+					SysUserInfo sysUserInfo = sysUserService.selectByCode(ri.getUserCode());
+					if(sysUserInfo!=null){
+						userName = sysUserInfo.getUserName();
+						userPhotoUrl = sysUserInfo.getHeadPortrait();
+						orgCode = sysUserInfo.getOrgCode();
+						SysOrgInfo manageOrgInfo = sysUserInfo.getManageOrgInfo();
+						if(manageOrgInfo!=null){
+							orgName = manageOrgInfo.getSysOrgFullname();
+						}
+					}
+				}
+				jo.put("userName", StringTools.formatToString(userName));
+				jo.put("userPhotoUrl", StringTools.formatToString(userPhotoUrl));
+				jo.put("orgCode", StringTools.formatToString(orgCode));
+				jo.put("orgName", StringTools.formatToString(orgName));
+				
+				jo.put("isCollect", StringTools.formatToString(ri.getIsCollect()));
+				jo.put("isPraised", StringTools.formatToString(ri.getIsPraised()));
+
+			JSONObject body = new JSONObject();
+			body.put("kg", jo);
+			resultJSON = new ResultJSON("COMMON_200", "查询知识库下知识列表");
+			resultJSON.setBody(body);
+			
+			//方法出去
+			log.info("RepositoryKnowledgeController.getPortalKnowledgeListByLib:查询知识库下知识列表");
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("RepositoryKnowledgeController.getPortalKnowledgeListByLib", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+		return resultJSON;
+		
+	}
+	
+}

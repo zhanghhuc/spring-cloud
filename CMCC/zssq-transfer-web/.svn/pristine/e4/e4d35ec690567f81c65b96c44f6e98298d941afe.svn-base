@@ -1,0 +1,24 @@
+package com.zssq.vote.service;
+/**
+ * 投票源数据迁移service
+ * @ClassName ITransferVoteService
+ * @Description 
+ * @author liurong
+ * @date 2017年6月18日 下午3:25:07
+ * @version 1.0
+ * @since JDK 1.7
+ */
+public interface ITransferVoteService {
+	
+	/**
+	 * 第一步：
+	 * 迁移投票主表源数据
+	 * @Function transferStepOfOne
+	 * @Description 
+	 * @param startNum
+	 * @param endNum
+	 */
+	void transfer(boolean pageFlag, int startNum, int endNum) throws Exception;
+	
+	
+}

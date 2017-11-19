@@ -1,0 +1,328 @@
+package com.zssq.dao.pojo;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+
+import com.zssq.constants.MblogConstants;
+
+/**
+ * 
+    * @ClassName: MblogModel  
+    * @Description: 微博信息模型  
+    * @author Mr.B  
+    * @date 2017年3月16日  
+    *
+ */
+public class MblogModel implements Serializable{
+
+
+    /**  
+    * @Fields serialVersionUID : TODO
+    */  
+	private static final long serialVersionUID = 1L;
+	/** 创建时间 **/
+	private Long createTime = new Date().getTime();
+	/** 修改时间 **/
+	private Long modifyTime = new Date().getTime();
+	/** 微博CODE **/
+	private String mblogCode = "";
+	/** 组织CODE **/
+    private String orgCode = "";
+    /** 发布人CODE **/
+    private String userCode = "";
+    /** 代发人CODE **/
+    private String agentUserCode = "";
+    /** 代发人组织CODE **/
+    private String agentOrgCode = "";
+    /** 班组CODE **/
+    private String teamCode = "";
+    /** 来源微博CODE **/
+    private String sourceMblogCode = "";
+    /** 来源微博发布人CODE **/
+    private String sourceUserCode = "";
+    /** 微博所属 **/
+    private Byte mblogDepend = 1;
+    /** 微博来源 **/
+    private Byte mblogSource = 1;
+    /** 发布时间 **/
+    private Long publishTime = new Date().getTime();
+    /** 评论数 **/
+    private Integer commentNum = 0;
+    /** 收藏数 **/
+    private Integer collectNum = 0;
+    /** 转发数 **/
+    private Integer forwardNum = 0;
+    /** 点赞数 **/
+    private Integer praiseNum = 0;
+    private String dynamicCode = "";
+    /** 我点赞 **/
+    private Byte mePraise = 0;
+    /** 我收藏 **/
+    private Byte meCollect = 0;
+    /** 资源信息 **/
+    private List<MblogResource> resList;
+   
+    /** 转发微博信息 **/
+    private MblogInfo forwardMblog;
+    
+    
+    /*  =============  外部关联数据  =================== */
+    /** 微博的评论集合 **/
+    private List<MblogComment> commentList = null;
+    /*  =============  外部关联数据  =================== */
+    
+
+    
+    /********* GET ***********/
+    public String getContent(){
+    	String content = "";
+    	if( null != resList && !resList.isEmpty()){
+    		for(MblogResource mr : resList){
+    			if(MblogConstants.MBLOG_RESOURCE_TEXT == mr.getResType()){
+    				content = mr.getContent();
+    				break;
+    			}
+    		}
+    	}
+    	return content;
+    }
+    public String getSummary(){
+    	String summary = "";
+    	if( null != resList && !resList.isEmpty()){
+    		for(MblogResource mr : resList){
+    			if(MblogConstants.MBLOG_RESOURCE_SUMMARY == mr.getResType()){
+    				summary = mr.getContent();
+    				break;
+    			}
+    		}
+    	}
+    	return summary;
+    }
+    public String getImgs(){
+    	StringBuilder imgs = new StringBuilder("");
+    	if( null != resList && !resList.isEmpty()){
+    		for(MblogResource mr : resList){
+    			if(MblogConstants.MBLOG_RESOURCE_IMG == mr.getResType()){
+    				imgs.append(mr.getContent()).append(",");
+    			}
+    		}
+    		if(imgs.toString().endsWith(",")){
+    			return imgs.substring(0, imgs.length()-1);
+    		}
+    	}
+    	return imgs.toString();
+    }
+	public String getAudios(){
+		StringBuilder audios = new StringBuilder("");
+		if( null != resList && !resList.isEmpty()){
+    		for(MblogResource mr : resList){
+    			if(MblogConstants.MBLOG_RESOURCE_AUDIO == mr.getResType()){
+    				audios.append(mr.getContent()).append(",");
+    			}
+    		}
+    		if(audios.toString().endsWith(",")){
+    			return audios.substring(0, audios.length()-1);
+    		}
+    	}
+		return audios.toString();
+	}
+	public String getVideos(){
+		StringBuilder videos = new StringBuilder("");
+		if( null != resList && !resList.isEmpty()){
+    		for(MblogResource mr : resList){
+    			if(MblogConstants.MBLOG_RESOURCE_VIDEO == mr.getResType()){
+    				videos.append(mr.getContent()).append(",");
+    			}
+    		}
+    		if(videos.toString().endsWith(",")){
+    			return videos.substring(0, videos.length()-1);
+    		}
+    	}
+		return videos.toString();
+	}
+    /********* GET ***********/
+	
+	
+	
+	public Long getCreateTime() {
+		return createTime;
+	}
+
+	public String getDynamicCode() {
+		return dynamicCode;
+	}
+	public void setDynamicCode(String dynamicCode) {
+		this.dynamicCode = dynamicCode;
+	}
+	public void setCreateTime(Long createTime) {
+		this.createTime = createTime;
+	}
+
+	public Long getModifyTime() {
+		return modifyTime;
+	}
+
+	public void setModifyTime(Long modifyTime) {
+		this.modifyTime = modifyTime;
+	}
+
+	public String getMblogCode() {
+		return mblogCode;
+	}
+
+	public void setMblogCode(String mblogCode) {
+		this.mblogCode = mblogCode;
+	}
+
+	public String getOrgCode() {
+		return orgCode;
+	}
+
+	public void setOrgCode(String orgCode) {
+		this.orgCode = orgCode;
+	}
+
+	public String getUserCode() {
+		return userCode;
+	}
+
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
+	}
+
+	public String getAgentUserCode() {
+		return agentUserCode;
+	}
+
+	public void setAgentUserCode(String agentUserCode) {
+		this.agentUserCode = agentUserCode;
+	}
+
+	public String getAgentOrgCode() {
+		return agentOrgCode;
+	}
+
+	public void setAgentOrgCode(String agentOrgCode) {
+		this.agentOrgCode = agentOrgCode;
+	}
+
+	public String getTeamCode() {
+		return teamCode;
+	}
+
+	public void setTeamCode(String teamCode) {
+		this.teamCode = teamCode;
+	}
+
+	public String getSourceMblogCode() {
+		return sourceMblogCode;
+	}
+
+	public void setSourceMblogCode(String sourceMblogCode) {
+		this.sourceMblogCode = sourceMblogCode;
+	}
+
+	public String getSourceUserCode() {
+		return sourceUserCode;
+	}
+
+	public void setSourceUserCode(String sourceUserCode) {
+		this.sourceUserCode = sourceUserCode;
+	}
+
+	public Byte getMblogDepend() {
+		return mblogDepend;
+	}
+
+	public void setMblogDepend(Byte mblogDepend) {
+		this.mblogDepend = mblogDepend;
+	}
+
+	public Byte getMblogSource() {
+		return mblogSource;
+	}
+
+	public void setMblogSource(Byte mblogSource) {
+		this.mblogSource = mblogSource;
+	}
+
+	public Long getPublishTime() {
+		return publishTime;
+	}
+
+	public void setPublishTime(Long publishTime) {
+		this.publishTime = publishTime;
+	}
+
+	public Integer getCommentNum() {
+		return commentNum;
+	}
+
+	public void setCommentNum(Integer commentNum) {
+		this.commentNum = commentNum;
+	}
+
+	public Integer getCollectNum() {
+		return collectNum;
+	}
+
+	public void setCollectNum(Integer collectNum) {
+		this.collectNum = collectNum;
+	}
+
+	public Integer getForwardNum() {
+		return forwardNum;
+	}
+
+	public void setForwardNum(Integer forwardNum) {
+		this.forwardNum = forwardNum;
+	}
+
+	public Integer getPraiseNum() {
+		return praiseNum;
+	}
+
+	public void setPraiseNum(Integer praiseNum) {
+		this.praiseNum = praiseNum;
+	}
+
+	public Byte getMePraise() {
+		return mePraise;
+	}
+
+	public void setMePraise(Byte mePraise) {
+		this.mePraise = mePraise;
+	}
+
+	public Byte getMeCollect() {
+		return meCollect;
+	}
+
+	public void setMeCollect(Byte meCollect) {
+		this.meCollect = meCollect;
+	}
+
+	public List<MblogResource> getResList() {
+		return resList;
+	}
+
+	public void setResList(List<MblogResource> resList) {
+		this.resList = resList;
+	}
+
+	public MblogInfo getForwardMblog() {
+		return forwardMblog;
+	}
+
+	public void setForwardMblog(MblogInfo forwardMblog) {
+		this.forwardMblog = forwardMblog;
+	}
+	public List<MblogComment> getCommentList() {
+		return commentList;
+	}
+	public void setCommentList(List<MblogComment> commentList) {
+		this.commentList = commentList;
+	}
+    
+}

@@ -1,0 +1,140 @@
+package com.zssq.news.controller;
+
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.news.po.Info;
+import com.zssq.news.po.NewsInfoContent;
+import com.zssq.news.po.SysUserInfo;
+import com.zssq.news.service.NewsService;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author SharlaCheung
+ * @ClassName: NewsController
+ * @Description: 新闻数据迁移Controller
+ * @date 2017年5月22日
+ */
+@Controller
+@RequestMapping("newsController")
+public class NewsController {
+
+    @Autowired
+    private NewsService newsService;
+
+    /**
+     * @param limitStart
+     * @param pageSize   参数
+     * @Title: transferNewsData
+     * @Description: 迁移新闻数据
+     * @return: void    返回类型
+     */
+    @RequestMapping(value = "/transferNewsData")
+    @ResponseBody
+    public ResultJSON transferNewsData(int limitStart, int pageSize) {
+        // 返回值
+        ResultJSON result = new ResultJSON("COMMON_200");
+        JSONObject body = new JSONObject();
+
+        try {
+            // 查询DB2库中订阅数据总量
+            int count = newsService.getDB2NewsCount();
+            if (count <= 0) {
+                body.put("message", "查询DB2库中新闻数据总量时出错，查询出的个数为：" + count);
+                throw new Exception();
+            }
+
+            // 循环处理数据
+            boolean arrangeFlag = arrangeSubData();
+            if (!arrangeFlag) {
+                body.put("message", "处理数据时失败");
+                throw new Exception();
+            }
+            limitStart = limitStart + pageSize;
+        } catch (Exception e) {
+            result = new ResultJSON("COMMON_400");
+            body.put("limitStart", limitStart);
+            result.setBody(body);
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    /**
+     * @param
+     * @Title: arrangeSubData
+     * @Description: 整理订阅数据
+     * @return: boolean    返回类型
+     */
+    private boolean arrangeSubData() {
+        // 返回值
+        boolean result = true;
+        try {
+            // 获取DB2库中的订阅数据
+            List<Info> DB2NewsList = newsService.getDB2SubList();
+
+            // 校验返回值
+            if (DB2NewsList == null || DB2NewsList.isEmpty()) {
+                return false;
+            }
+
+            // 将DB2中的数据整理为MySQL中的数据
+            List<NewsInfoContent> mySQLSubList = new ArrayList<NewsInfoContent>();
+            for (Info info : DB2NewsList) {
+                NewsInfoContent newsInfoVoMysql = new NewsInfoContent();
+                SysUserInfo sysUserInfo = info.getSysUserInfo();
+                if (null == sysUserInfo) {
+                    continue;
+                }
+                newsInfoVoMysql.setNewsCode(UUIDHelper.getUUID());
+                newsInfoVoMysql.setInfoTitle(info.getInfoTitle());
+//				if(null != newsInfoVoDB2.getInfoContentHtml() &&!"".equals(newsInfoVoDB2.getInfoContentHtml())){
+//					int length = newsInfoVoDB2.getInfoContentHtml().length() ;
+//					if(length<200){
+//						newsInfoVoMysql.setInfoContentText(newsInfoVoDB2.getInfoContentHtml());
+//					}else{
+//						newsInfoVoMysql.setInfoContentText(newsInfoVoDB2.getInfoContentHtml().substring(0,200)+"...");
+//					}
+//					newsInfoVoMysql.setInfoContentHtml(newsInfoVoDB2.getInfoContentHtml());
+//				}
+                newsInfoVoMysql.setInfoContentHtml(info.getInfoText());
+                newsInfoVoMysql.setInfoContentText(info.getInfoText());
+                newsInfoVoMysql.setFileUrl(info.getImgUrl());
+                newsInfoVoMysql.setInfoStatus(info.getInfoState());
+                newsInfoVoMysql.setInfoCreatorCode(sysUserInfo.getUserCode());
+                newsInfoVoMysql.setInfoOperatorCode(sysUserInfo.getUserCode());
+                newsInfoVoMysql.setCreateTime(info.getCreatetime() == null ? System.currentTimeMillis() : info.getCreatetime().getTime());
+                newsInfoVoMysql.setModifyTime(info.getUpdatetime() == null ? System.currentTimeMillis() : info.getUpdatetime().getTime());
+                newsInfoVoMysql.setPublishTime(info.getCreatetime() == null ? System.currentTimeMillis() : info.getCreatetime().getTime());
+                newsInfoVoMysql.setOrgCode(sysUserInfo.getOrgCode());
+                newsInfoVoMysql.setIsTop((byte) 0);
+                newsInfoVoMysql.setIsArchived(0);
+                newsInfoVoMysql.setIsDelete(info.getDelFlag());
+                newsInfoVoMysql.setInfoSort(999);
+                newsInfoVoMysql.setIsShield(info.getDelFlag());
+                newsInfoVoMysql.setInfoGoodCount(0);
+                newsInfoVoMysql.setInfoCommentCount(0);
+                newsInfoVoMysql.setTenantCode("856966d06b96418fab2e430d71a1e84e");
+                mySQLSubList.add(newsInfoVoMysql);
+            }
+
+            // 插入订阅数据到MySQL库中
+            boolean insertFlag = newsService.insertMySQLSubList(mySQLSubList);
+            if (!insertFlag) {
+                result = false;
+            }
+        } catch (Exception e) {
+            result = false;
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
+}

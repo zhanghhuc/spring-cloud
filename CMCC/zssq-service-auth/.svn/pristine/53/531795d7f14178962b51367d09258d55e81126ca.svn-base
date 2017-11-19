@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+						http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+						http://code.alibabatech.com/schema/dubbo 
+						http://code.alibabatech.com/schema/dubbo/dubbo.xsd" default-lazy-init="false">
+
+	<dubbo:application name="zssq-service-auth" />
+	<!-- 使用zookeeper注册中心暴露服务地址 -->
+<!-- 	<dubbo:registry address="${dubbo.registry.address}" check="false" subscribe="false" register="" /> -->
+	
+	<dubbo:registry protocol="zookeeper" address="${dubbo.registry.address.cluster}"></dubbo:registry>
+
+	<!-- 端口号 -->
+	<dubbo:protocol name="dubbo" port="20832" />
+	
+	<dubbo:service interface="com.zssq.service.ISmapOrgService" ref="smapOrgService" />
+	<dubbo:service interface="com.zssq.service.ISysOrgLevelService" ref="sysOrgLevelService" />
+	<dubbo:service interface="com.zssq.service.ISysOrgService" ref="sysOrgService" />
+	<dubbo:service interface="com.zssq.service.ISysUserService" ref="sysUserService" />
+	<dubbo:service interface="com.zssq.service.ISaasTenantService" ref="saasTenantService" />
+	<dubbo:service interface="com.zssq.service.ISysDeputyService" ref="sysDeputyService" />
+	<dubbo:service interface="com.zssq.service.ISysDictionaryService" ref="sysDictionaryService" />
+	<dubbo:service interface="com.zssq.service.ISmapService" ref="smapService" />
+</beans>

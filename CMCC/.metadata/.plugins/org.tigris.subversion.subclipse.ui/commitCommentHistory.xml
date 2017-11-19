@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CommitComments>	<CommitComment>查询主贴列表返回班组code
+</CommitComment>
+	<CommitComment>修改统计功能</CommitComment>
+	<CommitComment>添加统计功能</CommitComment>
+	<CommitComment>添加排序</CommitComment>
+	<CommitComment>班组投票归档</CommitComment>
+	<CommitComment>提供班组投票归档服务</CommitComment>
+	<CommitComment>活动状态</CommitComment>
+	<CommitComment>添加查询班code接口</CommitComment>
+	<CommitComment>修改排序方式</CommitComment>
+	<CommitComment>添加查询班组名称接口</CommitComment>
+</CommitComments>

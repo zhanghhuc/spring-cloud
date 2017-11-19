@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.NewsInfoHistoryMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.news.dao.pojo.NewsInfoHistory" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="info_history_code" property="infoHistoryCode" jdbcType="VARCHAR" />
+    <result column="news_code" property="newsCode" jdbcType="VARCHAR" />
+    <result column="creat_time" property="creatTime" jdbcType="BIGINT" />
+    <result column="info_operator_code" property="infoOperatorCode" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="info_status" property="infoStatus" jdbcType="INTEGER" />
+    <result column="info_remark" property="infoRemark" jdbcType="VARCHAR" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, info_history_code, news_code, creat_time, info_operator_code,  org_code,
+    info_status, info_remark, modify_time, remark, tenant_code
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from news_info_history
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectList" resultMap="BaseResultMap" parameterType="com.zssq.news.model.NewsHistoryQuery" >
+    select
+    <include refid="Base_Column_List" />
+    from news_info_history
+    where news_code = #{newsCode}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from news_info_history
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.news.dao.pojo.NewsInfoHistory" >
+    insert into news_info_history (id, info_history_code, news_code, 
+      creat_time, info_operator_code,
+      org_code, info_status, info_remark, 
+      modify_time, remark,
+      tenant_code)
+    values (#{id,jdbcType=BIGINT}, #{infoHistoryCode,jdbcType=VARCHAR}, #{newsCode,jdbcType=VARCHAR}, 
+      #{creatTime,jdbcType=BIGINT}, #{infoOperatorCode,jdbcType=VARCHAR},
+      #{orgCode,jdbcType=VARCHAR}, #{infoStatus,jdbcType=INTEGER}, #{infoRemark,jdbcType=VARCHAR}, 
+       #{modifyTime,jdbcType=BIGINT}, #{remark,jdbcType=VARCHAR},
+      #{tenantCode,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.news.dao.pojo.NewsInfoHistory" >
+    insert into news_info_history
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="infoHistoryCode != null" >
+        info_history_code,
+      </if>
+      <if test="newsCode != null" >
+        news_code,
+      </if>
+      <if test="creatTime != null" >
+        creat_time,
+      </if>
+      <if test="infoOperatorCode != null" >
+        info_operator_code,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="infoStatus != null" >
+        info_status,
+      </if>
+      <if test="infoRemark != null" >
+        info_remark,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="infoHistoryCode != null" >
+        #{infoHistoryCode,jdbcType=VARCHAR},
+      </if>
+      <if test="newsCode != null" >
+        #{newsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="creatTime != null" >
+        #{creatTime,jdbcType=BIGINT},
+      </if>
+      <if test="infoOperatorCode != null" >
+        #{infoOperatorCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="infoStatus != null" >
+        #{infoStatus,jdbcType=INTEGER},
+      </if>
+      <if test="infoRemark != null" >
+        #{infoRemark,jdbcType=VARCHAR},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.news.dao.pojo.NewsInfoHistory" >
+    update news_info_history
+    <set >
+      <if test="infoHistoryCode != null" >
+        info_history_code = #{infoHistoryCode,jdbcType=VARCHAR},
+      </if>
+      <if test="newsCode != null" >
+        news_code = #{newsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="creatTime != null" >
+        creat_time = #{creatTime,jdbcType=BIGINT},
+      </if>
+      <if test="infoOperatorCode != null" >
+        info_operator_code = #{infoOperatorCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="infoStatus != null" >
+        info_status = #{infoStatus,jdbcType=INTEGER},
+      </if>
+      <if test="infoRemark != null" >
+        info_remark = #{infoRemark,jdbcType=VARCHAR},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.news.dao.pojo.NewsInfoHistory" >
+    update news_info_history
+    set info_history_code = #{infoHistoryCode,jdbcType=VARCHAR},
+      news_code = #{newsCode,jdbcType=VARCHAR},
+      creat_time = #{creatTime,jdbcType=BIGINT},
+      info_operator_code = #{infoOperatorCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      info_status = #{infoStatus,jdbcType=INTEGER},
+      info_remark = #{infoRemark,jdbcType=VARCHAR},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

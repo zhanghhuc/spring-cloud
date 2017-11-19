@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.TeamRecommendMapper">
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.TeamRecommend">
+		<id column="id" jdbcType="BIGINT" property="id" />
+		<result column="team_recommend_code" jdbcType="VARCHAR" property="teamRecommendCode" />
+		<result column="team_elect_code" jdbcType="VARCHAR" property="teamElectCode" />
+		<result column="team_code" jdbcType="VARCHAR" property="teamCode" />
+		<result column="recommend_reason" jdbcType="VARCHAR" property="recommendReason" />
+		<result column="is_excellent" jdbcType="TINYINT" property="isExcellent" />
+		<result column="user_code" jdbcType="VARCHAR" property="userCode" />
+		<result column="elect_time" jdbcType="BIGINT" property="electTime" />
+		<result column="is_honor" jdbcType="TINYINT" property="isHonor" />
+		<result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+	</resultMap>
+	
+	<sql id="Base_Column_List"> id, team_recommend_code, team_elect_code, team_code,
+		recommend_reason, is_excellent, user_code, elect_time, is_honor,
+		org_code
+	</sql>
+	
+	<select id="selectTeamCodeByElect" parameterType="java.lang.String" resultType="java.lang.String">
+		select 
+			team_code
+		from 
+			team_recommend 
+		where team_elect_code = #{teamElectCode,jdbcType=VARCHAR}
+	</select>
+	
+	<insert id="insertSelective" parameterType="com.zssq.dao.pojo.TeamRecommend">
+		insert into team_recommend
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="teamRecommendCode != null">
+				team_recommend_code,
+			</if>
+			<if test="teamElectCode != null">
+				team_elect_code,
+			</if>
+			<if test="teamCode != null">
+				team_code,
+			</if>
+			<if test="recommendReason != null">
+				recommend_reason,
+			</if>
+			<if test="isExcellent != null">
+				is_excellent,
+			</if>
+			<if test="userCode != null">
+				user_code,
+			</if>
+			<if test="electTime != null">
+				elect_time,
+			</if>
+			<if test="isHonor != null">
+				is_honor,
+			</if>
+			<if test="orgCode != null">
+				org_code,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=BIGINT},
+			</if>
+			<if test="teamRecommendCode != null">
+				#{teamRecommendCode,jdbcType=VARCHAR},
+			</if>
+			<if test="teamElectCode != null">
+				#{teamElectCode,jdbcType=VARCHAR},
+			</if>
+			<if test="teamCode != null">
+				#{teamCode,jdbcType=VARCHAR},
+			</if>
+			<if test="recommendReason != null">
+				#{recommendReason,jdbcType=VARCHAR},
+			</if>
+			<if test="isExcellent != null">
+				#{isExcellent,jdbcType=TINYINT},
+			</if>
+			<if test="userCode != null">
+				#{userCode,jdbcType=VARCHAR},
+			</if>
+			<if test="electTime != null">
+				#{electTime,jdbcType=BIGINT},
+			</if>
+			<if test="isHonor != null">
+				#{isHonor,jdbcType=TINYINT},
+			</if>
+			<if test="orgCode != null">
+				#{orgCode,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+	
+	<delete id="deleteHonorTeam" parameterType="com.zssq.dao.pojo.TeamRecommend">
+		DELETE 
+		FROM
+		  team_recommend 
+		WHERE team_elect_code = #{teamElectCode,jdbcType=VARCHAR}
+		  AND team_code = #{teamCode,jdbcType=VARCHAR} 
+	</delete>
+	
+	<update id="awardHonor" parameterType="com.zssq.dao.pojo.TeamRecommend" >
+		update team_recommend set is_honor = '1'
+		where team_code in
+		<foreach collection="teamCodes" index="index" item="item" separator="," open="(" close=")">
+			#{item,jdbcType=VARCHAR}
+		</foreach>
+		and team_elect_code = #{teamElectCode,jdbcType=VARCHAR}
+	</update>
+	
+	<select id="selectByRecord" parameterType="com.zssq.dao.pojo.TeamRecommend" resultMap="BaseResultMap">
+		select 
+			<include refid="Base_Column_List"></include>
+		from team_recommend 
+		where 1=1
+		<if test="teamElectCode != null">
+			and team_elect_code = #{teamElectCode,jdbcType=VARCHAR}
+		</if>
+		<if test="teamCode != null">
+			and team_code = #{teamCode,jdbcType=VARCHAR}
+		</if>
+	</select>
+</mapper>

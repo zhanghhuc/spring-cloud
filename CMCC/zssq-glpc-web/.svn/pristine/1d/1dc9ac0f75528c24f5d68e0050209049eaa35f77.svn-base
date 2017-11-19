@@ -1,0 +1,208 @@
+package com.zssq.relation.controller;
+
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.constants.RelationConstants;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.model.RelationHotListModel;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.relation.vo.GetHotListVO;
+import com.zssq.relation.vo.UpdateHotStatusVO;
+import com.zssq.service.ISysUserService;
+import com.zssq.service.ITeamMemberService;
+import com.zssq.service.RelationHotService;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.utils.StringTools;
+import com.zssq.vo.RelationHotVO;
+/**
+ * 
+ * @ClassName: RelationHotController  
+ * @Description: 热点  
+ * @author sry  
+ * @date 2017年4月17日  
+ *
+ */
+@Controller  
+@RequestMapping("/relation")
+public class RelationHotController {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private RelationHotService relationHotService;
+	@Autowired
+	private ISysUserService sysUserService;
+	@Autowired
+	private ITeamMemberService teamMemberService;
+	/**
+	 * 
+	 * @Title: getHotList  
+	 * @Description: 查询热点列表
+	 * @param param
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping(value="getHotList",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getHotList(@RequireValid GetHotListVO param) throws BusinessException {
+		
+		//返回值
+		ResultJSON resultJSON = null;
+		
+		try {
+			log.info("RelationHotController.getHotList:查询热点列表");
+			
+			//获取参数
+			String hotStatus = param.getHotStatus();	//热点状态：1.展示中；2.已隐藏,可为空
+			String subjectTitle = StringTools.formatToString(param.getSubjectTitle());//标题内容,可为空
+			String subjectClass = param.getSubjectClass();//应用类型：1.微博；2.博客；3.投票；4.活动；5.新闻公告；,可为空
+			String beginTime = param.getBeginTime();	//发布开始时间,可为空
+			String endTime = param.getEndTime();		//发布结束时间,可为空
+			String userCode = StringTools.formatToString(param.getUserCode());		//当前登录用户
+			String pageSize = param.getPageSize();		//每页条数
+			String pageNo = param.getPageNo();			//页码,从0开始
+			//未使用参数
+			SysUserInfo sysUserInfo = sysUserService.selectByCode(userCode);
+			String orgCode = null;
+			if(sysUserInfo==null||sysUserInfo.getManageOrgInfo()==null||StringTools.isEmpty(sysUserInfo.getManageOrgInfo().getSysOrgCode())){
+				log.error("RelationHotController.getHotList：用户或组织没有获取到userCode:"+userCode);
+				throw BusinessException.build("RELATION_19002", "查询热点列表");
+			}
+			orgCode = sysUserInfo.getManageOrgInfo().getSysOrgCode();
+			//封装参数
+			RelationHotVO relationHotVO = new RelationHotVO();
+			if(StringTools.isNotEmpty(hotStatus)){
+				relationHotVO.setHotStatus(Byte.valueOf(hotStatus));
+			}
+			relationHotVO.setSubjectTitle(subjectTitle);
+			if(StringTools.isNotEmpty(subjectClass)){
+				relationHotVO.setSubjectClass(Byte.valueOf(subjectClass));
+			}
+			if(StringTools.isNotEmpty(beginTime)){
+				relationHotVO.setBeginTime(Long.valueOf(beginTime));
+			}
+			if(StringTools.isNotEmpty(endTime)){
+				relationHotVO.setEndTime(Long.valueOf(endTime));
+			}
+			relationHotVO.setQueryTime(Long.valueOf(param.getQueryTime()));
+			relationHotVO.setOrgCode(orgCode);
+			PageParam pageParam = new PageParam(Integer.valueOf(pageNo), Integer.valueOf(pageSize));
+			PageBean pageBean = relationHotService.getGLPortalHotList(pageParam, relationHotVO);
+			List<RelationHotListModel> list = pageBean.getRecordList();
+			JSONArray ja = new JSONArray();
+			for (RelationHotListModel model : list) {
+				JSONObject jo = new JSONObject();
+				jo.put("hotCode", StringTools.formatToString(model.getHotCode()));
+				jo.put("subjectCode", StringTools.formatToString(model.getSubjectCode()));
+				jo.put("subjectClass", StringTools.formatToString(model.getSubjectClass()));
+				String tempUserCode = StringTools.formatToString(model.getUserCode());
+				SysUserInfo tempSysUserInfo = sysUserService.selectByCode(userCode);
+				String tempOrgCode = "";
+				String tempUserName = "";
+				String tempOrgName = "";
+				if(tempSysUserInfo==null||tempSysUserInfo.getManageOrgInfo()==null){
+					log.error("RelationHotController.getHotList：拼返回惨失败userCode:"+userCode);
+				}else{
+					tempOrgCode = tempSysUserInfo.getManageOrgInfo().getSysOrgCode();
+					tempUserName = tempSysUserInfo.getUserName();
+					tempOrgName = tempSysUserInfo.getManageOrgInfo().getSysOrgFullname();
+				}
+				jo.put("userCode", tempUserCode);
+				jo.put("userName",tempUserName );
+				jo.put("orgCode", tempOrgCode);
+				jo.put("orgName", tempOrgName);
+				jo.put("subjectPublishTime", StringTools.formatToString(model.getSubjectPublishTime()));
+				jo.put("subjectTitle", StringTools.formatToString(model.getSubjectTitle()));
+				jo.put("likeNum", StringTools.formatToString(model.getLikeNum()));
+				jo.put("commentNum", StringTools.formatToString(model.getCommentNum()));
+				jo.put("collectNum", StringTools.formatToString(model.getCollectNum()));
+				jo.put("subjectDepend", StringTools.formatToString(model.getSubjectDepend()));
+				jo.put("teamCode", StringTools.formatToString(model.getTeamCode()));
+				ja.add(jo);
+			}
+			JSONObject body = new JSONObject();
+			body.put("total", pageBean.getTotalCount());
+			body.put("hotList", ja);
+			resultJSON = new ResultJSON("COMMON_200", "查询热点列表成功");
+			resultJSON.setBody(body);
+			log.info("RelationHotController.getHotList:查询热点列表成功");
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("RelationHotController.getHotList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+		return resultJSON;
+		
+	}
+	
+	/**
+	 * 
+	 * @Title: updateHotStatus  
+	 * @Description: 隐藏/显示热点(后台仅门户显示隐藏)
+	 * @param param
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping(value="updateHotStatus",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON updateHotStatus(@RequireValid UpdateHotStatusVO param) throws BusinessException {
+		//返回值
+		ResultJSON resultJSON = null;
+		try {
+			log.info("RelationHotController.updateHotStatus:隐藏/显示热点");
+			//获取参数
+			String hotCode = StringTools.formatToString(param.getHotCode());			//热点编号
+			String actionClass = StringTools.formatToString(param.getActionClass());	//操作类型：1.隐藏；2.显示
+			String userCode = StringTools.formatToString(param.getUserCode());		//当前登录用户的userCode
+			SysUserInfo sysUserInfo = sysUserService.selectByCode(userCode);
+			if(sysUserInfo==null || sysUserInfo.getManageOrgInfo()==null||StringTools.isEmpty(sysUserInfo.getManageOrgInfo().getSysOrgCode())){
+				log.error("RelationHotController.updateHotStatus：用户或组织没有获取到userCode:"+userCode);
+				throw BusinessException.build("RELATION_19002", "隐藏/显示热点");
+			}
+			//TODO 是否为班组长
+			String orgCode = StringTools.formatToString(sysUserInfo.getManageOrgInfo().getSysOrgCode());
+			String tenantCode = sysUserInfo.getTenantCode();
+			//封装参数数据
+			RelationHotVO relationHotVO = new RelationHotVO();
+			relationHotVO.setHotCode(hotCode);
+			relationHotVO.setActionClass(Byte.valueOf(actionClass));
+			relationHotVO.setTenantCode(tenantCode);//租户编号暂不判空
+			//后台 仅门户隐藏
+			relationHotVO.setHotHideDepend(Byte.valueOf(RelationConstants.RELATION_HOT_HIDE_GROUP));
+			relationHotVO.setOrgCode(orgCode);
+			boolean updateFlag = relationHotService.updatePortalHotStatusByGL(relationHotVO);
+			if (!updateFlag) {
+				log.error("RelationHotController.updateHotStatus：隐藏/显示热点失败");
+				throw BusinessException.build("RELATION_19002", "隐藏/显示热点");
+			}else{
+				resultJSON = new ResultJSON("COMMON_200", "隐藏/显示热点操作");
+				resultJSON.setBody(new JSONObject());
+				log.info("RelationHotController.updateHotStatus:隐藏/显示热点成功");
+			}
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("RelationHotController.updateHotStatus", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+		return resultJSON;
+	}
+	
+}

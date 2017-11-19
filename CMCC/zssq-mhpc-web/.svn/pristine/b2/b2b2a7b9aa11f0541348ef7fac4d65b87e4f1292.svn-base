@@ -1,0 +1,61 @@
+package com.zssq.relation.vo;
+
+import java.io.Serializable;
+
+import org.hibernate.validator.constraints.NotBlank;
+
+/**
+ * @ClassName DelShareVO
+ * @Description 删除分享
+ * @author LXW
+ * @date 2017年6月12日 上午10:06:20
+ * @version 1.0
+ * @since JDK 1.7
+ */
+public class DelShareVO implements Serializable {
+	
+	private static final long serialVersionUID = 1L;
+	
+	@NotBlank(message = "{empty.message}")
+	private String shareCode;// 分享编号
+	@NotBlank(message = "{empty.message}")
+	private String dynamicCode;// 动态编号
+	@NotBlank(message = "{empty.message}")
+	private String userCode;// 当前登录用户的userCode
+	@NotBlank(message = "{empty.message}")
+	private String token; // TOKEN
+
+	
+	public String getShareCode() {
+		return shareCode;
+	}
+
+	public void setShareCode(String shareCode) {
+		this.shareCode = shareCode;
+	}
+
+	public String getDynamicCode() {
+		return dynamicCode;
+	}
+
+	public void setDynamicCode(String dynamicCode) {
+		this.dynamicCode = dynamicCode;
+	}
+
+	public String getUserCode() {
+		return userCode;
+	}
+
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
+	}
+
+	public String getToken() {
+		return token;
+	}
+
+	public void setToken(String token) {
+		this.token = token;
+	}
+
+}

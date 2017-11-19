@@ -1,0 +1,62 @@
+package com.zssq.msg.vo;
+
+import org.hibernate.validator.constraints.NotBlank;
+
+/**
+ * 
+ * @ClassName: BoardReplyListVO  
+ * @Description: 留言回复列表条件  
+ * @author YDB  
+ * @date 2017年3月29日  
+ *
+ */
+public class BoardReplyListVO {
+	
+	//留言code
+	@NotBlank(message = "{empty.message}")
+	private String boardCode;
+	
+	private int pageSize;
+	
+	private int id;
+	
+	@NotBlank(message = "{empty.message}")
+	private String boardUserCode;
+	
+	@NotBlank(message = "{empty.message}")
+	private String userCode;
+	
+	
+	
+	public String getBoardUserCode() {
+		return boardUserCode;
+	}
+	public void setBoardUserCode(String boardUserCode) {
+		this.boardUserCode = boardUserCode;
+	}
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
+	}
+	public String getBoardCode() {
+		return boardCode;
+	}
+	public void setBoardCode(String boardCode) {
+		this.boardCode = boardCode;
+	}
+	public int getPageSize() {
+		return pageSize;
+	}
+	public void setPageSize(int pageSize) {
+		this.pageSize = pageSize;
+	}
+	public String getUserCode() {
+		return userCode;
+	}
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
+	}
+	
+}

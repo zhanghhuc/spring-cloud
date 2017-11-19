@@ -1,0 +1,165 @@
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + path + "/";
+	pageContext.setAttribute("basePath", basePath);
+%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>知识社区项目源数据 </title>
+	<script type="text/javascript" src="${pageScope.basePath }js/jquery-1.9.1.min.js"></script>
+	<style type="text/css">
+	.divcss5 {
+		width: 49%;
+		height: 350px;
+		border: 1px solid #F00;
+		float: left
+	}
+	</style>
+	<script type="text/javascript">
+		$(function(){
+			$("#transferAllVote").click(function(){
+				if(confirm("迁移所有投票源数据吗？")){
+					$.ajax({
+			    	    url:'${pageScope.basePath }transfer/vote/all',
+			    	    type:'POST', //GET
+			    	    async:true,    // ture为异步请求，false为同步请求
+			    	    data:{
+			    	        threadCount:$("#vote_thread_count").val()
+			    	    },
+			    	    dataType:'json', //返回的数据格式：json/xml/html/script/jsonp/text
+			    	    success:function(data){
+			    	    	alert(data.msg);
+			    	    }
+			    	})
+				}
+			});
+			$("#transferSingleVote").click(function(){
+				var voteId = $("#voteId").val();
+				if(voteId==''){
+					alert("请输入投票ID");
+					$("#voteId").focus();
+					return;
+				}
+				if(confirm("确定迁移vote_id="+voteId+"投票源数据吗？")){
+					$.ajax({
+			    	    url:'${pageScope.basePath }transfer/vote/single',
+			    	    type:'POST', //GET
+			    	    async:true,    // ture为异步请求，false为同步请求
+			    	    data:{
+			    	        voteId:voteId
+			    	    },
+			    	    dataType:'json', //返回的数据格式：json/xml/html/script/jsonp/text
+			    	    success:function(data){
+			    	    	alert(data.msg);
+			    	    }
+			    	})
+				}
+			});
+			
+			//班组信息迁移
+			$("#transferTeamInfo").click(function(){
+				if(confirm("确定开始迁移班组信息吗？")){
+					$.ajax({
+			    	    url:'${pageScope.basePath }team/insert/info',
+			    	    type:'GET', //GET
+			    	    async:true,    // ture为异步请求，false为同步请求
+			    	    dataType:'text', //返回的数据格式：json/xml/html/script/jsonp/text
+			    	    success:function(data){
+			    	    	alert(data);
+			    	    }
+			    	})
+				}
+			});
+			//班组成员迁移
+			$("#transferTeamMember").click(function(){
+				if(confirm("确定开始迁移班组成员吗？")){
+					$.ajax({
+			    	    url:'${pageScope.basePath }team/insert/member',
+			    	    type:'GET', //GET
+			    	    async:true,    // ture为异步请求，false为同步请求
+			    	    dataType:'text', //返回的数据格式：json/xml/html/script/jsonp/text
+			    	    success:function(data){
+			    	    	alert(data);
+			    	    }
+			    	})
+				}
+			});
+			//百强班组迁移
+			$("#transferHonorTeam").click(function(){
+				if(confirm("确定开始迁移百强班组吗？")){
+					$.ajax({
+			    	    url:'${pageScope.basePath }team/insert/honor',
+			    	    type:'GET', //GET
+			    	    async:true,    // ture为异步请求，false为同步请求
+			    	    dataType:'text', //返回的数据格式：json/xml/html/script/jsonp/text
+			    	    success:function(data){
+			    	    	alert(data);
+			    	    }
+			    	})
+				}
+			});
+			//班组论坛迁移
+			$("#transferForum").click(function(){
+				if(confirm("确定开始迁移班组论坛吗？")){
+					$.ajax({
+			    	    url:'${pageScope.basePath }forum/plate',
+			    	    type:'GET', //GET
+			    	    async:true,    // ture为异步请求，false为同步请求
+			    	    dataType:'json', //返回的数据格式：json/xml/html/script/jsonp/text
+			    	    success:function(data){
+			    	    	alert(data.msg);
+			    	    }
+			    	})
+				}
+			});
+		});
+		
+	</script>
+</head>
+<body>
+	<div class="divcss5">
+		<h2 align="center">投票模块源数据迁移</h2>
+		迁移所有投票源数据：用<input value="35" id="vote_thread_count" style="width:50px">个线程执行&nbsp;<input type="button" id="transferAllVote" value="开始"/><br>
+		<br>
+		迁移单条投票源数据：请输入源投票ID(vote_id)：<input id="voteId"/>&nbsp;&nbsp;<input type="button" id="transferSingleVote" value="开始"/><br>
+	</div>
+	<div class="divcss5">
+		<h2 align="center">微博模块源数据迁移</h2>
+	</div>
+	<div class="divcss5">
+		<h2 align="center">博客模块源数据迁移</h2>
+	</div>
+	<div class="divcss5">
+		<h2 align="center">新闻模块源数据迁移</h2>
+	</div>
+	<div class="divcss5">
+		<h2 align="center">授权模块源数据迁移</h2>
+	</div>
+	<div class="divcss5">
+		<h2 align="center">备案模块源数据迁移</h2>
+	</div>
+	<div class="divcss5">
+		<h2 align="center">信用模块源数据迁移</h2>
+	</div>
+	<div class="divcss5">
+		<h2 align="center">班组模块源数据迁移</h2>
+		迁移班组信息:&nbsp;&nbsp;<input type="button" id="transferTeamInfo" value="开始迁移班组信息"/><br>
+		迁移班组成员:&nbsp;&nbsp;<input type="button" id="transferTeamMember" value="开始迁移班组成员"/><br>
+		迁移百强班组:&nbsp;&nbsp;<input type="button" id="transferHonorTeam" value="开始迁移百强班组"/><br>
+		迁移班组论坛数据:&nbsp;&nbsp;<input type="button" id="transferForum" value="开始迁移班组论坛数据"/><br>
+	</div>
+	<div class="divcss5">
+		
+	</div>
+	<div class="divcss5">
+		
+	</div>
+	
+	
+</body>
+</html>

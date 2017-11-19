@@ -1,0 +1,28 @@
+package com.zssq.news.noticevo;
+
+import org.hibernate.validator.constraints.NotBlank;
+
+/**
+ * 
+ * @ClassName: NewsInfoListVO
+ * @Description: 新闻列表查询类
+ * @author SharlaCheung
+ * @date 2017年4月10日
+ *
+ */
+public class NewsNoticeDeleteVO extends NoticeBaseVo{
+        
+	private static final long serialVersionUID = 1L;
+	
+	@NotBlank(message = "{empty.message}")
+    private  String isDelete ;
+	
+
+    public String getIsDelete() {
+        return isDelete;
+    }
+
+    public void setIsDelete(String isDelete) {
+        this.isDelete = isDelete;
+    }
+}

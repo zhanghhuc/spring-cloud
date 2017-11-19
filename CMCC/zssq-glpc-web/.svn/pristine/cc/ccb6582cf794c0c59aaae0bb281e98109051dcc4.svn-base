@@ -1,0 +1,41 @@
+package com.zssq.relation.vo;
+
+import org.hibernate.validator.constraints.NotBlank;
+
+public class SetQualityTopVO {
+	@NotBlank(message = "{empty.message}")
+	private String menuCode; // 菜单编号
+	@NotBlank(message = "{empty.message}")
+	private String qualityCode; // 精华编号
+	
+	@NotBlank(message = "{empty.message}")
+	private String userCode; // 用户CODE
+	@NotBlank(message = "{empty.message}")
+	private String token; // token
+	
+	public String getMenuCode() {
+		return menuCode;
+	}
+	public void setMenuCode(String menuCode) {
+		this.menuCode = menuCode;
+	}
+	public String getQualityCode() {
+		return qualityCode;
+	}
+	public void setQualityCode(String qualityCode) {
+		this.qualityCode = qualityCode;
+	}
+	public String getUserCode() {
+		return userCode;
+	}
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
+	}
+	public String getToken() {
+		return token;
+	}
+	public void setToken(String token) {
+		this.token = token;
+	}
+	
+}

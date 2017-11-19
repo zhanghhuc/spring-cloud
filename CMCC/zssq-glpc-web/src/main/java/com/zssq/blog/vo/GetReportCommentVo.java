@@ -1,0 +1,106 @@
+package com.zssq.blog.vo;
+
+import java.io.Serializable;
+
+import org.hibernate.validator.constraints.NotBlank;
+
+import com.zssq.annotation.validation.IntType;
+import com.zssq.annotation.validation.LongType;
+
+/**
+ * 
+ * @ClassName: GetReportCommentVo  
+ * @Description: 评论被举报 定位  
+ * @author sry  
+ * @date 2017年4月15日  
+ *
+ */
+public class GetReportCommentVo implements Serializable{
+	
+	    
+	/**  
+	 * @Fields serialVersionUID : TODO
+	 */  
+	private static final long serialVersionUID = 1L;
+	/**
+	 * 博客编号
+	 */
+	@NotBlank(message = "{empty.message}")
+	private String blogCode;
+	/**
+	 * 评论编号
+	 */
+	@NotBlank(message = "{empty.message}")
+	private String commentCode;
+	/**
+	 * 每页多少条
+	 */
+	@IntType(expression = ">0") 
+	private String pageSize;
+	/**
+	 * 首次查询时间，前端生成传入
+	 */
+	@LongType(expression = ">0") 
+	private String queryTime;
+	/**
+	 * 菜单编号
+	 */
+	@NotBlank(message = "{empty.message}")
+	private String menuCode;
+	
+	/**
+	 * 当前登录用户的userCode
+	 */
+	@NotBlank(message = "{empty.message}")
+	private String userCode;
+	/**
+	 * token
+	 */
+	@NotBlank(message = "{empty.message}")
+	private String token;
+	public String getBlogCode() {
+		return blogCode;
+	}
+	public void setBlogCode(String blogCode) {
+		this.blogCode = blogCode;
+	}
+	public String getCommentCode() {
+		return commentCode;
+	}
+	public void setCommentCode(String commentCode) {
+		this.commentCode = commentCode;
+	}
+	
+	public String getMenuCode() {
+		return menuCode;
+	}
+	public void setMenuCode(String menuCode) {
+		this.menuCode = menuCode;
+	}
+	public String getUserCode() {
+		return userCode;
+	}
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
+	}
+	public String getToken() {
+		return token;
+	}
+	public void setToken(String token) {
+		this.token = token;
+	}
+	public String getPageSize() {
+		return pageSize;
+	}
+	public void setPageSize(String pageSize) {
+		this.pageSize = pageSize;
+	}
+	public String getQueryTime() {
+		return queryTime;
+	}
+	public void setQueryTime(String queryTime) {
+		this.queryTime = queryTime;
+	}
+	
+	
+}

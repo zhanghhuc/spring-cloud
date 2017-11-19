@@ -1,0 +1,158 @@
+package com.zssq.service.impl;
+
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.dao.mapper.IntegralAccountMapper;
+import com.zssq.dao.pojo.IntegralAccount;
+import com.zssq.dao.pojo.IntegralAccountList;
+import com.zssq.dao.pojo.IntegralAccountListWithType;
+import com.zssq.dao.pojo.IntegralAndCoin;
+import com.zssq.dao.pojo.RankEntity;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.service.IIntegralAccountService;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+
+/**
+ * 
+ * @ClassName: IntegralAccountServiceImpl
+ * @Description: 积分账户相关的服务
+ * @author power
+ * @date 2017年4月12日
+ *
+ */
+@Service("integralAccountService")
+public class IntegralAccountServiceImpl implements IIntegralAccountService {
+
+	/** 打印日志 */
+	private static Logger logger = LoggerFactory.getLogger(IntegralAccountServiceImpl.class);
+
+	/** 积分账户映射器 */
+	@Autowired
+	IntegralAccountMapper integralAccountMapper;
+
+	@Override
+	public PageBean selectPage(PageParam pageParam, IntegralAccount record) throws BusinessException {
+		try {
+			record.setLimitStart(pageParam.getPageNo() * pageParam.getPageSize());
+			record.setLimitEnd(pageParam.getPageSize());
+			List<IntegralAccount> recordList = integralAccountMapper.selectPage(record);
+			int totalCount = integralAccountMapper.selectPageCount(record);
+			PageBean pageBean = new PageBean(record.getLimitStart(), record.getLimitEnd(), totalCount, recordList);
+			return pageBean;
+		} catch (Exception e) {
+			logger.error("分页查询积分账户列表失败", e);
+			throw new BusinessException("分页查询积分账户列表失败", e);
+		}
+	}
+
+	@Override
+	public PageBean selectPageRank(PageParam pageParam, IntegralAccount record) throws BusinessException {
+		try {
+			record.setLimitStart(pageParam.getPageNo() * pageParam.getPageSize());
+			record.setLimitEnd(pageParam.getPageSize());
+			List<IntegralAccount> recordList = integralAccountMapper.selectPageRank(record);
+			int totalCount = integralAccountMapper.selectPageCount(record);
+			PageBean pageBean = new PageBean(record.getLimitStart(), record.getLimitEnd(), totalCount, recordList);
+			return pageBean;
+		} catch (Exception e) {
+			logger.error("排行榜分页查询积分账户列表失败", e);
+			throw new BusinessException("排行榜分页查询积分账户列表失败", e);
+		}
+	}
+
+	@Override
+	public IntegralAccount selectByAccountCode(String accountCode) throws BusinessException {
+		try {
+			return integralAccountMapper.selectByAccountCode(accountCode);
+		} catch (Exception e) {
+			logger.error("查询积分账户失败", e);
+			throw new BusinessException("查询积分账户失败", e);
+		}
+	}
+
+	@Override
+	public boolean insert(IntegralAccount integralAccount) throws BusinessException {
+		try {
+			boolean result = false;
+			IntegralAccount fetch = integralAccountMapper.selectByAccountCode(integralAccount.getAccountCode());
+			if (fetch == null) {
+				result = integralAccountMapper.insert(integralAccount) == 1;
+			}
+			return result;
+		} catch (Exception e) {
+			logger.error("添加积分账户失败", e);
+			throw new BusinessException("添加积分账户失败", e);
+		}
+	}
+
+	@Override
+	public boolean updateByCode(IntegralAccount integralAccount) throws BusinessException {
+		try {
+			boolean result = false;
+			IntegralAccount fetch = integralAccountMapper.selectByAccountCode(integralAccount.getAccountCode());
+			if (fetch != null) {
+				result = integralAccountMapper.updateByAccountCode(integralAccount) == 1;
+			}
+			return result;
+		} catch (Exception e) {
+			logger.error("修改积分账户失败", e);
+			throw new BusinessException("修改积分账户失败", e);
+		}
+	}
+
+	@Override
+	public PageBean selectPageByRank(PageParam pageParam, RankEntity record) throws BusinessException {
+		try {
+			if(pageParam != null){
+				record.setLimitStart(pageParam.getPageNo() * pageParam.getPageSize());
+				record.setLimitEnd(pageParam.getPageSize());
+			}
+			List<IntegralAndCoin> recordList = integralAccountMapper.sort(record);
+			int totalCount = integralAccountMapper.sortCount(record);
+			PageBean pageBean = new PageBean(record.getLimitStart(), record.getLimitEnd(), totalCount, recordList);
+			return pageBean;
+		} catch (Exception e) {
+			logger.error("排序积分账户失败", e);
+			throw new BusinessException("排序积分账户失败", e);
+		}
+	}
+
+	@Override
+	public PageBean selectPageByOrgCodes(PageParam pageParam, IntegralAccountList record) throws BusinessException {
+		try {
+			record.setLimitStart(pageParam.getPageNo() * pageParam.getPageSize());
+			record.setLimitEnd(pageParam.getPageSize());
+			List<IntegralAccount> recordList = integralAccountMapper.selectPageByOrgCodes(record);
+			int totalCount = integralAccountMapper.selectPageCountByOrgCodes(record);
+			PageBean pageBean = new PageBean(record.getLimitStart(), record.getLimitEnd(), totalCount, recordList);
+			return pageBean;
+		} catch (Exception e) {
+			logger.error("获取公司积分账户列表失败", e);
+			throw new BusinessException("获取公司积分账户列表失败", e);
+		}
+	}
+
+	@Override
+	public PageBean selectPageByOrgCodesAndAccountType(PageParam pageParam, IntegralAccountListWithType record)
+			throws BusinessException {
+		try {
+			record.setLimitStart(pageParam.getPageNo() * pageParam.getPageSize());
+			record.setLimitEnd(pageParam.getPageSize());
+			List<IntegralAccount> recordList = integralAccountMapper.selectPageByOrgCodesAndAccountType(record);
+			int totalCount = integralAccountMapper.selectPageCountByOrgCodesAndAccountType(record);
+			PageBean pageBean = new PageBean(record.getLimitStart(), record.getLimitEnd(), totalCount, recordList);
+			return pageBean;
+		} catch (Exception e) {
+			logger.error("获取个人或班组的积分账户列表失败", e);
+			throw new BusinessException("获取个人或班组的积分账户列表失败", e);
+		}
+	}
+
+
+}

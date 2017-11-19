@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.RelationSubjectInfoByLxwMapper">
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.RelationSubjectInfo">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="subject_code" jdbcType="VARCHAR" property="subjectCode" />
+    <result column="tenant_code" jdbcType="VARCHAR" property="tenantCode" />
+    <result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+    <result column="create_time" jdbcType="BIGINT" property="createTime" />
+    <result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="subject_class" jdbcType="TINYINT" property="subjectClass" />
+    <result column="subject_depend" jdbcType="TINYINT" property="subjectDepend" />
+    <result column="team_code" jdbcType="VARCHAR" property="teamCode" />
+    <result column="user_code" jdbcType="VARCHAR" property="userCode" />
+    <result column="subject_publish_time" jdbcType="BIGINT" property="subjectPublishTime" />
+    <result column="subject_title" jdbcType="VARCHAR" property="subjectTitle" />
+    <result column="subject_url" jdbcType="VARCHAR" property="subjectUrl" />
+    <result column="subject_source" jdbcType="TINYINT" property="subjectSource" />
+    <result column="source_code" jdbcType="VARCHAR" property="sourceCode" />
+    <result column="source_user_code" jdbcType="VARCHAR" property="sourceUserCode" />
+    <result column="source_publish_time" jdbcType="BIGINT" property="sourcePublishTime" />
+    <result column="source_is_delete" jdbcType="TINYINT" property="sourceIsDelete" />
+    <result column="source_is_shield" jdbcType="TINYINT" property="sourceIsShield" />
+    <result column="subject_is_delete" jdbcType="TINYINT" property="subjectIsDelete" />
+    <result column="subject_is_shield" jdbcType="TINYINT" property="subjectIsShield" />
+    <result column="subject_status" jdbcType="TINYINT" property="subjectStatus" />
+    <result column="subject_begin_time" jdbcType="BIGINT" property="subjectBeginTime" />
+    <result column="subject_end_time" jdbcType="BIGINT" property="subjectEndTime" />
+     <result column="subject_digest" jdbcType="LONGVARCHAR" property="subjectDigest" />
+    <result column="content_tips" jdbcType="LONGVARCHAR" property="contentTips" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, subject_code, tenant_code, org_code, 
+    create_time, modify_time, remark, subject_class, subject_depend, team_code, user_code, 
+    subject_publish_time, subject_title, subject_url, subject_source, source_code, 
+    source_user_code, source_publish_time, source_is_delete, source_is_shield, subject_is_delete, 
+    subject_is_shield, subject_status, subject_begin_time, subject_end_time,subject_digest, content_tips
+  </sql>
+  
+ <!-- 根据code查询内容信息 -->
+   <select id="selectInfoBycode" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from relation_subject_info
+    where 
+      subject_code = #{subjectCode}
+
+  </select>
+</mapper>

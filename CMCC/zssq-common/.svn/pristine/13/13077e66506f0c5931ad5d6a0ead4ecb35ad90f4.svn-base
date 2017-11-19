@@ -1,0 +1,8 @@
+#web\u7aef\u7684redis
+webRedisIP=172.16.126.180
+webRedisPort=6380
+webRedisPwd=123456
+#sso\u7aef\u7684redis
+ssoRedisIP=172.16.126.180
+ssoRedisPort=6379
+ssoRedisPwd=123456

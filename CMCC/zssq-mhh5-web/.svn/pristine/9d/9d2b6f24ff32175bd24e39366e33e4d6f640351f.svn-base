@@ -1,0 +1,339 @@
+package com.zssq.auth.controller;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.auth.vo.GetUserByUserNameVo;
+import com.zssq.auth.vo.SearchUserInfoVo;
+import com.zssq.auth.vo.UpdateUserIntroVo;
+import com.zssq.auth.vo.UserHeadVo;
+import com.zssq.auth.vo.out.GetUserByUserNameOutVo;
+import com.zssq.config.AuthConfig;
+import com.zssq.constants.AuthConstants;
+import com.zssq.dao.pojo.CoinAccount;
+import com.zssq.dao.pojo.ExpAccount;
+import com.zssq.dao.pojo.IntegralAccount;
+import com.zssq.dao.pojo.SysOrgInfo;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.dao.pojo.UserInfoByName;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.pojo.Message;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.HonorThirdService;
+import com.zssq.service.ICoinAccountService;
+import com.zssq.service.IExpAccountService;
+import com.zssq.service.IIntegralAccountService;
+import com.zssq.service.ISysUserService;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.utils.PropertiesUtil;
+import com.zssq.utils.StringTools;
+
+/**
+ * 提供对“用户信息”进行操作的接口
+ * 
+ * @since  JDK 1.7
+ * @author 赵翊
+ */
+@Controller  
+@RequestMapping("/sysUser")
+public class SysUserController {
+
+	/** 日志记录器 */
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	/** 用户信息业务组件 */
+	@Autowired
+	private ISysUserService sysUserService;
+	
+	/** 荣誉信息业务组件 */
+	@Autowired
+	private HonorThirdService honorThirdService;
+	
+	/** 积分信息业务组件 */
+	@Autowired
+	private IIntegralAccountService integralAccountService;
+	
+	/** 金币信息业务组件 */
+	@Autowired
+	private ICoinAccountService coinAccountService;
+	
+	/** 经验信息业务组件 */
+	@Autowired
+	private IExpAccountService expAccountService;
+	
+	/** 授权disconf */
+	@Autowired
+	private AuthConfig authConfig;
+	
+	/**
+	 * 获取指定用户的详细信息
+	 * 
+	 * @param request
+	 * 			Http 请求参数，必须参数包含：userCode
+	 * @return 通用返回对象
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/info")  
+	public ResultJSON getByCode(HttpServletRequest request) throws BusinessException {
+		
+		Message message = null;
+		if(StringTools.isEmpty(request.getParameter("userCode"))){
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10004);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "获取指定用户的详细信息","userCode为空"));
+		}
+		ResultJSON rj = new ResultJSON();
+		try {			
+			SysUserInfo userInfo = sysUserService.selectByCode(request.getParameter("userCode"));	
+			
+			JSONObject body = new JSONObject();
+			if(userInfo != null) {
+				body = getResultUserInfo(userInfo);
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_200);
+			} else {
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			}
+			
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "获取指定用户的详细信息"));
+	        rj.setBody(body);
+			
+			return rj;
+		} catch (Exception e) {
+			log.error("SysUserController.getByCode 获取指定用户信息出错", e);
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "获取指定用户的详细信息"));
+		}
+	}
+	
+	
+	
+	/**
+	 * 获取用户详细信息
+	 * 
+	 * @param request
+	 * 			Http 请求参数
+	 * @return 通用返回对象
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/searchUserInfo")  
+	public ResultJSON searchUserInfo(@RequireValid SearchUserInfoVo searchUserInfoVo) throws BusinessException {
+		
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			// 查询用户详细信息
+			SysUserInfo userInfo = sysUserService.selectByCode(searchUserInfoVo.getSearchUserCode());	
+			
+			JSONObject body = new JSONObject();
+			if(userInfo != null) {
+				body = getResultUserInfo(userInfo);
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_200);
+			} else {
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			}
+			
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "获取用户详细信息"));
+	        rj.setBody(body);
+			
+			return rj;
+		} catch (Exception e) {
+			log.error("SysUserController.searchUserInfo 获取用户详细信息", e);
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "获取用户详细信息"));
+		}
+	}
+	
+	/**
+	 * 封装用户返回信息
+	 * 
+	 * @param userInfo
+	 * 			用户信息
+	 * @return 用户信息
+	 */
+	private JSONObject getResultUserInfo(SysUserInfo userInfo) throws BusinessException {
+		
+		try {			
+			JSONObject body = new JSONObject();
+			if(userInfo != null) {
+				body.put("userCode", StringTools.formatToString(userInfo.getUserCode()));		// 用户uid
+				body.put("userName", StringTools.formatToString(userInfo.getUserName()));		// 用户姓名
+				body.put("userSex", StringTools.formatToString(userInfo.getUserSex()));			// 性别
+				body.put("phone", StringTools.formatToString(userInfo.getUserOfficePhone()));	// 电话
+				body.put("userStatus", StringTools.formatToString(userInfo.getUserStatus()));	// 状态
+				body.put("nickName", StringTools.formatToString(userInfo.getNickName()));		// 昵称
+				body.put("head", StringTools.formatToString(userInfo.getHeadPortrait()));		// 头像
+				body.put("introduce", StringTools.formatToString(userInfo.getIntroduce()));		// 用户简介
+				body.put("tenantCode", StringTools.formatToString(userInfo.getTenantCode()));	// 租户编号
+				body.put("orgCode", StringTools.formatToString(userInfo.getOrgCode()));			// 员工所属组织机构编号
+				
+				body.put("honor", StringTools.formatToString(honorThirdService.getHonorCount(userInfo.getUserCode(), AuthConstants.TENANT_CODE)));//荣誉个数
+				ExpAccount expAccount = expAccountService.selectByAccountCode(userInfo.getUserCode());
+				body.put("level", StringTools.formatToString(expAccount.getCurrentLevel()));//等级
+				body.put("exp", StringTools.formatToString(expAccount.getCurrentExp()));//经验
+				IntegralAccount integralAccount = integralAccountService.selectByAccountCode(userInfo.getUserCode());
+				if(integralAccount != null){
+					body.put("score", StringTools.formatToString(integralAccount.getIntegralBalance()));//积分
+				}else{
+					body.put("score", "0");//积分
+				}
+				CoinAccount coinAccount = coinAccountService.selectByAccountCode(userInfo.getUserCode());
+				if(coinAccount != null){
+					body.put("gold", StringTools.formatToString(coinAccount.getCoinBalance()));//金币
+				}else{
+					body.put("gold", "0");//金币
+				}
+				
+				// 所属组织信息	
+				SysOrgInfo orgInfo = userInfo.getOrgInfo();
+				JSONObject orgJson = new JSONObject();				
+				orgJson.put("orgCode", StringTools.formatToString(orgInfo.getSysOrgCode()));		// 组织编号
+				orgJson.put("parentCode", StringTools.formatToString(orgInfo.getParentCode()));		// 上级编号
+				orgJson.put("orgName", StringTools.formatToString(orgInfo.getSysOrgName()));		// 组织名称
+				orgJson.put("orgFullName", StringTools.formatToString(orgInfo.getSysOrgFullname()));// 组织全名	
+				orgJson.put("orgType", StringTools.formatToString(orgInfo.getSysOrgType()));		// 组织类型
+				body.put("orgInfo", orgJson);
+				
+				// 行政组织信息
+				SysOrgInfo manOrgInfo = userInfo.getManageOrgInfo();
+				JSONObject manOrgJson = new JSONObject();
+				manOrgJson.put("orgCode", StringTools.formatToString(manOrgInfo.getSysOrgCode()));			// 组织编号
+				manOrgJson.put("srcOrgCode", StringTools.formatToString(manOrgInfo.getSrcCode()));			// 员工所属原始组织机构编号
+				manOrgJson.put("parentCode", StringTools.formatToString(manOrgInfo.getParentCode()));		// 上级编号
+				manOrgJson.put("orgName", StringTools.formatToString(manOrgInfo.getSysOrgName()));			// 组织名称
+				manOrgJson.put("orgFullName", StringTools.formatToString(manOrgInfo.getSysOrgFullname()));	// 组织全名	
+				manOrgJson.put("orgType", StringTools.formatToString(manOrgInfo.getSysOrgType()));			// 组织类型
+				body.put("manOrgInfo", manOrgJson);
+			}			
+			return body;
+		} catch (Exception e) {
+			log.error("SysUserController.getResultUserInfo 封装用户返回信息出错", e);
+			throw new BusinessException("封装用户返回信息出错", e);
+		}
+	}
+	
+	/**
+	 * 更新用户简介
+	 * 
+	 * @param request
+	 * 			Http 请求参数
+	 * @return 通用返回结果对象
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/updateIntro")
+	public ResultJSON updateIntro(@RequireValid UpdateUserIntroVo updateUserIntroVo) throws BusinessException{  
+	    
+		Message m = null;
+	    ResultJSON rj = new ResultJSON();
+	    try {
+	    	boolean isSuccess = sysUserService.updateIntro(updateUserIntroVo.getUserCode(), StringTools.formatToString(updateUserIntroVo.getIntro()));
+	    	
+	    	if(isSuccess){
+	    		m = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_200);
+	    	}else{
+	    		m = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+	    	}
+	    	
+	    	rj.setReturnCode(m.getCode());
+	    	rj.setReturnTip(String.format(m.getTip(),"更新用户简介"));
+	    	rj.setBody(new JSONObject());
+		} catch (Exception e) {
+			log.error("更新用户简介异常", e);
+			m = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			throw new BusinessException(m.getCode(),String.format(m.getTip(),"更新用户简介"));
+		}
+	    return rj;
+	}
+	
+	/**
+	 * @Function updateHead
+	 * @Description 更新用户头像
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/updateHead")
+	public ResultJSON updateHead(@RequireValid UserHeadVo param) throws BusinessException{  
+	    Message m = null;
+	    ResultJSON rj = new ResultJSON();
+	    try {
+	    	boolean isSuccess = sysUserService.updateHead(param.getUserCode(), param.getHead());
+	    	if(isSuccess){
+	    		m = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_200);
+	    	}else{
+	    		m = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+	    	}
+	    	rj.setReturnCode(m.getCode());
+	    	rj.setReturnTip(String.format(m.getTip(),"更新用户头像"));
+	    	rj.setBody(new JSONObject());
+		} catch (Exception e) {
+			m = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			log.error("更新用户头像异常", e);
+			throw new BusinessException(m.getCode(),String.format(m.getTip(),"更新用户头像"));
+		}
+	    return rj;
+	}
+	
+	
+	/**
+	 * 根据用户名称查询(搜索用户)
+	 * 
+	 * @param param
+	 * @return 通用返回结果对象
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/getUserByUserName")
+	public ResultJSON getUserByUserName(@RequireValid GetUserByUserNameVo param) throws BusinessException{
+		Message message = null;
+		try {
+			ResultJSON result = new ResultJSON();
+			String userName = param.getUserName();
+			PageParam page = new PageParam(Integer.parseInt(param.getPageNo()),Integer.parseInt(param.getPageSize()));
+			PageBean pageBean = sysUserService.selectUserByUserName(userName,page);
+			List<UserInfoByName> userInfoList = pageBean.getRecordList();
+			JSONObject body = new JSONObject();
+			JSONArray jsonArray = new JSONArray();
+			for(UserInfoByName info : userInfoList){
+				GetUserByUserNameOutVo out = new GetUserByUserNameOutVo();
+				out.setUserCode(info.getUserCode());
+				out.setUserName(info.getUserName());
+				out.setOrgFullName(StringTools.formatToString(info.getFullName()));
+				out.setIntroduce(StringTools.formatToString(info.getIntroduce()));
+				if(StringTools.isEmpty(info.getHeadPortrait())){
+					out.setHeadPortrait(authConfig.getUserHead());
+				}else{
+					out.setHeadPortrait(StringTools.formatToString(info.getHeadPortrait()));
+				}
+				jsonArray.add(out);
+			}
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_200);
+			body.put("totalCount", pageBean.getTotalCount());
+			body.put("list", jsonArray);
+			result.setReturnCode(message.getCode());
+			result.setReturnTip(String.format(message.getTip(), "根据用户名称查询(搜索用户)"));
+			result.setBody(body);
+			return result;
+			
+		} catch (Exception e) {
+			log.error("根据用户名称查询(搜索用户)异常", e);
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			throw new BusinessException("根据用户名称查询(搜索用户)异常", e);
+		}
+	}
+}

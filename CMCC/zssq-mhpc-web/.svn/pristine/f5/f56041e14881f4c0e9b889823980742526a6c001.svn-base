@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
+    <wb-module deploy-name="zssq-mhpc-web">
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
+        <wb-resource deploy-path="/" source-path="/target/m2e-wtp/web-resources"/>
+        <wb-resource deploy-path="/" source-path="/src/main/webapp" tag="defaultRootSource"/>
+        <dependent-module archiveName="zssq-common-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-common/zssq-common">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-common-core-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-common-core/zssq-common-core">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-news-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-news/zssq-facade-news">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-auth-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-auth/zssq-facade-auth">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-filing-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-filing/zssq-facade-filing">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-credit-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-credit/zssq-facade-credit">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-team-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-team/zssq-facade-team">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <property name="context-root" value="zssq-mhpc-web"/>
+        <property name="java-output-path" value="/zssq-mhpc-web/target/classes"/>
+    </wb-module>
+</project-modules>

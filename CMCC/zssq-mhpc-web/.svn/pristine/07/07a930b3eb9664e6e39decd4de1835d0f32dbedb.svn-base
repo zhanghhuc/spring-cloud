@@ -1,0 +1,375 @@
+package com.zssq.msg.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.constants.AuthConstants;
+import com.zssq.dao.pojo.MsgPrivateLetter;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.model.MessagePrivateInfoModel;
+import com.zssq.model.MessagePrivateLetterModel;
+import com.zssq.model.SendMsgPrivateLetterModel;
+import com.zssq.msg.vo.DelPrivateLetterVO;
+import com.zssq.msg.vo.PrivateLetterInfoListVO;
+import com.zssq.msg.vo.PrivateLetterListVO;
+import com.zssq.msg.vo.sendPrivateLetterVO;
+import com.zssq.pojo.Message;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.ISysUserService;
+import com.zssq.service.MessagePrivateLetterService;
+import com.zssq.utils.DateUtils;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PropertiesUtil;
+
+/**
+ * 
+ * @ClassName: PrivateLetterController  
+ * @Description: 私信  
+ * @author YDB  
+ * @date 2017年3月30日  
+ *
+ */
+@Controller
+@RequestMapping("/msg")
+public class MsgPrivateLetterController {
+
+	private Logger log = LoggerFactory.getLogger(this.getClass());	
+
+	@Autowired
+	private MessagePrivateLetterService messagePrivateLetterService;
+	
+	@Autowired
+	private ISysUserService userService;
+	
+	/**
+	 * 
+	 * @Title: getMyPrivateLetterMainList  
+	 * @Description: 私信主列表
+	 * @param vo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping("/getMyPrivateLetterMainList")
+	@ResponseBody
+	public ResultJSON getMyPrivateLetterMainList(@RequireValid PrivateLetterListVO vo) throws BusinessException{
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		
+		JSONObject json=new JSONObject();
+		JSONArray jsonArray=new JSONArray();
+		try {
+			
+			MessagePrivateLetterModel letter=new MessagePrivateLetterModel();
+			
+			letter.setUserCode(vo.getUserCode());
+			letter.setPageNo(Integer.parseInt(vo.getPageNo()));
+			letter.setPageSize(Integer.parseInt(vo.getPageSize()));
+			//查询条件
+			PageBean pageBean=messagePrivateLetterService.getPrivateLetterMainList(letter);
+			List<MsgPrivateLetter> list=pageBean.getRecordList();
+			
+			List<String> userCodeList=new ArrayList<>();
+			for (int i = 0; i < list.size(); i++) {
+				userCodeList.add(list.get(i).getSendUserCode());
+			}
+			
+			//List<SysUserInfo> userInfoList=userService.selectByCodes(userCodeList);
+			
+			Map<String, Object> userMap=userService.selectMapByCodes(userCodeList);
+			
+			
+			//返回值封装
+			for(int i=0;i<list.size();i++){
+				json.put("privateLetterUserCode",list.get(i).getSendUserCode());
+				json.put("contentType",list.get(i).getContentType());
+				json.put("letterContent",list.get(i).getLetterContent());
+				json.put("createTime",list.get(i).getCreateTime());
+		
+			/*	for (SysUserInfo userInfo:userInfoList) {
+					if(list.get(i).getPrivateLetterUserCode().equals(userInfo.getUserCode())){
+						json.put("realName",userInfo.getUserName());
+						json.put("headPortrait",userInfo.getHeadPortrait());
+						continue;
+					}
+				}*/
+				SysUserInfo userInfo=(SysUserInfo) userMap.get(list.get(i).getSendUserCode());
+				if(userInfo !=null){
+					json.put("realName",userInfo.getUserName());
+					json.put("headPortrait",userInfo.getHeadPortrait());
+				}else{
+					json.put("realName","");
+					json.put("headPortrait","");
+				}
+				
+				jsonArray.add(json);
+				json=new  JSONObject();
+			}
+			
+			json.put("total", pageBean.getTotalCount());
+			json.put("privateLetterList", jsonArray);
+			
+			m = PropertiesUtil.getMessage("COMMON_200");
+			resJson.setReturnCode(m.getCode());
+			resJson.setReturnTip(m.getTip());
+			resJson.setBody(JSONObject.toJSON(json));
+        	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			log.error("获取私信主列表-getMyPrivateLetterMainList:"+JSONObject.toJSONString(vo),e);
+			m = PropertiesUtil.getMessage("COMMON_999");
+			throw new BusinessException(m.getCode(), m.getTip());
+		}
+		
+		return resJson;
+		
+	}
+	
+	
+	/**
+	 * 
+	 * @Title: getMyPrivateLetterInfoList  
+	 * @Description: 私信详细列表
+	 * @param vo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping("/getMyPrivateLetterInfoList")
+	@ResponseBody
+	public ResultJSON getMyPrivateLetterInfoList(@RequireValid PrivateLetterInfoListVO vo) throws BusinessException{
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		
+		JSONObject json=new JSONObject();
+		JSONArray jsonArray=new JSONArray();
+		try {
+			
+			MessagePrivateInfoModel letter=new MessagePrivateInfoModel();
+			
+			letter.setUserCode(vo.getUserCode());
+			letter.setPageNo(Integer.parseInt(vo.getPageNo()));
+			letter.setPageSize(Integer.parseInt(vo.getPageSize()));
+			letter.setLetterUserCode(vo.getLetterUserCode());
+			
+			//查询条件
+			PageBean pageBean=messagePrivateLetterService.getPrivateLetterInfoList(letter);
+			List<MsgPrivateLetter> list=pageBean.getRecordList();
+
+			List<String> userCodeList=new ArrayList<>();
+			userCodeList.add(vo.getUserCode());
+			userCodeList.add(vo.getLetterUserCode());
+			
+			//List<SysUserInfo> userInfoList=userService.selectByCodes(userCodeList);
+			
+			Map<String, Object> userMap=userService.selectMapByCodes(userCodeList);
+			
+			//返回值封装
+			for(int i=0;i<list.size();i++){
+				
+				json.put("sendUserCode",list.get(i).getSendUserCode());
+				if(list.get(i).getSendUserCode().equals(vo.getUserCode())){
+					json.put("type","1");
+				}else{
+					json.put("type","2");
+					
+				}
+				
+				
+				json.put("privateLetterUserCode",list.get(i).getPrivateLetterUserCode());
+				json.put("contentType",list.get(i).getContentType());
+				json.put("letterContent",list.get(i).getLetterContent());
+				json.put("createTime",list.get(i).getCreateTime());
+				
+			/*	for (SysUserInfo userInfo:userInfoList) {
+					if(list.get(i).getUserCode().equals(userInfo.getUserCode())){
+						json.put("realName",userInfo.getUserName());
+						json.put("headPortrait",userInfo.getHeadPortrait());
+						continue;
+					}
+				}
+				*/
+				
+				SysUserInfo userInfo=(SysUserInfo) userMap.get(list.get(i).getSendUserCode());
+				if(userInfo!=null){
+					
+					//发送人
+					json.put("userName",userInfo.getUserName());
+					json.put("headPortrait",userInfo.getHeadPortrait());
+				}else{
+					json.put("userName","");
+					json.put("headPortrait","");
+				}
+				
+			/*	for (SysUserInfo userInfo:userInfoList) {
+					if(list.get(i).getPrivateLetterUserCode().equals(userInfo.getUserCode())){
+						json.put("letterName",userInfo.getUserName());
+						json.put("letterheadPortrait",userInfo.getHeadPortrait());
+						continue;
+					}
+				}*/
+				
+			/*	SysUserInfo letterUserInfo=(SysUserInfo) userMap.get(list.get(i).getPrivateLetterUserCode());
+				if(letterUserInfo!=null ){
+					
+					//收信人
+					json.put("letterName",letterUserInfo.getUserName());
+					json.put("letterheadPortrait",letterUserInfo.getHeadPortrait());
+				}else{
+					json.put("letterName","");
+					json.put("letterheadPortrait","");
+					
+				}*/
+				
+				jsonArray.add(json);
+				json=new JSONObject();
+			}
+			
+			SysUserInfo ltName=userService.selectByCode(vo.getLetterUserCode());
+			
+			json.put("letterUserName", ltName.getUserName());
+			json.put("total", pageBean.getTotalCount());
+			json.put("privateLetterList", jsonArray);
+			
+			m = PropertiesUtil.getMessage("COMMON_200");
+			resJson.setReturnCode(m.getCode());
+			resJson.setReturnTip(m.getTip());
+			resJson.setBody(JSONObject.toJSON(json));
+        	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			log.error("获取私信对话列表-getMyPrivateLetterInfoList:"+JSONObject.toJSONString(vo),e);
+			m = PropertiesUtil.getMessage("MSG_26001");
+			throw new BusinessException().build("MSG_26001","列表获取");
+		}
+		
+		return resJson;
+		
+	}
+
+	/**
+	 * 
+	 * @Title:delPrivateLetter
+	 * @Description:删除私信
+	 * @param vo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping("/delPrivateLetter")
+	@ResponseBody
+	public ResultJSON delPrivateLetter(@RequireValid DelPrivateLetterVO vo) throws BusinessException{
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		JSONObject json=new JSONObject();
+
+		try {
+			
+			boolean state=false;
+				state=messagePrivateLetterService.delPrivateLetter(vo.getUserCode(),vo.getLetterUserCode());
+				m = PropertiesUtil.getMessage("COMMON_200");
+				//成功
+				json.put("result",state?0:1 );
+				resJson.setReturnCode(m.getCode());
+				resJson.setReturnTip(m.getTip());
+				resJson.setBody(JSONObject.toJSON(json));
+        	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			log.error("删除私信-delPrivateLetter:"+JSONObject.toJSONString(vo),e);
+			throw new BusinessException().build("MSG_26001","删除");
+		}
+		
+		return resJson;
+		
+	}
+	
+
+	/**
+	 * 
+	 * @Title:sendPrivateLetter
+	 * @Description:发送私信
+	 * @param vo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping("/sendPrivateLetter")
+	@ResponseBody
+	public ResultJSON sendPrivateLetter(@RequireValid sendPrivateLetterVO vo) throws BusinessException{
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		JSONObject json=new JSONObject();
+
+		try {
+			SysUserInfo sendUser=userService.selectByCode(vo.getUserCode());
+			
+			SysUserInfo receiveUser=userService.selectByCode(vo.getReceiveUserCode());
+			
+			boolean state=false;
+			SendMsgPrivateLetterModel sendModel =new SendMsgPrivateLetterModel();
+			sendModel.setContent(vo.getContent());
+			sendModel.setContentType(vo.getContentType());
+			sendModel.setReceiveUserCode(vo.getReceiveUserCode());
+			sendModel.setUserOrgCode(sendUser.getManageOrgInfo().getManOrgCode());
+			sendModel.setReceiveUserCodeOrgCode(receiveUser.getManageOrgInfo().getManOrgCode());
+
+			sendModel.setReceiveUserCode(vo.getReceiveUserCode());
+			sendModel.setTenantCode(AuthConstants.TENANT_CODE);
+			sendModel.setUserCode(vo.getUserCode());
+			sendModel.setCreateTime(DateUtils.getTime());
+			
+			m = PropertiesUtil.getMessage("COMMON_200");
+
+			
+			state=messagePrivateLetterService.sendPrivateLetter(sendModel);
+		
+			//成功
+			json.put("result",state?0:1 );
+			
+			json.put("type",1);
+			json.put("userName", sendUser.getUserName());
+			json.put("letterContent",sendModel.getContent());
+			json.put("contentType",sendModel.getContentType());
+			json.put("headPortrait",sendUser.getHeadPortrait());
+			json.put("createTime", sendModel.getCreateTime());			
+			json.put("sendUserCode", sendModel.getUserCode());
+			
+			resJson.setReturnCode(m.getCode());
+			resJson.setReturnTip(m.getTip());
+			resJson.setBody(JSONObject.toJSON(json));
+				
+        	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			log.error("发送私信-sendPrivateLetter:"+JSONObject.toJSONString(vo),e);
+			throw new BusinessException().build("MSG_26001","发送");
+		}
+		
+		return resJson;
+		
+	}
+	
+	
+	
+}

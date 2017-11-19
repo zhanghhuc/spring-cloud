@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.ActivityTemplateMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.ActivityTemplate" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="code" property="code" jdbcType="VARCHAR" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <result column="is_disable" property="isDisable" jdbcType="TINYINT" />
+    <result column="is_hide" property="isHide" jdbcType="TINYINT" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="org_level" property="orgLevel" jdbcType="TINYINT" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="template_name" property="templateName" jdbcType="VARCHAR" />
+    <result column="thumbnail" property="thumbnail" jdbcType="VARCHAR" />
+    <result column="introduce" property="introduce" jdbcType="VARCHAR" />
+    <result column="used_num" property="usedNum" jdbcType="INTEGER" />
+    <result column="sell_status" property="sellStatus" jdbcType="TINYINT" />
+    <result column="template_type" property="templateType" jdbcType="TINYINT" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, code, is_delete, is_disable, is_hide, tenant_code, org_code, org_level, create_time, 
+    modify_time, remark, template_name, thumbnail, introduce, used_num, sell_status, 
+    template_type
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.zssq.dao.pojo.ActivityTemplateExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from activity_template
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+    <if test="limitStart != null and limitStart>=0" >
+      limit #{limitStart} , #{limitEnd}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from activity_template
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from activity_template
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.zssq.dao.pojo.ActivityTemplateExample" >
+    delete from activity_template
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.ActivityTemplate" >
+    insert into activity_template (id, code, is_delete, 
+      is_disable, is_hide, tenant_code, 
+      org_code, org_level, create_time, 
+      modify_time, remark, template_name, 
+      thumbnail, introduce, used_num, 
+      sell_status, template_type)
+    values (#{id,jdbcType=BIGINT}, #{code,jdbcType=VARCHAR}, #{isDelete,jdbcType=TINYINT}, 
+      #{isDisable,jdbcType=TINYINT}, #{isHide,jdbcType=TINYINT}, #{tenantCode,jdbcType=VARCHAR}, 
+      #{orgCode,jdbcType=VARCHAR}, #{orgLevel,jdbcType=TINYINT}, #{createTime,jdbcType=BIGINT}, 
+      #{modifyTime,jdbcType=BIGINT}, #{remark,jdbcType=VARCHAR}, #{templateName,jdbcType=VARCHAR}, 
+      #{thumbnail,jdbcType=VARCHAR}, #{introduce,jdbcType=VARCHAR}, #{usedNum,jdbcType=INTEGER}, 
+      #{sellStatus,jdbcType=TINYINT}, #{templateType,jdbcType=TINYINT})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.ActivityTemplate" >
+    insert into activity_template
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="code != null" >
+        code,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+      <if test="isDisable != null" >
+        is_disable,
+      </if>
+      <if test="isHide != null" >
+        is_hide,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="orgLevel != null" >
+        org_level,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="templateName != null" >
+        template_name,
+      </if>
+      <if test="thumbnail != null" >
+        thumbnail,
+      </if>
+      <if test="introduce != null" >
+        introduce,
+      </if>
+      <if test="usedNum != null" >
+        used_num,
+      </if>
+      <if test="sellStatus != null" >
+        sell_status,
+      </if>
+      <if test="templateType != null" >
+        template_type,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="code != null" >
+        #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="isDisable != null" >
+        #{isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="isHide != null" >
+        #{isHide,jdbcType=TINYINT},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="templateName != null" >
+        #{templateName,jdbcType=VARCHAR},
+      </if>
+      <if test="thumbnail != null" >
+        #{thumbnail,jdbcType=VARCHAR},
+      </if>
+      <if test="introduce != null" >
+        #{introduce,jdbcType=VARCHAR},
+      </if>
+      <if test="usedNum != null" >
+        #{usedNum,jdbcType=INTEGER},
+      </if>
+      <if test="sellStatus != null" >
+        #{sellStatus,jdbcType=TINYINT},
+      </if>
+      <if test="templateType != null" >
+        #{templateType,jdbcType=TINYINT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.zssq.dao.pojo.ActivityTemplateExample" resultType="java.lang.Integer" >
+    select count(*) from activity_template
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update activity_template
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.code != null" >
+        code = #{record.code,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDelete != null" >
+        is_delete = #{record.isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="record.isDisable != null" >
+        is_disable = #{record.isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="record.isHide != null" >
+        is_hide = #{record.isHide,jdbcType=TINYINT},
+      </if>
+      <if test="record.tenantCode != null" >
+        tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgCode != null" >
+        org_code = #{record.orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgLevel != null" >
+        org_level = #{record.orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.modifyTime != null" >
+        modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.remark != null" >
+        remark = #{record.remark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.templateName != null" >
+        template_name = #{record.templateName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.thumbnail != null" >
+        thumbnail = #{record.thumbnail,jdbcType=VARCHAR},
+      </if>
+      <if test="record.introduce != null" >
+        introduce = #{record.introduce,jdbcType=VARCHAR},
+      </if>
+      <if test="record.usedNum != null" >
+        used_num = #{record.usedNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.sellStatus != null" >
+        sell_status = #{record.sellStatus,jdbcType=TINYINT},
+      </if>
+      <if test="record.templateType != null" >
+        template_type = #{record.templateType,jdbcType=TINYINT},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update activity_template
+    set id = #{record.id,jdbcType=BIGINT},
+      code = #{record.code,jdbcType=VARCHAR},
+      is_delete = #{record.isDelete,jdbcType=TINYINT},
+      is_disable = #{record.isDisable,jdbcType=TINYINT},
+      is_hide = #{record.isHide,jdbcType=TINYINT},
+      tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      org_code = #{record.orgCode,jdbcType=VARCHAR},
+      org_level = #{record.orgLevel,jdbcType=TINYINT},
+      create_time = #{record.createTime,jdbcType=BIGINT},
+      modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      template_name = #{record.templateName,jdbcType=VARCHAR},
+      thumbnail = #{record.thumbnail,jdbcType=VARCHAR},
+      introduce = #{record.introduce,jdbcType=VARCHAR},
+      used_num = #{record.usedNum,jdbcType=INTEGER},
+      sell_status = #{record.sellStatus,jdbcType=TINYINT},
+      template_type = #{record.templateType,jdbcType=TINYINT}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.ActivityTemplate" >
+    update activity_template
+    <set >
+      <if test="code != null" >
+        code = #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="isDisable != null" >
+        is_disable = #{isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="isHide != null" >
+        is_hide = #{isHide,jdbcType=TINYINT},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        org_level = #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="templateName != null" >
+        template_name = #{templateName,jdbcType=VARCHAR},
+      </if>
+      <if test="thumbnail != null" >
+        thumbnail = #{thumbnail,jdbcType=VARCHAR},
+      </if>
+      <if test="introduce != null" >
+        introduce = #{introduce,jdbcType=VARCHAR},
+      </if>
+      <if test="usedNum != null" >
+        used_num = #{usedNum,jdbcType=INTEGER},
+      </if>
+      <if test="sellStatus != null" >
+        sell_status = #{sellStatus,jdbcType=TINYINT},
+      </if>
+      <if test="templateType != null" >
+        template_type = #{templateType,jdbcType=TINYINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.ActivityTemplate" >
+    update activity_template
+    set code = #{code,jdbcType=VARCHAR},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      is_disable = #{isDisable,jdbcType=TINYINT},
+      is_hide = #{isHide,jdbcType=TINYINT},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      template_name = #{templateName,jdbcType=VARCHAR},
+      thumbnail = #{thumbnail,jdbcType=VARCHAR},
+      introduce = #{introduce,jdbcType=VARCHAR},
+      used_num = #{usedNum,jdbcType=INTEGER},
+      sell_status = #{sellStatus,jdbcType=TINYINT},
+      template_type = #{templateType,jdbcType=TINYINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  <!-- 模板使用次数加一 -->
+  <update id="updateUseNum" parameterType="java.util.Map">
+  	update activity_template 
+  	set used_num = used_num + 1,
+  		modify_time = #{time}
+  	where is_disable = 0 and
+  		  is_delete = 0 and
+  		  code = #{code} and
+  		  tenant_code = #{tenantCode}
+  </update>
+</mapper>

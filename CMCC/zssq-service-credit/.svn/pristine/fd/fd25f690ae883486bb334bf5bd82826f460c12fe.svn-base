@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.IntegralAccountDetailMapper">
+	<!-- integral_account_detail 表字段实体映射 -->
+	<resultMap type="com.zssq.dao.pojo.IntegralAccountDetail" id="BaseResultMap">
+		<id column="id" property="id" jdbcType="BIGINT"/>
+		<result column="account_code" property="accountCode" jdbcType="VARCHAR"/>
+		<result column="account_detail_type" property="accountDetailType" jdbcType="TINYINT"/>
+		<result column="current_value" property="currentValue" jdbcType="INTEGER"/>
+		<result column="current_balance" property="currentBalance" jdbcType="INTEGER"/>
+		<result column="action_code" property="actionCode" jdbcType="VARCHAR"/>
+		<result column="create_time" property="createTime" jdbcType="BIGINT"/>
+	</resultMap>	
+	
+	<!-- integral_account_detail 表字段列表 -->
+	<sql id="Base_Column_List">
+		id, action_code, account_detail_type, current_value, current_balance,
+		action_code, create_time
+	</sql>
+	
+	<!-- 新增积分明细 -->
+	<insert id="insert" parameterType="com.zssq.dao.pojo.IntegralAccountDetail">
+		insert into integral_account_detail(
+			id, account_code,
+			account_detail_type, current_value, current_balance,
+			action_code, create_time	
+		)
+		values(
+			#{id,jdbcType=BIGINT}, #{accountCode,jdbcType=VARCHAR}, 
+			#{accountDetailType,jdbcType=TINYINT}, 
+			#{currentValue,jdbcType=INTEGER},
+			#{currentBalance,jdbcType=INTEGER}, 
+			#{actionCode,jdbcType=VARCHAR},
+			#{createTime,jdbcType=BIGINT}
+		)
+	</insert>
+	
+	<!-- 查询用户当前积分余额 -->
+	<select id="selectBalance" parameterType="com.zssq.dao.pojo.IntegralAccountDetail" resultType="java.lang.Integer">
+		select current_balance from integral_account_detail
+		where create_time =
+			(select max(create_time) from integral_account_detail
+			where account_code = #{accountCode})
+		and account_code = #{accountCode}
+	</select>
+	
+	<!-- 查询今日用户已被奖励次数 -->
+	<select id="selectTodayCount" parameterType="hashmap" resultType="java.lang.Integer">
+		select count(1) from integral_account_detail
+		where account_code=#{accountCode}
+		and create_time between #{start} and #{end}
+		and account_detail_type = 1
+	</select>
+	
+	<!-- 分页查询积分明细列表 -->
+	<select id="selectPage" parameterType="com.zssq.dao.pojo.IntegralAccountDetail" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List"/>
+		from integral_account_detail
+		where account_code=#{accountCode,jdbcType=VARCHAR}
+		order by create_time desc, id
+		<if test="limitStart!=null and limitStart>=0">
+			limit ${limitStart},${limitEnd} 
+		</if>
+	</select>
+	
+	<!-- 查询积分明细列表的总记录数 -->
+	<select id="selectPageCount" parameterType="com.zssq.dao.pojo.IntegralAccountDetail" resultType="java.lang.Integer">
+		select count(1) from integral_account_detail
+		where account_code=#{accountCode,jdbcType=VARCHAR}
+	</select>
+	
+</mapper>

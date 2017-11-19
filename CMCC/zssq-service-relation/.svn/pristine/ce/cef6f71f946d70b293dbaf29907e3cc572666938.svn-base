@@ -1,0 +1,411 @@
+package com.zssq.service.impl;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.constants.RelationConstants;
+import com.zssq.dao.mapper.RelationQualityMapper;
+import com.zssq.dao.pojo.RelationQuality;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.model.EtRelationQualityModel;
+import com.zssq.service.RelationQualityService;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.vo.RelationQualityVO;
+
+/**
+ * 
+ * @ClassName: RelationQualityServiceImpl  
+ * @Description: 精华  
+ * @author ZKZ  
+ * @date 2017年3月18日  
+ *
+ */
+@Service("relationQualityService")
+public class RelationQualityServiceImpl implements RelationQualityService {
+	
+	@Autowired
+	private RelationQualityMapper relationQualityMapper;
+	
+	
+	private Logger log = Logger.getLogger(this.getClass());
+
+	/**
+	 * 获取班组精华列表
+	 */
+	@Override
+	public PageBean getTeamQualityList(PageParam pageParam, RelationQualityVO relationQualityVO)
+			throws BusinessException {
+		// 返回值
+		PageBean pageBean = null;
+		try {
+			
+			// 参数校验
+			if (pageParam == null || relationQualityVO == null) {
+				log.error("RelationQualityServiceImpl.getTeamQualityList：参数为空");
+				throw BusinessException.build("COMMON_402","参数");
+			}
+			if (StringUtils.isBlank(relationQualityVO.getTeamCode())) {
+				log.error("relationQualityService.getTeamQualityList :TeamCode为空");
+				throw BusinessException.build("COMMON_402","TeamCode");
+			}
+			if (StringUtils.isBlank(relationQualityVO.getUserCode())) {
+				log.error("relationQualityService.getTeamQualityList ：userCode为空");
+				throw BusinessException.build("COMMON_402","userCode");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("limitStart", pageParam.getPageNo() * pageParam.getPageSize()); // 查询开始条数
+			paramMap.put("limitCount", pageParam.getPageSize()); // 查询结果条数
+			paramMap.put("queryTime", relationQualityVO.getQueryTime()); // 首次查询时间
+			paramMap.put("teamCode", relationQualityVO.getTeamCode()); 
+			paramMap.put("userCode", relationQualityVO.getUserCode());  
+			paramMap.put("qualityDepend", RelationConstants.RELATION_QUALITY_DEPEND_TEAM); // 评论编号
+			//内容
+			List<Object> list = relationQualityMapper.selectTeamQualityList(paramMap);
+			// 总数
+			Long count = relationQualityMapper.selectTeamQualityListCount(paramMap);
+			 pageBean = new PageBean(pageParam.getPageNo(), pageParam.getPageSize(), count.intValue(), list);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		return pageBean;
+	}
+
+	
+	/**
+	 * 获取门户精华列表
+	 */
+	@Override
+	public PageBean getPortalQualityList(PageParam pageParam, RelationQualityVO relationQualityVO)
+			throws BusinessException {
+		// 返回值
+		PageBean pageBean = null;
+		try {
+			// 参数校验
+			if (pageParam == null || relationQualityVO == null) {
+				log.error("RelationQualityServiceImpl.getPortalQualityList：参数为空");
+				throw BusinessException.build("COMMON_402","参数");
+			}
+			if (StringUtils.isBlank(relationQualityVO.getOrgCode())) {
+				log.error("relationQualityService.getPortalQualityList ：orgCode为空");
+				throw BusinessException.build("COMMON_402","orgCode");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("limitStart", pageParam.getPageNo() * pageParam.getPageSize()); // 查询开始条数
+			paramMap.put("limitCount", pageParam.getPageSize()); // 查询结果条数
+			paramMap.put("queryTime", relationQualityVO.getQueryTime()); // 首次查询时间
+			paramMap.put("orgCode", relationQualityVO.getOrgCode()); 
+			paramMap.put("userCode", relationQualityVO.getUserCode());  
+			paramMap.put("qualityDepend", RelationConstants.RELATION_QUALITY_DEPEND_GROUP); 
+			paramMap.put("subjectClass", relationQualityVO.getSubjectClass()); 
+			//内容
+			List<Object> list = relationQualityMapper.selectPortalQualityList(paramMap);
+			// 总数
+			Long count = relationQualityMapper.selectPortalQualityListCount(paramMap);
+			pageBean= new PageBean(pageParam.getPageNo(), pageParam.getPageSize(), count.intValue(), list);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		return pageBean;
+	}
+
+	/**
+	 * 获取门户展示列表
+	 */
+	@Override
+	public List<Object> getPortalFrontQualityList(RelationQualityVO relationQualityVO)
+			throws BusinessException {
+		// 返回值
+		List<Object> list = null;
+		try {
+			
+			// 参数校验
+			if (relationQualityVO == null) {
+				log.error("relationQualityService.getPortalFrontQualityList：参数为空");
+				throw BusinessException.build("COMMON_402","参数");
+			}
+			if (StringUtils.isBlank(relationQualityVO.getOrgCode())) {
+				log.error("relationQualityService.getPortalFrontQualityList ：orgCode为空");
+				throw BusinessException.build("COMMON_402","orgCode");
+			}
+			if (relationQualityVO.getPageSize()==null||relationQualityVO.getPageSize()==0) {
+				log.error("relationQualityService.getPortalFrontQualityList ：pageSize参数有误");
+				throw BusinessException.build("COMMON_402","pageSize");
+			}
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("pageSize", relationQualityVO.getPageSize()); // 首次查询时间
+			paramMap.put("orgCode", relationQualityVO.getOrgCode()); // 评论编号
+			//内容
+			list= relationQualityMapper.selectPortalFrontQualityList(paramMap);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		return list;
+	}
+
+	/**
+	 * 门户置精
+	 */
+	@Override
+	public boolean setPortalQualityTop(RelationQualityVO relationQualityVO,Byte isTop) throws BusinessException {
+		try {
+			
+			// 参数校验
+			if (relationQualityVO == null||isTop==null) {
+				log.error("relationQualityService.setPortalQualityTop：参数为空");
+				throw BusinessException.build("COMMON_402","参数");
+			}
+
+			if (StringUtils.isBlank(relationQualityVO.getQualityCode())) {
+				log.error("relationQualityService.setPortalQualityTop ：qualityCode为空");
+				throw BusinessException.build("COMMON_402","qualityCode");
+			}
+			
+			
+			if(isTop==RelationConstants.RELATION_YES){
+				Map<String, Object> paramMap = new HashMap<String, Object>();
+				paramMap.put("qualityCode", relationQualityVO.getQualityCode());
+				paramMap.put("isTop", isTop);
+				paramMap.put("modifyTime", new Date().getTime());
+				paramMap.put("qualityTopTime", new Date().getTime());
+				return relationQualityMapper.updateQualityTop(paramMap)==1?true:false;
+			}else{
+				//取消置顶
+				Map<String, Object> paramMap = new HashMap<String, Object>();
+				paramMap.put("qualityCode", relationQualityVO.getQualityCode());
+				paramMap.put("isTop", isTop);
+				paramMap.put("modifyTime", new Date().getTime());
+				boolean  falg= relationQualityMapper.updateQualityTop(paramMap)==1;
+				Map<String, Object> map = new HashMap<String, Object>();
+				map.put("qualityCode", relationQualityVO.getQualityCode());
+				map.put("orgCode", relationQualityVO.getOrgCode());
+				map.put("modifyTime", new Date().getTime());
+				relationQualityMapper.updateSortNum(map);
+				return falg;
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		
+	}
+
+	/**
+	 * 更新排序
+	 */
+	@Override
+	public boolean updatePortalQualitySeq(RelationQualityVO relationQualityVO) throws BusinessException {
+		boolean  succeed=true;
+		try {
+			// 参数校验
+			if (relationQualityVO == null) {
+				log.error("relationQualityService.updatePortalQualitySeq：参数为空");
+				throw BusinessException.build("COMMON_402","参数");
+			}
+			if (relationQualityVO.getActionClass()==null) {
+				log.error("relationQualityService.updatePortalQualitySeq ：actionClass为空");
+				throw BusinessException.build("COMMON_402","actionClass");
+			}
+			if (StringUtils.isBlank(relationQualityVO.getQualityCode())) {
+				log.error("relationQualityService.updatePortalQualitySeq ：qualityCode为空");
+				throw BusinessException.build("COMMON_402","qualityCode");
+			}
+			if (relationQualityVO.getSortNum()==null) {
+				log.error("relationQualityService.updatePortalQualitySeq ：sortNum为空");
+				throw BusinessException.build("COMMON_402","sortNum");
+			}
+			
+			
+			//入参
+			Byte actionClass = relationQualityVO.getActionClass();
+			String qualityCode = relationQualityVO.getQualityCode();
+			//当前行排序值
+			Long sortNum = relationQualityVO.getSortNum();
+			// 查询条件
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("queryTime", relationQualityVO.getQueryTime()); // 首次查询时间
+			paramMap.put("beginTime", relationQualityVO.getBeginTime()); 
+			paramMap.put("endTime", relationQualityVO.getEndTime()); 
+			paramMap.put("recStatus", relationQualityVO.getRecStatus()); 
+			paramMap.put("subjectClass", relationQualityVO.getSubjectClass()); 
+			paramMap.put("subjectTitle", relationQualityVO.getSubjectTitle()); 
+			paramMap.put("orgCode", relationQualityVO.getOrgCode()); 
+			//内容
+			List<Object> list =relationQualityMapper.selectPortalRecListSeq(paramMap);
+			String previousRowCode="";
+			String AfterRowCode="";
+			boolean flag=false;
+			for (Object object : list) {
+				EtRelationQualityModel recommend = (EtRelationQualityModel) object;
+				if(flag){
+					AfterRowCode=recommend.getQualityCode();
+					break;
+				}
+				//记录上一次code 
+				else if(!recommend.getQualityCode().equals(qualityCode)){
+					previousRowCode=recommend.getQualityCode();
+				}
+				else if(recommend.getQualityCode().equals(qualityCode)){
+					flag=true;
+					continue;
+				}
+				
+			}
+			
+			if(actionClass==RelationConstants.RELATION_ACTION_YES&&!"".equals(previousRowCode)){//上移
+				//替换当前排序值
+				Map<String, Object> upMap = new HashMap<String, Object>();
+				upMap.put("qualityCode",previousRowCode); // 替换行
+				upMap.put("nowRowCode",qualityCode); // 当前行
+				upMap.put("modifyTime", new Date().getTime());
+				relationQualityMapper.updateMyUpSortNum(upMap);
+				
+				//替换被影响排序值
+				Map<String, Object> upMap1 = new HashMap<String, Object>();
+				upMap1.put("qualityCode",previousRowCode); 
+				upMap1.put("tempNum",sortNum); // 交换排序
+				upMap1.put("modifyTime", new Date().getTime());
+				relationQualityMapper.updateOtherSortNum(upMap1);
+			}else if(actionClass==RelationConstants.RELATION_ACTION_NO&&!"".equals(AfterRowCode)){//下移
+				//替换当前排序值
+				Map<String, Object> downMap = new HashMap<String, Object>();
+				downMap.put("qualityCode",AfterRowCode); // 替换行
+				downMap.put("nowRowCode",qualityCode); // 当前行
+				downMap.put("modifyTime", new Date().getTime());
+				relationQualityMapper.updateMyUpSortNum(downMap);
+				//替换被影响排序值
+				Map<String, Object> downMap1 = new HashMap<String, Object>();
+				downMap1.put("qualityCode",AfterRowCode); 
+				downMap1.put("tempNum",sortNum); // 交换排序
+				downMap1.put("modifyTime", new Date().getTime());
+				relationQualityMapper.updateOtherSortNum(downMap1);
+			}else if(actionClass==1&"".equals(previousRowCode)){
+				//已经上移到最顶部
+				throw BusinessException.build("RELATION_19202");
+			}else if(actionClass==2&"".equals(AfterRowCode)){
+				//已经上移到最低部
+				throw BusinessException.build("RELATION_19203");
+			}
+		} catch (BusinessException e) {
+			succeed=false;
+			throw e;
+		}
+		return succeed;
+	}
+
+
+
+
+	/**
+	 * 获取用户精华列表
+	 */
+	@Override
+	public PageBean getUserQualityPageBean(PageParam pageParam, RelationQualityVO relationQualityVO)throws BusinessException  {
+		//返回值
+		PageBean pageBean;
+		try {
+			
+			// 参数校验
+			if (pageParam == null || relationQualityVO == null) {
+				log.error("RelationQualityServiceImpl.getUserQualityPageBean：参数为空");
+				throw BusinessException.build("COMMON_402","参数");
+			}
+			// 参数校验
+			if (pageParam.getPageNo() == null || pageParam.getPageSize() == null) {
+				log.error("relationQualityService.getUserQualityPageBean：分页信息为空");
+				throw BusinessException.build("COMMON_402","分页信息");
+			}
+			if (relationQualityVO.getQueryTime() == null) {
+				log.error("relationQualityService.getUserQualityPageBean ：queryTime为空");
+				throw BusinessException.build("COMMON_402","queryTime");
+			}
+			if (StringUtils.isBlank(relationQualityVO.getUserCode())) {
+				log.error("relationQualityService.getUserQualityPageBean ：userCode为空");
+				throw BusinessException.build("COMMON_402","userCode");
+			}
+			if (StringUtils.isBlank(relationQualityVO.getQueryUserCode())) {
+				log.error("relationQualityService.getUserQualityPageBean ：qualityUserCode为空");
+				throw BusinessException.build("COMMON_402","qualityUserCode");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("limitStart", pageParam.getPageNo() * pageParam.getPageSize()); // 查询开始条数
+			paramMap.put("limitCount", pageParam.getPageSize()); // 查询结果条数
+			paramMap.put("queryTime", relationQualityVO.getQueryTime()); // 首次查询时间
+			paramMap.put("userCode", relationQualityVO.getUserCode()); // 用户编号
+			paramMap.put("queryUserCode", relationQualityVO.getQueryUserCode()); // 查询用户编号
+			paramMap.put("subjectDepend", RelationConstants.RELATION_SUBJECT_DEPEND_USER); // 内容从属
+			
+			//内容
+			List<Object> list = relationQualityMapper.selectUserQualityList(paramMap);
+			// 总数
+			Long count = relationQualityMapper.selectUserQualityListCount(paramMap);
+			pageBean= new PageBean(pageParam.getPageNo(), pageParam.getPageSize(), count.intValue(), list);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		return pageBean;
+	}
+
+
+
+
+
+
+	/**
+	 * @Function isQuality
+	 * @Description 判断本级组织内是否是精华
+	 * @param quality
+	 * @return
+	 * @throws BusinessException
+	 */
+	@Override
+	public boolean isQuality(RelationQuality quality) throws BusinessException {
+		try {
+			// 参数校验
+		if (quality == null) {
+			log.error("RelationQualityServiceImpl.isQuality：参数为空");
+			throw BusinessException.build("COMMON_402","参数");
+		}
+		if (quality.getSubjectClass()== null) {
+			log.error("relationQualityService.isQuality ：subjectClass为空");
+			throw BusinessException.build("COMMON_402","subjectClass");
+		}
+		if (StringUtils.isBlank(quality.getSubjectCode())) {
+			log.error("relationQualityService.isQuality ：subjectCode为空");
+			throw BusinessException.build("COMMON_402","subjectCode");
+		}
+		if (StringUtils.isBlank(quality.getOrgCode())) {
+			log.error("relationQualityService.isQuality ：orgCode为空");
+			throw BusinessException.build("COMMON_402","orgCode");
+		}
+			return relationQualityMapper.selectByOrgCode(quality)>0?true:false;
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+	}
+
+
+	/**
+	 * 通过精华编号查询精华信息
+	 */
+	@Override
+	public RelationQuality getQualityByCode(RelationQuality quality) {
+		return relationQualityMapper.selectQualityByCode(quality);
+	}
+
+}

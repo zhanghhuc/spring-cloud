@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.vote.dao.mapper.TransVoteUserMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.vote.pojo.TransVoteUser" >
+    <result column="VOTE_USER_ID" property="voteUserId" jdbcType="INTEGER" />
+    <result column="VOTE_ID" property="voteId" jdbcType="INTEGER" />
+    <result column="USER_ID" property="userId" jdbcType="INTEGER" />
+    <result column="VOTE_DATE" property="voteDate" jdbcType="TIMESTAMP" />
+    <result column="VOTE_OPTIONS" property="voteOptions" jdbcType="INTEGER" />
+    <result column="TEAM_ID" property="teamId" jdbcType="INTEGER" />
+    <result column="CITY_ID" property="cityId" jdbcType="INTEGER" />
+    <result column="PROVINCE_ID" property="provinceId" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    VOTE_USER_ID, VOTE_ID, USER_ID, VOTE_DATE, VOTE_OPTIONS, TEAM_ID, CITY_ID, PROVINCE_ID
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.zssq.vote.pojo.TransVoteUserExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from trans_vote_user
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+    <if test="limitStart != null and limitStart>=0" >
+      limit #{limitStart} , #{limitEnd}
+    </if>
+  </select>
+  <delete id="deleteByExample" parameterType="com.zssq.vote.pojo.TransVoteUserExample" >
+    delete from trans_vote_user
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.zssq.vote.pojo.TransVoteUser" >
+    insert into trans_vote_user (VOTE_USER_ID, VOTE_ID, USER_ID, 
+      VOTE_DATE, VOTE_OPTIONS, TEAM_ID, 
+      CITY_ID, PROVINCE_ID)
+    values (#{voteUserId,jdbcType=INTEGER}, #{voteId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, 
+      #{voteDate,jdbcType=TIMESTAMP}, #{voteOptions,jdbcType=INTEGER}, #{teamId,jdbcType=INTEGER}, 
+      #{cityId,jdbcType=INTEGER}, #{provinceId,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.vote.pojo.TransVoteUser" >
+    insert into trans_vote_user
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="voteUserId != null" >
+        VOTE_USER_ID,
+      </if>
+      <if test="voteId != null" >
+        VOTE_ID,
+      </if>
+      <if test="userId != null" >
+        USER_ID,
+      </if>
+      <if test="voteDate != null" >
+        VOTE_DATE,
+      </if>
+      <if test="voteOptions != null" >
+        VOTE_OPTIONS,
+      </if>
+      <if test="teamId != null" >
+        TEAM_ID,
+      </if>
+      <if test="cityId != null" >
+        CITY_ID,
+      </if>
+      <if test="provinceId != null" >
+        PROVINCE_ID,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="voteUserId != null" >
+        #{voteUserId,jdbcType=INTEGER},
+      </if>
+      <if test="voteId != null" >
+        #{voteId,jdbcType=INTEGER},
+      </if>
+      <if test="userId != null" >
+        #{userId,jdbcType=INTEGER},
+      </if>
+      <if test="voteDate != null" >
+        #{voteDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="voteOptions != null" >
+        #{voteOptions,jdbcType=INTEGER},
+      </if>
+      <if test="teamId != null" >
+        #{teamId,jdbcType=INTEGER},
+      </if>
+      <if test="cityId != null" >
+        #{cityId,jdbcType=INTEGER},
+      </if>
+      <if test="provinceId != null" >
+        #{provinceId,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.zssq.vote.pojo.TransVoteUserExample" resultType="java.lang.Integer" >
+    select count(*) from trans_vote_user
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update trans_vote_user
+    <set >
+      <if test="record.voteUserId != null" >
+        VOTE_USER_ID = #{record.voteUserId,jdbcType=INTEGER},
+      </if>
+      <if test="record.voteId != null" >
+        VOTE_ID = #{record.voteId,jdbcType=INTEGER},
+      </if>
+      <if test="record.userId != null" >
+        USER_ID = #{record.userId,jdbcType=INTEGER},
+      </if>
+      <if test="record.voteDate != null" >
+        VOTE_DATE = #{record.voteDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.voteOptions != null" >
+        VOTE_OPTIONS = #{record.voteOptions,jdbcType=INTEGER},
+      </if>
+      <if test="record.teamId != null" >
+        TEAM_ID = #{record.teamId,jdbcType=INTEGER},
+      </if>
+      <if test="record.cityId != null" >
+        CITY_ID = #{record.cityId,jdbcType=INTEGER},
+      </if>
+      <if test="record.provinceId != null" >
+        PROVINCE_ID = #{record.provinceId,jdbcType=INTEGER},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update trans_vote_user
+    set VOTE_USER_ID = #{record.voteUserId,jdbcType=INTEGER},
+      VOTE_ID = #{record.voteId,jdbcType=INTEGER},
+      USER_ID = #{record.userId,jdbcType=INTEGER},
+      VOTE_DATE = #{record.voteDate,jdbcType=TIMESTAMP},
+      VOTE_OPTIONS = #{record.voteOptions,jdbcType=INTEGER},
+      TEAM_ID = #{record.teamId,jdbcType=INTEGER},
+      CITY_ID = #{record.cityId,jdbcType=INTEGER},
+      PROVINCE_ID = #{record.provinceId,jdbcType=INTEGER}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+</mapper>

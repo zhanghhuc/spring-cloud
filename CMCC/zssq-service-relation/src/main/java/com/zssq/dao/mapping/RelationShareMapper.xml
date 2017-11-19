@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.RelationShareMapper">
+
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.RelationShare">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="share_code" property="shareCode" jdbcType="VARCHAR" />
+		<result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+		<result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+		<result column="remark" property="remark" jdbcType="VARCHAR" />
+		<result column="dynamic_code" property="dynamicCode" jdbcType="VARCHAR" />
+		<result column="subject_code" property="subjectCode" jdbcType="VARCHAR" />
+		<result column="subject_class" property="subjectClass" jdbcType="TINYINT" />
+		<result column="user_code" property="userCode" jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<!-- 分享详情返回集合 -->
+	<resultMap id="ShareResultMap" type="com.zssq.model.RelationShareModel">
+		<result column="share_code" property="shareCode" jdbcType="VARCHAR" />
+		<result column="dynamic_code" property="dynamicCode" jdbcType="VARCHAR" />
+		<result column="subject_class" property="subjectClass" jdbcType="TINYINT" />
+		<result column="subject_code" property="subjectCode" jdbcType="VARCHAR" />
+		<result column="user_code" property="userCode" jdbcType="VARCHAR" />
+		<result column="subject_depend" property="subjectDepend" jdbcType="TINYINT" />
+		<result column="team_code" property="teamCode" jdbcType="VARCHAR" />
+		<result column="subject_source" property="subjectSource" jdbcType="TINYINT" />
+		<result column="subject_title" property="subjectTitle" jdbcType="VARCHAR" />
+		<result column="subject_digest" property="subjectDigest" jdbcType="LONGVARCHAR" />
+		<result column="subject_url" property="subjectUrl" jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<!-- 列列表 -->
+	<sql id="Base_Column_List">
+		id, share_code, tenant_code, org_code,create_time, modify_time, remark,
+		dynamic_code, subject_code, subject_class, user_code
+	</sql>
+	
+	<!-- 查询分享列表公共SQL -->
+	<sql id="select_user_share_sql">
+		FROM relation_share
+		WHERE user_code = #{userCode,jdbcType=VARCHAR}
+		AND create_time &lt; #{queryTime,jdbcType=BIGINT}
+	</sql>
+	
+	<!-- 查询分享个数 -->
+	<select id="selectUserShareCount" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+		<include refid="select_user_share_sql" />
+	</select>
+	
+	<!-- 查询分享列表 -->
+	<select id="selectUserShareList" parameterType="map" resultMap="ShareResultMap">
+		SELECT
+			rs.share_code,
+			rs.dynamic_code,
+			rs.subject_class,
+			rs.subject_code,
+			rsi.user_code,
+			rsi.team_code,
+			rsi.subject_depend,
+			rsi.subject_source,
+			rsi.subject_title,
+			rsi.subject_digest,
+			rsi.subject_url
+		FROM
+			(
+				SELECT
+					share_code,
+					dynamic_code,
+					subject_class,
+					subject_code,
+					create_time
+				<include refid="select_user_share_sql" />
+				ORDER BY create_time DESC
+				LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+			) rs
+		LEFT JOIN relation_subject_info rsi 
+		ON rs.subject_code = rsi.subject_code
+		ORDER BY rs.create_time
+	</select>
+	
+	<!-- 插入 -->
+	<insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.zssq.dao.pojo.RelationShare">
+		INSERT INTO relation_share (
+			share_code, 
+			tenant_code,
+			org_code, 
+			create_time,
+			modify_time, 
+			remark, 
+			dynamic_code,
+			subject_code, 
+			subject_class, 
+			user_code
+		) VALUES (
+			#{shareCode,jdbcType=VARCHAR},
+			#{tenantCode,jdbcType=VARCHAR},
+			#{orgCode,jdbcType=VARCHAR}, 
+			#{createTime,jdbcType=BIGINT},
+			#{modifyTime,jdbcType=BIGINT}, 
+			#{remark,jdbcType=VARCHAR},
+			#{dynamicCode,jdbcType=VARCHAR},
+			#{subjectCode,jdbcType=VARCHAR}, 
+			#{subjectClass,jdbcType=TINYINT}, 
+			#{userCode,jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<!-- 删除 -->
+	<delete id="delete" parameterType="map">
+		DELETE 
+		FROM relation_share
+		WHERE share_code = #{shareCode,jdbcType=VARCHAR}
+		AND user_code= #{userCode,jdbcType=VARCHAR}
+	</delete>
+	
+</mapper>

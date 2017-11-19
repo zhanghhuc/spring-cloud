@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.BlogAttachMapper">
+	
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.BlogAttach">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="attach_code" property="attachCode" jdbcType="VARCHAR" />
+		<result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+		<result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+		<result column="remark" property="remark" jdbcType="VARCHAR" />
+		<result column="blog_code" property="blogCode" jdbcType="VARCHAR" />
+		<result column="attach_url" property="attachUrl" jdbcType="VARCHAR" />
+		<result column="attach_old_name" property="attachOldName" jdbcType="VARCHAR" />
+		<result column="attach_old_ext" property="attachOldExt" jdbcType="VARCHAR" />
+		<result column="attach_new_name" property="attachNewName" jdbcType="VARCHAR" />
+		<result column="attach_new_ext" property="attachNewExt" jdbcType="VARCHAR" />
+		<result column="attach_class" property="attachClass" jdbcType="TINYINT" />
+		<result column="attach_down_num" property="attachDownNum" jdbcType="INTEGER" />
+	</resultMap>
+	
+	<!-- 列列表 -->
+	<sql id="Base_Column_List">
+		id, attach_code, tenant_code, org_code, create_time, modify_time, remark,
+		blog_code, attach_url, attach_old_name, attach_old_ext, attach_new_name,
+		attach_new_ext, attach_class, attach_down_num
+	</sql>
+	
+	<!-- 查询列表 -->
+	<select id="listAll" parameterType="map" resultMap="BaseResultMap">
+		SELECT 
+			attach_url, 
+			attach_old_name, 
+			attach_old_ext, 
+			attach_new_name,
+			attach_new_ext, 
+			attach_class
+		FROM blog_attach
+		WHERE blog_code = #{blogCode,jdbcType=VARCHAR}
+		ORDER BY create_time DESC
+	</select>
+	
+	<!-- 批量插入 -->
+	<insert id="batchInsert" useGeneratedKeys="true" keyProperty="id" parameterType="list">
+		INSERT INTO blog_attach (
+			attach_code, 
+			tenant_code,
+			org_code, 
+			create_time,
+			modify_time, 
+			remark, 
+			blog_code,
+			attach_url, 
+			attach_old_name, 
+			attach_old_ext,
+			attach_new_name, 
+			attach_new_ext, 
+			attach_class,
+			attach_down_num
+		) VALUES 
+		<foreach collection="list" item="item" index="index" separator=",">
+			(
+				#{item.attachCode,jdbcType=VARCHAR},
+				#{item.tenantCode,jdbcType=VARCHAR},
+				#{item.orgCode,jdbcType=VARCHAR}, 
+				#{item.createTime,jdbcType=BIGINT},
+				#{item.modifyTime,jdbcType=BIGINT}, 
+				#{item.remark,jdbcType=VARCHAR},
+				#{item.blogCode,jdbcType=VARCHAR},
+				#{item.attachUrl,jdbcType=VARCHAR}, 
+				#{item.attachOldName,jdbcType=VARCHAR}, 
+				#{item.attachOldExt,jdbcType=VARCHAR},
+				#{item.attachNewName,jdbcType=VARCHAR}, 
+				#{item.attachNewExt,jdbcType=VARCHAR},
+				#{item.attachClass,jdbcType=TINYINT},
+				#{item.attachDownNum,jdbcType=INTEGER}
+			)
+		</foreach>
+	</insert>
+	
+	<!-- 删除 -->
+	<delete id="delete" parameterType="string">
+		DELETE FROM blog_attach
+		WHERE blog_code = #{blogCode,jdbcType=VARCHAR}
+	</delete>
+	
+	<!-- 修改数量 -->
+	<update id="updateData" parameterType="map">
+		UPDATE blog_attach SET
+			modify_time = #{modifyTime,jdbcType=BIGINT},
+			attach_down_num = attach_down_num + #{updateNumber,jdbcType=INTEGER}
+		WHERE attach_code = #{attachCode,jdbcType=VARCHAR}
+	</update>
+
+</mapper>

@@ -1,0 +1,93 @@
+package com.zssq.service.impl;
+
+import com.zssq.biz.NewsArchiveBiz;
+import com.zssq.biz.NewsCommentBiz;
+import com.zssq.biz.NewsInfoContentBiz;
+import com.zssq.biz.NewsInfoHistoryBiz;
+import com.zssq.constants.NewsConstants;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.news.dao.pojo.NewsArchive;
+import com.zssq.news.dao.pojo.NewsInfoContent;
+import com.zssq.news.model.*;
+import com.zssq.news.service.NewsArchiveService;
+import com.zssq.utils.PageBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+public class NewsArchiveServiceImpl implements NewsArchiveService {
+
+    @Autowired
+    private NewsArchiveBiz newsArchiveBiz;
+
+    @Autowired
+    private NewsInfoContentBiz newsInfoContentBiz;
+    @Autowired
+    private NewsCommentBiz newsCommentBiz;
+    @Autowired
+    private NewsInfoHistoryBiz newsInfoHistoryBiz;
+
+    @Override
+    public PageBean getNewsArchives(NewsArchiveQuery newsArchiveQuery) throws BusinessException {
+        newsArchiveQuery.setOrderByClause("modify_time desc");
+        PageBean pageBean = new PageBean();
+        int count = newsArchiveBiz.selectCount(newsArchiveQuery);
+        List<NewsArchive> list = newsArchiveBiz.selectList(newsArchiveQuery);
+        pageBean.setTotalCount(count);
+        pageBean.setRecordList(list);
+        return pageBean;
+    }
+
+    @Override
+    public int addNewsArchives(NewsArchiveModel newsArchiveModel) throws BusinessException {
+        newsArchiveBiz.addNewsArchive(newsArchiveModel);
+        String newsCode = newsArchiveModel.getNewsCodes();
+        newsInfoContentBiz.updateArchiveNews(newsCode);
+        NewsModel newsModel = generateNewsModel(newsCode, newsArchiveModel);
+       return  newsInfoHistoryBiz.addNewsHistory(newsModel);
+    }
+
+    private NewsModel generateNewsModel(String newsCode, NewsArchiveModel newsArchiveModel) {
+        NewsModel newsModel = new NewsModel();
+        newsModel.setNewsCode(newsCode);
+        newsModel.setUserCode(newsArchiveModel.getCreatorCode());
+        newsModel.setInfoOperatorOrg(newsArchiveModel.getOrgCode());
+        newsModel.setInfoStatus(NewsConstants.NEWS_STATUS_ARCHIVED);
+        newsModel.setTenantCode(newsArchiveModel.getTenantCode());
+        return newsModel;
+    }
+
+    @Override
+    public NewsInfoContent generateNewsData(String newsCodes) {
+        //查询所有的新闻
+        NewsInfoContent newsInfoContent = newsInfoContentBiz.selectByArchivedCodes(newsCodes);
+        //循环新闻，查询新闻下所有评论和回复
+        List<NewsCommentModel> commentModels = getComments(newsInfoContent.getNewsCode());
+        newsInfoContent.setNewsCommentModels(commentModels);
+
+        return newsInfoContent;
+    }
+
+    private List<String> generateNewsCodes(String newsCodes) {
+        List<String> newsCodeList = new ArrayList<>();
+        String[] array = newsCodes.split(",");
+        for (int index = 0; index < array.length; index++) {
+            newsCodeList.add(array[index]);
+        }
+        return newsCodeList;
+    }
+
+    private List<NewsCommentModel> getComments(String newsCode) {
+        NewsCommentQuery newsCommentQuery = new NewsCommentQuery();
+        newsCommentQuery.setNewsCode(newsCode);
+        newsCommentQuery.setIsDelete(NewsConstants.NEWS_NO_DELETE);
+        newsCommentQuery.setIsShield(NewsConstants.NEWS_NO_SHIELD);
+        newsCommentQuery.setOrderByClause("create_time desc");
+        return newsCommentBiz.selectCommentsAndReply(newsCommentQuery);
+    }
+
+
+}

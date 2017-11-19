@@ -1,0 +1,569 @@
+package com.zssq.honor.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.constants.CreditConstants;
+import com.zssq.constants.HonorConstants;
+import com.zssq.dao.pojo.HonorAwardRecord;
+import com.zssq.dao.pojo.HonorComment;
+import com.zssq.dao.pojo.HonorCommentReply;
+import com.zssq.dao.pojo.HonorDefinition;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.dao.pojo.TeamInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.honor.vo.AddHonorVo;
+import com.zssq.honor.vo.AwardingHonorVo;
+import com.zssq.honor.vo.GetAwardRecordDetailVo;
+import com.zssq.honor.vo.GetCommentListForLocationVo;
+import com.zssq.honor.vo.GetCommentReplyListForLocationVo;
+import com.zssq.honor.vo.GetHonorInfoVo;
+import com.zssq.honor.vo.GetHonorListVo;
+import com.zssq.honor.vo.UpdateHonorVo;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.HonorService;
+import com.zssq.service.ITeamElectService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.utils.StringTools;
+import com.zssq.vote.controller.BaseController;
+
+
+/**
+ * @ClassName HonorController
+ * @Description 后台荣誉管理
+ * @author LiuYunLong
+ * @date 2017年3月16日 上午9:23:07
+ * @version 1.0
+ * @since JDK 1.7
+ */
+@Controller
+@RequestMapping("/honor")
+public class HonorController extends BaseController{
+	
+	@Autowired
+	private HonorService honorService;
+	
+	@Autowired
+	private ITeamElectService teamElectService;
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	/**
+	 * @Function getHonorList
+	 * @Description 查询荣誉列表
+	 * @param inVo
+	 * @return ResultJSON
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "list", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getHonorList(@RequireValid GetHonorListVo inVo) throws BusinessException {
+		try {
+			//设置分页参数
+			PageParam pagePrarm = new PageParam(Integer.valueOf(inVo.getPageNo()), Integer.valueOf(inVo.getPageSize()));
+			//设置查询条件
+			HonorDefinition honorDefinition = new HonorDefinition();
+			honorDefinition.setHonorName(inVo.getHonorName());
+			if (StringTools.isNotEmpty(inVo.getHonorType())) {
+				honorDefinition.setHonorType(Byte.valueOf(inVo.getHonorType()));
+			}
+			
+			// 根据userCode信息查询tenant_code(租户标识)、org_code(组织机构编码)
+			SysUserInfo userInfo = getUserInfo(inVo.getUserCode());
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+			honorDefinition.setTenantCode(tenantCode);
+			honorDefinition.setOrgCode(orgCode);
+			
+			//调用查询服务
+			PageBean pageBean = honorService.getHonorList(pagePrarm,honorDefinition);
+			List<HonorDefinition> honorList = pageBean.getRecordList();
+			//组织返回荣誉信息
+			JSONArray jsonArray = new JSONArray();
+			for(HonorDefinition honor : honorList){
+				JSONObject jsonObject = new JSONObject();
+				jsonObject.put("honorCode", honor.getHonorDefinitionCode());
+				jsonObject.put("honorName", honor.getHonorName());
+				jsonObject.put("honorType", StringTools.formatToString(honor.getHonorType()));
+				jsonObject.put("honorUrl", honor.getHonorUrl());
+				jsonObject.put("remark", StringTools.formatToString(honor.getRemark()));
+				jsonArray.add(jsonObject);
+			}
+			JSONObject jo = new JSONObject();
+			jo.put("totalCount", pageBean.getTotalCount());
+			jo.put("honorList", JSON.toJSON(jsonArray));
+			//设置返回信息
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(jo);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("HonorController.getHonorList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+	}
+	
+	/**
+	 * @Function updateHonor
+	 * @Description 修改荣誉
+	 * @param inVo
+	 * @return ResultJSON
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "update", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON updateHonor(@RequireValid UpdateHonorVo inVo) throws BusinessException {
+		try {
+			HonorDefinition honorDefinition = new HonorDefinition();
+			honorDefinition.setHonorDefinitionCode(inVo.getHonorCode());
+			honorDefinition.setHonorName(inVo.getHonorName());
+			honorDefinition.setHonorType(Byte.valueOf(inVo.getHonorType()));
+			honorDefinition.setHonorUrl(inVo.getHonorUrl());
+			if (StringTools.isNotEmpty(inVo.getRemark())) {
+				honorDefinition.setRemark(inVo.getRemark());
+			}
+			// 根据userCode信息查询tenant_code(租户标识)、org_code(组织机构编码)
+			SysUserInfo userInfo = getUserInfo(inVo.getUserCode());
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+			honorDefinition.setOrgCode(orgCode);
+			honorDefinition.setTenantCode(tenantCode);
+			honorService.updateHonor(honorDefinition);
+			//设置返回信息
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(new JSONObject());
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("HonorController.updateHonor", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+	}
+	
+	/**
+	 * @Function addHonor
+	 * @Description 添加荣誉
+	 * @param inVo
+	 * @return ResultJSON
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "add", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON addHonor(@RequireValid AddHonorVo inVo) throws BusinessException {
+		try {
+			HonorDefinition honorDefinition = new HonorDefinition();
+			honorDefinition.setHonorName(inVo.getHonorName());
+			honorDefinition.setHonorType(Byte.valueOf(inVo.getHonorType()));
+			honorDefinition.setHonorUrl(inVo.getHonorUrl());
+			if (StringTools.isNotEmpty(inVo.getRemark())) {
+				honorDefinition.setRemark(inVo.getRemark());
+			}
+			// 根据userCode信息查询tenant_code(租户标识)、org_code(组织机构编码)
+			SysUserInfo userInfo = getUserInfo(inVo.getUserCode());
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+			honorDefinition.setOrgCode(orgCode);
+			honorDefinition.setTenantCode(tenantCode);
+			String honorCode = honorService.addHonor(honorDefinition);
+			//设置返回结果
+			JSONObject jo = new JSONObject();
+			ResultJSON result = new ResultJSON("COMMON_200");
+			jo.put("honorCode", honorCode);
+			result.setBody(jo);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("HonorController.addHonor", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * @Function awardingHonor
+	 * @Description 颁发荣誉
+	 * @param inVo
+	 * @return ResultJSON
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "awarding", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON awardingHonor(@RequireValid AwardingHonorVo inVo) throws BusinessException {
+		try {
+			//准备参数
+			HonorAwardRecord honorAwardRecord = new HonorAwardRecord();
+			honorAwardRecord.setHonorCode(inVo.getHonorCode());
+			honorAwardRecord.setHonorName(inVo.getHonorName());
+			honorAwardRecord.setHonorUrl(inVo.getHonorUrl());
+			if (StringTools.isNotEmpty(inVo.getAgentCode())) {
+				honorAwardRecord.setAgentCode(inVo.getAgentCode());
+			}
+			honorAwardRecord.setAwarderCode(inVo.getAwarderCode());
+			
+			// TODO 根据awarderCode 查询 name 和 position
+			SysUserInfo awarderInfo = getUserInfo(inVo.getAwarderCode());
+			honorAwardRecord.setAwarderName(awarderInfo.getUserName());
+			honorAwardRecord.setAwarderPosition("");
+			honorAwardRecord.setHonoreeType(Byte.valueOf(inVo.getHonoreeType()));
+			honorAwardRecord.setHonoreeCode(inVo.getHonoreeCode());
+			honorAwardRecord.setAwardReason(inVo.getAwardReason());
+			
+			// 根据userCode信息查询tenant_code(租户标识)、org_code(组织机构编码)
+			SysUserInfo userInfo = getUserInfo(inVo.getUserCode());
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+			honorAwardRecord.setTenantCode(tenantCode);
+			honorAwardRecord.setOrgCode(orgCode);
+			List<String> codeList = honorService.addAwardingHonor(honorAwardRecord);
+			
+			List<String> teamCodes = new ArrayList<>();
+			// 拼装返回结果
+			StringBuilder awardCodes = new StringBuilder();
+			for (String code : codeList) {
+				try {
+					/** 1、查询荣誉授予记录 */
+					HonorAwardRecord record = honorService.getAwardHonorRecordInfoByCode(code,tenantCode);
+					if(null != record){
+						/** 2、若是授予对象为班组 查看班组是否解散 */
+						Byte isDissolve = 0;
+						if (HonorConstants.HONOREE_TYPE_2.equals(record.getHonoreeType())) {
+							// 授予班组荣誉
+							TeamInfo teamInfo = getTeamInfoByCode(record.getHonoreeCode());
+							isDissolve = teamInfo.getIsDissolve();
+							//班组没有解散的情况
+							if(HonorConstants.NO.equals(isDissolve)){
+								// 拼装班组的Code
+								teamCodes.add(record.getHonoreeCode());
+							}
+						}
+						String dynamicCode = UUIDHelper.getUUID();
+						record.setDynamicCode(dynamicCode);
+						/** 3、组织参数 发布动态 */
+						String operateOrgCode = awarderInfo.getManageOrgInfo().getSysOrgCode();
+						publishDynamicOfAwardHonor(record,operateOrgCode,isDissolve);
+						
+						/** 4、发送"每获得一次荣誉"行为信息  默认发放1个金币  */
+						// 班组
+						if (HonorConstants.HONOREE_TYPE_2.equals(record.getHonoreeType())) {
+							noticeAction(orgCode, CreditConstants.COMMAND_HONOR_ATTAIN, record.getHonoreeCode(), CreditConstants.TYPE_TEAM);			
+						}
+						// 个人
+						if (HonorConstants.HONOREE_TYPE_1.equals(record.getHonoreeType())){
+							noticeAction(orgCode, CreditConstants.COMMAND_HONOR_ATTAIN, record.getHonoreeCode(), CreditConstants.TYPE_INDIVIDUAL);	
+						}
+					}else{
+						throw BusinessException.build("HONOR_21002", "荣誉授予记录");
+					}
+				} catch (Exception e) {
+					// 动态发布失败，则进行数据回滚
+					log.info("动态发布失败，进行授予荣誉记录数据回滚操作...");
+					honorService.deleteAwardRecord(honorAwardRecord.getTenantCode(), code);
+					log.error("动态发布失败，异常信息：", e);
+					throw e;
+				}
+				awardCodes.append(code).append("|");
+			}
+			String awardCode = "";
+			if (codeList.size() > 0) {
+				awardCode = awardCodes.substring(0, awardCodes.length() - 1);
+			}
+			// 后台颁发百强班组荣誉 更改已颁发状态
+			teamElectService.awardHonor(teamCodes);
+			JSONObject jo = new JSONObject();
+			jo.put("awardCode", awardCode);
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(jo);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("HonorController.awardingHonor", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * @Function getCommentListForLocation
+	 * @Description 查询评论列表 --定位
+	 * @param inVo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "award/comment/list/fixed", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getCommentListForLocation(@RequireValid GetCommentListForLocationVo inVo)
+			throws BusinessException {
+		try {
+			//准备入参
+			HonorComment honorComment = new HonorComment(); 
+			//授予记录Code
+			honorComment.setAwardRecordCode(inVo.getAwardCode()); 
+			honorComment.setHonorAwardCommentCode(inVo.getCommentCode());
+			honorComment.setAdmirerCode(inVo.getUserCode());
+			honorComment.setPageSize(Integer.valueOf(inVo.getPageSize()));
+			if (StringTools.isNotEmpty(inVo.getId())) {
+				honorComment.setId(Long.valueOf(inVo.getId()));
+			}
+			// 根据userCode信息查询tenant_code(租户标识)
+			SysUserInfo userInfo = getUserInfo(inVo.getUserCode());
+			String tenantCode = userInfo.getTenantCode();
+			honorComment.setTenantCode(tenantCode);
+			
+			PageBean pageBean = honorService.getCommentListForLocation(honorComment);
+			List<HonorComment> commentList = pageBean.getRecordList();
+			JSONArray jsonArray = new JSONArray();
+			for (HonorComment hc : commentList) {
+				JSONObject jsonObject = new JSONObject();
+				jsonObject.put("id", StringTools.formatToString(hc.getId()));
+				jsonObject.put("awardCode", hc.getAwardRecordCode());
+				jsonObject.put("commentCode", hc.getHonorAwardCommentCode());
+				jsonObject.put("commenterCode", hc.getCommenterCode());
+				//根据 commenterCode 查询 commenterName、commenterUrl、commenterOrg
+				SysUserInfo commenterInfo = getUserInfo(hc.getCommenterCode());
+				if(commenterInfo != null){
+					jsonObject.put("commenterName", StringTools.formatToString(commenterInfo.getUserName()) );
+					jsonObject.put("commenterUrl", StringTools.formatToString(commenterInfo.getHeadPortrait()));
+					jsonObject.put("commenterOrg", StringTools.formatToString(commenterInfo.getOrgInfo().getSysOrgFullname()));
+				}else{
+					jsonObject.put("commenterName", "");
+					jsonObject.put("commenterUrl", "");
+					jsonObject.put("commenterOrg", "");
+				}
+				jsonObject.put("content", hc.getContent());
+				jsonObject.put("createTime", StringTools.formatToString(hc.getCreateTime()));
+				jsonObject.put("replyCount", StringTools.formatToString(hc.getReplyCount()));
+				jsonObject.put("praiseCount", StringTools.formatToString(hc.getPraiseCount()));
+				if (null != hc.getAdmirerCode()) {
+					jsonObject.put("isPraise", StringTools.formatToString(HonorConstants.YES)); // 已经点赞过
+				} else {
+					jsonObject.put("isPraise", StringTools.formatToString(HonorConstants.NO)); // 未点赞过
+				}
+				jsonArray.add(jsonObject);
+			}
+			
+			//设置返回结果
+			JSONObject jo = new JSONObject();
+			jo.put("commentList", jsonArray);
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(jo);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("HonorController.getCommentListForLocation", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * @Function getCommentReplyListForLocation
+	 * @Description 查询评论回复列表 -- 定位
+	 * @param inVo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "award/reply/list/fixed", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getCommentReplyListForLocation(@RequireValid GetCommentReplyListForLocationVo inVo)
+			throws BusinessException {
+		try {
+			//准备入参
+			HonorCommentReply honorCommentReply = new HonorCommentReply(); 
+			//授予记录Code
+			honorCommentReply.setAwardRecordCode(inVo.getAwardCode());   //荣誉记录Code
+			honorCommentReply.setAwardCommentCode(inVo.getCommentCode()); //评论Code
+			honorCommentReply.setHonorCommentReplyCode(inVo.getReplyCode());
+			honorCommentReply.setAdmirerCode(inVo.getUserCode());
+			honorCommentReply.setPageSize(Integer.valueOf(inVo.getPageSize())); //加载更多条数
+			if (StringTools.isNotEmpty(inVo.getId())) {
+				honorCommentReply.setId(Long.valueOf(inVo.getId()));
+			}
+
+			// 根据userCode信息查询tenant_code(租户标识)
+			SysUserInfo userInfo = getUserInfo(inVo.getUserCode());
+			String tenantCode = userInfo.getTenantCode();
+			honorCommentReply.setTenantCode(tenantCode);
+			
+			PageBean pageBean = honorService.getCommentReplyListForLocation(honorCommentReply);
+			List<HonorCommentReply> commenReplytList = pageBean.getRecordList();
+			JSONArray jsonArray = new JSONArray();
+			for (HonorCommentReply hcr : commenReplytList) {
+				JSONObject jsonObject = new JSONObject();
+				jsonObject.put("id", StringTools.formatToString(hcr.getId()));
+				jsonObject.put("awardCode", hcr.getAwardRecordCode());
+				jsonObject.put("commentCode", hcr.getAwardCommentCode());
+				jsonObject.put("replyCode", hcr.getHonorCommentReplyCode());
+				jsonObject.put("replierCode", hcr.getReplierCode());
+				
+				// 根据 replierCode 查询 replierName、replierUrl、replierOrg
+				SysUserInfo replierInfo = getUserInfo(hcr.getReplierCode());
+				if(replierInfo != null){
+					jsonObject.put("replierName", StringTools.formatToString(replierInfo.getUserName()));
+					jsonObject.put("replierUrl", StringTools.formatToString(replierInfo.getHeadPortrait()));
+					jsonObject.put("replierOrg", StringTools.formatToString(replierInfo.getOrgInfo().getSysOrgFullname()));
+				}else{
+					jsonObject.put("replierName", "");
+					jsonObject.put("replierUrl", "");
+					jsonObject.put("replierOrg", "");
+				}
+				jsonObject.put("questionerCode", hcr.getQuestionerCode());
+				// 根据 questionerCode 查询 questionerName、questionerUrl、questionerOrg
+				SysUserInfo questionerInfo = getUserInfo(hcr.getQuestionerCode());
+				if(questionerInfo != null){
+					jsonObject.put("questionerName", StringTools.formatToString(questionerInfo.getUserName()));
+					jsonObject.put("questionerUrl", StringTools.formatToString(questionerInfo.getHeadPortrait()));
+					jsonObject.put("questionerOrg", StringTools.formatToString(questionerInfo.getOrgInfo().getSysOrgFullname()));
+				}else{
+					jsonObject.put("questionerName", "");
+					jsonObject.put("questionerUrl", "");
+					jsonObject.put("questionerOrg", "");
+				}
+				jsonObject.put("content",hcr.getContent() );
+				jsonObject.put("createTime", StringTools.formatToString(hcr.getCreateTime()));
+				jsonObject.put("praiseCount",StringTools.formatToString(hcr.getPraiseCount()));
+				if (null != hcr.getAdmirerCode()) {
+					jsonObject.put("isPraise", StringTools.formatToString(HonorConstants.YES)); // 已经点赞过
+				} else {
+					jsonObject.put("isPraise", StringTools.formatToString(HonorConstants.NO)); // 未点赞过
+				}
+				
+				jsonArray.add(jsonObject);
+			}
+			
+			//设置返回结果
+			JSONObject jo = new JSONObject();
+			jo.put("replyList", jsonArray);
+			jo.put("surplusCount",pageBean.getTotalCount());
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(jo);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("HonorController.getCommentReplyListForLocation", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * @Function getAwardRecordDetail
+	 * @Description 获取荣誉颁发记录详情
+	 * @param inVo
+	 * @return 
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "getAwardRecordDetail", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getAwardRecordDetail(@RequireValid GetAwardRecordDetailVo inVo) throws BusinessException {
+		try {
+			//准备入参
+			HonorAwardRecord honorAwardRecord = new HonorAwardRecord(); 
+			//授予记录Code
+			honorAwardRecord.setHonorAwardRecordCode(inVo.getAwardCode()); 
+			honorAwardRecord.setAdmirerCode(inVo.getUserCode());
+			
+			// 根据userCode信息查询tenant_code(租户标识)
+			SysUserInfo userInfo = getUserInfo(inVo.getUserCode());
+			String tenantCode = userInfo.getTenantCode();
+			honorAwardRecord.setTenantCode(tenantCode);
+			HonorAwardRecord  har = honorService.getAwardRecordDetail(honorAwardRecord);
+			JSONObject jsonObject = new JSONObject();
+			if (null != har) {
+				jsonObject.put("awardCode", har.getHonorAwardRecordCode());
+				jsonObject.put("honorName", har.getHonorName());
+				jsonObject.put("honorUrl", har.getHonorUrl());
+				jsonObject.put("awarderCode", har.getAwarderCode());
+				jsonObject.put("awarderName", har.getAwarderName());
+				
+				// TODO 根据 awarderCode 查询 awarderOrg
+				//jsonObject.put("awarderOrg", har.geta);
+				jsonObject.put("awarderPosition",har.getAwarderPosition());
+				jsonObject.put("honoreeCode",har.getHonorCode());
+				jsonObject.put("awardTime",StringTools.formatToString(har.getCreateTime()));
+				jsonObject.put("awardReason",har.getAwardReason());
+				
+				jsonObject.put("commentCount",StringTools.formatToString(har.getCommentCount()));
+				jsonObject.put("praiseCount",StringTools.formatToString(har.getPraiseCount()));
+				if (null != har.getAdmirerCode()) {
+					jsonObject.put("isPraise", StringTools.formatToString(HonorConstants.YES)); // 已经点赞过
+				} else {
+					jsonObject.put("isPraise", StringTools.formatToString(HonorConstants.NO)); // 未点赞过
+				}
+				
+			}
+			//设置返回结果
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(jsonObject);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("HonorController.getAwardRecordDetail", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	
+	/**
+	 * @Function getHonorInfo
+	 * @Description 获取荣誉详情
+	 * @param inVo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "getHonorInfo", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getHonorInfo(@RequireValid GetHonorInfoVo inVo) throws BusinessException {
+		try {
+			//准备入参
+			HonorDefinition honorDefinition = new HonorDefinition();
+			honorDefinition.setHonorDefinitionCode(inVo.getHonorCode());
+			
+			// 根据userCode信息查询tenant_code(租户标识)
+			SysUserInfo userInfo = getUserInfo(inVo.getUserCode());
+			String tenantCode = userInfo.getTenantCode();
+			honorDefinition.setTenantCode(tenantCode);
+			HonorDefinition hd = honorService.getHonorInfo(honorDefinition);
+			JSONObject jsonObject = new JSONObject();
+			if (null != hd) {
+				jsonObject.put("honorCode", hd.getHonorDefinitionCode());
+				jsonObject.put("honorName", hd.getHonorName());
+				jsonObject.put("honorType", StringTools.formatToString(hd.getHonorType()));
+				jsonObject.put("honorUrl", hd.getHonorUrl());
+				jsonObject.put("remark", StringTools.formatToString(hd.getRemark()));
+			}
+			//设置返回结果
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(jsonObject);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("HonorController.getHonorInfo", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	
+	
+	
+	
+	
+}

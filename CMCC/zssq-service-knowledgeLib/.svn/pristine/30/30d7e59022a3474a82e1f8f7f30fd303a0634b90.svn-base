@@ -1,0 +1,207 @@
+package com.zssq.service.impl;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.constants.KnowledgeLibConstants;
+import com.zssq.dao.mapper.RepositoryCollectBySryMapper;
+import com.zssq.dao.mapper.RepositoryKnowledgeBySryMapper;
+import com.zssq.dao.mapper.RepositoryKnowledgeMapperByGuoYang;
+import com.zssq.dao.pojo.RepositoryCollect;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.model.RepositoryKnowledgeModelForCollect;
+import com.zssq.service.RepositoryCollectService;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.vo.RepositoryCollectVo;
+import com.zssq.vo.RepositoryKnowledgeVo;
+
+/**
+ * 
+ * @ClassName: RepositoryCollectService  
+ * @Description: 知识库收藏  
+ * @author sry  
+ * @date 2017年4月28日  
+ *
+ */
+@Service("repositoryCollectService")
+public class RepositoryCollectServiceImpl implements RepositoryCollectService {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private RepositoryCollectBySryMapper repositoryCollectBySryMapper;
+	
+	@Autowired
+	private RepositoryKnowledgeBySryMapper repositoryKnowledgeBySryMapper;
+	
+	@Autowired
+	private RepositoryKnowledgeMapperByGuoYang repositoryKnowledgeMapperByGuoYang;
+	
+	
+	/**
+	 * 收藏
+	 */
+	@Override
+	public boolean doCollect(RepositoryCollect infoVo) throws BusinessException {
+		try {
+			// 参数校验
+			if (infoVo == null) {
+				log.error("RepositoryCollectServiceImpl.doCollect：参数为空");
+				throw BusinessException.build("COMMON_402", "repositoryCollect");
+			}
+			String userCode = infoVo.getUserCode();
+			String orgCode = infoVo.getOrgCode();
+			String knowledgeCode = infoVo.getKnowledgeCode();
+			if (StringUtils.isBlank(knowledgeCode)) {
+				log.error("RepositoryCollectServiceImpl.doCollect：knowledgeCode为空");
+				throw BusinessException.build("COMMON_402", "knowledgeCode");
+			}
+			if (StringUtils.isBlank(userCode)) {
+				log.error("RepositoryCollectServiceImpl.doCollect：userCode为空");
+				throw BusinessException.build("COMMON_402", "userCode");
+			}
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("RepositoryCollectServiceImpl.doCollect：orgCode为空");
+				throw BusinessException.build("COMMON_402", "orgCode");
+			}
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("knowledgeCode", knowledgeCode); // 对象类型
+			paramMap.put("orgCode", orgCode); // 操作对象编号
+			paramMap.put("userCode", userCode); // 人员编号
+			
+			// 查询是否已经收藏
+			int count = repositoryCollectBySryMapper.selectCount(paramMap);
+			if (count > 0) {
+				log.error("RepositoryCollectServiceImpl.doCollect：重复收藏");
+				throw BusinessException.build("KNOWLEDGELIB_27004");
+			}
+			paramMap.put("collectNum", KnowledgeLibConstants.NUM_ONE);
+			paramMap.put("modifyTime", infoVo.getModifyTime());
+			int updateNum = repositoryKnowledgeBySryMapper.updateNumTime(paramMap);
+			if (updateNum != 1) {
+				log.error("RepositoryCollectServiceImpl.doCollect：修改" + updateNum + "条收藏量记录 ");
+				return false;
+			}
+			// 插入
+			int insertNum = repositoryCollectBySryMapper.insert(infoVo);
+			if (insertNum != 1) {
+				log.error("RepositoryCollectServiceImpl.doCollect：插入" + insertNum + "条收藏信息 ");
+				return false;
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+
+	@Override
+	public boolean deleteCollect(RepositoryCollectVo rv) throws BusinessException {
+		try {
+			// 参数校验
+			if (rv == null) {
+				log.error("RepositoryCollectServiceImpl.deleteCollect：参数为空");
+				throw BusinessException.build("COMMON_402", "repositoryCollect");
+			}
+			String userCode = rv.getUserCode();
+			String knowledgeCode = rv.getKnowledgeCode();
+			if (StringUtils.isBlank(knowledgeCode)) {
+				log.error("RepositoryCollectServiceImpl.deleteCollect：knowledgeCode为空");
+				throw BusinessException.build("COMMON_402", "knowledgeCode");
+			}
+			if (StringUtils.isBlank(userCode)) {
+				log.error("RepositoryCollectServiceImpl.deleteCollect：userCode为空");
+				throw BusinessException.build("COMMON_402", "userCode");
+			}
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("knowledgeCode", knowledgeCode); // 对象类型
+			paramMap.put("userCode", userCode); // 人员编号
+			
+			// 查询是否已经收藏
+			int count = repositoryCollectBySryMapper.selectCount(paramMap);
+			if (count< 1) {
+				log.error("RepositoryCollectServiceImpl.deleteCollect：重复取消收藏");
+				throw BusinessException.build("KNOWLEDGELIB_27006");
+			}
+			
+			// 删除收藏
+			int deleteNum = repositoryCollectBySryMapper.delete(paramMap);
+			if (deleteNum != 1) {
+				log.error("RepositoryCollectServiceImpl.deleteCollect：删除" + deleteNum + "条收藏信息 ");
+				return false;
+			}
+			
+			paramMap.put("collectNum", KnowledgeLibConstants.NUM_BELOW_ONE);
+			paramMap.put("modifyTime", new Date().getTime());
+			int updateNum = repositoryKnowledgeBySryMapper.updateNumTime(paramMap);
+			if (updateNum != 1) {
+				log.error("RepositoryCollectServiceImpl.deleteCollect：修改" + updateNum + "条收藏量记录 ");
+				return false;
+			}
+			
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+
+	@Override
+	public PageBean getUserCollectKnowledgeList(PageParam pageParam, RepositoryKnowledgeVo infoVo) throws BusinessException {
+		PageBean pageBean = null;
+		try {
+			// 参数校验
+			if (infoVo == null || pageParam == null) {
+				log.error("RepositoryKnowledgeContentServiceImpl.getShowHotListByGL：参数为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			String userCode = infoVo.getUserCode();
+			String orgCode = infoVo.getOrgCode();
+			Integer pageSize = pageParam.getPageSize();
+			Integer pageNo = pageParam.getPageNo();
+			// 参数校验
+			if (StringUtils.isBlank(userCode)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.getShowHotListByGL：keywords为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.getShowHotListByGL：orgCode为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (pageSize == null) {
+				log.error("RepositoryKnowledgeContentServiceImpl.getShowHotListByGL：pageSize为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (pageNo == null) {
+				log.error("RepositoryKnowledgeContentServiceImpl.getShowHotListByGL：pageNo为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			Map<String, Object> map = new HashMap<>();
+			map.put("userCode",userCode);
+			map.put("orgCode",orgCode);
+			map.put("limitStart", pageSize*pageNo);
+			map.put("limitCount", pageSize); 
+			
+			List<RepositoryKnowledgeModelForCollect> repositoryKnowledgeModelList = repositoryKnowledgeMapperByGuoYang.getUserCollectKnowledgeList(map);
+			int count = repositoryKnowledgeMapperByGuoYang.getUserCollectKnowledgeListCount(map);
+			pageBean = new PageBean();
+			pageBean.setTotalCount(count);
+			pageBean.setRecordList(repositoryKnowledgeModelList);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		return pageBean;
+	}
+
+
+}

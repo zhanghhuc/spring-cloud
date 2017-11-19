@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.credit.dao.mapper.CreditAccountTeamMapper">
+	<resultMap id="BaseResultMap" type="com.zssq.credit.pojo.CreditAccountTeam">
+		<result column="team_id" property="teamId" jdbcType="INTEGER" />
+		<result column="point_num" property="pointNum" jdbcType="DOUBLE" />
+		<result column="gold_coin" property="goldCoin" jdbcType="DOUBLE" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+		<result column="team_code" property="teamCode" jdbcType="VARCHAR" />
+		<result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<select id="selectPage" parameterType="hashmap" resultMap="BaseResultMap">
+		select gold.team_id,gold.point_num,gold.gold_coin,gold.create_time,gold.update_time,
+		team.team_code,team.org_code
+		from gold_team_sta gold left join team_info team
+		on gold.team_id = team.team_id 
+		limit ${limitStart}, ${limitEnd}
+	</select>
+	
+</mapper>

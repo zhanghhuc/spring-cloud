@@ -1,0 +1,610 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.ActivityCommentReplyMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.ActivityCommentReply" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="code" property="code" jdbcType="VARCHAR" />
+    <result column="is_disable" property="isDisable" jdbcType="TINYINT" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <result column="is_hide" property="isHide" jdbcType="TINYINT" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="org_level" property="orgLevel" jdbcType="TINYINT" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="activity_code" property="activityCode" jdbcType="VARCHAR" />
+    <result column="comment_code" property="commentCode" jdbcType="VARCHAR" />
+    <result column="replier_code" property="replierCode" jdbcType="VARCHAR" />
+    <result column="questioner_code" property="questionerCode" jdbcType="VARCHAR" />
+    <result column="praise_count" property="praiseCount" jdbcType="INTEGER" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.zssq.dao.pojo.ActivityCommentReply" extends="BaseResultMap" >
+    <result column="content" property="content" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, code, is_disable, is_delete, is_hide, tenant_code, org_code, org_level, create_time, 
+    modify_time, remark, activity_code, comment_code, replier_code, questioner_code, 
+    praise_count
+  </sql>
+  <sql id="Blob_Column_List" >
+    content
+  </sql>
+  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.zssq.dao.pojo.ActivityCommentReplyExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from activity_comment_reply
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.zssq.dao.pojo.ActivityCommentReplyExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from activity_comment_reply
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+    <if test="limitStart != null and limitStart>=0" >
+      limit #{limitStart} , #{limitEnd}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from activity_comment_reply
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from activity_comment_reply
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.zssq.dao.pojo.ActivityCommentReplyExample" >
+    delete from activity_comment_reply
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.ActivityCommentReply" >
+    insert into activity_comment_reply (id, code, is_disable, 
+      is_delete, is_hide, tenant_code, 
+      org_code, org_level, create_time, 
+      modify_time, remark, activity_code, 
+      comment_code, replier_code, questioner_code, 
+      praise_count, content)
+    values (#{id,jdbcType=BIGINT}, #{code,jdbcType=VARCHAR}, #{isDisable,jdbcType=TINYINT}, 
+      #{isDelete,jdbcType=TINYINT}, #{isHide,jdbcType=TINYINT}, #{tenantCode,jdbcType=VARCHAR}, 
+      #{orgCode,jdbcType=VARCHAR}, #{orgLevel,jdbcType=TINYINT}, #{createTime,jdbcType=BIGINT}, 
+      #{modifyTime,jdbcType=BIGINT}, #{remark,jdbcType=VARCHAR}, #{activityCode,jdbcType=VARCHAR}, 
+      #{commentCode,jdbcType=VARCHAR}, #{replierCode,jdbcType=VARCHAR}, #{questionerCode,jdbcType=VARCHAR}, 
+      #{praiseCount,jdbcType=INTEGER}, #{content,jdbcType=LONGVARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.ActivityCommentReply" >
+    insert into activity_comment_reply
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="code != null" >
+        code,
+      </if>
+      <if test="isDisable != null" >
+        is_disable,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+      <if test="isHide != null" >
+        is_hide,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="orgLevel != null" >
+        org_level,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="activityCode != null" >
+        activity_code,
+      </if>
+      <if test="commentCode != null" >
+        comment_code,
+      </if>
+      <if test="replierCode != null" >
+        replier_code,
+      </if>
+      <if test="questionerCode != null" >
+        questioner_code,
+      </if>
+      <if test="praiseCount != null" >
+        praise_count,
+      </if>
+      <if test="content != null" >
+        content,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="code != null" >
+        #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="isDisable != null" >
+        #{isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="isHide != null" >
+        #{isHide,jdbcType=TINYINT},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="activityCode != null" >
+        #{activityCode,jdbcType=VARCHAR},
+      </if>
+      <if test="commentCode != null" >
+        #{commentCode,jdbcType=VARCHAR},
+      </if>
+      <if test="replierCode != null" >
+        #{replierCode,jdbcType=VARCHAR},
+      </if>
+      <if test="questionerCode != null" >
+        #{questionerCode,jdbcType=VARCHAR},
+      </if>
+      <if test="praiseCount != null" >
+        #{praiseCount,jdbcType=INTEGER},
+      </if>
+      <if test="content != null" >
+        #{content,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.zssq.dao.pojo.ActivityCommentReplyExample" resultType="java.lang.Integer" >
+    select count(*) from activity_comment_reply
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update activity_comment_reply
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.code != null" >
+        code = #{record.code,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDisable != null" >
+        is_disable = #{record.isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="record.isDelete != null" >
+        is_delete = #{record.isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="record.isHide != null" >
+        is_hide = #{record.isHide,jdbcType=TINYINT},
+      </if>
+      <if test="record.tenantCode != null" >
+        tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgCode != null" >
+        org_code = #{record.orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgLevel != null" >
+        org_level = #{record.orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.modifyTime != null" >
+        modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.remark != null" >
+        remark = #{record.remark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.activityCode != null" >
+        activity_code = #{record.activityCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.commentCode != null" >
+        comment_code = #{record.commentCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.replierCode != null" >
+        replier_code = #{record.replierCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.questionerCode != null" >
+        questioner_code = #{record.questionerCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.praiseCount != null" >
+        praise_count = #{record.praiseCount,jdbcType=INTEGER},
+      </if>
+      <if test="record.content != null" >
+        content = #{record.content,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExampleWithBLOBs" parameterType="map" >
+    update activity_comment_reply
+    set id = #{record.id,jdbcType=BIGINT},
+      code = #{record.code,jdbcType=VARCHAR},
+      is_disable = #{record.isDisable,jdbcType=TINYINT},
+      is_delete = #{record.isDelete,jdbcType=TINYINT},
+      is_hide = #{record.isHide,jdbcType=TINYINT},
+      tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      org_code = #{record.orgCode,jdbcType=VARCHAR},
+      org_level = #{record.orgLevel,jdbcType=TINYINT},
+      create_time = #{record.createTime,jdbcType=BIGINT},
+      modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      activity_code = #{record.activityCode,jdbcType=VARCHAR},
+      comment_code = #{record.commentCode,jdbcType=VARCHAR},
+      replier_code = #{record.replierCode,jdbcType=VARCHAR},
+      questioner_code = #{record.questionerCode,jdbcType=VARCHAR},
+      praise_count = #{record.praiseCount,jdbcType=INTEGER},
+      content = #{record.content,jdbcType=LONGVARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update activity_comment_reply
+    set id = #{record.id,jdbcType=BIGINT},
+      code = #{record.code,jdbcType=VARCHAR},
+      is_disable = #{record.isDisable,jdbcType=TINYINT},
+      is_delete = #{record.isDelete,jdbcType=TINYINT},
+      is_hide = #{record.isHide,jdbcType=TINYINT},
+      tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      org_code = #{record.orgCode,jdbcType=VARCHAR},
+      org_level = #{record.orgLevel,jdbcType=TINYINT},
+      create_time = #{record.createTime,jdbcType=BIGINT},
+      modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      activity_code = #{record.activityCode,jdbcType=VARCHAR},
+      comment_code = #{record.commentCode,jdbcType=VARCHAR},
+      replier_code = #{record.replierCode,jdbcType=VARCHAR},
+      questioner_code = #{record.questionerCode,jdbcType=VARCHAR},
+      praise_count = #{record.praiseCount,jdbcType=INTEGER}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.ActivityCommentReply" >
+    update activity_comment_reply
+    <set >
+      <if test="code != null" >
+        code = #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="isDisable != null" >
+        is_disable = #{isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="isHide != null" >
+        is_hide = #{isHide,jdbcType=TINYINT},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        org_level = #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="activityCode != null" >
+        activity_code = #{activityCode,jdbcType=VARCHAR},
+      </if>
+      <if test="commentCode != null" >
+        comment_code = #{commentCode,jdbcType=VARCHAR},
+      </if>
+      <if test="replierCode != null" >
+        replier_code = #{replierCode,jdbcType=VARCHAR},
+      </if>
+      <if test="questionerCode != null" >
+        questioner_code = #{questionerCode,jdbcType=VARCHAR},
+      </if>
+      <if test="praiseCount != null" >
+        praise_count = #{praiseCount,jdbcType=INTEGER},
+      </if>
+      <if test="content != null" >
+        content = #{content,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.zssq.dao.pojo.ActivityCommentReply" >
+    update activity_comment_reply
+    set code = #{code,jdbcType=VARCHAR},
+      is_disable = #{isDisable,jdbcType=TINYINT},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      is_hide = #{isHide,jdbcType=TINYINT},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      activity_code = #{activityCode,jdbcType=VARCHAR},
+      comment_code = #{commentCode,jdbcType=VARCHAR},
+      replier_code = #{replierCode,jdbcType=VARCHAR},
+      questioner_code = #{questionerCode,jdbcType=VARCHAR},
+      praise_count = #{praiseCount,jdbcType=INTEGER},
+      content = #{content,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.ActivityCommentReply" >
+    update activity_comment_reply
+    set code = #{code,jdbcType=VARCHAR},
+      is_disable = #{isDisable,jdbcType=TINYINT},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      is_hide = #{isHide,jdbcType=TINYINT},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      activity_code = #{activityCode,jdbcType=VARCHAR},
+      comment_code = #{commentCode,jdbcType=VARCHAR},
+      replier_code = #{replierCode,jdbcType=VARCHAR},
+      questioner_code = #{questionerCode,jdbcType=VARCHAR},
+      praise_count = #{praiseCount,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+   
+   <!--查询评论回复列表 定位  -->
+  <select id="getCommentReplyListForLocation" parameterType="java.util.Map" resultType="com.zssq.dao.pojo.ActivityCommentReply">
+	 SELECT 
+   	  	acr.id AS id,
+		acr.code AS code,
+		acr.comment_code AS commentCode,
+		acr.activity_code AS activityCode,
+		acr.replier_code AS replierCode,
+		acr.questioner_code AS questionerCode,
+		acr.content AS content,
+		acr.create_time AS createTime,
+		acr.praise_count AS praiseCount,
+		ap.admirer_code AS admirerCode
+ 	  FROM 
+		(SELECT * FROM acticity_comment_reply aca 
+			WHERE aca.id <![CDATA[<=]]> (
+					SELECT acb.id FROM acticity_comment_reply acb
+						WHERE acb.activity_code = #{activityCode}
+							AND acb.comment_code = #{commentCode}
+							AND acb.code = #{code}
+							AND acb.is_delete = 0
+							AND acb.is_disable = 0
+							AND acb.tenant_code = #{tenantCode}
+		)
+ 	) acr
+       LEFT JOIN activity_praise ap
+      ON ap.info_code = acr.code
+       	 AND ap.info_type = #{infoType}
+      	 AND ap.admirer_code =  #{admirerCode}
+      	 AND ap.is_delete = 0
+      	 AND ap.is_disable = 0
+      	 AND ap.tenant_code = #{tenantCode}
+       WHERE  acr.is_disable = 0
+    	 AND acr.is_delete = 0
+    	 AND acr.activity_code =  #{activityCode}
+    	 AND acr.comment_code = #{commentCode}
+    	 AND acr.tenant_code = #{tenantCode}
+       	 <if test="id != null and id > 0 ">
+    	     AND acr.id <![CDATA[<]]>#{id} 
+         </if>
+    	 ORDER BY acr.id DESC
+      LIMIT #{limitStart},#{limitEnd}
+  </select>
+  
+  <!--查询加载更多 剩余记录数  定位  -->
+  <select id="getCommentReplySurplusCountForLocation" parameterType="java.util.Map" resultType="java.lang.Integer">
+  	 SELECT COUNT(1)
+ 	 FROM 
+		(SELECT * FROM acticity_comment_reply aca 
+			WHERE aca.id <![CDATA[<=]]> (
+					SELECT acb.id FROM acticity_comment_reply acb
+						WHERE acb.activity_code = #{activityCode}
+							AND acb.comment_code = #{commentCode}
+							AND acb.code = #{code}
+							AND acb.is_delete = 0
+							AND acb.is_disable = 0
+							AND acb.tenant_code = #{tenantCode}
+		)
+ 	) acr
+       LEFT JOIN activity_praise ap
+      ON ap.info_code = acr.code
+       	 AND ap.info_type = #{infoType}
+      	 AND ap.admirer_code =  #{admirerCode}
+      	 AND ap.is_delete = 0
+      	 AND ap.is_disable = 0
+      	 AND ap.tenant_code = #{tenantCode}
+       WHERE  acr.is_disable = 0
+    	 AND acr.is_delete = 0
+    	 AND acr.activity_code =  #{activityCode}
+    	 AND acr.comment_code = #{commentCode}
+    	 AND acr.tenant_code = #{tenantCode}
+       	 <if test="id != null and id > 0 ">
+    	     AND acr.id <![CDATA[<]]>#{id} 
+         </if>
+  </select>
+  
+  <!--查询评论回复列表  -->
+  <select id="getCommentReplyList" parameterType="java.util.Map" resultType="com.zssq.dao.pojo.ActivityCommentReply">
+	  SELECT 
+		acr.id AS id,
+		acr.code AS code,
+		acr.comment_code AS commentCode,
+		acr.activity_code AS activityCode,
+		acr.replier_code AS replierCode,
+		acr.questioner_code AS questionerCode,
+		acr.content AS content,
+		acr.create_time AS createTime,
+		acr.praise_count AS praiseCount,
+		ap.admirer_code AS admirerCode
+	 FROM activity_comment_reply acr
+	 LEFT JOIN activity_praise ap
+      ON ap.info_code = acr.code
+       	 AND ap.info_type = #{infoType}
+      	 AND ap.admirer_code = #{admirerCode}
+      	 AND ap.is_delete = 0
+      	 AND ap.is_disable = 0
+      	 and ap.tenant_code = #{tenantCode}
+       WHERE  acr.is_disable = 0
+    	 AND acr.is_delete = 0
+    	 AND acr.activity_code = #{activityCode}
+    	 and acr.comment_code = #{commentCode}
+    	 and acr.tenant_code = #{tenantCode}
+       	 <if test="id != null and id > 0">
+    	    AND acr.id <![CDATA[<]]>#{id} 
+         </if>
+    	 ORDER BY acr.id DESC
+      LIMIT #{limitStart},#{limitEnd}
+  </select>
+  
+  <!--查询加载更多 剩余记录数  -->
+  <select id="getCommentReplySurplusCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+    SELECT 
+		count(1)
+	 FROM activity_comment_reply acr
+       WHERE  acr.is_disable = 0
+    	 AND acr.is_delete = 0
+    	 AND acr.activity_code = #{activityCode}
+    	 AND acr.comment_code = #{commentCode}
+    	 AND acr.tenant_code = #{tenantCode}
+       	 <if test="id != null and id > 0">
+    	    AND acr.id <![CDATA[<]]>#{id} 
+         </if>
+  </select>
+  
+  <!-- 更新点赞数 -->
+  <update id="updatePraiseNum" parameterType="java.util.Map">
+  	UPDATE activity_comment_reply
+	SET praise_count = praise_count ${express},
+		modify_time = #{modifyTime}
+	WHERE code = #{code}
+  </update>
+  
+  <!-- 查询点赞数 -->
+  <select id="queryPraiseNum" parameterType="java.lang.String" resultType="java.lang.Integer">
+  	select praise_count from activity_comment_reply where code = #{0}
+  </select>
+  
+  
+</mapper>

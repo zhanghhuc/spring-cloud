@@ -1,0 +1,1081 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.MblogInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.MblogInfo" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="mblog_code" property="mblogCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="agent_user_code" property="agentUserCode" jdbcType="VARCHAR" />
+    <result column="agent_org_code" property="agentOrgCode" jdbcType="VARCHAR" />
+    <result column="team_code" property="teamCode" jdbcType="VARCHAR" />
+    <result column="source_mblog_code" property="sourceMblogCode" jdbcType="VARCHAR" />
+    <result column="source_user_code" property="sourceUserCode" jdbcType="VARCHAR" />
+    <result column="source_user_code" property="sourceUserCode" jdbcType="VARCHAR" />
+    <result column="mblog_depend" property="mblogDepend" jdbcType="TINYINT" />
+    <result column="mblog_source" property="mblogSource" jdbcType="TINYINT" />
+    <result column="mblog_visible" property="mblogVisible" jdbcType="TINYINT" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <result column="is_shield" property="isShield" jdbcType="TINYINT" />
+    <result column="publish_time" property="publishTime" jdbcType="BIGINT" />
+    <result column="comment_num" property="commentNum" jdbcType="INTEGER" />
+    <result column="collect_num" property="collectNum" jdbcType="INTEGER" />
+    <result column="recommend_num" property="recommendNum" jdbcType="INTEGER" />
+    <result column="report_num" property="reportNum" jdbcType="INTEGER" />
+    <result column="forward_num" property="forwardNum" jdbcType="INTEGER" />
+    <result column="praise_num" property="praiseNum" jdbcType="INTEGER" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="team_essence_num" property="teamEssenceNum" jdbcType="INTEGER" />
+    <result column="city_essence_num" property="cityEssenceNum" jdbcType="INTEGER" />
+    <result column="province_essence_num" property="provinceEssenceNum" jdbcType="INTEGER" />
+    <result column="group_essence_num" property="groupEssenceNum" jdbcType="INTEGER" />
+  	<result column="dynamic_code" property="dynamicCode" jdbcType="VARCHAR" />
+  	<result column="shield_user_code" property="shieldUserCode" jdbcType="VARCHAR" />
+  	<result column="shield_time" property="shieldTime" jdbcType="BIGINT" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.zssq.dao.pojo.MblogInfo" extends="BaseResultMap" >
+    <result column="mblog_logo" property="mblogLogo" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  
+  <sql id="Base_Column_List" >
+    id, mblog_code, create_time, modify_time, remark, org_code,  user_code, 
+    agent_user_code, agent_org_code,  team_code, source_mblog_code, source_user_code, 
+    mblog_depend, mblog_source, mblog_visible, is_delete, is_shield, publish_time, comment_num, 
+    collect_num, recommend_num, report_num, forward_num, praise_num, tenant_code, team_essence_num, 
+    city_essence_num, province_essence_num, group_essence_num, dynamic_code,shield_user_code,shield_time
+  </sql>
+  <sql id="Blob_Column_List" >
+    mblog_logo
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from mblog_info
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.MblogInfo" >
+    insert into mblog_info (id, mblog_code, create_time, 
+      modify_time, remark, org_code, 
+       user_code, agent_user_code, 
+      agent_org_code,  team_code, 
+      source_mblog_code, source_user_code, mblog_depend, 
+      mblog_source, mblog_visible, is_delete, 
+      is_shield, publish_time, tenant_code, mblog_logo,
+      dynamic_code,shield_user_code,shield_time)
+    values (#{id,jdbcType=BIGINT}, #{mblogCode,jdbcType=VARCHAR}, #{createTime,jdbcType=BIGINT}, 
+      #{modifyTime,jdbcType=BIGINT}, #{remark,jdbcType=VARCHAR}, #{orgCode,jdbcType=VARCHAR}, 
+       #{userCode,jdbcType=VARCHAR}, #{agentUserCode,jdbcType=VARCHAR}, 
+      #{agentOrgCode,jdbcType=VARCHAR}, #{teamCode,jdbcType=VARCHAR}, 
+      #{sourceMblogCode,jdbcType=VARCHAR}, #{sourceUserCode,jdbcType=VARCHAR}, #{mblogDepend,jdbcType=TINYINT}, 
+      #{mblogSource,jdbcType=TINYINT}, #{mblogVisible,jdbcType=TINYINT}, #{isDelete,jdbcType=TINYINT}, 
+      #{isShield,jdbcType=TINYINT}, #{publishTime,jdbcType=BIGINT}, 
+      #{tenantCode,jdbcType=VARCHAR}, #{mblogLogo,jdbcType=LONGVARCHAR},#{dynamicCode,jdbcType=VARCHAR},
+      #{shieldUserCode,jdbcType=VARCHAR},#{shieldTime,jdbcType=BIGINT})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.MblogInfo" >
+    insert into mblog_info
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="mblogCode != null" >
+        mblog_code,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      
+      <if test="userCode != null" >
+        user_code,
+      </if>
+      <if test="agentUserCode != null" >
+        agent_user_code,
+      </if>
+      <if test="agentOrgCode != null" >
+        agent_org_code,
+      </if>
+      <if test="teamCode != null" >
+        team_code,
+      </if>
+      <if test="sourceMblogCode != null" >
+        source_mblog_code,
+      </if>
+      <if test="sourceUserCode != null" >
+        source_user_code,
+      </if>
+      <if test="mblogDepend != null" >
+        mblog_depend,
+      </if>
+      <if test="mblogSource != null" >
+        mblog_source,
+      </if>
+      <if test="mblogVisible != null" >
+        mblog_visible,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+      <if test="isShield != null" >
+        is_shield,
+      </if>
+      <if test="publishTime != null" >
+        publish_time,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="mblogLogo != null" >
+        mblog_logo,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="mblogCode != null" >
+        #{mblogCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="agentUserCode != null" >
+        #{agentUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="agentOrgCode != null" >
+        #{agentOrgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="teamCode != null" >
+        #{teamCode,jdbcType=VARCHAR},
+      </if>
+      <if test="sourceMblogCode != null" >
+        #{sourceMblogCode,jdbcType=VARCHAR},
+      </if>
+      <if test="sourceUserCode != null" >
+        #{sourceUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="mblogDepend != null" >
+        #{mblogDepend,jdbcType=TINYINT},
+      </if>
+      <if test="mblogSource != null" >
+        #{mblogSource,jdbcType=TINYINT},
+      </if>
+      <if test="mblogVisible != null" >
+        #{mblogVisible,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="isShield != null" >
+        #{isShield,jdbcType=TINYINT},
+      </if>
+      <if test="publishTime != null" >
+        #{publishTime,jdbcType=BIGINT},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="mblogLogo != null" >
+        #{mblogLogo,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <!-- self -->
+  
+  <!-- 自定义mblogModelMap -->
+  <resultMap id="mblogModelMap" type="com.zssq.dao.pojo.MblogModel" >
+    <result column="mblog_code" property="mblogCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="agent_user_code" property="agentUserCode" jdbcType="VARCHAR" />
+    <result column="agent_org_code" property="agentOrgCode" jdbcType="VARCHAR" />
+    <result column="team_code" property="teamCode" jdbcType="VARCHAR" />
+    <result column="source_mblog_code" property="sourceMblogCode" jdbcType="VARCHAR" />
+    <result column="source_user_code" property="sourceUserCode" jdbcType="VARCHAR" />
+    <result column="dynamic_code" property="dynamicCode" jdbcType="VARCHAR" />
+    <result column="mblog_depend" property="mblogDepend" jdbcType="TINYINT" />
+    <result column="mblog_source" property="mblogSource" jdbcType="TINYINT" />
+    <result column="publish_time" property="publishTime" jdbcType="BIGINT" />
+    <result column="comment_num" property="commentNum" jdbcType="INTEGER" />
+    <result column="collect_num" property="collectNum" jdbcType="INTEGER" />
+    <result column="forward_num" property="forwardNum" jdbcType="INTEGER" />
+    <result column="praise_num" property="praiseNum" jdbcType="INTEGER" />
+     <result column="mePraise" property="mePraise" jdbcType="TINYINT" />
+    <result column="meCollect" property="meCollect" jdbcType="TINYINT" />
+  	<!-- 转发信息 -->
+  	<association property="forwardMblog" column="source_mblog_code" select="queryForwardInfo" javaType="com.zssq.dao.pojo.MblogInfo"/>
+    <!-- 资源列表 -->
+    <collection property="resList" javaType="java.util.List" ofType="com.zssq.dao.pojo.MblogResource">
+  		<result column="res_type" property="resType" jdbcType="TINYINT" />
+  		<result column="content" property="content" jdbcType="LONGVARCHAR" />
+  	</collection>
+  </resultMap>
+  <!-- 自定义resultMap(转发使用) -->
+  <resultMap id="resultMapBySelf" type="com.zssq.dao.pojo.MblogInfo" extends="BaseResultMap" >
+    <result column="mePraise" property="mePraise" jdbcType="TINYINT" />
+    <result column="meCollect" property="meCollect" jdbcType="TINYINT" />
+    <!-- <collection property="resList" select="queryResources" column="mblog_code" ofType="com.zssq.dao.pojo.MblogResource" /> -->
+  	<collection property="resList" javaType="java.util.List" ofType="com.zssq.dao.pojo.MblogResource">
+  		<result column="res_type" property="resType" jdbcType="TINYINT" />
+  		<result column="content" property="content" jdbcType="LONGVARCHAR" />
+  	</collection>
+  </resultMap>
+  <!-- 自定义查询我是否点赞 -->
+  <sql id="queryMyPraise">
+  	IF(
+  		EXISTS(
+  			SELECT 
+  				mblog_praise_code 
+  			FROM 
+  				mblog_praise 
+  			WHERE 
+  				type = 1 
+  				AND 
+  				user_code = #{myUserCode} 
+  				AND 
+  				subject_code = mblog_info.mblog_code 
+  		),1,0) 
+  </sql>
+  <!-- 自定义查询我是否收藏 -->
+  <sql id="queryMyCollect">
+  	IF(
+  		EXISTS(
+  			SELECT 
+  				mblog_collect_code 
+  			FROM 
+  				mblog_collect 
+  			WHERE 
+  				user_code = #{myUserCode} 
+  				AND 
+  				mblog_code = mblog_info.mblog_code 
+  		),1,0)
+  </sql>
+  <!-- 自定义对象字段列表 -->
+  <sql id="Model_Column_List" >
+    mblog_info.id,mblog_info.mblog_code, mblog_info.create_time, mblog_info.modify_time, mblog_info.org_code,  mblog_info.user_code, 
+    agent_user_code, agent_org_code,  team_code, source_mblog_code, source_user_code, 
+    mblog_depend, mblog_source, publish_time, comment_num, 
+    collect_num, forward_num, praise_num,dynamic_code, is_delete, is_shield
+  </sql>
+  <!-- 转发对象字段列表 -->
+  <sql id="For_Column_List" >
+    mblog_info.id,mblog_info.mblog_code, mblog_info.create_time, mblog_info.modify_time, mblog_info.org_code,  mblog_info.user_code, 
+    agent_user_code, agent_org_code,  team_code, source_mblog_code, source_user_code, 
+    mblog_depend, mblog_source, publish_time, dynamic_code, is_delete, is_shield
+  </sql>
+  <!-- 代发对象字段列表 -->
+  <sql id="Agent_Column_List" >
+    mblog_info.id,mblog_info.mblog_code, mblog_info.create_time, mblog_info.modify_time, mblog_info.org_code, mblog_info.user_code, 
+    agent_user_code, agent_org_code,  team_code, source_mblog_code, source_user_code, 
+    mblog_depend, mblog_source, publish_time, comment_num, 
+    collect_num, forward_num, praise_num,dynamic_code, is_delete, is_shield
+  </sql>
+  <!-- 监控对象字段列表 -->
+  <sql id="Mon_Column_List" >
+    mblog_info.id,mblog_info.mblog_code, mblog_info.create_time, mblog_info.org_code,  mblog_info.user_code, 
+    team_code, 
+    mblog_depend, mblog_source, publish_time, dynamic_code,shield_user_code,shield_time
+  </sql>
+  <!-- 数字对象列表 -->
+  <sql id="Num_Column_List" >
+    subject_code,comment_num, collect_num, recommend_num, report_num, forward_num, praise_num, team_essence_num, 
+    city_essence_num, province_essence_num, group_essence_num
+  </sql>
+   <!-- 查询转发信息公共的 -->
+  <select id="queryForwardInfo" resultMap="resultMapBySelf" parameterType="java.lang.String" >
+    SELECT 
+	    <include refid="For_Column_List" />,
+	    mblog_resource.*
+    FROM
+    	(
+    		SELECT 
+    			<include refid="For_Column_List" />
+    		FROM
+    			mblog_info
+    		WHERE
+    			is_shield = 0
+		    	AND
+		    	is_delete = 0
+		    	AND
+    			mblog_code = #{mblogCode}
+    	) AS mblog_info
+    	LEFT JOIN
+    		mblog_resource
+    	ON
+    	mblog_info.mblog_code = mblog_resource.mblog_code
+  </select>
+  <!-- ====================================================== -->
+  <!-- 分页查询 -->
+  <select id="queryInfoByPage" resultMap="mblogModelMap" parameterType="java.util.Map" >
+    SELECT 
+	    mblog_info.id,
+	    mblog_info.mblog_code, 
+	    mblog_info.create_time, 
+	    mblog_info.modify_time, 
+	    mblog_info.org_code,  
+	    mblog_info.user_code, 
+	    agent_user_code, 
+	    agent_org_code,  
+	    team_code, 
+	    source_mblog_code, 
+	    source_user_code, 
+	    mblog_depend, 
+	    mblog_source, 
+	    publish_time, 
+	    comment_num, 
+	    collect_num, 
+	    forward_num, 
+	    praise_num,
+	    dynamic_code, 
+	    is_delete, 
+	    is_shield,
+	    IF(
+  		EXISTS(
+  			SELECT 
+  				mblog_praise_code 
+  			FROM 
+  				mblog_praise 
+  			WHERE 
+  				type = 1 
+  				AND 
+  				user_code = #{myUserCode} 
+  				AND 
+  				subject_code = mblog_info.mblog_code 
+  		),1,0) AS mePraise,
+	    IF(
+  		EXISTS(
+  			SELECT 
+  				mblog_collect_code 
+  			FROM 
+  				mblog_collect 
+  			WHERE 
+  				user_code = #{myUserCode} 
+  				AND 
+  				mblog_code = mblog_info.mblog_code 
+  		),1,0) AS meCollect,
+	    mblog_resource.*
+    FROM
+    	(
+    		SELECT 
+    			mblog_info.id,
+			    mblog_info.mblog_code, 
+			    mblog_info.create_time, 
+			    mblog_info.modify_time, 
+			    mblog_info.org_code,  
+			    mblog_info.user_code, 
+			    agent_user_code, 
+			    agent_org_code,  
+			    team_code, 
+			    source_mblog_code, 
+			    source_user_code, 
+			    mblog_depend, 
+			    mblog_source, 
+			    publish_time, 
+			    comment_num, 
+			    collect_num, 
+			    forward_num, 
+			    praise_num,
+			    dynamic_code, 
+			    is_delete, 
+			    is_shield
+    		FROM
+    			(
+    				SELECT
+    					*
+    				FROM
+	    				mblog_info
+	    			WHERE
+		    			is_shield = 0
+				    	AND
+				    	is_delete = 0
+				    <if test="mblogDepend != null">
+				    	AND	mblog_depend = #{mblogDepend}
+				    </if>
+				    <if test="lineTime != null" >
+			    		AND create_time &lt; #{lineTime}
+		    		</if>
+		    		<if test="otherUserCode != null">
+		    			AND	user_code = #{otherUserCode}
+		    		</if>
+		    		<if test="teamCode != null">
+		    			AND	team_code = #{teamCode}
+		    		</if>
+		    		<if test="userCodes != null" >
+		    			AND user_code IN 
+			    		<foreach collection="userCodes" index="index" item="item" open="(" separator="," close=")" >    
+			        		#{item}    
+			    		</foreach>
+		    		</if>
+		    		<if test="mblogCodes != null" >
+		    			AND mblog_code IN 
+			    		<foreach collection="mblogCodes" index="index" item="item" open="(" separator="," close=")" >    
+			        		#{item}    
+			    		</foreach>
+		    		</if>
+		    		ORDER BY create_time DESC,id DESC
+			    	<if test="limitStart != null and limitSize != null and limitSize != 0">
+						LIMIT #{limitStart} , #{limitSize}
+					</if>
+				) AS mblog_info
+    			LEFT JOIN
+    				mblog_num
+    			ON
+    			mblog_info.mblog_code = mblog_num.subject_code AND mblog_num.num_source = 1
+    		
+    	) AS mblog_info
+    	LEFT JOIN
+    	mblog_resource
+    	ON
+    	mblog_info.mblog_code = mblog_resource.mblog_code
+  </select>
+ 
+  <!-- 分页查询总数 -->
+  <select id="queryInfoByPageCount" resultType="java.lang.Long" parameterType="java.util.Map" >
+    SELECT 
+	   COUNT(*)
+    FROM
+    	mblog_info
+    WHERE
+    	is_shield = 0
+    	AND
+    	is_delete = 0
+    	<if test="mblogDepend != null">
+		    AND	mblog_depend = #{mblogDepend}
+		</if>
+    	<if test="lineTime != null" >
+	    	AND create_time &lt; #{lineTime}
+    	</if>
+   		<if test="otherUserCode != null">
+    		AND	user_code = #{otherUserCode}
+    	</if>
+    	<if test="teamCode != null">
+   			AND	team_code = #{teamCode}
+   		</if>
+    	<if test="userCodes != null" >
+    		AND user_code IN 
+	    	<foreach collection="userCodes" index="index" item="item" open="(" separator="," close=")" >    
+	        	#{item}    
+	    	</foreach>
+    	</if>
+    	<if test="mblogCodes != null" >
+   			AND mblog_code IN 
+    		<foreach collection="mblogCodes" index="index" item="item" open="(" separator="," close=")" >    
+        		#{item}    
+    		</foreach>
+   		</if>
+  </select>
+  
+   <!-- 查询我的收藏的微博列表 分页查询 -->
+  <select id="queryMyCollectByPage" resultMap="mblogModelMap" parameterType="java.util.Map" >
+    SELECT 
+	    <include refid="Model_Column_List" />,
+	    <include refid="queryMyPraise" /> AS mePraise,
+	    <include refid="queryMyCollect" /> AS meCollect,
+	    mblog_resource.*
+    FROM
+    	(
+    		SELECT 
+    			<include refid="Model_Column_List" />
+    		FROM
+    			(
+    				SELECT 
+    					*
+    				FROM
+    					(
+    						(
+				   				SELECT
+				   					mblog_code AS mbCode
+				   				FROM
+				   					mblog_collect
+				   				WHERE
+				   					user_code = #{myUserCode}
+					   		) AS mblog_collect
+						   	LEFT JOIN
+						   			mblog_info
+				    		ON
+				    			mblog_info.mblog_code = mblog_collect.mbCode
+    					)
+    				WHERE
+		    			is_shield = 0
+				    	AND
+				    	is_delete = 0
+				    <if test="lineTime != null" >
+			    		AND create_time &lt; #{lineTime}
+		    		</if>
+		    		ORDER BY create_time DESC,id DESC
+			    	<if test="limitStart != null and limitSize != null and limitSize != 0">
+						LIMIT #{limitStart} , #{limitSize}
+					</if>
+    			) AS mblog_info
+    		LEFT JOIN
+    			mblog_num
+    		ON
+    			mblog_info.mblog_code = mblog_num.subject_code AND mblog_num.num_source = 1
+    		
+    	) AS mblog_info
+    	LEFT JOIN
+    		mblog_resource
+    	ON
+    	mblog_info.mblog_code = mblog_resource.mblog_code
+  </select>
+ 
+  <!-- 查询我的收藏的微博列表 分页查询总数 -->
+  <select id="queryMyCollectByPageCount" resultType="java.lang.Long" parameterType="java.util.Map" >
+    SELECT 
+	   COUNT(*)
+    FROM
+    	(
+   				SELECT
+   					mblog_code AS mbCode
+   				FROM
+   					mblog_collect
+   				WHERE
+   					user_code = #{myUserCode}
+   		) AS mblog_collect
+   	LEFT JOIN
+   			mblog_info
+   		ON
+   			mblog_info.mblog_code = mblog_collect.mbCode
+    WHERE
+    	is_shield = 0
+    	AND
+    	is_delete = 0
+    	<if test="lineTime != null" >
+	    	AND create_time &lt; #{lineTime}
+    	</if>
+  </select>
+  
+  
+  <!-- 查询我的订阅的微博列表 分页查询 -->
+  <select id="queryMySubByPage" resultMap="mblogModelMap" parameterType="java.util.Map" >
+    SELECT 
+	    <include refid="Model_Column_List" />,
+	    <include refid="queryMyPraise" /> AS mePraise,
+	    <include refid="queryMyCollect" /> AS meCollect,
+	    mblog_resource.*
+    FROM
+    	(
+    		SELECT
+    		 	id,
+			    mblog_code, 
+			    create_time, 
+			    modify_time, 
+			    org_code,  
+			    user_code, 
+			    agent_user_code, 
+			    agent_org_code,  
+			    team_code, 
+			    source_mblog_code, 
+			    source_user_code, 
+			    mblog_depend, 
+			    mblog_source, 
+			    publish_time, 
+			    comment_num, 
+			    collect_num, 
+			    forward_num, 
+			    praise_num,
+			    dynamic_code, 
+			    is_delete, 
+			    is_shield
+    		FROM
+	    		(
+		    		(
+			    		SELECT 
+			    			<include refid="Model_Column_List" />
+			    		FROM
+			    			(
+			    				SELECT 
+			    					*
+			    				FROM
+			    					(
+					    				SELECT 
+					    					sub_user_code as subUserCode,create_time as subTime
+					    				FROM
+					    					mblog_subscribe
+					    				WHERE
+					    					sub_type = 1
+					    				AND
+					    					user_code = #{myUserCode}
+					    			) AS mSub
+						    		LEFT JOIN
+							   			mblog_info
+							   		ON
+							   			mSub.subUserCode = mblog_info.user_code AND mblog_info.create_time &gt;= mSub.subTime 
+			    				WHERE
+					    			is_shield = 0
+							    	AND
+							    	is_delete = 0
+							    	AND
+						    		mblog_depend = 1
+						    	<if test="lineTime != null" >
+					    			AND create_time &lt; #{lineTime}
+					    		</if>
+			    			) AS mblog_info
+			    		LEFT JOIN
+			    			mblog_num
+		    			ON
+		    				mblog_info.mblog_code = mblog_num.subject_code AND mblog_num.num_source = 1
+				    ) 
+				    UNION
+				    (
+			    		SELECT 
+			    			<include refid="Model_Column_List" />
+			    		FROM
+			    			(
+			    				SELECT
+			    					*
+			    				FROM
+				    				(
+					    				SELECT 
+					    					team_code as subTeamCode,create_time as subTime
+					    				FROM
+					    					mblog_subscribe
+					    				WHERE
+					    					sub_type = 2
+					    				AND
+					    					user_code = #{myUserCode}
+					    			) AS mSub
+						    		LEFT JOIN
+							   			mblog_info
+							   		ON
+							   			mSub.subTeamCode = mblog_info.team_code AND mblog_info.create_time &gt;= mSub.subTime 
+			    				WHERE
+					    			is_shield = 0
+							    	AND
+							    	is_delete = 0
+							    	AND
+						    		mblog_depend = 2
+						    	<if test="lineTime != null" >
+						    		AND create_time &lt; #{lineTime}
+					    		</if>
+			    			) AS mblog_info
+			    		LEFT JOIN
+			    			mblog_num
+    					ON
+    						mblog_info.mblog_code = mblog_num.subject_code AND mblog_num.num_source
+			    		
+				    )
+				) AS mInfo
+    		ORDER BY create_time DESC,id DESC
+	    	<if test="limitStart != null and limitSize != null and limitSize != 0">
+				LIMIT #{limitStart} , #{limitSize}
+			</if>
+    	) AS mblog_info
+    	LEFT JOIN
+    		mblog_resource
+    	ON
+    		mblog_info.mblog_code = mblog_resource.mblog_code
+  </select>
+ 
+  <!-- 查询我订阅微博列表 分页查询总数 -->
+  <select id="queryMySubByPageCount" resultType="java.lang.Long" parameterType="java.util.Map" >
+    SELECT 
+	   COUNT(*)
+    FROM
+    	(
+  			SELECT
+   		 		*
+   			FROM
+    		(
+	    		(
+		    		SELECT 
+		    			*
+		    		FROM
+		    			(
+		    				SELECT 
+		    					sub_user_code as subUserCode,create_time as subTime
+		    				FROM
+		    					mblog_subscribe
+		    				WHERE
+		    					sub_type = 1
+		    				AND
+		    					user_code = #{myUserCode}
+		    			) AS mSub
+		    		LEFT JOIN
+			   			mblog_info
+			   		ON
+			   			mSub.subUserCode = mblog_info.user_code AND mblog_info.create_time &gt;= mSub.subTime 
+		    		WHERE
+		    			is_shield = 0
+				    	AND
+				    	is_delete = 0
+				    	AND
+				    	mblog_depend = 1
+			    	<if test="lineTime != null" >
+		    			AND create_time &lt; #{lineTime}
+		    		</if>
+			    ) 
+			    UNION
+			    (
+		    		SELECT 
+		    			*
+		    		FROM
+		    			(
+		    				SELECT 
+		    					team_code as subTeamCode,create_time as subTime
+		    				FROM
+		    					mblog_subscribe
+		    				WHERE
+		    					sub_type = 2
+		    				AND
+		    					user_code = #{myUserCode}
+		    			) AS mSub
+		    		LEFT JOIN
+			   			mblog_info
+			   		ON
+			   			mSub.subTeamCode = mblog_info.team_code AND mblog_info.create_time &gt;= mSub.subTime 
+		    		WHERE
+		    			is_shield = 0
+				    	AND
+				    	is_delete = 0
+				    	AND
+				    	mblog_depend = 2
+			    	<if test="lineTime != null" >
+			    		AND create_time &lt; #{lineTime}
+		    		</if>
+			    )
+			) AS mInfo
+		) AS mblog_info
+  </select>
+  
+  
+   <!-- 查询代发信息 -->
+  <select id="queryAgentList" resultMap="resultMapBySelf" parameterType="java.util.Map" >
+    SELECT 
+	    <include refid="Agent_Column_List" />,
+	    <include refid="queryMyPraise" /> AS mePraise,
+	    <include refid="queryMyCollect" /> AS meCollect,
+	    mblog_resource.*
+    FROM
+    	(
+    		SELECT 
+    			<include refid="Agent_Column_List" />
+    		FROM
+    			(
+    				SELECT
+    					*
+    				FROM
+    					mblog_info
+    				WHERE
+		    			is_shield = 0
+				    	AND
+				    	is_delete = 0
+				    <if test="lineTime != null" >
+			    		AND create_time &lt; #{lineTime}
+		    		</if>
+				    <if test="myUserCode != null" >
+			    		AND agent_user_code = #{myUserCode}
+		    		</if>
+		    		<if test="leaderUserCode != null" >
+			    		AND user_code = #{leaderUserCode}
+		    		</if>
+		    		ORDER BY create_time DESC,id DESC
+			    	<if test="limitStart != null and limitSize != null and limitSize != 0">
+						LIMIT #{limitStart} , #{limitSize}
+					</if>
+    			) AS mblog_info
+    			LEFT JOIN
+    				mblog_num
+    			ON
+    				mblog_info.mblog_code = mblog_num.subject_code AND mblog_num.num_source = 1
+    	) AS mblog_info
+    	LEFT JOIN
+    		mblog_resource
+    	ON
+    		mblog_info.mblog_code = mblog_resource.mblog_code
+  </select>
+  <!-- 查询代发信息列表总数 -->
+  <select id="queryAgentListCount" resultType="java.lang.Long" parameterType="java.util.Map" >
+    SELECT 
+	   COUNT(*)
+    FROM
+    	mblog_info
+    WHERE
+    	is_shield = 0
+    	AND
+    	is_delete = 0
+    	<if test="lineTime != null" >
+	    	AND create_time &lt; #{lineTime}
+    	</if>
+    	<if test="myUserCode != null" >
+    		AND agent_user_code = #{myUserCode}
+   		</if>
+   		<if test="leaderUserCode != null" >
+    		AND user_code = #{leaderUserCode}
+   		</if>
+  </select>
+  
+   <!-- 查询详情 -->
+  <select id="getInfoByCode" resultMap="mblogModelMap" parameterType="java.util.Map" >
+    SELECT 
+	    <include refid="Model_Column_List" />,
+	    <include refid="queryMyPraise" /> AS mePraise,
+	    <include refid="queryMyCollect" /> AS meCollect,
+	    mblog_resource.*
+    FROM
+    	(
+    		SELECT 
+    			<include refid="Model_Column_List" />
+    		FROM
+    			(
+	    			SELECT
+	    				*
+	    			FROM
+	    				mblog_info
+	    			WHERE
+		    			is_shield = 0
+				    	AND
+				    	is_delete = 0
+		    			AND
+		    			mblog_code = #{mblogCode}
+	    		) AS mblog_info
+    			LEFT JOIN
+    				mblog_num
+    			ON
+    				mblog_info.mblog_code = mblog_num.subject_code AND mblog_num.num_source = 1
+    	) AS mblog_info
+    	LEFT JOIN
+    		mblog_resource
+    	ON
+    		mblog_info.mblog_code = mblog_resource.mblog_code
+  </select>
+  
+  <!-- 查询详情 -->
+  <select id="getDetailByCode" resultMap="resultMapBySelf" parameterType="java.lang.String" >
+    SELECT 
+	    <include refid="Model_Column_List" />,
+	    mblog_resource.*
+    FROM
+    	(
+    		SELECT 
+    			<include refid="Model_Column_List" />
+    		FROM
+    			(
+	    			SELECT
+	    				*
+	    			FROM
+	    				mblog_info
+	    			WHERE
+		    			is_shield = 0
+				    	AND
+				    	is_delete = 0
+		    			AND
+		    			mblog_code = #{mblogCode}
+	    		) AS mblog_info
+    			LEFT JOIN
+    				mblog_num
+    			ON
+    				mblog_info.mblog_code = mblog_num.subject_code AND mblog_num.num_source = 1
+    	) AS mblog_info
+    	LEFT JOIN
+    		mblog_resource
+    	ON
+    		mblog_info.mblog_code = mblog_resource.mblog_code
+  </select>
+  
+  <!-- 查询==备用 -->
+  <select id="queryInfoByPage_bak" resultMap="resultMapBySelf" parameterType="java.util.Map" >
+    SELECT 
+	    <include refid="Base_Column_List" />,
+	    <include refid="queryMyPraise" /> AS mePraise,
+	    <include refid="queryMyCollect" /> AS meCollect,
+    FROM
+    	mblog_info
+     WHERE
+    	is_shield = 0
+    	AND
+    	is_delete = 0
+    	<if test="lineTime != null" >
+	    	AND create_time &lt; #{lineTime}
+    	</if>
+    	<if test="userCodes != null" >
+    		AND user_code IN 
+	    	<foreach collection="userCodes" index="index" item="item" open="(" separator="," close=")" >    
+	        	#{item}    
+	    	</foreach>
+    	</if>
+    ORDER BY create_time DESC,id DESC
+    <if test="limitStart != null and limitSize != null and limitSize != 0">
+		LIMIT #{limitStart} , #{limitSize}
+	</if>
+  </select>
+  <!-- 查询资源 ==备用-->
+  <select id="queryResources" parameterType="java.lang.String" resultType="com.zssq.dao.pojo.MblogResource">
+    SELECT 
+    	res_type,
+    	content
+    FROM
+    	mblog_resource
+    WHERE
+    	mblog_code = #{mblogCode}
+  </select>
+  <!-- 删除信息字段 -->
+  <update id="deleteInfoByCode" parameterType="java.util.Map" >
+    UPDATE mblog_info
+    SET
+    	modify_time = #{modifyTime,jdbcType=BIGINT},
+    	is_delete = 1
+    WHERE 
+    	mblog_code = #{mblogCode}
+    	AND
+    	user_code = #{userCode}
+  </update>
+  <!-- 班组长删除信息字段 -->
+  <update id="deleteInfoByTeamCode" parameterType="java.util.Map" >
+    UPDATE mblog_info
+    SET
+    	modify_time = #{modifyTime,jdbcType=BIGINT},
+    	is_delete = 1
+    WHERE 
+    	mblog_code = #{mblogCode}
+    	AND
+    	team_code = #{teamCode}
+  </update>
+  <!-- 屏蔽信息字段 -->
+  <update id="shieldInfoByCode" parameterType="java.util.Map" >
+    UPDATE mblog_info
+    SET 
+    	modify_time = #{modifyTime,jdbcType=BIGINT},
+    	is_shield = #{isShield},
+    	shield_user_code = #{shieldUserCode},
+    	shield_time = #{modifyTime,jdbcType=BIGINT}
+    WHERE 
+    	mblog_code = #{mblogCode}
+  </update>
+  
+  <!-- 查询监控内容信息 -->
+  <select id="queryMonitoredList" resultMap="BaseResultMap" parameterType="java.util.Map" >
+    SELECT 
+	    <include refid="Mon_Column_List" />
+    FROM
+    	mblog_info
+    WHERE
+    	 is_delete= 0
+		<if test="isShield != null" >
+    		AND is_shield = #{isShield}
+   		</if>
+    	<if test="lineTime != null" >
+    		AND create_time &lt; #{lineTime}
+   		</if>
+	    <if test="orgCode != null" >
+    		AND org_code = #{orgCode}
+   		</if>
+   		ORDER BY create_time DESC,id DESC
+    	<if test="limitStart != null and limitSize != null and limitSize != 0">
+			LIMIT #{limitStart} , #{limitSize}
+		</if>
+  </select>
+  <!-- 查询监控内容信息列表总数 -->
+  <select id="queryMonitoredListCount" resultType="java.lang.Long" parameterType="java.util.Map" >
+    SELECT 
+	   COUNT(*)
+    FROM
+    	mblog_info
+    WHERE
+    	 is_delete= 0
+		<if test="isShield != null" >
+    		AND is_shield = #{isShield}
+   		</if>
+    	<if test="lineTime != null" >
+    		AND create_time &lt; #{lineTime}
+   		</if>
+	    <if test="orgCode != null" >
+    		AND org_code = #{orgCode}
+   		</if>
+  </select>
+  
+  <!-- 分页查询 RSS订阅列表 -->
+  <select id="queryRssMblogList" resultType="com.zssq.pojo.RssReturnPo" parameterType="java.util.Map" >
+    SELECT 
+	   mblog_code AS objectCode,
+	   user_code AS authorCode,
+	   (
+	   		SELECT 
+    			content
+    		FROM
+    			mblog_resource
+    		WHERE
+    			res_type = 1
+    		AND
+    			mblog_resource.mblog_code = mblog_info.mblog_code
+    	) AS description,
+    	(
+	   		SELECT 
+    			content
+    		FROM
+    			mblog_resource
+    		WHERE
+    			res_type = 3
+    		AND
+    			mblog_resource.mblog_code = mblog_info.mblog_code
+    		LIMIT 0,1
+    	) AS audio,
+    	(
+	   		SELECT 
+    			content
+    		FROM
+    			mblog_resource
+    		WHERE
+    			res_type = 4
+    		AND
+    			mblog_resource.mblog_code = mblog_info.mblog_code
+    		LIMIT 0,1
+    	) AS video,
+	   create_time AS createTime
+    FROM
+    	(
+    		SELECT 
+    			user_code,
+    			team_code,
+    			mblog_code,
+    			create_time
+    		FROM
+    			mblog_info
+    		WHERE
+    			is_shield = 0
+		    	AND
+		    	is_delete = 0
+		    <if test="mblogDepend != null">
+		    	AND	mblog_depend = #{mblogDepend}
+		    </if>
+    		<if test="userCode != null">
+    			AND	user_code = #{userCode}
+    		</if>
+    		<if test="teamCode != null">
+    			AND	team_code = #{teamCode}
+    		</if>
+    		ORDER BY create_time DESC,id DESC
+	    	<if test="limitSize != null and limitSize != 0">
+				LIMIT 0 , #{limitSize}
+			</if>
+    	) AS mblog_info
+  </select>
+  
+</mapper>

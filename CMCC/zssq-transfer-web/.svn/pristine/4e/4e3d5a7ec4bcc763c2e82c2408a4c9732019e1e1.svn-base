@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.relation.dao.mapper.RelationSubjectResourceMapper">
+	
+	<!-- new import resource -->
+	<insert id="batchInsertResource" >
+		INSERT IGNORE INTO relation_subject_resource (
+			subject_res_code, 
+			tenant_code,
+			org_code, 
+			create_time,
+			modify_time, 
+			remark, 
+			subject_code,
+			res_url, 
+			res_class
+		) select
+			REPLACE (UUID(), '-', '') AS subject_res_code, 
+			bi.tenant_code as tenant_code,
+			bi.org_code as org_code, 
+			bi.create_time AS create_time,
+			bi.modify_time AS modify_time,
+			bi.remark as remark, 
+			bi.mblog_code as subject_code,
+			mr.content as res_url, 
+			(mr.res_type -1) as res_class
+			
+			from mblog_resource mr 
+			left join relation_recommend rr on mr.mblog_code = rr.subject_code
+			left join mblog_info bi on rr.subject_code = bi.mblog_code
+			where rr.subject_class = 1 and bi.mblog_code is not null and rr.subject_code is not null
+	</insert>
+</mapper>

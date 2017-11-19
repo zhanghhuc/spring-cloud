@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.MblogReplyMapper">
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.MblogReply">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="mblog_reply_code" jdbcType="VARCHAR" property="mblogReplyCode" />
+    <result column="create_time" jdbcType="BIGINT" property="createTime" />
+    <result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+    <result column="user_code" jdbcType="VARCHAR" property="userCode" />
+    <result column="comment_code" jdbcType="VARCHAR" property="commentCode" />
+    <result column="replyed_user_code" jdbcType="VARCHAR" property="replyedUserCode" />
+    <result column="replyed_org_code" jdbcType="VARCHAR" property="replyedOrgCode" />
+    <result column="is_delete" jdbcType="TINYINT" property="isDelete" />
+    <result column="is_shield" jdbcType="TINYINT" property="isShield" />
+    <result column="report_num" jdbcType="INTEGER" property="reportNum" />
+    <result column="praise_num" jdbcType="INTEGER" property="praiseNum" />
+    <result column="mblog_code" jdbcType="VARCHAR" property="mblogCode" />
+    <result column="tenant_code" jdbcType="VARCHAR" property="tenantCode" />
+  	<result column="shield_user_code" property="shieldUserCode" jdbcType="VARCHAR" />
+  	<result column="shield_time" property="shieldTime" jdbcType="BIGINT" />
+  	<result column="reply_type" jdbcType="TINYINT" property="replyType" />
+  </resultMap>
+  <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.zssq.dao.pojo.MblogReply">
+    <result column="content" jdbcType="LONGVARCHAR" property="content" />
+    <result column="mePraise" property="mePraise" jdbcType="TINYINT" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, mblog_reply_code, create_time, modify_time, remark, org_code,  user_code, 
+    comment_code, replyed_user_code, replyed_org_code, is_delete, 
+    is_shield, mblog_code, tenant_code,shield_user_code,shield_time,reply_type
+  </sql>
+  <sql id="Blob_Column_List">
+    content
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="ResultMapWithBLOBs">
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from mblog_reply
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from mblog_reply
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.MblogReply">
+    insert into mblog_reply (id, mblog_reply_code, create_time, 
+      modify_time, remark, org_code, 
+      user_code, comment_code, 
+      replyed_user_code, replyed_org_code,  
+      is_delete, is_shield, 
+      mblog_code, tenant_code, 
+      content,shield_user_code,shield_time,reply_type)
+    values (#{id,jdbcType=BIGINT}, #{mblogReplyCode,jdbcType=VARCHAR}, #{createTime,jdbcType=BIGINT}, 
+      #{modifyTime,jdbcType=BIGINT}, #{remark,jdbcType=VARCHAR}, #{orgCode,jdbcType=VARCHAR}, 
+       #{userCode,jdbcType=VARCHAR}, #{commentCode,jdbcType=VARCHAR}, 
+      #{replyedUserCode,jdbcType=VARCHAR}, #{replyedOrgCode,jdbcType=VARCHAR},
+      #{isDelete,jdbcType=TINYINT}, #{isShield,jdbcType=TINYINT},  
+       #{mblogCode,jdbcType=VARCHAR}, #{tenantCode,jdbcType=VARCHAR}, 
+      #{content,jdbcType=LONGVARCHAR},
+      #{shieldUserCode,jdbcType=VARCHAR},#{shieldTime,jdbcType=BIGINT},
+      #{replyType,jdbcType=TINYINT})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.MblogReply">
+    insert into mblog_reply
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="mblogReplyCode != null">
+        mblog_reply_code,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="modifyTime != null">
+        modify_time,
+      </if>
+      <if test="remark != null">
+        remark,
+      </if>
+      <if test="orgCode != null">
+        org_code,
+      </if>
+      <if test="userCode != null">
+        user_code,
+      </if>
+      <if test="commentCode != null">
+        comment_code,
+      </if>
+      <if test="replyedUserCode != null">
+        replyed_user_code,
+      </if>
+      <if test="replyedOrgCode != null">
+        replyed_org_code,
+      </if>
+      <if test="isDelete != null">
+        is_delete,
+      </if>
+      <if test="isShield != null">
+        is_shield,
+      </if>
+      
+      <if test="mblogCode != null">
+        mblog_code,
+      </if>
+      <if test="tenantCode != null">
+        tenant_code,
+      </if>
+      <if test="content != null">
+        content,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="mblogReplyCode != null">
+        #{mblogReplyCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null">
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null">
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null">
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null">
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="commentCode != null">
+        #{commentCode,jdbcType=VARCHAR},
+      </if>
+      <if test="replyedUserCode != null">
+        #{replyedUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="replyedOrgCode != null">
+        #{replyedOrgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isDelete != null">
+        #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="isShield != null">
+        #{isShield,jdbcType=TINYINT},
+      </if>
+     
+      <if test="mblogCode != null">
+        #{mblogCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null">
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null">
+        #{content,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.MblogReply">
+    update mblog_reply
+    <set>
+      <if test="mblogReplyCode != null">
+        mblog_reply_code = #{mblogReplyCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null">
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null">
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null">
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null">
+        user_code = #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="commentCode != null">
+        comment_code = #{commentCode,jdbcType=VARCHAR},
+      </if>
+      <if test="replyedUserCode != null">
+        replyed_user_code = #{replyedUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="replyedOrgCode != null">
+        replyed_org_code = #{replyedOrgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isDelete != null">
+        is_delete = #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="isShield != null">
+        is_shield = #{isShield,jdbcType=TINYINT},
+      </if>
+      
+      <if test="mblogCode != null">
+        mblog_code = #{mblogCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null">
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null">
+        content = #{content,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.zssq.dao.pojo.MblogReply">
+    update mblog_reply
+    set mblog_reply_code = #{mblogReplyCode,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      user_code = #{userCode,jdbcType=VARCHAR},
+      comment_code = #{commentCode,jdbcType=VARCHAR},
+      replyed_user_code = #{replyedUserCode,jdbcType=VARCHAR},
+      replyed_org_code = #{replyedOrgCode,jdbcType=VARCHAR},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      is_shield = #{isShield,jdbcType=TINYINT},
+      
+      mblog_code = #{mblogCode,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      content = #{content,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.MblogReply">
+    update mblog_reply
+    set mblog_reply_code = #{mblogReplyCode,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      user_code = #{userCode,jdbcType=VARCHAR},
+      comment_code = #{commentCode,jdbcType=VARCHAR},
+      replyed_user_code = #{replyedUserCode,jdbcType=VARCHAR},
+      replyed_org_code = #{replyedOrgCode,jdbcType=VARCHAR},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      is_shield = #{isShield,jdbcType=TINYINT},
+      
+      mblog_code = #{mblogCode,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  <!-- *********************************** -->
+   <sql id="Self_Column_List">
+    id, mblog_reply_code, create_time, modify_time, org_code,  user_code, 
+    comment_code, replyed_user_code, replyed_org_code, 
+    praise_num, mblog_code, tenant_code, content
+  </sql>
+  <sql id="Num_Column_List" >
+    subject_code,report_num, praise_num
+  </sql>
+  <!-- 自定义查询我是否点赞 -->
+  <sql id="queryMyPraise">
+  	IF(
+  		EXISTS(
+  			SELECT 
+  				mblog_praise_code 
+  			FROM 
+  				mblog_praise
+  			WHERE 
+  				type = 3 
+  				AND 
+  				user_code = #{myUserCode} 
+  				AND 
+  				subject_code = mblog_reply.mblog_reply_code 
+  		),1,0) 
+  </sql>
+  <!-- 分页查询回复信息 -->
+  <select id="queryReplyListByPage" parameterType="java.util.Map" resultMap="ResultMapWithBLOBs">
+    SELECT 
+    	<include refid="Self_Column_List" />,
+    	<include refid="queryMyPraise" /> AS mePraise
+    FROM 
+    	mblog_reply
+    	LEFT JOIN
+		(
+			SELECT 
+				<include refid="Num_Column_List" />
+			FROM
+				mblog_num
+			WHERE
+				num_source = 3
+		) AS mblog_num
+		ON
+		mblog_reply.mblog_reply_code = mblog_num.subject_code
+    WHERE
+     	is_delete = 0
+     	AND
+     	is_shield = 0
+     	AND
+     	comment_code = #{commentCode}
+    	<if test="lineTime != null" >
+	    	AND create_time &lt; #{lineTime}
+    	</if>
+    ORDER BY
+    	create_time DESC, id DESC
+   	<if test="limitStart != null and limitSize != null and limitSize != 0">
+		LIMIT #{limitStart} , #{limitSize}
+	</if>
+  </select>
+  
+  <!-- 分页查询回复信息 总数 -->
+  <select id="queryReplyListByPageCount" parameterType="java.util.Map" resultType="java.lang.Long">
+    SELECT 
+    	COUNT(mblog_reply_code)
+    FROM 
+    	mblog_reply
+    WHERE
+     	is_delete = 0
+     	AND
+     	is_shield = 0
+     	AND
+     	comment_code = #{commentCode}
+    	<if test="lineTime != null" >
+	    	AND create_time &lt; #{lineTime}
+    	</if>
+  </select>
+  
+  <!-- 查询某一条回复所在的位置 -->
+  <select id="queryCountByCode" resultType="java.lang.Long" parameterType="java.util.Map" >
+    SELECT 
+   		COUNT(mblog_reply_code)
+    FROM
+    	mblog_reply
+    WHERE
+     	is_delete = 0
+     	AND
+     	is_shield = 0
+     	AND
+     	comment_code = #{commentCode}
+	    AND 
+	    create_time &gt;= (
+	    	SELECT
+	    		create_time
+	    	FROM
+	    		mblog_reply
+	    	WHERE
+	    		mblog_reply_code = #{replyCode}
+	    )
+  </select>
+  
+  <!-- 删除信息字段 -->
+  <update id="deleteInfoByCode" parameterType="java.util.Map" >
+    UPDATE mblog_reply
+    SET
+    	modify_time = #{modifyTime,jdbcType=BIGINT},
+    	is_delete = 1
+    WHERE 
+    	mblog_reply_code = #{replyCode}
+    	AND
+    	user_code = #{userCode}
+  </update>
+  
+    <!-- 批量删除 -->
+  <update id="batchDeleteInfo" parameterType="java.util.Map" >
+    UPDATE mblog_reply
+    SET
+    	modify_time = #{modifyTime,jdbcType=BIGINT},
+    	is_delete = 1
+    <where>
+    	<if test="mblogCode != null" >
+	    	AND mblog_code = #{mblogCode}
+    	</if>
+    	<if test="commentCode != null" >
+	    	AND comment_code = #{commentCode}
+    	</if>
+    </where>
+	
+  </update>
+  
+  <!-- 屏蔽信息字段 -->
+  <update id="shieldInfoByCode" parameterType="java.util.Map" >
+    UPDATE mblog_reply
+    SET 
+    	modify_time = #{modifyTime,jdbcType=BIGINT},
+    	is_shield = #{isShield},
+    	shield_user_code = #{shieldUserCode},
+    	shield_time = #{modifyTime,jdbcType=BIGINT}
+    WHERE 
+    	mblog_reply_code = #{replyCode}
+  </update>
+  
+  <!-- 查询单条 -->
+  <select id="getInfoByCode" resultMap="ResultMapWithBLOBs" parameterType="java.lang.String" >
+    SELECT 
+   		*
+    FROM
+    	mblog_reply
+    	LEFT JOIN
+		(
+			SELECT 
+				<include refid="Num_Column_List" />
+			FROM
+				mblog_num
+			WHERE
+				num_source = 3
+		) AS mblog_num
+		ON
+		mblog_reply.mblog_reply_code = mblog_num.subject_code
+    WHERE
+		mblog_reply_code = #{replyCode}
+  </select>
+</mapper>

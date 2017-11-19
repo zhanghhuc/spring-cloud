@@ -1,0 +1,886 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.VoteInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.VoteInfo" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="code" property="code" jdbcType="VARCHAR" />
+    <result column="is_disable" property="isDisable" jdbcType="TINYINT" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <result column="is_hide" property="isHide" jdbcType="TINYINT" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="org_level" property="orgLevel" jdbcType="TINYINT" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="dynamic_code" property="dynamicCode" jdbcType="VARCHAR" />
+    <result column="sponsor_code" property="sponsorCode" jdbcType="VARCHAR" />
+    <result column="sponsor_type" property="sponsorType" jdbcType="VARCHAR" />
+    <result column="sponsor_org_code" property="sponsorOrgCode" jdbcType="VARCHAR" />
+    <result column="vote_status" property="voteStatus" jdbcType="TINYINT" />
+    <result column="title" property="title" jdbcType="VARCHAR" />
+    <result column="is_multi_option" property="isMultiOption" jdbcType="TINYINT" />
+    <result column="is_enable_comment" property="isEnableComment" jdbcType="TINYINT" />
+    <result column="start_time" property="startTime" jdbcType="BIGINT" />
+    <result column="end_time" property="endTime" jdbcType="BIGINT" />
+    <result column="collection_num" property="collectionNum" jdbcType="INTEGER" />
+    <result column="share_num" property="shareNum" jdbcType="INTEGER" />
+    <result column="comment_num" property="commentNum" jdbcType="INTEGER" />
+    <result column="praise_num" property="praiseNum" jdbcType="INTEGER" />
+    <result column="join_num" property="joinNum" jdbcType="INTEGER" />
+    <result column="cCode" property="collectionCode" jdbcType="VARCHAR" />
+    <result column="pCode" property="praiseCode" jdbcType="VARCHAR" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.zssq.dao.pojo.VoteInfo" extends="BaseResultMap" >
+    <result column="vote_explain" property="voteExplain" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, code, is_disable, is_delete, is_hide, tenant_code, org_code, org_level, create_time, 
+    modify_time, remark, dynamic_code, sponsor_code, sponsor_type, sponsor_org_code, 
+    vote_status, title, is_multi_option, is_enable_comment, start_time, end_time, collection_num, 
+    share_num, comment_num, praise_num, join_num
+  </sql>
+  <sql id="Blob_Column_List" >
+    vote_explain
+  </sql>
+  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.zssq.dao.pojo.VoteInfoExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from vote_info
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.zssq.dao.pojo.VoteInfoExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from vote_info
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+    <if test="limitStart != null and limitStart>=0" >
+      limit #{limitStart} , #{limitEnd}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from vote_info
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from vote_info
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.zssq.dao.pojo.VoteInfoExample" >
+    delete from vote_info
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.VoteInfo" >
+    insert into vote_info (id, code, is_disable, 
+      is_delete, is_hide, tenant_code, 
+      org_code, org_level, create_time, 
+      modify_time, remark, dynamic_code, 
+      sponsor_code, sponsor_type, sponsor_org_code, 
+      vote_status, title, is_multi_option, 
+      is_enable_comment, start_time, end_time, 
+      collection_num, share_num, comment_num, 
+      praise_num, join_num, vote_explain
+      )
+    values (#{id,jdbcType=BIGINT}, #{code,jdbcType=VARCHAR}, #{isDisable,jdbcType=TINYINT}, 
+      #{isDelete,jdbcType=TINYINT}, #{isHide,jdbcType=TINYINT}, #{tenantCode,jdbcType=VARCHAR}, 
+      #{orgCode,jdbcType=VARCHAR}, #{orgLevel,jdbcType=TINYINT}, #{createTime,jdbcType=BIGINT}, 
+      #{modifyTime,jdbcType=BIGINT}, #{remark,jdbcType=VARCHAR}, #{dynamicCode,jdbcType=VARCHAR}, 
+      #{sponsorCode,jdbcType=VARCHAR}, #{sponsorType,jdbcType=VARCHAR}, #{sponsorOrgCode,jdbcType=VARCHAR}, 
+      #{voteStatus,jdbcType=TINYINT}, #{title,jdbcType=VARCHAR}, #{isMultiOption,jdbcType=TINYINT}, 
+      #{isEnableComment,jdbcType=TINYINT}, #{startTime,jdbcType=BIGINT}, #{endTime,jdbcType=BIGINT}, 
+      #{collectionNum,jdbcType=INTEGER}, #{shareNum,jdbcType=INTEGER}, #{commentNum,jdbcType=INTEGER}, 
+      #{praiseNum,jdbcType=INTEGER}, #{joinNum,jdbcType=INTEGER}, #{voteExplain,jdbcType=LONGVARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.VoteInfo" >
+    insert into vote_info
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="code != null" >
+        code,
+      </if>
+      <if test="isDisable != null" >
+        is_disable,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+      <if test="isHide != null" >
+        is_hide,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="orgLevel != null" >
+        org_level,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="dynamicCode != null" >
+        dynamic_code,
+      </if>
+      <if test="sponsorCode != null" >
+        sponsor_code,
+      </if>
+      <if test="sponsorType != null" >
+        sponsor_type,
+      </if>
+      <if test="sponsorOrgCode != null" >
+        sponsor_org_code,
+      </if>
+      <if test="voteStatus != null" >
+        vote_status,
+      </if>
+      <if test="title != null" >
+        title,
+      </if>
+      <if test="isMultiOption != null" >
+        is_multi_option,
+      </if>
+      <if test="isEnableComment != null" >
+        is_enable_comment,
+      </if>
+      <if test="startTime != null" >
+        start_time,
+      </if>
+      <if test="endTime != null" >
+        end_time,
+      </if>
+      <if test="collectionNum != null" >
+        collection_num,
+      </if>
+      <if test="shareNum != null" >
+        share_num,
+      </if>
+      <if test="commentNum != null" >
+        comment_num,
+      </if>
+      <if test="praiseNum != null" >
+        praise_num,
+      </if>
+      <if test="joinNum != null" >
+        join_num,
+      </if>
+      <if test="voteExplain != null" >
+        vote_explain,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="code != null" >
+        #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="isDisable != null" >
+        #{isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="isHide != null" >
+        #{isHide,jdbcType=TINYINT},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="dynamicCode != null" >
+        #{dynamicCode,jdbcType=VARCHAR},
+      </if>
+      <if test="sponsorCode != null" >
+        #{sponsorCode,jdbcType=VARCHAR},
+      </if>
+      <if test="sponsorType != null" >
+        #{sponsorType,jdbcType=VARCHAR},
+      </if>
+      <if test="sponsorOrgCode != null" >
+        #{sponsorOrgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="voteStatus != null" >
+        #{voteStatus,jdbcType=TINYINT},
+      </if>
+      <if test="title != null" >
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="isMultiOption != null" >
+        #{isMultiOption,jdbcType=TINYINT},
+      </if>
+      <if test="isEnableComment != null" >
+        #{isEnableComment,jdbcType=TINYINT},
+      </if>
+      <if test="startTime != null" >
+        #{startTime,jdbcType=BIGINT},
+      </if>
+      <if test="endTime != null" >
+        #{endTime,jdbcType=BIGINT},
+      </if>
+      <if test="collectionNum != null" >
+        #{collectionNum,jdbcType=INTEGER},
+      </if>
+      <if test="shareNum != null" >
+        #{shareNum,jdbcType=INTEGER},
+      </if>
+      <if test="commentNum != null" >
+        #{commentNum,jdbcType=INTEGER},
+      </if>
+      <if test="praiseNum != null" >
+        #{praiseNum,jdbcType=INTEGER},
+      </if>
+      <if test="joinNum != null" >
+        #{joinNum,jdbcType=INTEGER},
+      </if>
+      <if test="voteExplain != null" >
+        #{voteExplain,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.zssq.dao.pojo.VoteInfoExample" resultType="java.lang.Integer" >
+    select count(*) from vote_info
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update vote_info
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.code != null" >
+        code = #{record.code,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDisable != null" >
+        is_disable = #{record.isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="record.isDelete != null" >
+        is_delete = #{record.isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="record.isHide != null" >
+        is_hide = #{record.isHide,jdbcType=TINYINT},
+      </if>
+      <if test="record.tenantCode != null" >
+        tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgCode != null" >
+        org_code = #{record.orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgLevel != null" >
+        org_level = #{record.orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.modifyTime != null" >
+        modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.remark != null" >
+        remark = #{record.remark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.dynamicCode != null" >
+        dynamic_code = #{record.dynamicCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sponsorCode != null" >
+        sponsor_code = #{record.sponsorCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sponsorType != null" >
+        sponsor_type = #{record.sponsorType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sponsorOrgCode != null" >
+        sponsor_org_code = #{record.sponsorOrgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.voteStatus != null" >
+        vote_status = #{record.voteStatus,jdbcType=TINYINT},
+      </if>
+      <if test="record.title != null" >
+        title = #{record.title,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isMultiOption != null" >
+        is_multi_option = #{record.isMultiOption,jdbcType=TINYINT},
+      </if>
+      <if test="record.isEnableComment != null" >
+        is_enable_comment = #{record.isEnableComment,jdbcType=TINYINT},
+      </if>
+      <if test="record.startTime != null" >
+        start_time = #{record.startTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.endTime != null" >
+        end_time = #{record.endTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.collectionNum != null" >
+        collection_num = #{record.collectionNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.shareNum != null" >
+        share_num = #{record.shareNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.commentNum != null" >
+        comment_num = #{record.commentNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.praiseNum != null" >
+        praise_num = #{record.praiseNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.joinNum != null" >
+        join_num = #{record.joinNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.voteExplain != null" >
+        vote_explain = #{record.voteExplain,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExampleWithBLOBs" parameterType="map" >
+    update vote_info
+    set id = #{record.id,jdbcType=BIGINT},
+      code = #{record.code,jdbcType=VARCHAR},
+      is_disable = #{record.isDisable,jdbcType=TINYINT},
+      is_delete = #{record.isDelete,jdbcType=TINYINT},
+      is_hide = #{record.isHide,jdbcType=TINYINT},
+      tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      org_code = #{record.orgCode,jdbcType=VARCHAR},
+      org_level = #{record.orgLevel,jdbcType=TINYINT},
+      create_time = #{record.createTime,jdbcType=BIGINT},
+      modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      dynamic_code = #{record.dynamicCode,jdbcType=VARCHAR},
+      sponsor_code = #{record.sponsorCode,jdbcType=VARCHAR},
+      sponsor_type = #{record.sponsorType,jdbcType=VARCHAR},
+      sponsor_org_code = #{record.sponsorOrgCode,jdbcType=VARCHAR},
+      vote_status = #{record.voteStatus,jdbcType=TINYINT},
+      title = #{record.title,jdbcType=VARCHAR},
+      is_multi_option = #{record.isMultiOption,jdbcType=TINYINT},
+      is_enable_comment = #{record.isEnableComment,jdbcType=TINYINT},
+      start_time = #{record.startTime,jdbcType=BIGINT},
+      end_time = #{record.endTime,jdbcType=BIGINT},
+      collection_num = #{record.collectionNum,jdbcType=INTEGER},
+      share_num = #{record.shareNum,jdbcType=INTEGER},
+      comment_num = #{record.commentNum,jdbcType=INTEGER},
+      praise_num = #{record.praiseNum,jdbcType=INTEGER},
+      join_num = #{record.joinNum,jdbcType=INTEGER},
+      vote_explain = #{record.voteExplain,jdbcType=LONGVARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update vote_info
+    set id = #{record.id,jdbcType=BIGINT},
+      code = #{record.code,jdbcType=VARCHAR},
+      is_disable = #{record.isDisable,jdbcType=TINYINT},
+      is_delete = #{record.isDelete,jdbcType=TINYINT},
+      is_hide = #{record.isHide,jdbcType=TINYINT},
+      tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      org_code = #{record.orgCode,jdbcType=VARCHAR},
+      org_level = #{record.orgLevel,jdbcType=TINYINT},
+      create_time = #{record.createTime,jdbcType=BIGINT},
+      modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      dynamic_code = #{record.dynamicCode,jdbcType=VARCHAR},
+      sponsor_code = #{record.sponsorCode,jdbcType=VARCHAR},
+      sponsor_type = #{record.sponsorType,jdbcType=VARCHAR},
+      sponsor_org_code = #{record.sponsorOrgCode,jdbcType=VARCHAR},
+      vote_status = #{record.voteStatus,jdbcType=TINYINT},
+      title = #{record.title,jdbcType=VARCHAR},
+      is_multi_option = #{record.isMultiOption,jdbcType=TINYINT},
+      is_enable_comment = #{record.isEnableComment,jdbcType=TINYINT},
+      start_time = #{record.startTime,jdbcType=BIGINT},
+      end_time = #{record.endTime,jdbcType=BIGINT},
+      collection_num = #{record.collectionNum,jdbcType=INTEGER},
+      share_num = #{record.shareNum,jdbcType=INTEGER},
+      comment_num = #{record.commentNum,jdbcType=INTEGER},
+      praise_num = #{record.praiseNum,jdbcType=INTEGER},
+      join_num = #{record.joinNum,jdbcType=INTEGER}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.VoteInfo" >
+    update vote_info
+    <set >
+      <if test="code != null" >
+        code = #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="isDisable != null" >
+        is_disable = #{isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="isHide != null" >
+        is_hide = #{isHide,jdbcType=TINYINT},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        org_level = #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="dynamicCode != null" >
+        dynamic_code = #{dynamicCode,jdbcType=VARCHAR},
+      </if>
+      <if test="sponsorCode != null" >
+        sponsor_code = #{sponsorCode,jdbcType=VARCHAR},
+      </if>
+      <if test="sponsorType != null" >
+        sponsor_type = #{sponsorType,jdbcType=VARCHAR},
+      </if>
+      <if test="sponsorOrgCode != null" >
+        sponsor_org_code = #{sponsorOrgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="voteStatus != null" >
+        vote_status = #{voteStatus,jdbcType=TINYINT},
+      </if>
+      <if test="title != null" >
+        title = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="isMultiOption != null" >
+        is_multi_option = #{isMultiOption,jdbcType=TINYINT},
+      </if>
+      <if test="isEnableComment != null" >
+        is_enable_comment = #{isEnableComment,jdbcType=TINYINT},
+      </if>
+      <if test="startTime != null" >
+        start_time = #{startTime,jdbcType=BIGINT},
+      </if>
+      <if test="endTime != null" >
+        end_time = #{endTime,jdbcType=BIGINT},
+      </if>
+      <if test="collectionNum != null" >
+        collection_num = #{collectionNum,jdbcType=INTEGER},
+      </if>
+      <if test="shareNum != null" >
+        share_num = #{shareNum,jdbcType=INTEGER},
+      </if>
+      <if test="commentNum != null" >
+        comment_num = #{commentNum,jdbcType=INTEGER},
+      </if>
+      <if test="praiseNum != null" >
+        praise_num = #{praiseNum,jdbcType=INTEGER},
+      </if>
+      <if test="joinNum != null" >
+        join_num = #{joinNum,jdbcType=INTEGER},
+      </if>
+      <if test="voteExplain != null" >
+        vote_explain = #{voteExplain,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.zssq.dao.pojo.VoteInfo" >
+    update vote_info
+    set code = #{code,jdbcType=VARCHAR},
+      is_disable = #{isDisable,jdbcType=TINYINT},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      is_hide = #{isHide,jdbcType=TINYINT},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      dynamic_code = #{dynamicCode,jdbcType=VARCHAR},
+      sponsor_code = #{sponsorCode,jdbcType=VARCHAR},
+      sponsor_type = #{sponsorType,jdbcType=VARCHAR},
+      sponsor_org_code = #{sponsorOrgCode,jdbcType=VARCHAR},
+      vote_status = #{voteStatus,jdbcType=TINYINT},
+      title = #{title,jdbcType=VARCHAR},
+      is_multi_option = #{isMultiOption,jdbcType=TINYINT},
+      is_enable_comment = #{isEnableComment,jdbcType=TINYINT},
+      start_time = #{startTime,jdbcType=BIGINT},
+      end_time = #{endTime,jdbcType=BIGINT},
+      collection_num = #{collectionNum,jdbcType=INTEGER},
+      share_num = #{shareNum,jdbcType=INTEGER},
+      comment_num = #{commentNum,jdbcType=INTEGER},
+      praise_num = #{praiseNum,jdbcType=INTEGER},
+      join_num = #{joinNum,jdbcType=INTEGER},
+      vote_explain = #{voteExplain,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.VoteInfo" >
+    update vote_info
+    set code = #{code,jdbcType=VARCHAR},
+      is_disable = #{isDisable,jdbcType=TINYINT},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      is_hide = #{isHide,jdbcType=TINYINT},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      dynamic_code = #{dynamicCode,jdbcType=VARCHAR},
+      sponsor_code = #{sponsorCode,jdbcType=VARCHAR},
+      sponsor_type = #{sponsorType,jdbcType=VARCHAR},
+      sponsor_org_code = #{sponsorOrgCode,jdbcType=VARCHAR},
+      vote_status = #{voteStatus,jdbcType=TINYINT},
+      title = #{title,jdbcType=VARCHAR},
+      is_multi_option = #{isMultiOption,jdbcType=TINYINT},
+      is_enable_comment = #{isEnableComment,jdbcType=TINYINT},
+      start_time = #{startTime,jdbcType=BIGINT},
+      end_time = #{endTime,jdbcType=BIGINT},
+      collection_num = #{collectionNum,jdbcType=INTEGER},
+      share_num = #{shareNum,jdbcType=INTEGER},
+      comment_num = #{commentNum,jdbcType=INTEGER},
+      praise_num = #{praiseNum,jdbcType=INTEGER},
+      join_num = #{joinNum,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  <!-- 投票主表参与人数加一 -->
+  <update id="updateJoinNum" parameterType="java.util.Map">
+  	update vote_info 
+  	set join_num = join_num + 1,
+  		modify_time = #{modifyTime}
+  	where is_disable = 0 and
+  		  is_delete = 0 and
+  		  code = #{infoCode}
+  </update>
+  
+  <!--  获取我/班组/门户发起的投票列表   -->
+  <select id="selectPublishVoteList" parameterType="java.util.Map" resultMap="BaseResultMap">
+	SELECT 
+	  vi.id,
+	  vi.code,
+	  vi.sponsor_code,
+	  vi.sponsor_type,
+	  vi.sponsor_org_code,
+	  vi.vote_status,
+	  vi.title,
+	  vi.start_time,
+	  vi.end_time,
+	  vi.create_time,
+	  vi.collection_num,
+	  vi.share_num,
+	  vi.comment_num,
+	  vi.praise_num,
+	  vi.join_num,
+	  vc.code AS cCode,
+	  vp.code AS pCode
+	FROM
+	  vote_info vi 
+	  LEFT JOIN vote_collection vc 
+	    ON vi.code = vc.vote_info_code 
+	    AND vc.is_disable = 0 
+	    AND vc.is_delete = 0 
+	    AND vc.tenant_code = #{tenantCode} 
+	    AND vc.collector_code = #{userCode} 
+	  LEFT JOIN vote_praise vp 
+	    ON vi.code = vp.info_code 
+	    AND vp.info_type = 1 
+	    AND vp.is_disable = 0 
+	    AND vp.is_delete = 0 
+	    AND vp.tenant_code = #{tenantCode} 
+	    AND vp.admirer_code = #{userCode} 
+	WHERE vi.is_disable = 0 
+	  AND vi.is_delete = 0 
+	  AND vi.tenant_code = #{tenantCode} 
+	  <if test="voteStatus != null">
+		AND vi.vote_status = #{voteStatus}
+  	  </if>
+  	  <if test="voteStatus == null">
+  	  	AND vi.vote_status in (4,5)
+  	  </if>
+	  <if test="sponsorType != null">
+	  	AND vi.sponsor_type = #{sponsorType} 
+	  </if>
+	  <if test="sponsorCode != null">
+		AND vi.sponsor_code = #{sponsorCode} 
+	  </if>
+	  <if test="sponsorOrgCode != null">
+		AND vi.sponsor_org_code = #{sponsorOrgCode} 
+	  </if>
+	  <if test="id != null and id>0" >
+		AND vi.id <![CDATA[<]]> #{id} 
+	  </if>
+	ORDER BY vi.id DESC 
+	LIMIT #{pageSize}
+  </select>
+  
+  <resultMap id="InfoAuthResultMap" type="com.zssq.dao.pojo.VoteInfo" extends="ResultMapWithBLOBs">
+  	<association property="joinAuth" javaType="com.zssq.dao.pojo.VoteJoinAuth">
+  		<result column="vote_info_code" property="voteInfoCode" jdbcType="VARCHAR" />
+	    <result column="range_type" property="rangeType" jdbcType="TINYINT" />
+	    <result column="is_cascade" property="isCascade" jdbcType="TINYINT" />
+	    <result column="g_range_code" property="gRangeCode" jdbcType="VARCHAR" />
+	    <result column="g_range_name" property="gRangeName" jdbcType="VARCHAR" />
+	    <result column="p_range_code" property="pRangeCode" jdbcType="VARCHAR" />
+	    <result column="p_range_name" property="pRangeName" jdbcType="VARCHAR" />
+	    <result column="c_range_code" property="cRangeCode" jdbcType="VARCHAR" />
+	    <result column="c_range_name" property="cRangeName" jdbcType="VARCHAR" />
+	    <result column="t_range_code" property="tRangeCode" jdbcType="VARCHAR" />
+	    <result column="t_range_name" property="tRangeName" jdbcType="VARCHAR" />
+	 </association>
+  </resultMap>
+  <!-- 查询投票和权限信息 -->
+  <select id="selectVoteInfoAndAuth" parameterType="java.util.Map" resultMap="InfoAuthResultMap">
+  	select v.*,
+		a.vote_info_code, a.range_type, a.is_cascade, a.g_range_code, a.g_range_name, a.p_range_code, 
+		a.p_range_name, a.c_range_code, a.c_range_name, a.t_range_code, a.t_range_name
+	from vote_info v
+	LEFT JOIN vote_join_auth a
+	ON v.`code` = a.vote_info_code
+		and a.tenant_code = #{tenantCode}
+		and a.is_delete = #{isDelete}
+		and a.is_disable = #{isDisable}
+	where v.tenant_code = #{tenantCode}
+		and v.is_delete = #{isDelete}
+		and v.is_disable = #{isDisable}
+		and v.is_hide = #{isHide}
+		and v.`code` = #{code}
+  </select>
+  
+  <!-- 查询投票详情  -->
+  <select id="selectVoteDetail" parameterType="java.lang.String" resultMap="BaseResultMap">
+	  select 
+		  vi.id,
+		  vi.code,
+		  vi.sponsor_code,
+		  vi.sponsor_type,
+		  vi.sponsor_org_code,
+		  vi.vote_status,
+		  vi.title,
+		  vi.vote_explain,
+		  vi.start_time,
+		  vi.end_time,
+		  vi.create_time,
+		  vi.is_multi_option,
+		  vi.is_enable_comment,
+		  vi.collection_num,
+		  vi.share_num,
+		  vi.comment_num,
+		  vi.praise_num,
+		  vi.join_num,
+		  vc.code as cCode,
+		  vp.code as pCode
+		from
+		  vote_info vi 
+		  left join vote_collection vc 
+		    on vi.code = vc.vote_info_code 
+		    AND vc.is_disable = 0 
+		    AND vc.is_delete = 0 
+		    AND vc.tenant_code = #{0} 
+		    AND vc.collector_code = #{1} 
+		  left join vote_praise vp 
+		    on vi.code = vp.info_code 
+		    AND vp.info_type = 1 
+		    AND vp.is_disable = 0 
+		    AND vp.is_delete = 0 
+		    AND vp.tenant_code = #{0} 
+		    AND vp.admirer_code = #{1}  
+		where vi.is_disable = 0 
+		  AND vi.is_delete = 0 
+		  AND vi.tenant_code = #{0} 
+		  AND vi.code = #{2}
+  </select>
+   
+  <!-- 更新收藏数 -->
+  <update id="updateCollectionNum" parameterType="java.util.Map">
+  	UPDATE vote_info
+	SET collection_num = collection_num ${type},
+		modify_time = #{modifyTime}
+	WHERE code = #{code}
+		AND tenant_code= #{tenantCode}
+		AND is_disable = 0
+		AND is_delete = 0
+  </update>
+  
+  <!-- 更新评论数 -->
+  <update id="updateCommentNum" parameterType="java.util.Map">
+  	UPDATE vote_info
+	SET comment_num = comment_num ${express},
+		modify_time = #{modifyTime}
+	WHERE code = #{code}
+  </update>
+  
+  <!-- 更新分享数 -->
+  <update id="updateShareNum" parameterType="java.util.Map">
+  	UPDATE vote_info
+	SET share_num = share_num ${express},
+		modify_time = #{modifyTime}
+	WHERE code = #{code}
+  </update>
+  
+  <!-- 更新点赞数 ByVI-->
+  <update id="updatePraiseCountByVI" parameterType="java.util.Map">
+      UPDATE vote_info 
+      SET praise_num = praise_num ${type},
+      	  modify_time = #{modifyTime}
+      WHERE code = #{code}
+      		AND is_delete = 0
+      		AND is_disable = 0
+      		AND tenant_code = #{tenantCode}
+  </update>
+  
+  <!-- 更新点赞数 ByComment-->
+  <update id="updatePraiseCountByComment" parameterType="java.util.Map">
+      UPDATE vote_info 
+      SET praise_num = praise_num ${type},
+      	  modify_time = #{modifyTime}
+      WHERE code = (
+			SELECT vc.vote_info_code 
+			FROM vote_comment vc
+			WHERE vc.code = #{code}
+				AND vc.is_delete = 0
+		     	AND vc.is_disable = 0
+		     	AND vc.tenant_code = #{tenantCode}
+      )
+     	AND is_delete = 0
+		AND is_disable = 0
+		AND tenant_code = #{tenantCode}
+  </update>
+  
+  <!-- 更新点赞数 ByReply-->
+  <update id="updatePraiseCountByReply" parameterType="java.util.Map">
+      UPDATE vote_info 
+      SET praise_num = praise_num ${type},
+      	  modify_time = #{modifyTime}
+      WHERE code = (
+			SELECT vcr.vote_info_code
+			FROM vote_comment_reply vcr
+			WHERE vcr.code = #{code}
+				AND vcr.is_delete = 0
+				AND vcr.is_disable = 0
+				AND vcr.is_hide = 0
+				AND vcr.tenant_code = #{tenantCode}
+      )
+      	AND is_delete = 0
+		AND is_disable = 0
+		AND is_hide = 0
+		AND tenant_code = #{tenantCode}
+  </update>
+  
+  <!-- 批量更新投票状态 -->
+  <update id="updateVoteStatusList" parameterType="java.util.Map">
+  	UPDATE vote_info
+		SET vote_status = #{status},
+			modify_time = #{modifyTime}
+	WHERE code in
+           <foreach collection="codes" index="index" item="code" open="(" separator="," close=")"> 
+    	      #{code}
+           </foreach>
+  </update>
+  
+</mapper>

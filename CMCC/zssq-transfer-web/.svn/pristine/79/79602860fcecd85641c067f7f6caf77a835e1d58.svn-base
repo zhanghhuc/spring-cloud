@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.filing.dao.mapper.KcFriendGrpUsrRelMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.filing.pojo.KcFriendGrpUsrRel" >
+    <result column="ID" property="id" jdbcType="INTEGER" />
+    <result column="GROUP_ID" property="groupId" jdbcType="INTEGER" />
+    <result column="USER_ID" property="userId" jdbcType="INTEGER" />
+    <result column="FRIEND_ID" property="friendId" jdbcType="INTEGER" />
+    <result column="STATUS" property="status" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <insert id="insert" parameterType="com.zssq.filing.pojo.KcFriendGrpUsrRel" >
+    insert into kc_friend_grp_usr_rel (ID, GROUP_ID, USER_ID, 
+      FRIEND_ID, STATUS, CREATE_DATE
+      )
+    values (#{id,jdbcType=INTEGER}, #{groupId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, 
+      #{friendId,jdbcType=INTEGER}, #{status,jdbcType=VARCHAR}, #{createDate,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.filing.pojo.KcFriendGrpUsrRel" >
+    insert into kc_friend_grp_usr_rel
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        ID,
+      </if>
+      <if test="groupId != null" >
+        GROUP_ID,
+      </if>
+      <if test="userId != null" >
+        USER_ID,
+      </if>
+      <if test="friendId != null" >
+        FRIEND_ID,
+      </if>
+      <if test="status != null" >
+        STATUS,
+      </if>
+      <if test="createDate != null" >
+        CREATE_DATE,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="groupId != null" >
+        #{groupId,jdbcType=INTEGER},
+      </if>
+      <if test="userId != null" >
+        #{userId,jdbcType=INTEGER},
+      </if>
+      <if test="friendId != null" >
+        #{friendId,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null" >
+        #{createDate,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  
+  <!-- 查询记录数 -->
+  <select id="selectCount" parameterType="java.lang.Byte" resultType="java.lang.Integer">
+  	SELECT COUNT(1) FROM kc_friend_grp_usr_rel WHERE status=#{status}
+  </select>
+  
+  <!-- 查询 -->
+  <select id="selectPage" parameterType="java.util.Map" resultType="com.zssq.filing.pojo.KcFriendGrpUsrRel">
+  	SELECT
+  		a.id AS id, 
+  		a.group_id AS groupId, 
+  		a.user_id AS userId, 
+    	a.friend_id AS friendId, 
+    	a.status AS status,
+    	a.create_date AS createDate,
+    	d.is_default AS isDefault,
+    	b.user_code AS userCode,
+    	c.user_code AS friendUserCode,
+    	e.friend_group_code AS groupCode
+  	FROM kc_friend_grp_usr_rel a
+  	LEFT JOIN sys_user_info b ON a.user_id = b.user_id
+  	LEFT JOIN sys_user_info c ON a.friend_id = c.user_id
+  	LEFT JOIN kc_friend_group d ON a.group_id = d.id
+  	LEFT JOIN user_friend_group e ON a.group_id = e.group_id
+  	WHERE a.status = #{status}
+  	ORDER BY a.id
+  	LIMIT #{startRowNum},#{executeSize}
+  </select>
+  
+</mapper>

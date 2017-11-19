@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.RelationQualityByZKZMapper">
+
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.RelationQuality">
+		<id column="id" jdbcType="BIGINT" property="id" />
+		<result column="quality_code" jdbcType="VARCHAR" property="qualityCode" />
+		<result column="tenant_code" jdbcType="VARCHAR" property="tenantCode" />
+		<result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+		<result column="team_code" jdbcType="VARCHAR" property="orgCode" />
+		<result column="create_time" jdbcType="BIGINT" property="createTime" />
+		<result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+		<result column="remark" jdbcType="VARCHAR" property="remark" />
+		<result column="subject_code" jdbcType="VARCHAR" property="subjectCode" />
+		<result column="subject_class" jdbcType="TINYINT" property="subjectClass" />
+		<result column="quality_depend" jdbcType="TINYINT" property="qualityDepend" />
+		<result column="quality_seq_num" jdbcType="INTEGER" property="qualitySeqNum" />
+		<result column="quality_is_top" jdbcType="TINYINT" property="qualityIsTop" />
+		<result column="quality_top_time" jdbcType="BIGINT" property="qualityTopTime" />
+	</resultMap>
+	
+	<!-- 列列表 -->
+	<sql id="Base_Column_List">
+		id, quality_code, tenant_code, org_code, team_code, create_time, modify_time, 
+		remark, subject_code, subject_class, quality_depend, quality_seq_num,
+		quality_is_top, quality_top_time
+	</sql>
+	
+	<!-- 插入 -->
+	<insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.zssq.dao.pojo.RelationQuality">
+		INSERT INTO relation_quality (
+			quality_code, 
+			tenant_code,
+			org_code, 
+			team_code,
+			create_time,
+			modify_time, 
+			remark, 
+			subject_code,
+			subject_class, 
+			quality_depend, 
+			quality_seq_num,
+			quality_is_top, 
+			quality_top_time
+		) VALUES (
+			#{qualityCode,jdbcType=VARCHAR},
+			#{tenantCode,jdbcType=VARCHAR},
+			#{orgCode,jdbcType=VARCHAR}, 
+			#{teamCode,jdbcType=VARCHAR}, 
+			#{createTime,jdbcType=BIGINT},
+			#{modifyTime,jdbcType=BIGINT}, 
+			#{remark,jdbcType=VARCHAR}, 
+			#{subjectCode,jdbcType=VARCHAR},
+			#{subjectClass,jdbcType=TINYINT}, 
+			#{qualityDepend,jdbcType=TINYINT},
+			#{qualitySeqNum,jdbcType=INTEGER},
+			#{qualityIsTop,jdbcType=TINYINT}, 
+			#{qualityTopTime,jdbcType=BIGINT}
+		)
+	</insert>
+	
+	<!-- 删除班组精华 -->
+	<delete id="deleteTeamQuality" parameterType="map">
+		DELETE FROM relation_quality
+		WHERE subject_class = #{subjectClass,jdbcType=TINYINT}
+		AND subject_code = #{subjectCode,jdbcType=VARCHAR}
+		AND team_code = #{teamCode,jdbcType=VARCHAR}
+	</delete>
+	
+</mapper>

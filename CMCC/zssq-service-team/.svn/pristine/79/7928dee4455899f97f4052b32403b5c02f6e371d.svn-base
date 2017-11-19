@@ -1,0 +1,20 @@
+package com.zssq.dao.mapper;
+
+import java.util.List;
+
+import com.zssq.dao.pojo.TeamElect;
+
+public interface TeamElectMapper {
+	
+    int insertSelective(TeamElect record);
+
+    int closeElect();
+    
+    List<TeamElect> selectByRecord(TeamElect record);
+    
+    int selectCount(TeamElect record);
+    
+    int lastToHis();
+    
+    int nowToLast();
+}

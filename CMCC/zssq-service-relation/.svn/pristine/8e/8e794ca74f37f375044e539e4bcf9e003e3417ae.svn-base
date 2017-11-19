@@ -1,0 +1,50 @@
+package com.zssq.dao.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import com.zssq.dao.pojo.RelationRecommend;
+
+public interface RelationRecommendMapper {
+
+
+    int insert(RelationRecommend record);
+
+    /**
+     * @Function selectByRecCode
+     * @Description 通过推荐编号获取推荐详情
+     * @param recCode
+     * @return
+     */
+    RelationRecommend selectByRecCode(RelationRecommend recCode);
+
+	
+
+	/**
+	 * @Function updateRecommendStatus
+	 * @Description 修改推荐状态
+	 * @param recCode
+	 * @param RecStatus
+	 * @return
+	 */
+	int updateRecommendStatus(Map<String, Object> paramMap);
+	
+	/**
+	 * @Function selectPortalRecList
+	 * @Description 获取门户精华列表
+	 * @param paramMap
+	 * @return
+	 */
+	List<Object> selectPortalRecList(Map<String, Object> paramMap);
+	int selectPortalRecListCount(Map<String, Object> paramMap);
+
+
+	/**
+	 * @Function selectRecCountByCond
+	 * @Description 根据条件查询推荐数量
+	 * @param recommend
+	 * @return
+	 */
+	long selectRecCountByCond(RelationRecommend recommend);
+	
+}

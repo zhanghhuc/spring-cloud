@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.news.dao.mapper.InfoUploadMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.news.po.InfoUpload" >
+    <result column="ID" property="id" jdbcType="VARCHAR" />
+    <result column="UF_TYPE" property="ufType" jdbcType="VARCHAR" />
+    <result column="UF_PATH" property="ufPath" jdbcType="VARCHAR" />
+    <result column="UF_ORG_NAME" property="ufOrgName" jdbcType="VARCHAR" />
+    <result column="UF_NEW_NAME" property="ufNewName" jdbcType="VARCHAR" />
+    <result column="UF_ORG_EXT" property="ufOrgExt" jdbcType="VARCHAR" />
+    <result column="UF_NEW_EXT" property="ufNewExt" jdbcType="VARCHAR" />
+    <result column="UF_UPLOAD_TIME" property="ufUploadTime" jdbcType="TIMESTAMP" />
+    <result column="UF_UPDATE_TIME" property="ufUpdateTime" jdbcType="TIMESTAMP" />
+
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    ID, UF_TYPE, UF_PATH, UF_ORG_NAME, UF_NEW_NAME, UF_ORG_EXT, UF_NEW_EXT, UF_UPLOAD_TIME, 
+    UF_UPDATE_TIME
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.zssq.news.po.InfoUploadExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'false' as QUERYID,
+    <include refid="Base_Column_List" />
+    from info_upload
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+    <if test="limitStart != null and limitStart>=0" >
+      limit #{limitStart} , #{limitEnd}
+    </if>
+  </select>
+  <insert id="insert" parameterType="com.zssq.news.po.InfoUpload" >
+    insert into info_upload (ID, UF_TYPE, UF_PATH, 
+      UF_ORG_NAME, UF_NEW_NAME, UF_ORG_EXT, 
+      UF_NEW_EXT, UF_UPLOAD_TIME, UF_UPDATE_TIME
+      )
+    values (#{id,jdbcType=VARCHAR}, #{ufType,jdbcType=VARCHAR}, #{ufPath,jdbcType=VARCHAR}, 
+      #{ufOrgName,jdbcType=VARCHAR}, #{ufNewName,jdbcType=VARCHAR}, #{ufOrgExt,jdbcType=VARCHAR}, 
+      #{ufNewExt,jdbcType=VARCHAR}, #{ufUploadTime,jdbcType=TIMESTAMP}, #{ufUpdateTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.news.po.InfoUpload" >
+    insert into info_upload
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        ID,
+      </if>
+      <if test="ufType != null" >
+        UF_TYPE,
+      </if>
+      <if test="ufPath != null" >
+        UF_PATH,
+      </if>
+      <if test="ufOrgName != null" >
+        UF_ORG_NAME,
+      </if>
+      <if test="ufNewName != null" >
+        UF_NEW_NAME,
+      </if>
+      <if test="ufOrgExt != null" >
+        UF_ORG_EXT,
+      </if>
+      <if test="ufNewExt != null" >
+        UF_NEW_EXT,
+      </if>
+      <if test="ufUploadTime != null" >
+        UF_UPLOAD_TIME,
+      </if>
+      <if test="ufUpdateTime != null" >
+        UF_UPDATE_TIME,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="ufType != null" >
+        #{ufType,jdbcType=VARCHAR},
+      </if>
+      <if test="ufPath != null" >
+        #{ufPath,jdbcType=VARCHAR},
+      </if>
+      <if test="ufOrgName != null" >
+        #{ufOrgName,jdbcType=VARCHAR},
+      </if>
+      <if test="ufNewName != null" >
+        #{ufNewName,jdbcType=VARCHAR},
+      </if>
+      <if test="ufOrgExt != null" >
+        #{ufOrgExt,jdbcType=VARCHAR},
+      </if>
+      <if test="ufNewExt != null" >
+        #{ufNewExt,jdbcType=VARCHAR},
+      </if>
+      <if test="ufUploadTime != null" >
+        #{ufUploadTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="ufUpdateTime != null" >
+        #{ufUpdateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.zssq.news.po.InfoUploadExample" resultType="java.lang.Integer" >
+    select count(*) from info_upload
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+</mapper>

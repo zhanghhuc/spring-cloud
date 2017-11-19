@@ -1,0 +1,401 @@
+package com.zssq.mblog.controller;
+
+import java.util.Date;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.constants.CreditConstants;
+import com.zssq.constants.MblogConstants;
+import com.zssq.constants.SolrCoreConstants;
+import com.zssq.dao.pojo.MblogComment;
+import com.zssq.dao.pojo.MblogInfo;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.mblog.vo.CommentWeiboVo;
+import com.zssq.mblog.vo.DelWeiboComVo;
+import com.zssq.mblog.vo.GetWeiboComListVo;
+import com.zssq.mblog.vo.GotoWeiboComVo;
+import com.zssq.mblog.vo.PraiseWeiboComVo;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.qo.CommentInfoQO;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.PageBean;
+
+/**
+ * 
+    * @ClassName: MblogCommentController  
+    * @Description: 微博评论  
+    * @author Mr.B  
+    * @date 2017年3月23日  
+    *
+ */
+@Controller
+@RequestMapping("/mblog")
+public class MblogCommentController extends MblogBaseController{
+
+	/** log对象 **/
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	/**
+	 * 
+	    * @Title: commentWeibo  
+	    * @Description: 评论
+	    * @param req
+	    * @param res
+	    * @param inVo
+	    * @throws BusinessException
+		* @return ResultJSON    返回类型
+	 */
+	@RequestMapping(value = "/commentWeibo",method = RequestMethod.POST)  
+	@ResponseBody
+    public ResultJSON commentWeibo(HttpServletRequest req,HttpServletResponse res,@RequireValid CommentWeiboVo inVo) throws BusinessException{  
+		try{
+			// 组织信息
+			SysUserInfo userInfo =  getUserInfo(inVo.getUserCode());
+			
+			//敏感词过滤
+            JSONArray jsonArray = solrQueryService.CheckSentence(userInfo.getManageOrgInfo().getSysOrgCode(),inVo.getContent(),
+                    SolrCoreConstants.SENSITIVE_WORD_CORE);
+            if( jsonArray.size() > 0 ){
+            	ResultJSON resJson = new ResultJSON("COMMON_999");
+            	JSONObject body = new JSONObject();
+                body.put("totalCount", jsonArray.size());
+                body.put("isPass", false);
+                body.put("list", jsonArray);
+                resJson.setBody(body);
+                return resJson ;
+            }
+			// 判断原微博是否存在
+			MblogInfo info = mblogInfoService.getMblogInfo(inVo.getMblogCode());
+			if(null == info || info.getIsDelete() == MblogConstants.MBLOG_YES || info.getIsShield() == MblogConstants.MBLOG_YES){
+				throw BusinessException.build("MBLOG_12002","微博");
+			}
+			// 判断是否是个人的
+			if(info.getMblogDepend() == MblogConstants.MBLOG_DEPEND_SELF){
+				// 判断关系
+				if(checkIsBlack(info.getUserCode(), inVo.getUserCode())){
+					throw BusinessException.build("COMMON_403");
+				}
+			}
+			
+			// 创建QO
+			String commentCode = UUIDHelper.getUUID();
+			CommentInfoQO qo = new CommentInfoQO();
+			qo.setCommentCode(commentCode);
+			qo.setMyUserCode(inVo.getUserCode());
+			qo.setContent(inVo.getContent());
+			qo.setMblogCode(inVo.getMblogCode());
+			
+			// 组织信息
+			SysUserInfo user = getUserInfo(inVo.getUserCode());
+			if(null != user){
+				qo.setOrgCode(user.getManageOrgInfo().getSysOrgCode());
+				qo.setTenantCode(user.getTenantCode());
+			}
+			
+			// 调用微博评论
+			if(!mblogCommentService.addCommentInfo(qo)){
+				log.info("MblogInfoController.commentWeibo:添加评论失败");
+				throw BusinessException.build("MBLOG_12001","微博评论");
+			}
+			// 调用评论信息
+			sendCommentMsg(inVo.getMblogCode(), commentCode, MblogConstants.MBLOG_BLANK, inVo.getContent(), info.getContent(),inVo.getUserCode(), info.getUserCode(), MblogConstants.MBLOG_ACTION_COMMENT, qo.getOrgCode(), qo.getTenantCode());
+			
+			// 修改评论数目
+			updateCommentNum(qo.getMblogCode(), qo.getCommentCode(), MblogConstants.MBLOG_BLANK, MblogConstants.MBLOG_ACTION_COMMENT, false);
+			
+			// 添加积分信息
+			sendCreditMsg(inVo.getUserCode(), qo.getOrgCode(),CreditConstants.TYPE_INDIVIDUAL,CreditConstants.COMMAND_COMMENT_PUBLISH);			
+			
+			// 创建返回值
+			ResultJSON result = new ResultJSON("COMMON_200");
+			JSONObject body = new JSONObject();
+			body.put("mblogCode", inVo.getMblogCode());
+			body.put("commentCode", commentCode);
+			body.put("userCode", inVo.getUserCode());
+			
+			// 获取用户组织信息
+			if(null != user){
+				body.put("userPhoto", user.getHeadPortrait());
+				body.put("userName", user.getUserName());
+				body.put("orgName", user.getManageOrgInfo().getSysOrgFullname());
+			}else{
+				body.put("userPhoto", "");
+				body.put("userName", "");
+				body.put("orgName", "");
+			}
+			body.put("content", inVo.getContent());
+			body.put("timeSign", new Date().getTime());
+			body.put("mePraise", MblogConstants.MBLOG_NO);
+			body.put("praiseNum", MblogConstants.MBLOG_ZERO);
+			body.put("replyNum", MblogConstants.MBLOG_ZERO);
+			
+			result.setBody(body);
+			return result;
+		}catch(BusinessException e){
+			throw e;
+		}catch(Exception e){
+			log.error("MblogInfoController.commentWeibo", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * 
+	    * @Title: getWeiboComList  
+	    * @Description: 获取评论列表
+	    * @param req
+	    * @param res
+	    * @param inVo
+	    * @throws BusinessException
+		* @return ResultJSON    返回类型
+	 */
+	@RequestMapping(value = "/getWeiboComList")  
+	@ResponseBody
+	public ResultJSON getWeiboComList(HttpServletRequest req,HttpServletResponse res,@RequireValid GetWeiboComListVo inVo) throws BusinessException{  
+		try{
+			// 创建QO
+			CommentInfoQO qo = new CommentInfoQO();
+			qo.setMyUserCode(inVo.getUserCode());
+			qo.setMblogCode(inVo.getMblogCode());
+			qo.setLineTime(Long.valueOf(inVo.getCurrentTime()));
+			qo.setPageNo(Integer.valueOf(inVo.getPageNo()));
+			qo.setPageSize(Integer.valueOf(inVo.getPageSize()));
+			
+			// 获取数据
+			PageBean pageBean = mblogCommentService.queryCommentList(qo);
+			List<MblogComment> mcList = pageBean.getRecordList();
+			JSONObject body = new JSONObject();
+			body.put("total", pageBean.getTotalCount());
+			body.put("nowSysTime", new Date().getTime());
+			// 列表
+			JSONArray commentList = new JSONArray();
+			if(null != mcList && !mcList.isEmpty()){
+				for(MblogComment mc : mcList){
+					JSONObject temp = new JSONObject();
+					temp.put("mblogCode", mc.getMblogCode());
+					temp.put("commentCode", mc.getMblogCommentCode());
+					temp.put("userCode", mc.getUserCode());
+					
+					// 获取用户组织信息
+					SysUserInfo user = getUserInfo(mc.getUserCode());
+					if(null != user){
+						temp.put("userPhoto", user.getHeadPortrait());
+						temp.put("userName", user.getUserName());
+						temp.put("orgName", user.getManageOrgInfo().getSysOrgFullname());
+					}else{
+						temp.put("userPhoto", "");
+						temp.put("userName", "");
+						temp.put("orgName", "");
+					}
+					temp.put("content", mc.getContent());
+					temp.put("timeSign", mc.getCreateTime());
+					temp.put("mePraise", mc.getMePraise());
+					temp.put("praiseNum", mc.getPraiseNum());
+					temp.put("replyNum", mc.getReplyNum());
+					commentList.add(temp);
+				}
+			}
+			body.put("commentList", commentList);
+			// 创建返回值
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(body);
+			return result;
+		}catch(BusinessException e){
+			throw e;
+		}catch(Exception e){
+			log.error("MblogInfoController.getWeiboComList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * 
+	    * @Title: goToWeiboCom  
+	    * @Description: 定位评论
+	    * @param req
+	    * @param res
+	    * @param inVo
+	    * @throws BusinessException
+		* @return ResultJSON    返回类型
+	 */
+	@RequestMapping(value = "/goToWeiboCom")  
+	@ResponseBody
+	public ResultJSON goToWeiboCom(HttpServletRequest req,HttpServletResponse res,@RequireValid GotoWeiboComVo inVo) throws BusinessException{  
+		try{
+			// 创建QO
+			CommentInfoQO qo = new CommentInfoQO();
+			qo.setMyUserCode(inVo.getUserCode());
+			qo.setMblogCode(inVo.getMblogCode());
+			qo.setLineTime(Long.valueOf(inVo.getCurrentTime()));
+			qo.setPageSize(Integer.valueOf(inVo.getPageSize()));
+			qo.setCommentCode(inVo.getCommentCode());
+			
+			// 获取数据
+			PageBean pageBean = mblogCommentService.gotoCommentList(qo);
+			List<MblogComment> mcList = pageBean.getRecordList();
+			JSONObject body = new JSONObject();
+			body.put("total", pageBean.getTotalCount());
+			body.put("nowSysTime", new Date().getTime());
+			body.put("currentNo", pageBean.getCurrentPage());
+			body.put("goToCommentCode", inVo.getCommentCode());
+			
+			// 列表
+			JSONArray commentList = new JSONArray();
+			if(null != mcList && !mcList.isEmpty()){
+				for(MblogComment mc : mcList){
+					JSONObject temp = new JSONObject();
+					temp.put("mblogCode", mc.getMblogCode());
+					temp.put("commentCode", mc.getMblogCommentCode());
+					temp.put("userCode", mc.getUserCode());
+					// 获取用户组织信息
+					SysUserInfo user = getUserInfo(mc.getUserCode());
+					if(null != user){
+						temp.put("userPhoto", user.getHeadPortrait());
+						temp.put("userName", user.getUserName());
+						temp.put("orgName", user.getManageOrgInfo().getSysOrgFullname());
+					}else{
+						temp.put("userPhoto", "");
+						temp.put("userName", "");
+						temp.put("orgName", "");
+					}
+					temp.put("content", mc.getContent());
+					temp.put("timeSign", mc.getCreateTime());
+					temp.put("mePraise", mc.getMePraise());
+					temp.put("praiseNum", mc.getPraiseNum());
+					temp.put("replyNum", mc.getReplyNum());
+					commentList.add(temp);
+				}
+			}
+			body.put("commentList", commentList);
+			// 创建返回值
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(body);
+			return result;
+		}catch(BusinessException e){
+			throw e;
+		}catch(Exception e){
+			log.error("MblogInfoController.goToWeiboCom", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * 
+	    * @Title: praiseWeiboCom  
+	    * @Description: 点赞微博评论
+	    * @param req
+	    * @param res
+	    * @param inVo
+	    * @throws BusinessException
+		* @return ResultJSON    返回类型
+	 */
+	@RequestMapping(value = "/praiseWeiboCom",method = RequestMethod.POST)  
+	@ResponseBody
+    public ResultJSON praiseWeiboCom(HttpServletRequest req,HttpServletResponse res,@RequireValid PraiseWeiboComVo inVo) throws BusinessException{  
+		try{
+			// 判断评论是否存在
+			MblogComment info = mblogCommentService.getCommentInfo(inVo.getCommentCode());
+			if(null == info || info.getIsDelete() == MblogConstants.MBLOG_YES || info.getIsShield() == MblogConstants.MBLOG_YES){
+				throw BusinessException.build("MBLOG_12002","评论");
+			}
+			// 判断用户关系
+			if(Byte.valueOf(inVo.getActionType()) == 1){
+				if(checkIsBlack(info.getUserCode(), inVo.getUserCode())){
+					throw BusinessException.build("COMMON_403");
+				}
+			}
+			// 创建QO
+			CommentInfoQO qo = new CommentInfoQO();
+			qo.setMyUserCode(inVo.getUserCode());
+			//qo.setMblogCode(inVo.getMblogCode());
+			qo.setCommentCode(inVo.getCommentCode());
+			qo.setIsPraise(Byte.valueOf(inVo.getActionType()) == 1 ? MblogConstants.MBLOG_YES : MblogConstants.MBLOG_NO);
+			
+			// 组织信息
+			SysUserInfo user = getUserInfo(inVo.getUserCode());
+			if(null != user){
+				qo.setOrgCode(user.getManageOrgInfo().getSysOrgCode());
+				qo.setTenantCode(user.getTenantCode());
+			}
+			
+			// 调用微博评论点赞
+			if(!mblogCommentService.addOrDelComPraise(qo)){
+				log.info("MblogInfoController.praiseWeiboCom:点赞操作失败");
+				throw BusinessException.build("MBLOG_12001","点赞评论");
+			}
+			
+			// 调用点赞消息
+			if(qo.getIsPraise() == MblogConstants.MBLOG_YES){
+				sendPraiseMsg(info, inVo.getUserCode(), MblogConstants.MBLOG_ACTION_COMMENT_PRAISE, qo.getOrgCode(), qo.getTenantCode());
+			}
+			
+			// 添加积分信息
+			sendCreditMsg(inVo.getUserCode(), qo.getOrgCode(),CreditConstants.TYPE_INDIVIDUAL,Byte.valueOf(inVo.getActionType()) == 1 ? CreditConstants.COMMAND_ADMIRE_PUBLISH : CreditConstants.COMMAND_ADMIRE_DEL);			
+
+			// 创建返回值
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(new JSONObject());
+			return result;
+		}catch(BusinessException e){
+			throw e;
+		}catch(Exception e){
+			log.error("MblogInfoController.praiseWeiboCom", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * 
+	    * @Title: delWeiboCom  
+	    * @Description: 删除评论
+	    * @param req
+	    * @param res
+	    * @param inVo
+	    * @throws BusinessException
+		* @return ResultJSON    返回类型
+	 */
+	@RequestMapping(value = "/delWeiboCom",method = RequestMethod.POST)  
+	@ResponseBody
+    public ResultJSON delWeiboCom(HttpServletRequest req,HttpServletResponse res,@RequireValid DelWeiboComVo inVo) throws BusinessException{  
+		try{
+			// 创建QO
+			CommentInfoQO qo = new CommentInfoQO();
+			qo.setMyUserCode(inVo.getUserCode());
+			qo.setMblogCode(inVo.getMblogCode());
+			qo.setCommentCode(inVo.getCommentCode());
+			
+			// 调用微博评论删除
+			if(!mblogCommentService.deleteCommentInfo(qo)){
+				log.info("MblogInfoController.delWeiboCom:删除评论失败");
+				throw BusinessException.build("MBLOG_12001","删除评论");
+			}
+			// 修改评论数目
+			updateCommentNum(qo.getMblogCode(), qo.getCommentCode(), MblogConstants.MBLOG_BLANK, MblogConstants.MBLOG_ACTION_COMMENT, true);
+			
+			// 添加积分信息
+			sendCreditMsg(inVo.getUserCode(), qo.getOrgCode(), CreditConstants.TYPE_INDIVIDUAL, CreditConstants.COMMAND_COMMENT_DEL);			
+			
+			// 创建返回值
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(new JSONObject());
+			return result;
+		}catch(BusinessException e){
+			throw e;
+		}catch(Exception e){
+			log.error("MblogInfoController.delWeiboCom", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+}

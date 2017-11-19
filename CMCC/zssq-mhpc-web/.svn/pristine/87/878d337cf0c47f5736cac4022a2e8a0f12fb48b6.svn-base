@@ -1,0 +1,200 @@
+package com.zssq.msg.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.dao.pojo.UserMsgComment;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.model.MessageCommentModel;
+import com.zssq.msg.vo.CommentListVO;
+import com.zssq.msg.vo.DeleteCommemtVO;
+import com.zssq.pojo.Message;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.ISysUserService;
+import com.zssq.service.MessageCommentService;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PropertiesUtil;
+import org.slf4j.Logger;
+
+/**
+ * 
+ * @ClassName: MessageController  
+ * @Description: 消息Controller 
+ * @author YDB  
+ * @date 2017年3月20日  
+ *
+ */
+@Controller
+@RequestMapping("/msg")
+public class MsgCommentController {
+	private Logger log = LoggerFactory.getLogger(this.getClass());	
+	
+	@Autowired
+	private MessageCommentService messageCommentService;
+	
+	@Autowired
+	private ISysUserService userService;
+	
+	/**
+	 * 
+	 * @Title: getMsgCommentList  
+	 * @Description: 评论消息查询列表
+	 * @param vo
+	 * @return    参数  
+	 * @return: ResultJSON    返回类型
+	 * @throws BusinessException 
+	 */
+	
+	@RequestMapping("/getMsgCommentList")
+	@ResponseBody
+	public ResultJSON getMsgCommentList(@RequireValid CommentListVO vo) throws BusinessException{
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		MessageCommentModel msgComment=new MessageCommentModel();
+		
+		JSONObject json=new JSONObject();
+		JSONArray jsonArray=new JSONArray();
+		
+		try {
+			
+			msgComment.setPageNo(Integer.parseInt(vo.getPageNo()));
+			msgComment.setPageSize(Integer.parseInt(vo.getPageSize()));
+			msgComment.setType(vo.getType()+"");
+			msgComment.setUserCode(vo.getUserCode());
+			
+			//查询条件
+			PageBean pageBean=messageCommentService.getMsgCommentList(msgComment);
+			List<UserMsgComment> list=pageBean.getRecordList();
+			List<String> userCodeList=new ArrayList<>();
+			
+		/*	for (int i = 0; i < list.size(); i++) {
+				userCodeList.add(list.get(i).getCommentUserCode());
+				userCodeList.add(list.get(i).getUserCode());
+				userCodeList.add(list.get(i).getReceiveUserCode());
+			}
+			
+			Map<String, Object> userMap=userService.selectMapByCodes(userCodeList);
+			*/
+			//返回值封装
+			for(int i=0;i<list.size();i++){
+				UserMsgComment temp=list.get(i);
+				json.put("commentContent",temp.getCommentcontent());
+				json.put("content",temp.getOriginalContent());
+				json.put("creatTime",temp.getCreateTime());
+				json.put("commentCode", temp.getCommentCode());
+				json.put("commentUserCode", temp.getCommentUserCode());
+				json.put("commentType", temp.getCommetType());
+				json.put("originalCode",temp.getOriginalCode());
+				json.put("msgCode",temp.getMsgCode());
+				
+				
+				SysUserInfo commentUserInfo=userService.selectByCode(list.get(i).getCommentUserCode());
+				if(commentUserInfo!=null){
+					json.put("commentUserName",commentUserInfo.getUserName());
+					json.put("commentOrgName", commentUserInfo.getManageOrgInfo().getSysOrgName());
+					json.put("commentHeadUrl", commentUserInfo.getHeadPortrait());
+				}else{
+					json.put("commentUserName","");
+					json.put("commentOrgName", "");
+					json.put("commentHeadUrl", "");
+				}
+				
+				
+				SysUserInfo userInfo=userService.selectByCode(list.get(i).getReceiveUserCode());
+				if(userInfo!=null){
+					json.put("userName",userInfo.getUserName());
+					json.put("orgName", userInfo.getManageOrgInfo().getSysOrgName());
+					json.put("headUrl", userInfo.getHeadPortrait());
+					json.put("userCode", userInfo.getUserCode());
+				}else{
+					json.put("userName","");
+					json.put("orgName","");
+					json.put("headUrl","");
+					json.put("userCode", "");
+
+				}
+				json.put("publicCode", temp.getPublicCode());
+				
+				jsonArray.add(json);
+				json=new JSONObject();
+			}
+
+			m = PropertiesUtil.getMessage("COMMON_200");
+			
+			json.put("total", pageBean.getTotalCount());
+			json.put("commentList", jsonArray);
+			resJson.setReturnCode(m.getCode());
+			resJson.setReturnTip(m.getTip());
+			resJson.setBody(JSONObject.toJSON(json));
+        	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			log.error("获取评论查询-getMsgCommentList():"+JSONObject.toJSONString(vo),e);
+			throw new BusinessException("MSG_26001","获取列表失败");
+		}
+		
+		return resJson;
+		
+	}
+	
+	
+	
+	
+	/**
+	 * 
+	 * @Title: delComment  
+	 * @Description:删除留言
+	 * @param vo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping("/delComment")
+	@ResponseBody
+	public ResultJSON delMessageBoard(@RequireValid DeleteCommemtVO vo) throws BusinessException{
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		JSONObject json=new JSONObject();
+
+		try {
+			
+			boolean state=false;
+			state=messageCommentService.delMsgComment(vo.getMsgCode());
+			if(state){
+				//成功
+				m = PropertiesUtil.getMessage("COMMON_200");
+				json.put("result",state?0:1);
+				resJson.setReturnCode(m.getCode());
+				resJson.setReturnTip(m.getTip());
+				resJson.setBody(JSONObject.toJSON(json));
+			}else{
+				throw new BusinessException();
+			}
+        	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			log.error("删除评论消息-delComment():"+JSONObject.toJSONString(vo),e);
+			throw new BusinessException().build("MSG_26001","删除");
+		}
+		
+		return resJson;
+		
+	}
+
+	
+}

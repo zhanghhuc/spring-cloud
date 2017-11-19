@@ -1,0 +1,166 @@
+package com.zssq.dao.model;
+
+import java.io.Serializable;
+
+/**
+ * 
+ * @ClassName: RssReturnPo  
+ * @Description: 通过code来查询博客标题及其date
+ * @author guoyang  
+ * @date 2017年5月25日  
+ *
+ */
+public class BlogTitleData implements Serializable{
+
+	    
+	/**  
+	 * @Fields serialVersionUID : TODO
+	 */  
+	private static final long serialVersionUID = -7292436473291538063L;
+	/**
+	 * 标题
+	 */
+	private String blogTitle;
+	/**
+	 * 创建时间
+	 */
+	private String blogPublishTime;
+	
+	/**
+	 * 摘要
+	 */
+	private String blogDigest;
+	/**
+	 * 标题
+	 */
+    private String blogCode = "";
+    /**
+	 * 班组置精次数
+	 */
+    private Integer teamQualityNum = 0;
+    /**
+	 * 集团级别置精次数
+	 */
+    private Integer groupQualityNum = 0;
+    /**
+	 * 省级别置精次数
+	 */
+    private Integer provinceQualityNum = 0;
+    /**
+	 * 市级别置精次数
+	 */
+    private Integer cityQualityNum = 0;
+    /**
+	 * 浏览量
+	 */
+    private Integer readNum = 0;
+    /**
+	 * 点赞量
+	 */
+    private Integer likeNum = 0;
+    /**
+	 * 收藏量
+	 */
+    private Integer collectNum = 0;
+    /**
+	 * 转发量
+	 */
+    private Integer forwardNum = 0;
+    /**
+	 * 评论量
+	 */
+    private Integer commentNum = 0;
+    /**
+	 * 分享量
+	 */
+    private Integer shareNum = 0;
+	public String getBlogTitle() {
+		return blogTitle;
+	}
+	public void setBlogTitle(String blogTitle) {
+		this.blogTitle = blogTitle;
+	}
+	public String getBlogCode() {
+		return blogCode;
+	}
+	public void setBlogCode(String blogCode) {
+		this.blogCode = blogCode;
+	}
+	public Integer getTeamQualityNum() {
+		return teamQualityNum;
+	}
+	public void setTeamQualityNum(Integer teamQualityNum) {
+		this.teamQualityNum = teamQualityNum;
+	}
+	public Integer getGroupQualityNum() {
+		return groupQualityNum;
+	}
+	public void setGroupQualityNum(Integer groupQualityNum) {
+		this.groupQualityNum = groupQualityNum;
+	}
+	public Integer getProvinceQualityNum() {
+		return provinceQualityNum;
+	}
+	public void setProvinceQualityNum(Integer provinceQualityNum) {
+		this.provinceQualityNum = provinceQualityNum;
+	}
+	public Integer getCityQualityNum() {
+		return cityQualityNum;
+	}
+	public void setCityQualityNum(Integer cityQualityNum) {
+		this.cityQualityNum = cityQualityNum;
+	}
+	public Integer getReadNum() {
+		return readNum;
+	}
+	public void setReadNum(Integer readNum) {
+		this.readNum = readNum;
+	}
+	public Integer getLikeNum() {
+		return likeNum;
+	}
+	public void setLikeNum(Integer likeNum) {
+		this.likeNum = likeNum;
+	}
+	public Integer getCollectNum() {
+		return collectNum;
+	}
+	public void setCollectNum(Integer collectNum) {
+		this.collectNum = collectNum;
+	}
+	public Integer getForwardNum() {
+		return forwardNum;
+	}
+	public void setForwardNum(Integer forwardNum) {
+		this.forwardNum = forwardNum;
+	}
+	public Integer getCommentNum() {
+		return commentNum;
+	}
+	public void setCommentNum(Integer commentNum) {
+		this.commentNum = commentNum;
+	}
+	public Integer getShareNum() {
+		return shareNum;
+	}
+	public void setShareNum(Integer shareNum) {
+		this.shareNum = shareNum;
+	}
+	public static long getSerialversionuid() {
+		return serialVersionUID;
+	}
+	public String getBlogPublishTime() {
+		return blogPublishTime;
+	}
+	public void setBlogPublishTime(String blogPublishTime) {
+		this.blogPublishTime = blogPublishTime;
+	}
+	public String getBlogDigest() {
+		return blogDigest;
+	}
+	public void setBlogDigest(String blogDigest) {
+		this.blogDigest = blogDigest;
+	}
+    
+    
+}

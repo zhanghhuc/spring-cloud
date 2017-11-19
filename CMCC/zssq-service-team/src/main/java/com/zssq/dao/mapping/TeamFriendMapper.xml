@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.TeamFriendMapper">
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.TeamFriend">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="team_friend_code" property="teamFriendCode" jdbcType="VARCHAR" />
+		<result column="team_code" property="teamCode" jdbcType="VARCHAR" />
+		<result column="friend_team_code" property="friendTeamCode" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="team_icon" property="teamIcon" jdbcType="VARCHAR" />
+		<result column="team_name" property="teamName" jdbcType="VARCHAR" />
+		<result column="team_intro" property="teamIntro" jdbcType="VARCHAR" />
+		<result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<sql id="Base_Column_List">
+		id, team_friend_code, team_code, friend_team_code, create_time
+	</sql>
+	
+	<!-- 根据唯一标识查询 -->
+	<select id="selectByCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select 
+			<include refid="Base_Column_List" />
+		from 
+			team_friend
+		where team_friend_code = #{teamFriendCode,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 查询友好班组 -->
+	<select id="selectPage" parameterType="com.zssq.dao.pojo.TeamFriend" resultMap="BaseResultMap" >
+		SELECT 
+		  t1.*,
+		  t2.team_name,
+		  t2.team_intro,
+		  t2.org_code,
+		  t2.team_icon 
+		FROM
+		  team_friend t1 
+		  LEFT JOIN team_info t2 
+		    ON t1.friend_team_code = t2.team_code 
+		WHERE 1=1
+		<if test="teamCode != null">
+			and t1.team_code = #{teamCode,jdbcType=VARCHAR} 
+		</if> 
+		<if test="friendTeamCode != null">
+			and t1.friend_team_code = #{friendTeamCode,jdbcType=VARCHAR} 
+		</if>
+		ORDER BY create_time DESC
+		<if test="limitStart != null">
+			limit #{limitStart,jdbcType=VARCHAR},#{limitEnd,jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<!-- 查询友好班组(数量) -->
+	<select id="selectCount" parameterType="com.zssq.dao.pojo.TeamFriend" resultType="java.lang.Integer" >
+		select 
+			count(1)
+		from 
+			team_friend
+		where team_code = #{teamCode,jdbcType=VARCHAR}
+		<if test="friendTeamCode != null">
+			and friend_team_code = #{friendTeamCode,jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<!-- 根据唯一标识删除 -->
+	<delete id="deleteByCode" parameterType="java.lang.String">
+		DELETE 
+		FROM
+		  team_friend 
+		WHERE team_friend_code = #{teamFriendCode,jdbcType=VARCHAR} 
+	</delete>
+	
+	<!-- 动态插入 -->
+	<insert id="insertSelective" parameterType="com.zssq.dao.pojo.TeamFriend">
+		insert into team_friend
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="teamFriendCode != null">
+				team_friend_code,
+			</if>
+			<if test="teamCode != null">
+				team_code,
+			</if>
+			<if test="friendTeamCode != null">
+				friend_team_code,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=BIGINT},
+			</if>
+			<if test="teamFriendCode != null">
+				#{teamFriendCode,jdbcType=VARCHAR},
+			</if>
+			<if test="teamCode != null">
+				#{teamCode,jdbcType=VARCHAR},
+			</if>
+			<if test="friendTeamCode != null">
+				#{friendTeamCode,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=BIGINT},
+			</if>
+		</trim>
+	</insert>
+	
+	<!-- 查询友好班组是这个班组的班组集合 -->
+	<select id="selectTeamCode" parameterType="java.lang.String" resultType="java.lang.String">
+		select team_code from team_friend where friend_team_code = #{friendTeamCode,jdbcType=VARCHAR}
+	</select>
+	
+</mapper>

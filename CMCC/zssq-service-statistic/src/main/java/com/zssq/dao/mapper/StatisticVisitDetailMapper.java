@@ -1,0 +1,30 @@
+package com.zssq.dao.mapper;
+
+import java.util.List;
+
+import com.zssq.dao.pojo.StatisticCommon;
+import com.zssq.dao.pojo.StatisticVisitDetail;
+
+public interface StatisticVisitDetailMapper {
+    int deleteByPrimaryKey(Long id);
+
+    int insert(StatisticVisitDetail record);
+
+    int insertSelective(StatisticVisitDetail record);
+
+    StatisticVisitDetail selectByPrimaryKey(Long id);
+
+    int updateByPrimaryKeySelective(StatisticVisitDetail record);
+
+    int updateByPrimaryKey(StatisticVisitDetail record);
+    
+    List<StatisticVisitDetail> selectPcPage(StatisticVisitDetail record);
+    List<StatisticVisitDetail> selectPage(StatisticVisitDetail record);
+
+    int selectVisitCount(StatisticVisitDetail record);
+    int selectVisitCountPc(StatisticVisitDetail record);
+
+    Integer selectGroupByUser(StatisticVisitDetail record);
+
+    Integer deleteByCommon(StatisticVisitDetail record);
+}

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.BlogDraftMapper">
+
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.BlogDraft">
+		<id column="id" jdbcType="BIGINT" property="id" />
+		<result column="draft_code" jdbcType="VARCHAR" property="draftCode" />
+		<result column="tenant_code" jdbcType="VARCHAR" property="tenantCode" />
+		<result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+		<result column="create_time" jdbcType="BIGINT" property="createTime" />
+		<result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+		<result column="remark" jdbcType="VARCHAR" property="remark" />
+		<result column="user_code" jdbcType="VARCHAR" property="userCode" />
+		<result column="draft_depend" jdbcType="TINYINT" property="draftDepend" />
+		<result column="team_code" jdbcType="VARCHAR" property="teamCode" />
+		<result column="draft_digest" jdbcType="VARCHAR" property="draftDigest" />
+		<result column="draft_title" jdbcType="VARCHAR" property="draftTitle" />
+		<result column="class_code" jdbcType="VARCHAR" property="classCode" />
+		<result column="draft_tags" jdbcType="VARCHAR" property="draftTags" />
+		<result column="draft_plan_publish_time" jdbcType="BIGINT" property="draftPlanPublishTime" />
+	</resultMap>
+	
+	<!-- 草稿详情返回集合 -->
+	<resultMap id="DraftResultMap" type="com.zssq.dao.model.BlogDraftModel">
+		<result column="draft_code" jdbcType="VARCHAR" property="draftCode" />
+		<result column="draft_title" jdbcType="VARCHAR" property="draftTitle" />
+		<result column="class_code" jdbcType="VARCHAR" property="classCode" />
+		<result column="draft_tags" jdbcType="VARCHAR" property="draftTags" />
+		<result column="draft_plan_publish_time" jdbcType="BIGINT" property="draftPlanPublishTime" />
+		<result column="draft_content_info" jdbcType="LONGVARCHAR" property="draftContentInfo" />
+	</resultMap>
+	
+	<!-- 列列表 -->
+	<sql id="Base_Column_List">
+		id, draft_code, tenant_code, org_code, create_time, modify_time, 
+		remark, user_code, draft_depend, team_code, draft_digest, draft_title, 
+		class_code, draft_tags, draft_plan_publish_time
+	</sql>
+	
+	<!-- 查询列表公共SQL -->
+	<sql id="select_list_sql">
+		FROM blog_draft
+		WHERE draft_depend = #{draftDepend,jdbcType=TINYINT}
+		AND user_code = #{userCode,jdbcType=VARCHAR}
+		<if test="draftDepend == 2">
+	        AND team_code = #{teamCode,jdbcType=VARCHAR}
+		</if>
+		AND create_time &lt; #{queryTime,jdbcType=BIGINT}
+	</sql>
+	
+	<!-- 查询列表个数 -->
+	<select id="selectCount" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+		<include refid="select_list_sql" />
+	</select>
+	
+	<!-- 查询列表 -->
+	<select id="list" parameterType="map" resultMap="BaseResultMap">
+		SELECT 
+			draft_code,
+			draft_title,
+			modify_time
+		<include refid="select_list_sql" />
+		ORDER BY create_time DESC
+		LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+	</select>
+	
+	<!-- 查询草稿详情 -->
+	<select id="select" parameterType="map" resultMap="DraftResultMap">
+		SELECT 
+			bd.draft_code,
+			bd.draft_title,
+			bd.class_code,
+			bd.draft_tags,
+			bd.draft_plan_publish_time,
+			bdc.draft_content_info
+		FROM 
+		(
+			SELECT 
+				draft_code,
+				draft_title,
+				class_code,
+				draft_tags,
+				draft_plan_publish_time
+			FROM blog_draft
+			WHERE draft_depend = #{draftDepend,jdbcType=TINYINT}
+			AND user_code = #{userCode,jdbcType=VARCHAR}
+			<if test="draftDepend == 2">
+		        AND team_code = #{teamCode,jdbcType=VARCHAR}
+			</if>
+			AND draft_code = #{draftCode,jdbcType=VARCHAR}
+		) bd
+		LEFT JOIN blog_draft_content bdc
+		ON bd.draft_code = bdc.draft_code
+	</select>
+	
+	<!-- 插入 -->
+	<insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.zssq.dao.pojo.BlogDraft">
+		INSERT INTO blog_draft (
+			draft_code, 
+			tenant_code,
+			org_code, 
+			create_time,
+			modify_time, 
+			remark, 
+			user_code, 
+			draft_depend, 
+			team_code,
+			draft_digest, 
+			draft_title, 
+			class_code,
+			draft_tags, 
+			draft_plan_publish_time
+		) VALUES (
+			#{draftCode,jdbcType=VARCHAR},
+			#{tenantCode,jdbcType=VARCHAR},
+			#{orgCode,jdbcType=VARCHAR}, 
+			#{createTime,jdbcType=BIGINT},
+			#{modifyTime,jdbcType=BIGINT}, 
+			#{remark,jdbcType=VARCHAR},
+			#{userCode,jdbcType=VARCHAR}, 
+			#{draftDepend,jdbcType=TINYINT}, 
+			#{teamCode,jdbcType=VARCHAR},
+			#{draftDigest,jdbcType=VARCHAR}, 
+			#{draftTitle,jdbcType=VARCHAR},
+			#{classCode,jdbcType=VARCHAR},
+			#{draftTags,jdbcType=VARCHAR}, 
+			#{draftPlanPublishTime,jdbcType=BIGINT}
+		)
+	</insert>
+	
+	<!-- 更新 -->	
+	<update id="update" parameterType="map">
+		UPDATE blog_draft SET 
+			modify_time = #{modifyTime,jdbcType=BIGINT},
+			draft_title = #{draftTitle,jdbcType=VARCHAR},
+			class_code = #{classCode,jdbcType=VARCHAR},
+			draft_tags = #{draftTags,jdbcType=VARCHAR},
+			draft_plan_publish_time = #{draftPlanPublishTime,jdbcType=BIGINT}
+		WHERE draft_depend = #{draftDepend,jdbcType=TINYINT}
+		AND user_code = #{userCode,jdbcType=VARCHAR}
+	    <if test="draftDepend == 2">
+	        AND team_code = #{teamCode,jdbcType=VARCHAR}
+		</if>
+		AND draft_code = #{draftCode,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 删除 -->
+	<delete id="delete" parameterType="map">
+		DELETE FROM blog_draft
+		WHERE draft_depend = #{draftDepend,jdbcType=TINYINT}
+		AND user_code = #{userCode,jdbcType=VARCHAR}
+	    <if test="draftDepend == 2">
+	        AND team_code = #{teamCode,jdbcType=VARCHAR}
+		</if>
+		AND draft_code = #{draftCode,jdbcType=VARCHAR}
+	</delete>
+	
+</mapper>

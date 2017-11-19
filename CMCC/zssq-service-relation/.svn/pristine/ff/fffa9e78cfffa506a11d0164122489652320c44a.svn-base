@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.RelationSubjectInfoBySryMapper">
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.RelationSubjectInfo">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="subject_code" jdbcType="VARCHAR" property="subjectCode" />
+    <result column="tenant_code" jdbcType="VARCHAR" property="tenantCode" />
+    <result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+    <result column="create_time" jdbcType="BIGINT" property="createTime" />
+    <result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="subject_class" jdbcType="TINYINT" property="subjectClass" />
+    <result column="subject_depend" jdbcType="TINYINT" property="subjectDepend" />
+    <result column="team_code" jdbcType="VARCHAR" property="teamCode" />
+    <result column="user_code" jdbcType="VARCHAR" property="userCode" />
+    <result column="subject_publish_time" jdbcType="BIGINT" property="subjectPublishTime" />
+    <result column="subject_title" jdbcType="VARCHAR" property="subjectTitle" />
+    <result column="subject_url" jdbcType="VARCHAR" property="subjectUrl" />
+    <result column="subject_source" jdbcType="TINYINT" property="subjectSource" />
+    <result column="source_code" jdbcType="VARCHAR" property="sourceCode" />
+    <result column="source_user_code" jdbcType="VARCHAR" property="sourceUserCode" />
+    <result column="source_publish_time" jdbcType="BIGINT" property="sourcePublishTime" />
+    <result column="source_is_delete" jdbcType="TINYINT" property="sourceIsDelete" />
+    <result column="source_is_shield" jdbcType="TINYINT" property="sourceIsShield" />
+    <result column="subject_is_delete" jdbcType="TINYINT" property="subjectIsDelete" />
+    <result column="subject_is_shield" jdbcType="TINYINT" property="subjectIsShield" />
+    <result column="subject_status" jdbcType="TINYINT" property="subjectStatus" />
+    <result column="subject_begin_time" jdbcType="BIGINT" property="subjectBeginTime" />
+    <result column="subject_end_time" jdbcType="BIGINT" property="subjectEndTime" />
+     <result column="subject_digest" jdbcType="LONGVARCHAR" property="subjectDigest" />
+    <result column="content_tips" jdbcType="LONGVARCHAR" property="contentTips" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, subject_code, tenant_code, org_code,
+    create_time, modify_time, remark, subject_class, subject_depend, team_code, user_code, 
+    subject_publish_time, subject_title, subject_url, subject_source, source_code, 
+    source_user_code, source_publish_time, source_is_delete, source_is_shield, subject_is_delete, 
+    subject_is_shield, subject_status, subject_begin_time, subject_end_time,subject_digest, content_tips
+  </sql>
+  
+  <insert id="insert" parameterType="com.zssq.dao.pojo.RelationSubjectInfo">
+    INSERT INTO relation_subject_info (
+			subject_code, 
+			tenant_code,
+			org_code, 
+			create_time, 
+			modify_time,
+			remark, 
+			subject_class, 
+			subject_depend,
+			team_code, 
+			user_code, 
+			subject_publish_time,
+			subject_title, 
+			source_depend, 
+			source_team_code,
+			subject_url, 
+			subject_source, 
+			source_code,
+			source_user_code, 
+			source_publish_time, 
+			source_is_delete,
+			source_is_shield, 
+			subject_is_delete, 
+			subject_is_shield,
+			subject_status, 
+			subject_begin_time, 
+			subject_end_time,
+			subject_digest, 
+			content_tips
+		) VALUES (
+			#{subjectCode,jdbcType=VARCHAR},
+			#{tenantCode,jdbcType=VARCHAR},
+			#{orgCode,jdbcType=VARCHAR}, 
+			#{createTime,jdbcType=BIGINT}, 
+			#{modifyTime,jdbcType=BIGINT},
+			#{remark,jdbcType=VARCHAR}, 
+			#{subjectClass,jdbcType=TINYINT},
+			#{subjectDepend,jdbcType=TINYINT},
+			#{teamCode,jdbcType=VARCHAR}, 
+			#{userCode,jdbcType=VARCHAR}, 
+			#{subjectPublishTime,jdbcType=BIGINT},
+			#{subjectTitle,jdbcType=VARCHAR}, 
+			#{sourceDepend,jdbcType=TINYINT},
+			#{sourceTeamCode,jdbcType=VARCHAR},
+			#{subjectUrl,jdbcType=VARCHAR}, 
+			#{subjectSource,jdbcType=TINYINT}, 
+			#{sourceCode,jdbcType=VARCHAR},
+			#{sourceUserCode,jdbcType=VARCHAR},
+			#{sourcePublishTime,jdbcType=BIGINT},
+			#{sourceIsDelete,jdbcType=TINYINT},
+			#{sourceIsShield,jdbcType=TINYINT},
+			#{subjectIsDelete,jdbcType=TINYINT},
+			#{subjectIsShield,jdbcType=TINYINT},
+			#{subjectStatus,jdbcType=TINYINT},
+			#{subjectBeginTime,jdbcType=BIGINT},
+			#{subjectEndTime,jdbcType=BIGINT},
+			#{subjectDigest,jdbcType=LONGVARCHAR},
+			#{contentTips,jdbcType=LONGVARCHAR}
+		)
+  </insert>
+ 
+  <update id="update" parameterType="map">
+    update relation_subject_info
+    <set>
+      <if test="modifyTime != null">
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="subjectTitle != null">
+        subject_title = #{subjectTitle,jdbcType=VARCHAR},
+      </if>
+      <if test="subjectUrl != null">
+        subject_url = #{subjectUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="subjectDigest != null">
+        subject_digest = #{subjectDigest,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where subject_class = #{subjectClass,jdbcType=TINYINT}
+    	and subject_code = #{subjectCode,jdbcType=VARCHAR}
+  </update>
+  <!-- 标记删除内容 -->
+  <delete id="delete" parameterType="map">
+  	update relation_subject_info
+  	 	set modify_time = #{modifyTime,jdbcType=BIGINT},
+  	 	subject_is_delete =#{isDelete,jdbcType=TINYINT}
+  	where subject_class = #{subjectClass,jdbcType=TINYINT}
+  		and subject_code = #{subjectCode,jdbcType=VARCHAR}
+  </delete>
+  <!-- 标记删除来源 -->
+  <delete id="deleteSource" parameterType="map">
+  	update relation_subject_info
+  	 	set modify_time = #{modifyTime,jdbcType=BIGINT},
+  	 	source_is_delete =#{isDelete,jdbcType=TINYINT}
+  	where subject_class = #{subjectClass,jdbcType=TINYINT}
+  		and source_code = #{subjectCode,jdbcType=VARCHAR}
+  </delete>
+  
+  <!-- 屏蔽/恢复 内容 -->
+  <delete id="updateShieldStatus" parameterType="map">
+  	update relation_subject_info
+  	 	set modify_time = #{modifyTime,jdbcType=BIGINT},
+  	 	subject_is_shield =#{isShield,jdbcType=TINYINT}
+  	where subject_class = #{subjectClass,jdbcType=TINYINT}
+  		and subject_code = #{subjectCode,jdbcType=VARCHAR}
+  </delete>
+  <!-- 屏蔽/恢复 来源 的 内容 -->
+  <delete id="updateShieldStatusSource" parameterType="map">
+  	update relation_subject_info
+  	 	set modify_time = #{modifyTime,jdbcType=BIGINT},
+  	 	source_is_shield =#{isShield,jdbcType=TINYINT}
+  	where subject_class = #{subjectClass,jdbcType=TINYINT}
+  		and source_code = #{subjectCode,jdbcType=VARCHAR}
+  </delete>
+</mapper>

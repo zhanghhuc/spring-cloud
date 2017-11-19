@@ -1,0 +1,116 @@
+var emotionData = {
+    "name": "在线编辑器表情数据",
+    "groupList": [
+        {
+            "groupId": 1,
+            "groupName": "绿豆蛙",
+            "dataList": [
+                {
+                    "id": 1,
+                    "name": "大笑",
+                    "key": "[/:ldw_dx]",
+                    "url": "js/lib/emotion/ldw/w_0001.gif"
+                },
+                {
+                    "id": 2,
+                    "name": "瀑布汗",
+                    "key": "[/:ldw_pbh]",
+                    "url": "js/lib/emotion/ldw/w_0002.gif"
+                },
+                {
+                    "id": 3,
+                    "name": "惊讶",
+                    "key": "[/:ldw_jy]",
+                    "url": "js/lib/emotion/ldw/w_0003.gif"
+                }
+            ]
+        },
+        {
+            "groupId": 2,
+            "groupName": "泡泡",
+            "dataList": [
+                {
+                    "id": 1,
+                    "name": "微笑",
+                    "key": "[/:pp_wx]",
+                    "url": "js/lib/emotion/pp/i_f01.gif"
+                },
+                {
+                    "id": 2,
+                    "name": "惊讶",
+                    "key": "[/:pp_jy]",
+                    "url": "js/lib/emotion/pp/i_f04.gif"
+                },
+                {
+                    "id": 3,
+                    "name": "发火",
+                    "key": "[/:pp_fh]",
+                    "url": "js/lib/emotion/pp/i_f06.gif"
+                }
+            ]
+        },
+        {
+            "groupId": 3,
+            "groupName": "emoji",
+            "dataList": [
+                {
+                    "id": 1,
+                    "name": "难过",
+                    "key": "[/:emoji_ng]",
+                    "url": "js/lib/emotion/emoji/o_face1.png"
+                },
+                {
+                    "id": 2,
+                    "name": "惊讶",
+                    "key": "[/:emoji_jy]",
+                    "url": "js/lib/emotion/emoji/o_face2.png"
+                },
+                {
+                    "id": 3,
+                    "name": "哦",
+                    "key": "[/:emoji_o]",
+                    "url": "js/lib/emotion/emoji/o_face3.png"
+                },
+                {
+                    "id": 4,
+                    "name": "兔子",
+                    "key": "[/:emoji_tz]",
+                    "url": "js/lib/emotion/emoji/o_face6.png"
+                }
+            ]
+        }
+    ]
+}
+// /js/lib/ueditor/dialogs/emotion
+function getEmotionSrc(content) {
+    if(content && content.length > 0) {
+        try {
+            var rEmo = /\[\/\:[a-z]+_[a-z]+\]/ig;
+            var array = content.match(rEmo);
+            var groupList = emotionData.groupList;
+            if (array && array.length > 0) {
+                array.forEach(function (el0, i0) {
+                    groupList.forEach(function (el1, i1) {
+                        var dataList = el1.dataList;
+                        dataList.forEach(function (el2, i2) {
+                            if (el2.key == el0) {
+                                var src = el2.url;
+                                var imgDom = `<img src="${src}" width="22" height="22" />`;
+                                content = content.replace(el0, imgDom);
+                            }
+                        });
+                    });
+                });
+            }
+        }
+        catch (e){
+            console.log(e);
+        }
+    }
+    return content;
+}
+
+/*res.body.followTopicsList.forEach(function (el) {
+    el.content = getEmotionSrc(el.content);
+})*/
+

@@ -1,0 +1,299 @@
+package com.zssq.service.impl;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.constants.RelationConstants;
+import com.zssq.dao.mapper.RelationDynamicMapper;
+import com.zssq.dao.mapper.RelationQualityMapper;
+import com.zssq.dao.mapper.RelationRecommendMapper;
+import com.zssq.dao.mapper.RelationSubjectInfoByLxwMapper;
+import com.zssq.dao.pojo.RelationDynamic;
+import com.zssq.dao.pojo.RelationQuality;
+import com.zssq.dao.pojo.RelationRecommend;
+import com.zssq.dao.pojo.RelationSubjectInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.service.RelationRecService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.vo.RelationRecVO;
+
+/**
+ * 
+ * @ClassName: RelationRecServiceImpl
+ * @Description: 推荐
+ * @author ZKZ
+ * @date 2017年3月18日
+ *
+ */
+@Service("relationRecService")
+public class RelationRecServiceImpl implements RelationRecService {
+
+	private Logger log = Logger.getLogger(this.getClass());
+
+	@Autowired
+	private RelationRecommendMapper relationRecommendMapper;
+	@Autowired
+	private RelationQualityMapper relationQualityMapper;
+	@Autowired
+	private RelationSubjectInfoByLxwMapper relationSubjectInfoByLxwMapper;
+	@Autowired
+	private RelationDynamicMapper relationDynamicMapper;
+
+	/**
+	 * 获取首页推荐列表
+	 */
+	@Override
+	public PageBean getPortalRecList(PageParam pageParam, RelationRecVO relationRecVO) throws BusinessException {
+		PageBean pageBean;
+		try {
+
+			// 参数校验
+			if (pageParam == null || relationRecVO == null) {
+				log.error("RelationRecServiceImpl.getPortalRecList：参数为空");
+				throw BusinessException.build("COMMON_402","参数");
+			}
+
+			if (pageParam.getPageSize() == null || pageParam.getPageNo() == null) {
+				log.error("RelationRecServiceImpl.getPortalRecList：分页信息为空");
+				throw BusinessException.build("COMMON_402","分页信息");
+			}
+			if (relationRecVO.getQueryTime() == null) {
+				log.error("RelationRecServiceImpl.getPortalRecList ：queryTime为空");
+				throw BusinessException.build("COMMON_402","queryTime");
+			}
+
+			if (StringUtils.isBlank(relationRecVO.getOrgCode())) {
+				log.error("RelationRecServiceImpl.getPortalRecList ：orgCode为空");
+				throw BusinessException.build("COMMON_402","orgCode");
+			}
+
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("limitStart", pageParam.getPageNo() * pageParam.getPageSize()); // 查询开始条数
+			paramMap.put("limitCount", pageParam.getPageSize()); // 查询结果条数
+			paramMap.put("queryTime", relationRecVO.getQueryTime()); // 首次查询时间
+			paramMap.put("beginTime", relationRecVO.getBeginTime());
+			paramMap.put("endTime", relationRecVO.getEndTime());
+			paramMap.put("recStatus", relationRecVO.getRecStatus());
+			paramMap.put("subjectClass", relationRecVO.getSubjectClass());
+			paramMap.put("subjectTitle", relationRecVO.getSubjectTitle());
+			paramMap.put("orgCode", relationRecVO.getOrgCode());
+			// 内容
+			List<Object> list = relationRecommendMapper.selectPortalRecList(paramMap);
+			// 总数
+			int count = relationRecommendMapper.selectPortalRecListCount(paramMap);
+			pageBean = new PageBean(pageParam.getPageNo(), pageParam.getPageSize(), count, list);
+
+		} catch (BusinessException e) {
+			throw e;
+		}
+		return pageBean;
+	}
+
+
+	/**
+	 * 门户推荐
+	 */
+	@Override
+	public boolean saveRec(RelationRecommend relationRecommend) throws BusinessException {
+
+		try {
+			// 参数校验
+
+			if (relationRecommend == null) {
+				log.error("RelationRecServiceImpl.getPortalRecList：参数为空");
+				throw BusinessException.build("COMMON_402","参数");
+			}
+
+			// 调用动态
+			RelationDynamic dynamic = new RelationDynamic();
+			dynamic.setDynamicCode(UUIDHelper.getUUID());
+			dynamic.setCreateTime(new Date().getTime());
+			dynamic.setModifyTime(new Date().getTime());
+			dynamic.setTenantCode(relationRecommend.getTenantCode());
+			// 获取内容发布信息
+			RelationSubjectInfo relationSubjectInfo = relationSubjectInfoByLxwMapper
+					.selectInfoBycode(relationRecommend.getSubjectCode());
+			dynamic.setOrgCode(relationSubjectInfo.getOrgCode());
+			dynamic.setDynamicClass(RelationConstants.RELATION_DYNAMIC_SUBJECT_QUALITY);
+			dynamic.setDynamicDepend(relationSubjectInfo.getSubjectDepend());
+			if (relationSubjectInfo.getSourceDepend() == RelationConstants.RELATION_SUBJECT_DEPEND_TEAM) {
+				dynamic.setTeamCode(relationSubjectInfo.getTeamCode());
+			}else if(relationSubjectInfo.getSourceDepend()== RelationConstants.RELATION_SUBJECT_DEPEND_USER){
+				dynamic.setUserCode(relationSubjectInfo.getUserCode());
+			}
+			dynamic.setOperateOrgCode(relationRecommend.getRecToOrgCode());
+			dynamic.setOperateTime(new Date().getTime());
+			dynamic.setSubjectCode(relationRecommend.getSubjectCode());
+			dynamic.setDynamicIsDelete(RelationConstants.RELATION_NO);
+			dynamic.setDynamicIsShield(RelationConstants.RELATION_NO);
+			dynamic.setIsSubjectDataShow(RelationConstants.RELATION_NO);
+			dynamic.setIsSubjectShow(RelationConstants.RELATION_NO);
+			
+			return relationRecommendMapper.insert(relationRecommend) == 1
+					&& relationDynamicMapper.insert(dynamic) == 1 ? true : false;
+
+		} catch (BusinessException e) {
+			throw e;
+		}
+
+	}
+
+	/**
+	 * 更新推荐状态
+	 */
+	@Override
+	public boolean updateRecStatus(RelationRecVO relationRecVO, RelationQuality relationQuality)
+			throws BusinessException {
+		try {
+
+			// 参数校验
+			if (relationRecVO == null) {
+				log.error("RelationRecServiceImpl.updateRecStatus：参数为空");
+				throw BusinessException.build("COMMON_402","参数");
+			}
+
+			if (StringUtils.isBlank(relationRecVO.getRecCode())) {
+				log.error("RelationRecServiceImpl.updateRecStatus ：recCode为空");
+				throw BusinessException.build("COMMON_402","recCode");
+			}
+
+			if (relationQuality.getCreateTime() != 0) {
+				// 加精
+				Map<String, Object> paramMap = new HashMap<String, Object>();
+				paramMap.put("recCode", relationRecVO.getRecCode());
+				paramMap.put("recStatus", RelationConstants.RELATION_REC_STATUS_SHOW);
+				paramMap.put("modifyTime", new Date().getTime());
+				paramMap.put("recQualityTime", new Date().getTime());
+				paramMap.put("qualityCode", relationQuality.getQualityCode());
+
+				// 修改排序字段
+				Map<String, Object> map = new HashMap<String, Object>();
+				map.put("qualityCode", relationQuality.getQualityCode());
+				map.put("orgCode", relationQuality.getOrgCode());
+				map.put("modifyTime", new Date().getTime());
+				
+				//记录动态
+				// 新增动态
+				RelationDynamic dynamic = new RelationDynamic();
+				dynamic.setDynamicCode(UUIDHelper.getUUID());
+				dynamic.setCreateTime(new Date().getTime());
+				dynamic.setModifyTime(new Date().getTime());
+				dynamic.setTenantCode(relationQuality.getTenantCode());
+				// 获取内容发布信息
+				RelationSubjectInfo relationSubjectInfo = relationSubjectInfoByLxwMapper
+						.selectInfoBycode(relationQuality.getSubjectCode());
+				dynamic.setOrgCode(relationSubjectInfo.getOrgCode());
+				dynamic.setDynamicClass(RelationConstants.RELATION_DYNAMIC_SUBJECT_QUALITY);
+				dynamic.setDynamicDepend(relationSubjectInfo.getSubjectDepend());
+				if (relationSubjectInfo.getSourceDepend() == RelationConstants.RELATION_SUBJECT_DEPEND_TEAM) {
+					dynamic.setTeamCode(relationSubjectInfo.getTeamCode());
+				}else if(relationSubjectInfo.getSourceDepend()== RelationConstants.RELATION_SUBJECT_DEPEND_USER){
+					dynamic.setUserCode(relationSubjectInfo.getUserCode());
+				}
+				dynamic.setOperateOrgCode(relationQuality.getOrgCode());
+				dynamic.setOperateTime(new Date().getTime());
+				dynamic.setSubjectCode(relationQuality.getSubjectCode());
+				dynamic.setDynamicIsDelete(RelationConstants.RELATION_NO);
+				dynamic.setDynamicIsShield(RelationConstants.RELATION_NO);
+				dynamic.setIsSubjectDataShow(RelationConstants.RELATION_NO);
+				dynamic.setIsSubjectShow(RelationConstants.RELATION_NO);
+				
+				return relationQualityMapper.insert(relationQuality) >= 1
+						&& relationRecommendMapper.updateRecommendStatus(paramMap) == 1
+						&& relationQualityMapper.updateSortNum(map) == 1 
+						&&relationDynamicMapper.insert(dynamic) == 1? true : false;
+
+			} else if (!relationQuality.getQualityCode().equals("")) {
+				// 取消加精
+				Map<String, Object> paramMap = new HashMap<String, Object>();
+				paramMap.put("recCode", relationRecVO.getRecCode());
+				paramMap.put("recStatus", RelationConstants.RELATION_REC_STATUS_CANCEL);
+				paramMap.put("modifyTime", new Date().getTime());
+				paramMap.put("recQualityTime", 0);
+				paramMap.put("qualityCode", "");
+				return relationQualityMapper.deleteByQualityCood(relationQuality.getQualityCode()) == 1
+						&& relationRecommendMapper.updateRecommendStatus(paramMap) == 1 ? true : false;
+			} else {
+				// 忽略
+				Map<String, Object> paramMap = new HashMap<String, Object>();
+				paramMap.put("recCode", relationRecVO.getRecCode());
+				paramMap.put("recStatus", RelationConstants.RELATION_REC_STATUS_IGNORE);
+				paramMap.put("modifyTime", new Date().getTime());
+				return relationRecommendMapper.updateRecommendStatus(paramMap) == 1 ? true : false;
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+	}
+
+	/**
+	 * 通过推荐code查询推荐信息
+	 */
+	@Override
+	public RelationRecommend getQualityInfoByCond(RelationRecommend recommend) throws BusinessException {
+		RelationRecommend relationRecommend;
+		try {
+			// 参数校验
+			if (recommend == null) {
+				log.error("RelationRecServiceImpl.getQualityInfoByCond ：参数为空");
+				throw BusinessException.build("COMMON_402","参数");
+			}
+			if (StringUtils.isBlank(recommend.getRecCode())) {
+				log.error("RelationRecServiceImpl.getQualityInfoByCond ：recCode为空");
+				throw BusinessException.build("COMMON_402","recCode");
+			}
+			relationRecommend = relationRecommendMapper.selectByRecCode(recommend);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		return relationRecommend;
+	}
+
+	/**
+	 * 判断是否已经推荐过
+	 */
+	@Override
+	public boolean isRecommend(RelationRecommend recommend) throws BusinessException {
+		try {
+			// 参数校验
+			if (recommend == null) {
+				log.error("RelationRecServiceImpl.getQualityInfoByCond ：参数为空");
+				throw BusinessException.build("COMMON_402","参数");
+			}
+			if (recommend.getSubjectClass() == null) {
+				log.error("RelationRecServiceImpl.getQualityInfoByCond ：subjectClass为空");
+				throw BusinessException.build("COMMON_402","subjectClass");
+			}
+
+			if (StringUtils.isBlank(recommend.getSubjectCode())) {
+				log.error("RelationRecServiceImpl.getQualityInfoByCond ：subjectCodwe为空");
+				throw BusinessException.build("COMMON_402","subjectCodwe");
+			}
+
+			if (StringUtils.isBlank(recommend.getRecToOrgCode())) {
+				log.error("RelationRecServiceImpl.getQualityInfoByCond ：recToOrgCode为空");
+				throw BusinessException.build("COMMON_402","recToOrgCode");
+			}
+
+			if (StringUtils.isBlank(recommend.getRecOrgCode())) {
+				log.error("RelationRecServiceImpl.getQualityInfoByCond ：recOrgCode为空");
+				throw BusinessException.build("COMMON_402","recOrgCode");
+			}
+
+			return relationRecommendMapper.selectRecCountByCond(recommend) > 0 ? true : false;
+		} catch (BusinessException e) {
+			throw e;
+		}
+	}
+
+}

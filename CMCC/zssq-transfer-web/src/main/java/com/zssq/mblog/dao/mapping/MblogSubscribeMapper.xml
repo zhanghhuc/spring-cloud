@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.mblog.dao.mapper.MblogSubscribeMapper" >
+  
+  <!-- 批处理 -->
+  <insert id="batchInsert" parameterType="com.zssq.mblog.pojo.MblogSubscribe">
+	insert into mblog_subscribe (
+		id, 
+		mblog_subscribe_code, 
+		create_time, 
+      	modify_time, 
+      	remark, 
+      	org_code, 
+       	user_code, 
+       	sub_user_code, 
+      	sub_org_code,  
+      	tenant_code, 
+      	team_code,
+      	sub_type
+	)
+	values 
+	<foreach collection="list" item="item" index="index" separator=",">
+		(
+			#{item.id,jdbcType=BIGINT}, 
+			#{item.mblogSubscribeCode,jdbcType=VARCHAR}, 
+			#{item.createTime,jdbcType=BIGINT}, 
+      		#{item.modifyTime,jdbcType=BIGINT}, 
+      		#{item.remark,jdbcType=VARCHAR}, 
+      		#{item.orgCode,jdbcType=VARCHAR}, 
+       		#{item.userCode,jdbcType=VARCHAR}, 
+       		#{item.subUserCode,jdbcType=VARCHAR}, 
+      		#{item.subOrgCode,jdbcType=VARCHAR},  
+      		#{item.tenantCode,jdbcType=VARCHAR}, 
+      		#{item.teamCode,jdbcType=VARCHAR}, 
+      		#{item.subType,jdbcType=TINYINT}
+    	)
+	</foreach>
+  </insert>
+  
+  <insert id="insertIntoSelect" parameterType="java.util.Map">
+	  	INSERT INTO mblog_subscribe (
+			mblog_subscribe_code, 
+			create_time, 
+	      	modify_time, 
+	      	remark, 
+	      	org_code, 
+	       	user_code, 
+	       	sub_user_code, 
+	      	sub_org_code,  
+	      	tenant_code, 
+	      	team_code,
+	      	sub_type
+		)
+		(
+			SELECT 
+				replace(UUID(),'-',''),
+				unix_timestamp(CREATE_TIME)*1000,
+				unix_timestamp(CREATE_TIME)*1000,
+				'',
+				IFNULL(subUserInfo.user_code,""),
+	      		IFNULL(subOrgInfo.man_org_code,""),
+	      		IFNULL(pubUserInfo.user_code,""),
+	      		IFNULL(pubOrgInfo.man_org_code,""),
+	      		IFNULL(subUserInfo.saas_tenant_code,""),
+				'',
+				1
+			FROM
+				(
+					SELECT
+						ID,
+			  			CREATE_TIME,
+			  			SUBSCRIBE_USER,
+			  			PUBLISH_USER
+			  		FROM
+			  			transfer_ms_subscribe_relation
+			  		WHERE
+			  			TYPE = 13
+			  		ORDER BY CREATE_TIME
+			  		LIMIT #{startPage},#{pageSize}
+				) AS msSub
+			LEFT JOIN
+				sys_user_info AS subUserInfo ON msSub.SUBSCRIBE_USER = subUserInfo.user_id
+			LEFT JOIN
+				sys_user_info AS pubUserInfo ON msSub.PUBLISH_USER = pubUserInfo.user_id
+			LEFT JOIN
+				sys_org_info AS subOrgInfo ON subUserInfo.org_code = subOrgInfo.sys_org_code
+			LEFT JOIN
+				sys_org_info AS pubOrgInfo ON subUserInfo.org_code = pubOrgInfo.sys_org_code
+		)
+  	
+  </insert>
+</mapper>

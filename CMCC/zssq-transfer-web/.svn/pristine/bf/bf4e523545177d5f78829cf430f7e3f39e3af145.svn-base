@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.blog.dao.mapper.BlogDraftMapper">
+
+	<!-- 查看临时表是否存在 -->
+	<select id="isTempTableExists" resultType="string">
+		<!-- SELECT
+			table_name
+		FROM information_schema. TABLES
+		WHERE table_name = 'draft_temp' -->
+		SHOW TABLES LIKE 'draft_temp'
+	</select>
+	
+	<!-- 创建临时表 -->
+	<update id="createTempTable">
+		CREATE TABLE draft_temp (
+			old_id INTEGER NOT NULL,
+			draft_code VARCHAR (32) NOT NULL,
+			tenant_code VARCHAR(32),
+			org_code VARCHAR(32),
+			create_time BIGINT(20),
+			modify_time BIGINT(20),
+			PRIMARY KEY (old_id)
+		) ENGINE = INNODB DEFAULT CHARACTER
+		SET = utf8 COLLATE = utf8_general_ci 
+		ROW_FORMAT = COMPACT
+	</update>
+	
+	<!-- 删除临时表 -->
+	<update id="dropTempTable">
+		DROP TABLE IF EXISTS draft_temp
+	</update>
+	
+	<!-- 查询原草稿表中数据总量 -->
+	<select id="getSourceDraftCount" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM source_blog sb
+		WHERE sb.blog_state = 8
+	</select>
+	
+	<!-- 获取原个人草稿数据 -->
+	<select id="getSourceUserDraftList" parameterType="map" resultType="com.zssq.blog.pojo.SourceDraftModel">
+		SELECT
+			sbil.blog_id AS blogId,
+			sui.user_code AS userCode,
+			sui.saas_tenant_code AS tenantCode,
+			sbil.create_time AS createTime,
+			sbil.updatetime AS updateTime,
+			sbil.title AS title,
+			soi.man_org_code AS orgCode,
+			bc.class_code AS classCode
+		FROM
+			(
+				SELECT
+					sb.blog_id,
+					sb.user_id,
+					sb.create_time,
+					sb.updatetime,
+					sb.title,
+					sb.cata_level_two_id
+				FROM
+					(
+						SELECT
+							blog_id,
+							user_id,
+							create_time,
+							updatetime,
+							title,
+							cata_level_two_id
+						FROM source_blog
+						WHERE blog_state = 8
+						ORDER BY blog_id
+						LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+					) sb
+				LEFT JOIN source_blog_index sbi 
+					ON sb.user_id = sbi.user_id
+					AND sb.blog_id = sbi.blog_id
+				WHERE sbi.id IS NULL
+			) sbil
+		LEFT JOIN sys_user_info sui 
+			ON sbil.user_id = sui.user_id
+		LEFT JOIN sys_org_info soi 
+			ON sui.org_code = soi.sys_org_code
+		LEFT JOIN blog_class bc 
+			ON sbil.user_id = bc.user_id
+			AND bc.team_id = 0
+			AND sbil.cata_level_two_id = bc.old_id
+	</select>
+	
+	<!-- 获取原班组草稿数据 -->
+	<select id="getSourceTeamDraftList" resultType="com.zssq.blog.pojo.SourceDraftModel">
+		SELECT
+			sbil.blog_id AS blogId,
+			sui.user_code AS userCode,
+			sui.saas_tenant_code AS tenantCode,
+			sbil.create_time AS createTime,
+			sbil.updatetime AS updateTime,
+			sbil.title AS title,
+			ti.team_code AS teamCode,
+			soi.man_org_code AS orgCode,
+			bc.class_code AS classCode
+		FROM
+			(
+				SELECT
+					sb.blog_id,
+					sb.user_id,
+					sb.create_time,
+					sb.updatetime,
+					sb.title,
+					sb.cata_level_two_id,
+					sbi.team_id
+				FROM
+					(
+						SELECT
+							blog_id,
+							user_id,
+							team_id
+						FROM
+							source_blog_index
+						WHERE blog_state = 8
+							AND team_id != 0
+						ORDER BY BLOG_ID
+					) sbi
+				LEFT JOIN source_blog sb 
+					ON sb.user_id = sbi.user_id
+					AND sb.blog_id = sbi.blog_id
+			) sbil
+		LEFT JOIN sys_user_info sui 
+			ON sbil.user_id = sui.user_id
+		LEFT JOIN team_info ti 
+			ON sbil.team_id = ti.team_id
+		LEFT JOIN sys_org_info soi 
+			ON ti.org_code = soi.sys_org_code
+		LEFT JOIN blog_class bc 
+			ON bc.user_id = 0
+			AND sbil.team_id = bc.team_id
+			AND sbil.cata_level_two_id = bc.old_id
+	</select>
+	
+	<!-- 插入草稿列表 -->
+	<insert id="insertDraftList" useGeneratedKeys="true" keyProperty="id" parameterType="list">
+		INSERT IGNORE INTO blog_draft (
+			draft_code, 
+			tenant_code,
+			org_code, 
+			create_time,
+			modify_time, 
+			remark, 
+			user_code, 
+			draft_depend, 
+			team_code,
+			draft_digest, 
+			draft_title, 
+			class_code,
+			draft_tags, 
+			draft_plan_publish_time
+		) VALUES
+			<foreach collection="list" item="item" index="index" separator=",">
+				(
+					#{item.draftCode,jdbcType=VARCHAR},
+					#{item.tenantCode,jdbcType=VARCHAR},
+					#{item.orgCode,jdbcType=VARCHAR}, 
+					#{item.createTime,jdbcType=BIGINT},
+					#{item.modifyTime,jdbcType=BIGINT}, 
+					#{item.remark,jdbcType=VARCHAR},
+					#{item.userCode,jdbcType=VARCHAR}, 
+					#{item.draftDepend,jdbcType=TINYINT}, 
+					#{item.teamCode,jdbcType=VARCHAR},
+					#{item.draftDigest,jdbcType=VARCHAR}, 
+					#{item.draftTitle,jdbcType=VARCHAR},
+					#{item.classCode,jdbcType=VARCHAR},
+					#{item.draftTags,jdbcType=VARCHAR}, 
+					#{item.draftPlanPublishTime,jdbcType=BIGINT}
+				)
+			</foreach>
+	</insert>
+	
+	<!-- 插入草稿临时列表 -->
+	<insert id="insertDraftTempList" useGeneratedKeys="true" keyProperty="id" parameterType="list">
+		INSERT IGNORE INTO draft_temp (
+			old_id,
+			draft_code,
+			tenant_code,
+			org_code,
+			create_time,
+			modify_time
+		) VALUES
+			<foreach collection="list" item="item" index="index" separator=",">
+				(
+					#{item.oldId,jdbcType=INTEGER},
+					#{item.draftCode,jdbcType=VARCHAR},
+					#{item.tenantCode,jdbcType=VARCHAR},
+					#{item.orgCode,jdbcType=VARCHAR}, 
+					#{item.createTime,jdbcType=BIGINT},
+					#{item.modifyTime,jdbcType=BIGINT}
+				)
+			</foreach>
+	</insert>
+	
+	<!-- 插入草稿内容数据  -->
+	<insert id="insertSourceDraftContent" useGeneratedKeys="true" keyProperty="id">
+		INSERT IGNORE INTO blog_draft_content (
+			draft_content_code, 
+			tenant_code, 
+			org_code, 
+			create_time, 
+			modify_time,
+			remark, 
+			draft_code, 
+			draft_content_info
+		) SELECT
+				REPLACE (UUID(), '-', '') AS draft_content_code,
+				dt.tenant_code AS tenant_code,
+				dt.org_code AS org_code,
+				dt.create_time AS create_time,
+				dt.modify_time AS modify_time,
+				'' AS remark,
+				dt.draft_code AS draft_code,
+				sb.content AS draft_content_info
+			FROM draft_temp dt
+			LEFT JOIN source_blog sb 
+				ON dt.old_id = sb.blog_id
+	</insert>
+	
+</mapper>

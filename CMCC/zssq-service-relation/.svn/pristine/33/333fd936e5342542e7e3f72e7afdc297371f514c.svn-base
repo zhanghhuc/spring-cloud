@@ -1,0 +1,35 @@
+package com.zssq.dao.mapper;
+
+import java.util.Map;
+
+import com.zssq.dao.pojo.RelationQuality;
+
+/**
+ * 
+ * @ClassName: RelationQualityByZKZMapper  
+ * @Description: 精华  
+ * @author ZKZ  
+ * @date 2017年4月19日  
+ *
+ */
+public interface RelationQualityByZKZMapper {
+
+	/**
+	 * 
+	 * @Title: insert  
+	 * @Description: 保存精华信息
+	 * @param relationQuality
+	 * @return: int    返回类型
+	 */
+    int insert(RelationQuality relationQuality);
+
+    /**
+     * 
+     * @Title: deleteTeamQuality  
+     * @Description: 删除班组精华信息
+     * @param qualityMap
+     * @return: int    返回类型
+     */
+	int deleteTeamQuality(Map<String, Object> qualityMap);
+
+}

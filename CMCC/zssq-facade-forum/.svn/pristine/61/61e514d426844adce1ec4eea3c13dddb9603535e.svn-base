@@ -1,0 +1,252 @@
+package com.zssq.service;
+
+import java.util.List;
+
+import com.zssq.dao.pojo.ForumCollection;
+import com.zssq.dao.pojo.ForumCommentReply;
+import com.zssq.dao.pojo.ForumPlates;
+import com.zssq.dao.pojo.ForumTopics;
+import com.zssq.dao.pojo.ForumTopicsFollow;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageInfo;
+
+/**
+ * 论坛模块接口
+ * @ClassName IForumService
+ * @Description 
+ * @author liurong
+ * @date 2017年3月16日 下午3:33:05
+ * @version 1.0
+ * @since JDK 1.7
+ */
+public interface IForumService {
+	/**
+	 * 分页获取主帖列表
+	 * @Function getTopicsList
+	 * @Description 
+	 * @param topic
+	 * @param pageInfo
+	 * @return
+	 * @throws BusinessException
+	 */
+	public PageInfo getTopicsList(ForumTopics topic, PageInfo pageInfo) throws BusinessException;
+	/**
+	 * 加载更多的方式获取主帖列表
+	 * @Function getTopicListByPageWithLoadMore
+	 * @Description 
+	 * @param topic
+	 * @param startRowId
+	 * @param endRowId
+	 * @return
+	 * @throws BusinessException
+	 */
+	public PageInfo getTopicListByPageWithLoadMore(ForumTopics topic, int startRowId, int endRowId) throws BusinessException;
+	/**
+	 * 发表主帖
+	 * @Function insertTopic
+	 * @Description 
+	 * @param topic
+	 * @return 主帖CODE
+	 * @throws BusinessException
+	 */
+	public String insertTopic(ForumTopics topic) throws BusinessException;
+	/**
+	 * 发表跟帖(回复主帖)
+	 * @Function insertTopicFollow
+	 * @Description 
+	 * @param follow
+	 * @return 跟帖CODE
+	 * @throws BusinessException
+	 */
+	public String insertTopicFollow(ForumTopicsFollow follow) throws BusinessException;
+	/**
+	 * 统计某论坛版块今日发帖数
+	 * @Function countDailyTopic
+	 * @Description 
+	 * @param tenantCode 租户标识
+	 * @param platesCode 论坛版块CODE
+	 * @return 今日发帖数
+	 * @throws BusinessException
+	 */
+	public Integer countDailyTopic(String tenantCode, String platesCode)throws BusinessException;
+	/**
+	 * 查询班组对应的论坛信息
+	 * @param belongCode
+	 * @param tenantCode
+	 * @return
+	 * @throws BusinessException
+	 */
+	public ForumPlates queyrPlateByBelongCode(String belongCode, String tenantCode) throws BusinessException ;
+	/**
+	 * 查询主贴详情
+	 * @Function selectTopicInfo
+	 * @Description
+	 * @param tenantCode
+	 *            租户标识
+	 * @param topicCode
+	 *            主帖CODE
+	 * @param params 记录浏览记录参数，参数列表如下</br>
+	 *            params[0]:String orgCode     组织机构编码</br>
+	 *            params[1]:String orgLevel    组织机构等级</br>
+	 *            params[2]:String viewerCode  查看主帖的用户CODE</br>
+	 * @return
+	 * @throws BusinessException
+	 */
+	public ForumTopics selectTopicInfo(String tenantCode, String topicCode, String... params) throws BusinessException;
+	/**
+	 * 查询userCode是否收藏了主帖
+	 * @Function isCollectionTopic
+	 * @Description 
+	 * @param tenantCode 租户信息
+	 * @param userCode 用户CODE
+	 * @param forumTopicsCode 主帖CODE
+	 * @return
+	 * @throws BusinessException
+	 */
+	public boolean isCollectionTopic(String tenantCode, String userCode, String forumTopicsCode)throws BusinessException ;
+	/**
+	 * 查询跟帖列表
+	 * @Function getTopicFollowList
+	 * @Description 
+	 * @param follow 封装查询条件
+	 * @param pageInfo 分页对象
+	 * @return
+	 * @throws BusinessException
+	 */
+	public PageInfo getTopicFollowList(ForumTopicsFollow follow, PageInfo pageInfo) throws BusinessException;
+	/**
+	 * 加载更多的方式查询跟帖列表
+	 * @Function getFollowListByPageWithLoadMore
+	 * @Description 
+	 * @param follow   封装查询条件
+	 * @return
+	 * @throws BusinessException
+	 */
+	public List<ForumTopicsFollow> getFollowListByPageWithLoadMore(ForumTopicsFollow follow) throws BusinessException;
+	/**
+	 * 查询跟帖评论及回复表
+	 * @Function getTopicFollowReplyList
+	 * @Description 
+	 * @param reply
+	 * @param pageInfo
+	 * @return
+	 * @throws BusinessException
+	 */
+	public PageInfo getTopicFollowReplyList(ForumCommentReply reply, PageInfo pageInfo) throws BusinessException;
+	/**
+	 * 加载更多的方式查询跟帖评论及回复表
+	 * @Function getReplyListByPageWithLoadMore
+	 * @Description 
+	 * @param reply
+	 * @return
+	 */
+	public List<ForumCommentReply> getReplyListByPageWithLoadMore(ForumCommentReply reply) throws BusinessException;
+	/**
+	 * 修改主贴状态
+	 * @Function updateTopic
+	 * @Description 
+	 * @param forumTopics 主贴对象
+	 * @return
+	 * @throws BusinessException
+	 */
+	public void updateTopic(ForumTopics t)throws BusinessException;
+	/**
+	 * 收藏主帖
+	 * @Function addCollection
+	 * @Description 
+	 * @param collection 收藏对象
+	 * @return
+	 * @throws BusinessException
+	 */
+	public void addCollection(ForumCollection collection)throws BusinessException;
+	/**
+	 * 取消收藏主帖
+	 * @param collection 收藏对象
+	 * @throws BusinessException
+	 */
+	public void deleteCollection(ForumCollection collection)throws BusinessException;
+	/**
+	 * 查询收藏列表  收藏表和主贴表联合查询
+	 * @param pageInfo 分页对象
+	 * @param userCode 用户code
+	 * @param tenantCode 租户code
+	 * @return
+	 * @throws BusinessException
+	*/
+	public PageBean selectCollectionList(PageInfo pageInfo, String userCode, String tenantCode)throws BusinessException;
+	 
+	/**
+	 * 新增评论信息
+	 * @Function addComment
+	 * @Description 
+	 * @param comment
+	 * @return 评论信息CODE
+	 * @throws BusinessException
+	 */
+	public String addComment(ForumCommentReply comment) throws BusinessException;
+	/**
+	 * 添加评论的回复
+	 * 
+	 * @param reply
+	 * @return
+	 * @throws BusinessException
+	 */
+	public String addReply(ForumCommentReply reply) throws BusinessException;
+	/**
+	 * 加载更多的方式获取收藏列表
+	 * @param id 最小id
+	 * @param pageSize 每页大小
+	 * @param userCode 用户code
+	 * @param tenantCode 租户code
+	 * @return
+	 */
+	public PageBean selectCollectionList(String id, String pageSize, String userCode, String tenantCode)throws BusinessException;
+	/**
+	 * 删除跟帖
+	 * @Function deleteFollowTopic
+	 * @Description 
+	 * @param tenantCode 租户标识
+	 * @param code       跟帖表信息CODE
+	 * @throws BusinessException
+	 */
+	public void deleteFollowTopic(String tenantCode, String code) throws BusinessException;
+	/**
+	 * 删除评论及回复
+	 * @Function deleteCommentAndReply
+	 * @Description 
+	 * @param tenantCode 租户标识
+	 * @param code       评论及回复CODE
+	 * @throws BusinessException
+	 */
+	public ForumCommentReply deleteCommentAndReply(String tenantCode, String code) throws BusinessException;
+	/**
+	 * 屏蔽跟帖
+	 * @Function shieldFollowTopic
+	 * @Description 
+	 * @param tenantCode 租户标识
+	 * @param code       跟帖表信息CODE
+	 * @throws BusinessException
+	 */
+	public void shieldFollowTopic(String tenantCode, String code) throws BusinessException;
+	/**
+	 * 屏蔽评论及回复
+	 * @Function shieldCommentAndReply
+	 * @Description 
+	 * @param tenantCode 租户标识
+	 * @param code       评论及回复CODE
+	 * @throws BusinessException
+	 */
+	public void shieldCommentAndReply(String tenantCode, String code) throws BusinessException;
+	
+	/**
+	 * @Function addTopicViewer
+	 * @Description 添加浏览信息
+	 * @param topicCode    主帖Code
+	 * @param viewerCode   浏览者Code
+	 * @param orgCode      组织机构Code
+	 * @param tenantCode   租户Code
+	 * @throws BusinessException
+	 */
+	public void addTopicViewer(String topicCode,String viewerCode,String orgCode,String tenantCode)throws BusinessException;
+}

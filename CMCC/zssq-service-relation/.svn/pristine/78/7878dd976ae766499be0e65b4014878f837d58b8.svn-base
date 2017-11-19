@@ -1,0 +1,330 @@
+package com.zssq.service.impl;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import com.zssq.constants.RelationConstants;
+import com.zssq.dao.mapper.RelationHotMapper;
+import com.zssq.dao.mapper.RelationQualityMapper;
+import com.zssq.dao.mapper.RelationSubjectDataByZKZMapper;
+import com.zssq.dao.mapper.RelationSubjectInfoBySryMapper;
+import com.zssq.dao.pojo.RelationHot;
+import com.zssq.dao.pojo.RelationQuality;
+import com.zssq.dao.pojo.RelationSubjectData;
+import com.zssq.dao.pojo.RelationSubjectInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.service.RelationThirdSubjectService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.vo.RelationSubjectVO;
+
+/**
+ * 
+ * @ClassName: RelationThirdSubjectServiceImpl  
+ * @Description: 内容
+ * @author ZKZ  
+ * @date 2017年3月18日  
+ *
+ */
+@Service("relationThirdSubjectService")
+public class RelationThirdSubjectServiceImpl implements RelationThirdSubjectService {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private RelationSubjectInfoBySryMapper relationSubjectInfoBySryMapper;
+	@Autowired
+	private RelationSubjectDataByZKZMapper relationSubjectDataByZKZMapper;
+	
+	@Autowired
+	private RelationHotMapper relationHotMapper;
+	
+	@Autowired
+	private RelationQualityMapper relationQualityMapper;
+	/**
+	 * 保存内容
+	 */
+	@Override
+	public boolean saveSubject(RelationSubjectInfo relationSubjectInfo) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationSubjectInfo == null) {
+				log.error("RelationThirdSubjectServiceImpl.saveSubject：relationSubjectInfo为空");
+				throw BusinessException.build("COMMON_402", "relationSubjectInfo");
+			}
+			Byte subjectClass = relationSubjectInfo.getSubjectClass();
+			boolean updateStatus = false;
+			if(RelationConstants.RELATION_SUBJECT_MBLOG.equals(subjectClass)||RelationConstants.RELATION_SUBJECT_BLOG.equals(subjectClass)||
+					RelationConstants.RELATION_SUBJECT_VOTE.equals(subjectClass)||RelationConstants.RELATION_SUBJECT_ACTIVITY.equals(subjectClass)
+					||RelationConstants.RELATION_SUBJECT_NEWS.equals(subjectClass)
+					){
+				updateStatus = insertHot(relationSubjectInfo);
+			}
+			if(updateStatus){
+				
+			}
+			// 插入
+			int insertNum = relationSubjectInfoBySryMapper.insert(relationSubjectInfo);
+			if (insertNum != 1) {
+				log.error("RelationThirdSubjectServiceImpl.saveSubject：插入" + insertNum + "条内容信息 ");
+				return false;
+			}
+			
+			// 内容数据信息
+			RelationSubjectData relationSubjectData = new RelationSubjectData();
+			relationSubjectData.setSubjectDataCode(UUIDHelper.getUUID());
+			relationSubjectData.setTenantCode(relationSubjectInfo.getTenantCode());
+			relationSubjectData.setOrgCode(relationSubjectInfo.getOrgCode());
+			relationSubjectData.setCreateTime(relationSubjectInfo.getCreateTime());
+			relationSubjectData.setModifyTime(relationSubjectInfo.getModifyTime());
+			relationSubjectData.setSubjectCode(relationSubjectInfo.getSubjectCode());
+			relationSubjectData.setTeamQualityNum(0);
+			relationSubjectData.setGroupQualityNum(0);
+			relationSubjectData.setProvinceQualityNum(0);
+			relationSubjectData.setCityQualityNum(0);
+			relationSubjectData.setJoinNum(0);
+			relationSubjectData.setReadNum(0);
+			relationSubjectData.setLikeNum(0);
+			relationSubjectData.setCollectNum(0);
+			relationSubjectData.setForwardNum(0);
+			relationSubjectData.setCommentNum(0);
+			relationSubjectData.setShareNum(0);
+			
+			// 插入内容数据信息
+			int insertSubjectDataNum = relationSubjectDataByZKZMapper.insert(relationSubjectData);
+			if (insertSubjectDataNum != 1) {
+				log.error("RelationThirdSubjectServiceImpl.saveSubject：插入" + insertSubjectDataNum + "条内容数据信息 ");
+				throw BusinessException.build("BLOG_13002", "保存");
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		return true;
+	}
+	
+	/**
+	 * 更新内容信息
+	 */
+	@Override
+	public boolean updateSubject(RelationSubjectVO relationSubjectVO) throws BusinessException {
+		
+		try {
+			// 参数校验
+			if (relationSubjectVO == null) {
+				log.error("RelationThirdSubjectServiceImpl.updateSubject：relationSubjectVO为空");
+				throw BusinessException.build("COMMON_402", "relationSubjectVO");
+			}
+			
+			// 获取参数
+			String subjectCode = relationSubjectVO.getSubjectCode(); // 内容编号
+			Byte subjectClass = relationSubjectVO.getSubjectClass(); // 内容类型
+			String subjectTitle = relationSubjectVO.getSubjectTitle(); // 内容标题
+			String subjectDigest = relationSubjectVO.getSubjectDigest(); // 摘要
+			String subjectUrl = relationSubjectVO.getSubjectUrl(); //图片链接
+			Long modifyTime = relationSubjectVO.getModifyTime();//修改时间
+			// 参数校验
+			if (StringUtils.isBlank(subjectCode)) {
+				log.error("RelationThirdSubjectServiceImpl.updateSubject：subjectCode为空");
+				throw BusinessException.build("COMMON_402", "subjectCode");
+			}
+			if (subjectClass == null ||!(RelationConstants.RELATION_SUBJECT_MBLOG.equals(subjectClass) 
+				||RelationConstants.RELATION_SUBJECT_BLOG.equals(subjectClass)||RelationConstants.RELATION_SUBJECT_VOTE.equals(subjectClass)
+				||RelationConstants.RELATION_SUBJECT_ACTIVITY.equals(subjectClass)||RelationConstants.RELATION_SUBJECT_NEWS.equals(subjectClass)
+				||RelationConstants.RELATION_SUBJECT_OD.equals(subjectClass)||RelationConstants.RELATION_SUBJECT_KB.equals(subjectClass)
+					)) {
+				log.error("RelationThirdSubjectServiceImpl.updateSubject：参数错误subjectClass="+subjectClass);
+				throw BusinessException.build("COMMON_402", "subjectClass");
+			}
+			if(modifyTime == null){
+				log.error("RelationThirdSubjectServiceImpl.updateSubject：modifyTime="+modifyTime);
+				throw BusinessException.build("COMMON_402", "modifyTime");
+			}
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("subjectCode", subjectCode); // 内容编号
+			paramMap.put("subjectClass", subjectClass); // 内容类型
+			paramMap.put("subjectTitle", subjectTitle); // 内容标题
+			paramMap.put("subjectDigest", subjectDigest); // 摘要
+			paramMap.put("subjectUrl", subjectUrl); // 图片地址
+			paramMap.put("modifyTime", modifyTime); //更新时间
+			// 删除评论
+			int shieldCommentNum = relationSubjectInfoBySryMapper.update(paramMap);
+			if (shieldCommentNum != 1) {
+				log.error("RelationThirdSubjectServiceImpl.updateSubject：更新" + shieldCommentNum + "条内容信息");
+				return false;
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * 删除内容
+	 */
+	@Override
+	public boolean deleteSubject(RelationSubjectVO relationSubjectVO) throws BusinessException {
+		
+		try {
+			// 参数校验
+			if (relationSubjectVO == null) {
+				log.error("RelationThirdSubjectServiceImpl.deleteSubject：relationSubjectVO为空");
+				throw BusinessException.build("COMMON_402", "relationSubjectVO");
+			}
+			String subjectCode = relationSubjectVO.getSubjectCode();
+			Long modifyTime = relationSubjectVO.getModifyTime();
+			Byte subjectClass = relationSubjectVO.getSubjectClass();
+			if (StringUtils.isBlank(subjectCode)) {
+				log.error("RelationThirdSubjectServiceImpl.deleteSubject：subjectCode为空");
+				throw BusinessException.build("COMMON_402", "subjectCode");
+			}
+			if (subjectClass == null ||!(RelationConstants.RELATION_SUBJECT_MBLOG.equals(subjectClass)
+					||RelationConstants.RELATION_SUBJECT_BLOG.equals(subjectClass)||RelationConstants.RELATION_SUBJECT_VOTE.equals(subjectClass)
+					||RelationConstants.RELATION_SUBJECT_ACTIVITY.equals(subjectClass)||RelationConstants.RELATION_SUBJECT_NEWS.equals(subjectClass)
+					||RelationConstants.RELATION_SUBJECT_OD.equals(subjectClass)||RelationConstants.RELATION_SUBJECT_KB.equals(subjectClass)
+						)) {
+					log.error("RelationThirdSubjectServiceImpl.deleteSubject：参数错误subjectClass="+subjectClass);
+					throw BusinessException.build("COMMON_402", "subjectClass");
+			}
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("subjectCode", subjectCode); // 内容编号
+			paramMap.put("modifyTime", modifyTime);//修改时间
+			paramMap.put("isDelete", RelationConstants.RELATION_YES);
+			paramMap.put("subjectClass", subjectClass);
+			// 删除 subjectCode 内容
+			int deleteNum = relationSubjectInfoBySryMapper.delete(paramMap);
+			if (deleteNum != 1) {
+				log.error("RelationThirdSubjectServiceImpl.deleteSubject：删除" + deleteNum + "条内容信息 ");
+				return false;
+			}else{
+				// 删除 来源为 subjectCode 的
+				relationSubjectInfoBySryMapper.deleteSource(paramMap);
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		return true;
+	}
+	/**
+	 * 屏蔽/恢复内容
+	 */
+	@Override
+	public boolean updateShieldStatus(RelationSubjectVO relationSubjectVO) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationSubjectVO == null) {
+				log.error("RelationThirdSubjectServiceImpl.updateShieldStatus：relationSubjectVO为空");
+				throw BusinessException.build("COMMON_402", "relationSubjectVO");
+			}
+			String subjectCode = relationSubjectVO.getSubjectCode();
+			Long modifyTime = relationSubjectVO.getModifyTime();
+			Byte actionClass = relationSubjectVO.getActionClass();
+			Byte subjectClass = relationSubjectVO.getSubjectClass();
+			Byte isShield = null;
+			if (StringUtils.isBlank(subjectCode)) {
+				log.error("RelationThirdSubjectServiceImpl.updateShieldStatus：subjectCode为空");
+				throw BusinessException.build("COMMON_402", "subjectCode");
+			}
+			if (modifyTime == null) {
+				log.error("RelationThirdSubjectServiceImpl.updateShieldStatus：modifyTime为空");
+				throw BusinessException.build("COMMON_402", "modifyTime");
+			}
+			if (subjectClass == null ||!(RelationConstants.RELATION_SUBJECT_MBLOG.equals(subjectClass)
+					||RelationConstants.RELATION_SUBJECT_BLOG.equals(subjectClass)||RelationConstants.RELATION_SUBJECT_VOTE.equals(subjectClass)
+					||RelationConstants.RELATION_SUBJECT_ACTIVITY.equals(subjectClass)||RelationConstants.RELATION_SUBJECT_NEWS.equals(subjectClass)
+					||RelationConstants.RELATION_SUBJECT_OD.equals(subjectClass)||RelationConstants.RELATION_SUBJECT_KB.equals(subjectClass)
+						)) {
+					log.error("RelationThirdSubjectServiceImpl.updateShieldStatus：参数错误subjectClass="+subjectClass);
+					throw BusinessException.build("COMMON_402", "subjectClass");
+			}
+			if (RelationConstants.RELATION_ACTION_NO.equals(actionClass)){
+				isShield = RelationConstants.RELATION_NO;
+			}else if(RelationConstants.RELATION_ACTION_YES.equals(actionClass)){
+				isShield = RelationConstants.RELATION_YES;
+			}else{
+				log.error("RelationThirdSubjectServiceImpl.updateShieldStatus：isShield="+actionClass);
+				throw BusinessException.build("COMMON_402", "actionClass");
+			}
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("subjectCode", subjectCode); // 内容编号
+			paramMap.put("modifyTime", modifyTime);//修改时间
+			paramMap.put("isShield", isShield);//屏蔽/恢复 
+			paramMap.put("subjectClass", subjectClass);
+			//屏蔽/恢复 subjectCode 内容
+			int deleteNum = relationSubjectInfoBySryMapper.updateShieldStatus(paramMap);
+			if (deleteNum != 1) {
+				log.error("RelationThirdSubjectServiceImpl.updateShieldStatus：屏蔽/恢复" + deleteNum + "条内容信息 ");
+				return false;
+			}else{
+				//屏蔽/恢复 来源为 subjectCode 的内容
+				relationSubjectInfoBySryMapper.updateShieldStatusSource(paramMap);
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		return true;
+	}
+	/**
+	 * 
+	 * @Title: insertHot  
+	 * @Description: 插入热点
+	 * @param relationHot
+	 * @return    参数  
+	 * @return: boolean    返回类型
+	 */
+	private boolean insertHot(RelationSubjectInfo relationSubjectInfo){
+		
+		RelationHot rh = new RelationHot();
+		long time = new Date().getTime(); // 当前时间
+		rh.setHotCode(UUIDHelper.getUUID());
+		rh.setTenantCode(relationSubjectInfo.getTenantCode());
+		rh.setOrgCode(relationSubjectInfo.getOrgCode());
+		rh.setCreateTime(time);
+		rh.setModifyTime(time);
+		rh.setSubjectCode(relationSubjectInfo.getSubjectCode());
+		rh.setSubjectClass(relationSubjectInfo.getSubjectClass());
+		
+		return relationHotMapper.insert(rh)>0?true:false;
+	}
+	/**
+	 * 是否精华
+	 * @throws BusinessException 
+	 */
+	@Override
+	public boolean getQualityStatus(RelationQuality relationQuality) throws BusinessException {
+		// 参数校验
+		if (relationQuality == null) {
+			log.error("RelationThirdSubjectServiceImpl.getQualityStatus：relationQuality为空");
+			throw BusinessException.build("COMMON_402", "relationQuality");
+		}
+		
+		// 获取参数
+		String subjectCode = relationQuality.getSubjectCode();
+		Byte subjectClass = relationQuality.getSubjectClass();
+		
+		// 参数校验
+		if (StringUtils.isBlank(subjectCode)) {
+			log.error("RelationThirdSubjectServiceImpl.getQualityStatus：subjectCode为空");
+			throw BusinessException.build("COMMON_402", "subjectCode");
+		}
+		if (subjectClass == null ||(subjectClass!=1&&subjectClass!=2)) {
+			log.error("RelationQualityServiceImpl.getQualityStatus：参数有误");
+						throw BusinessException.build("COMMON_402", "subjectClass");
+		}
+		
+		// 拼接参数
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("subjectCode", subjectCode);
+		
+		return relationQualityMapper.getQualityStatus(paramMap) > 0 ? true : false;
+	}
+	
+	
+}

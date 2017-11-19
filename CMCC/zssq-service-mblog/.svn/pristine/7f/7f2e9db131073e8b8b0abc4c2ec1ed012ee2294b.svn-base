@@ -1,0 +1,457 @@
+package com.zssq.service.impl;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import com.zssq.constants.MblogConstants;
+import com.zssq.dao.pojo.MblogComment;
+import com.zssq.dao.pojo.MblogNum;
+import com.zssq.dao.pojo.MblogPraise;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.qo.CommentInfoQO;
+import com.zssq.service.MblogCommentService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.util.MblogUtils;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.StringTools;
+
+/**
+ * 
+    * @ClassName: MblogCommentServiceImpl  
+    * @Description: 微博评论信息操作接口实现类  
+    * @author Mr.B  
+    * @date 2017年3月20日  
+    *
+ */
+@Service("mblogCommentService")
+public class MblogCommentServiceImpl extends BaseService implements MblogCommentService ,Serializable{
+    
+	/**  
+    * @Fields serialVersionUID
+    */  
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * 
+	    * @Title: addCommentInfo  
+	    * @Description: 添加评论
+	    * @param qo
+	    * @throws BusinessException
+		* @return boolean    返回类型
+	 */
+	@Override
+	public boolean addCommentInfo(CommentInfoQO qo) throws BusinessException{
+		// 创建返回值
+		boolean result = true;
+		try{
+			String commentCode = qo.getCommentCode();
+			//qo.setCommentCode(commentCode);
+			// 添加论信息
+			result &= ownAddComment(qo);
+			// 添加评论附属信息
+			result &= ownAddMblogNum(commentCode);
+			if(result){
+				// 创建at信息
+				//result &= ownAddAtInfo(qo);
+				// 更新微博信息
+				ownSendKafkaNumMsg(qo.getMblogCode(), null, null, MblogConstants.MBLOG_ACTION_COMMENT, MblogConstants.MBLOG_NUM_ADD);
+				/*result &= ownUpdateMblogComNum(qo.getMblogCode(), false,0);*/
+			}
+		}catch(BusinessException e){
+			log.error("MblogCommentServiceImpl.addCommentInfo:添加评论失败"+e);
+			throw e;
+		}catch(Exception e){
+			log.error("MblogCommentServiceImpl.addCommentInfo:添加评论失败"+e);
+			throw BusinessException.build("MBLOG_12004", "添加评论失败");
+		}
+		return result;
+	}
+	/**
+	 * 
+	    * @Title: ownAddComment  
+	    * @Description: 添加评论
+	    * @param qo
+	    * @throws BusinessException
+		* @return boolean    返回类型
+	 */
+	private boolean ownAddComment(CommentInfoQO qo)throws BusinessException{
+		boolean result = true;
+		long time = new Date().getTime();
+		try{
+			// 创建评论信息
+			MblogComment comment = new MblogComment();
+			comment.setMblogCommentCode(qo.getCommentCode()); // 评论CODE
+			comment.setCreateTime(time); // 创建时间
+			comment.setModifyTime(time); // 修改时间
+			comment.setRemark(MblogConstants.MBLOG_BLANK); // 备注
+			comment.setUserCode(qo.getMyUserCode()); // 用户CODE
+			comment.setMblogCode(qo.getMblogCode()); // 微博CODE
+			comment.setContent(qo.getContent()); // 内容
+			comment.setIsDelete(MblogConstants.MBLOG_NO); // 是否删除
+			comment.setIsShield(MblogConstants.MBLOG_NO); // 是否屏蔽
+			/*comment.setReportNum(MblogConstants.MBLOG_ZERO);
+			comment.setPraiseNum(MblogConstants.MBLOG_ZERO);
+			comment.setReplyNum(MblogConstants.MBLOG_ZERO);*/
+			comment.setOrgCode(qo.getOrgCode()); // 用户组织CODE
+			comment.setTenantCode(qo.getTenantCode()); // 租户
+			// 插入
+			result &= mblogCommentMapper.insert(comment) > 0;
+		}catch(Exception e){
+			throw new BusinessException("添加评论信息失败",e);
+		}
+		return result;
+	}
+	/**
+	 * 
+	    * @Title: ownAddMblogNum  
+	    * @Description: 添加评论附属信息
+	    * @param commentCode
+	    * @throws BusinessException
+		* @return boolean    返回类型
+	 */
+	private boolean ownAddMblogNum(String commentCode) throws BusinessException {
+		// 创建返回值
+		boolean result = false;
+		try{
+			// 创建微博附属信息
+			MblogNum num = MblogUtils.ownCreateMblogNum(commentCode, MblogConstants.MBLOG_NUM_COMMENT);
+			// 添加
+			result = mblogNumMapper.insert(num) > 0;
+		}catch(Exception e){
+			throw new BusinessException("评论附属信息添加失败",e);
+		}
+		return result;
+	}
+	
+	
+	/**
+	 * 
+	    * @Title: queryCommentList  
+	    * @Description: 获取评论列表
+	    * @param qo
+	    * @throws BusinessException
+		* @return PageBean    返回类型
+	 */
+	@Override
+	public PageBean queryCommentList(CommentInfoQO qo) throws BusinessException{
+		// 创建返回值
+		PageBean pageBean = new PageBean();
+		try{
+			if(StringTools.isEmpty(qo.getMblogCode())){
+				throw BusinessException.build("MBLOG_12004", "mblogCode不可以为空"); 
+			}
+			// 获取评论列表
+			Map<String,Object> paramsMap = new HashMap<String,Object>();
+			paramsMap.put("lineTime", qo.getLineTime());
+			paramsMap.put("mblogCode",qo.getMblogCode());
+			paramsMap.put("limitStart", qo.getLimitStart());
+			paramsMap.put("limitSize", qo.getLimitSize());
+			paramsMap.put("myUserCode", qo.getMyUserCode());
+			// 查询数据
+			pageBean.setRecordList(mblogCommentMapper.queryCommentListByPage(paramsMap));
+			// 查询数量
+			pageBean.setTotalCount((int)mblogCommentMapper.queryCommentListByPageCount(paramsMap));
+		}catch(BusinessException e){
+			log.error("MblogCommentServiceImpl.queryCommentList:查询评论列表失败"+e);
+			throw e;
+		}catch(Exception e){
+			log.error("MblogCommentServiceImpl.queryCommentList:查询评论列表失败"+e);
+			throw BusinessException.build("MBLOG_12004", "查询评论列表失败");
+		}
+		return pageBean;
+	}
+	/**
+	 * 
+	    * @Title: addOrDelComPraise  
+	    * @Description: 点赞/取消点赞
+	    * @param qo
+	    * @throws BusinessException
+		* @return boolean    返回类型
+	 */
+	@Override
+	public boolean addOrDelComPraise(CommentInfoQO qo) throws BusinessException{
+		// 创建返回值
+		boolean result = true;
+		boolean isPraise = true;
+		long time = new Date().getTime();
+		try{
+			if(StringTools.isNotEmpty(qo.getCommentCode()) && null != qo.getIsPraise()){
+				// 校验是否点赞
+				Map<String,Object> paramsMap = new HashMap<String,Object>();
+				paramsMap.put("subjectCode", qo.getCommentCode());
+				paramsMap.put("userCode", qo.getMyUserCode());
+				isPraise = mblogPraiseMapper.checkIsPraise(paramsMap) > 0;
+				if(isPraise && qo.getIsPraise() == MblogConstants.MBLOG_YES){
+					throw BusinessException.build("MBLOG_12004", "点赞不可重复操作");
+				}
+				if(!isPraise && qo.getIsPraise() == MblogConstants.MBLOG_NO){
+					throw BusinessException.build("MBLOG_12004", "取消点赞不可重复操作");
+				}
+				if(MblogConstants.MBLOG_YES == qo.getIsPraise() && !isPraise){
+					// 点赞
+					MblogPraise praise = new MblogPraise();
+					praise.setMblogPraiseCode(UUIDHelper.getUUID()); // 点赞CODE
+					praise.setCreateTime(time); // 创建时间
+					praise.setModifyTime(time); // 修改时间
+					praise.setRemark(MblogConstants.MBLOG_BLANK); // 备注
+					praise.setSubjectCode(qo.getCommentCode()); // 主体CODE
+					praise.setType(MblogConstants.MBLOG_PRAISE_COM); // 点赞类型
+					praise.setUserCode(qo.getMyUserCode()); // 用户CODE
+					praise.setOrgCode(qo.getOrgCode()); // 组织CODE
+					praise.setTenantCode(qo.getTenantCode()); // 租户
+					
+					// 添加
+					result &= mblogPraiseMapper.insert(praise) > 0;
+					
+				}else if(MblogConstants.MBLOG_NO == qo.getIsPraise() && isPraise){
+					// 取消点赞
+					paramsMap = new HashMap<String,Object>();
+					paramsMap.put("subjectCode", qo.getCommentCode());
+					paramsMap.put("userCode", qo.getMyUserCode());
+					result &= mblogPraiseMapper.deleteByCode(paramsMap) > 0;
+				}else{
+					result = false;
+				}
+				if(result){
+					// 更新点赞数据
+					ownSendKafkaNumMsg(null, qo.getCommentCode(), null, MblogConstants.MBLOG_ACTION_COMMENT_PRAISE, isPraise ? MblogConstants.MBLOG_NUM_SUB : MblogConstants.MBLOG_NUM_ADD);
+					/*paramsMap = new HashMap<String,Object>();
+					paramsMap.put("subjectCode", qo.getCommentCode());
+					paramsMap.put("modifyTime", time);
+					paramsMap.put("num",isPraise ? MblogConstants.MBLOG_NUM_SUB : MblogConstants.MBLOG_NUM_ADD);
+					result &= mblogNumMapper.updatePraNumByCode(paramsMap) > 0;*/
+				}
+			}else{
+				throw BusinessException.build("MBLOG_12004", "commentCode不可以为空");
+			}
+		}catch(BusinessException e){
+			log.error("MblogCommentServiceImpl.addOrDelComPraise:点赞/取消点赞操作失败"+e);
+			throw e;	
+		}catch(Exception e){
+			log.error("MblogCommentServiceImpl.addOrDelComPraise:点赞/取消点赞操作失败"+e);
+			throw BusinessException.build("MBLOG_12004", "点赞/取消点赞操作失败");
+		}
+		return result;
+	}
+	/**
+	 * 
+	    * @Title: deleteCommentInfo  
+	    * @Description: 删除评论
+	    * @param qo
+	    * @throws BusinessException
+		* @return boolean    返回类型
+	 */
+	@Override
+	public boolean deleteCommentInfo(CommentInfoQO qo) throws BusinessException{
+		// 创建返回值
+		boolean result = true;
+		long time = new Date().getTime();
+		try{
+			if(StringTools.isNotEmpty(qo.getCommentCode())){
+				// 删除评论
+				Map<String,Object> paramsMap = new HashMap<String,Object>();
+				paramsMap.put("commentCode", qo.getCommentCode());
+				paramsMap.put("userCode", qo.getMyUserCode());
+				paramsMap.put("modifyTime", time);
+				result = mblogCommentMapper.deleteInfoByCode(paramsMap) > 0;
+				// 删除成功更新微博评论数
+				if(result){
+					paramsMap = new HashMap<String,Object>();
+					paramsMap.put("commentCode", qo.getCommentCode());
+					paramsMap.put("modifyTime", time);
+					mblogReplyMapper.batchDeleteInfo(paramsMap);
+					if(result){
+						// 获取回复数
+						ownSendKafkaNumMsg(qo.getMblogCode(), qo.getCommentCode(), null, MblogConstants.MBLOG_ACTION_COMMENT, MblogConstants.MBLOG_NUM_SUB);
+						/*int count = mblogNumMapper.getReplyNumByCode(qo.getCommentCode());
+						result &= ownUpdateMblogComNum(qo.getMblogCode(), true , count);*/
+					}
+				}
+			}else{
+				throw BusinessException.build("MBLOG_12004", "commentCode不可以为空");
+			}
+		}catch(BusinessException e){
+			log.error("MblogCommentServiceImpl.deleteCommentInfo:删除评论失败"+e);
+			throw e;	
+		}catch(Exception e){
+			log.error("MblogCommentServiceImpl.deleteCommentInfo:删除评论失败"+e);
+			throw BusinessException.build("MBLOG_12004", "删除评论失败");
+		}
+		return result;
+	}
+	
+	/**
+	 * 
+	    * @Title: gotoCommentList  
+	    * @Description: 定位评论列表
+	    * @param qo
+	    * @throws BusinessException
+		* @return PageBean    返回类型
+	 */
+	@Override
+	public PageBean gotoCommentList(CommentInfoQO qo) throws BusinessException {
+		// 创建返回值
+		PageBean pageBean = new PageBean();
+		try{
+			if(StringTools.isEmpty(qo.getCommentCode())){
+				throw BusinessException.build("MBLOG_12004", "commentCode不可以为空");
+			}
+			if(StringTools.isEmpty(qo.getMblogCode())){
+				throw BusinessException.build("MBLOG_12004", "mblogCode不可以为空");
+			}
+			// 获取评论信息
+			MblogComment comment = mblogCommentMapper.getInfoByCode(qo.getCommentCode());
+			if(comment.getIsDelete() == MblogConstants.MBLOG_NO && comment.getIsShield() == MblogConstants.MBLOG_NO){
+				// 获取评论列表
+				Map<String,Object> paramsMap = new HashMap<String,Object>();
+				// 查询所在页
+				paramsMap.put("commentCode", qo.getCommentCode());
+				paramsMap.put("mblogCode",qo.getMblogCode());
+				long pageCount = mblogCommentMapper.queryCountByCode(paramsMap);
+				int pageNo = -1;
+				if(pageCount >= 1){
+					pageNo = (int)(pageCount-1)/qo.getLimitSize();
+				}
+				if(pageNo >= 0){
+					paramsMap = new HashMap<String,Object>();
+					paramsMap.put("lineTime", qo.getLineTime());
+					paramsMap.put("mblogCode",qo.getMblogCode());
+					paramsMap.put("limitStart", pageNo*qo.getLimitSize());
+					paramsMap.put("limitSize", qo.getLimitSize());
+					paramsMap.put("myUserCode", qo.getMyUserCode());
+					// 查询数据
+					pageBean.setRecordList(mblogCommentMapper.queryCommentListByPage(paramsMap));
+					// 查询数量
+					pageBean.setTotalCount((int)mblogCommentMapper.queryCommentListByPageCount(paramsMap));
+					pageBean.setCurrentPage(pageNo);
+				}
+			}else{
+				// 获取评论列表
+				Map<String,Object> paramsMap = new HashMap<String,Object>();
+				paramsMap.put("lineTime", qo.getLineTime());
+				paramsMap.put("mblogCode",qo.getMblogCode());
+				paramsMap.put("limitStart", 0);
+				paramsMap.put("limitSize", qo.getLimitSize());
+				paramsMap.put("myUserCode", qo.getMyUserCode());
+				// 查询数据
+				pageBean.setRecordList(mblogCommentMapper.queryCommentListByPage(paramsMap));
+				// 查询数量
+				pageBean.setTotalCount((int)mblogCommentMapper.queryCommentListByPageCount(paramsMap));
+				pageBean.setCurrentPage(0);
+			}
+		}catch(BusinessException e){
+			log.error("MblogCommentServiceImpl.gotoCommentList:查询评论列表失败"+e);
+			throw e;
+		}catch(Exception e){
+			log.error("MblogCommentServiceImpl.gotoCommentList:查询评论列表失败"+e);
+			throw BusinessException.build("MBLOG_12004", "查询评论列表失败");
+		}
+		return pageBean;
+	}
+	
+	/**
+	 * 
+	    * @Title: getCommentInfo  
+	    * @Description: 获取评论信息
+	    * @param commentCode	评论CODE
+	    * @throws BusinessException
+		* @return MblogComment    返回类型
+	 */
+	@Override
+	public MblogComment getCommentInfo(String commentCode) throws BusinessException {
+		MblogComment comment = null;
+		try{
+			if(StringTools.isNotEmpty(commentCode)){
+				comment = mblogCommentMapper.getInfoByCode(commentCode);
+			}else{
+				throw BusinessException.build("MBLOG_12004", "commentCode不可以为空");
+			}
+		}catch(BusinessException e){
+			log.error("MblogCommentServiceImpl.getCommentInfo:查询详情失败"+e);
+			throw e;
+		}catch(Exception e){
+			log.error("MblogCommentServiceImpl.getCommentInfo:查询详情失败"+e);
+			throw BusinessException.build("MBLOG_12004", "查询详情失败");
+		}
+		return comment;
+	}
+	
+	/**
+	 * 
+	    * @Title: ownAddAtInfo  
+	    * @Description: 添加At信息（评论）
+	    * @param qo
+	    * @throws BusinessException
+		* @return boolean    返回类型
+	 */
+	/*private boolean ownAddAtInfo(CommentInfoQO qo)throws BusinessException{
+		// 创建返回值
+		boolean result = true;
+		long time = new Date().getTime();
+		try{
+			// 创建AT列表
+			List<MblogAt> atList = new ArrayList<MblogAt>();
+			if(!qo.getAtUserCodes().isEmpty()){
+				for(UserInfoQO user : qo.getAtUserCodes()){
+					// 创建AT临时对象
+					MblogAt at = new MblogAt();
+					at.setMblogAtCode(UUIDHelper.getUUID()); // atCODE
+					at.setCreateTime(time); // 创建时间
+					at.setModifyTime(time); // 修改时间
+					at.setRemark(MblogConstants.MBLOG_BLANK); // 备注 
+					at.setOrgCode(user.getOrgCode()); // 组织CODE
+					at.setOrgLevel(user.getOrgLevel()); // 组织等级
+					at.setTenantCode(qo.getTenantCode()); // 租户
+					
+					at.setUserCode(user.getUserCode()); // 用户CODE 
+					at.setType(MblogConstants.MBLOG_AT_COM); // AT类型
+					at.setAtSite(MblogConstants.MBLOG_AT_SITE_COM); // AT范围
+					at.setMblogCode(qo.getMblogCode()); // 微博CODE
+					at.setCommentCode(qo.getCommentCode()); // 评论CODE
+					at.setReplyCode(MblogConstants.MBLOG_BLANK); // 回复CODE
+					
+					atList.add(at);
+				}
+				// 插入
+				result = mblogAtMapper.batchInsert(atList) > 0;
+			}
+		}catch(Exception e){
+			throw new BusinessException("微博at信息添加失败",e);
+		}
+		return result;
+	}*/
+	
+	/**
+	 * 
+	    * @Title: ownUpdateMblogComNum  
+	    * @Description: 更新微博评论数
+	    * @param mblogCode	微博CODE
+	    * @param isDelete 	是否删除
+	    * @param num 		数量
+	    * @throws BusinessException
+		* @return boolean    返回类型
+	 */
+	/*private boolean ownUpdateMblogComNum(String mblogCode,boolean isDelete,Integer num)throws BusinessException{
+		// 创建返回值
+		boolean result = true;
+		long time = new Date().getTime();
+		try{
+			if(StringTools.isNotEmpty(mblogCode)){
+				// 创建参数
+				Map<String,Object> paramsMap = new HashMap<String,Object>();
+				paramsMap.put("subjectCode", mblogCode);
+				paramsMap.put("modifyTime", time);
+				paramsMap.put("num", isDelete ? -(num+1) : MblogConstants.MBLOG_NUM_ADD);
+				// 更新
+				result = mblogNumMapper.updateComNumByCode(paramsMap) > 0;
+			}
+		}catch(Exception e){
+			throw new BusinessException("微博评论数修改失败",e);
+		}
+		return result;
+	}*/
+}

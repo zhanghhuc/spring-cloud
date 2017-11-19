@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.UserMsgSubscribeMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.UserMsgSubscribe" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="sub_code" property="subCode" jdbcType="VARCHAR" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="sub_user_code" property="subUserCode" jdbcType="VARCHAR" />
+    <result column="sub_type" property="subType" jdbcType="TINYINT" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <result column="creat_time" property="creatTime" jdbcType="BIGINT" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, sub_code, user_code, sub_user_code, sub_type, is_delete, creat_time, tenant_code, 
+    org_code
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from user_msg_subscribe
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from user_msg_subscribe
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.UserMsgSubscribe" >
+    insert into user_msg_subscribe (id, sub_code, user_code, 
+      sub_user_code, sub_type, is_delete, 
+      creat_time, tenant_code, org_code
+      )
+    values (#{id,jdbcType=BIGINT}, #{subCode,jdbcType=VARCHAR}, #{userCode,jdbcType=VARCHAR}, 
+      #{subUserCode,jdbcType=VARCHAR}, #{subType,jdbcType=TINYINT}, #{isDelete,jdbcType=TINYINT}, 
+      #{creatTime,jdbcType=BIGINT}, #{tenantCode,jdbcType=VARCHAR}, #{orgCode,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.UserMsgSubscribe" >
+    insert into user_msg_subscribe
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="subCode != null" >
+        sub_code,
+      </if>
+      <if test="userCode != null" >
+        user_code,
+      </if>
+      <if test="subUserCode != null" >
+        sub_user_code,
+      </if>
+      <if test="subType != null" >
+        sub_type,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+      <if test="creatTime != null" >
+        creat_time,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="subCode != null" >
+        #{subCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="subUserCode != null" >
+        #{subUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="subType != null" >
+        #{subType,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="creatTime != null" >
+        #{creatTime,jdbcType=BIGINT},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.UserMsgSubscribe" >
+    update user_msg_subscribe
+    <set >
+      <if test="subCode != null" >
+        sub_code = #{subCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        user_code = #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="subUserCode != null" >
+        sub_user_code = #{subUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="subType != null" >
+        sub_type = #{subType,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="creatTime != null" >
+        creat_time = #{creatTime,jdbcType=BIGINT},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.UserMsgSubscribe" >
+    update user_msg_subscribe
+    set sub_code = #{subCode,jdbcType=VARCHAR},
+      user_code = #{userCode,jdbcType=VARCHAR},
+      sub_user_code = #{subUserCode,jdbcType=VARCHAR},
+      sub_type = #{subType,jdbcType=TINYINT},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      creat_time = #{creatTime,jdbcType=BIGINT},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  
+      <!-- 分页查询  -->
+   <select id="selectPage" resultMap="BaseResultMap" parameterType="com.zssq.model.MessageSubscribeModel" >
+    select 
+    <include refid="Base_Column_List" />
+    from user_msg_subscribe
+    where 1 = 1
+   <if test="userCode != null">
+      and  user_code = #{userCode,jdbcType=VARCHAR}
+   	</if>
+   	  and  is_delete=0
+   	  
+   	  <if test="subType != null" >
+   	  and sub_type = #{subType,jdbcType=TINYINT}
+	  </if>
+    <if test="pageNo != null and pageSize >=0" >
+      limit #{pageNo} , #{pageSize}
+    </if>  
+  </select>
+  
+  <!-- 总条数 -->
+   <select id="selectCount" resultType="int" parameterType="com.zssq.model.MessageSubscribeModel" >
+   select count(1)
+   from user_msg_subscribe
+   where 1 = 1
+     <if test="userCode != null">
+       and  user_code = #{userCode,jdbcType=VARCHAR}
+   </if>
+   
+   <if test="subType != null" >
+    and sub_type = #{subType,jdbcType=TINYINT}
+   </if>
+   and  is_delete=0
+  
+  </select>
+  
+  
+  
+  
+  
+</mapper>

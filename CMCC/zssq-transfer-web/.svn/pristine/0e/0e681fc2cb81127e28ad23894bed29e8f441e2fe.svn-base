@@ -1,0 +1,114 @@
+package com.zssq.blog.service;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.zssq.blog.dao.mapper.BlogClassMapper;
+import com.zssq.blog.pojo.SourceClassModel;
+
+/**
+ * 
+ * @ClassName: BlogClassService  
+ * @Description: 博客分类数据迁移Service  
+ * @author ZKZ  
+ * @date 2017年5月19日  
+ *
+ */
+@Service("blogClassService")
+public class BlogClassService {
+	
+	@Autowired
+	private BlogClassMapper blogClassMapper;
+	
+	/**
+	 * 
+	 * @Title: addColumn  
+	 * @Description: 往评论表中添加字段
+	 * @return: void    返回类型
+	 */
+	@Transactional
+	public void addColumn() {
+		// 查看old_id字段是否存在
+		String tableName = blogClassMapper.isColumnExists();
+		if (tableName != null) {
+			return;
+		}
+		
+		// 添加字段
+		blogClassMapper.addColumn();
+	}
+
+	/**
+	 * 
+	 * @Title: createIndex  
+	 * @Description: 创建索引
+	 * @return: void    返回类型
+	 */
+	public void createIndex() {
+		blogClassMapper.createIndex();
+	}
+	
+	/**
+	 * 
+	 * @Title: insertDefaultClass  
+	 * @Description: 创建默认分类
+	 * @param paramMap
+	 * @return: void    返回类型
+	 */
+	@Transactional
+	public void insertDefaultClass(Map<String, Object> paramMap) {
+		// 查看默认分类是否已创建成功
+		int count = blogClassMapper.getBlogClassCount();
+		if (count > 0) {
+			return;
+		}
+		
+		// 插入人员分类数据
+		blogClassMapper.insertUserClass(paramMap);
+		
+		// 插入班组分类数据
+		blogClassMapper.insertTeamClass(paramMap);
+	}
+
+	/**
+	 * 
+	 * @Title: getSourceClassList  
+	 * @Description: 查询原分类数据
+	 * @return: List<SourceClassModel>    返回类型
+	 */
+	public List<SourceClassModel> getSourceClassList() {
+		// 查询原表中分类数据
+		return blogClassMapper.getSourceClassList();
+	}
+	
+	/**
+	 * 
+	 * @Title: insertClass  
+	 * @Description: 导入分类数据
+	 * @param paramMap    参数  
+	 * @return: void    返回类型
+	 */
+	@Transactional
+	public void insertClass(Map<String, Object> paramMap) {
+		// 插入人员分类数据
+		blogClassMapper.insertUserClass(paramMap);
+		
+		// 插入班组分类数据
+		blogClassMapper.insertTeamClass(paramMap);
+	}
+
+	/**
+	 * 
+	 * @Title: getClassCount  
+	 * @Description: 查询插入总条数
+	 * @return: int    返回类型
+	 */
+	public int getClassCount() {
+		return blogClassMapper.getBlogClassCount();
+	}
+
+}

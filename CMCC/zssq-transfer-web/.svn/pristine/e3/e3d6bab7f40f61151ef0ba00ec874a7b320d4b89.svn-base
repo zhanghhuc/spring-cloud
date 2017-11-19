@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.mblog.dao.mapper.MblogTopicMapper" >
+
+  <!-- 批处理 -->
+  <insert id="batchInsert" parameterType="com.zssq.mblog.pojo.MblogTopic">
+	insert into mblog_topic (
+		id, 
+		mblog_topic_code, 
+		create_time, 
+      	modify_time, 
+      	remark, 
+      	org_code, 
+       	topic_name, 
+       	topic_num, 
+     	tenant_code
+	)
+	values 
+	<foreach collection="list" item="item" index="index" separator=",">
+		(
+			#{item.id,jdbcType=BIGINT}, 
+			#{item.mblogTopicCode,jdbcType=VARCHAR}, 
+			#{item.createTime,jdbcType=BIGINT}, 
+      		#{item.modifyTime,jdbcType=BIGINT}, 
+      		#{item.remark,jdbcType=VARCHAR}, 
+      		#{item.orgCode,jdbcType=VARCHAR}, 
+       		#{item.topicName,jdbcType=VARCHAR}, 
+       		#{item.topicNum,jdbcType=INTEGER}, 
+      		#{item.tenantCode,jdbcType=VARCHAR}
+    	)
+	</foreach>
+  </insert>
+ 
+  <!-- insert into select -->
+  <insert id="insertIntoSelect" parameterType="java.util.Map">
+		INSERT INTO 
+			mblog_topic(
+				mblog_topic_code, 
+				create_time, 
+			    modify_time, 
+		      	remark, 
+		      	org_code, 
+		      	topic_name, 
+		      	topic_num, 
+	     		tenant_code
+			)
+			(
+				SELECT
+					replace(UUID(),'-',''),
+					unix_timestamp(CREATE_TIME)*1000,
+					unix_timestamp(CREATE_TIME)*1000,
+					'',
+					orgInfo.man_org_code AS orgCode,
+			     	TOPIC_NAME, 
+					JOIN_NUM,
+					userInfo.saas_tenant_code AS tenantCode
+				FROM
+					(
+						SELECT
+							ID,
+				  			CREATE_TIME,
+				  			TOPIC_NAME,
+				  			JOIN_NUM,
+				  			USER_ID
+				  		FROM
+				  			transfer_mblog_topic
+				  		ORDER BY ID
+				  		LIMIT
+				  			#{startPage},#{pageSize}
+					) AS trTopic
+					LEFT JOIN
+						sys_user_info AS userInfo ON trTopic.USER_ID = userInfo.user_id
+					LEFT JOIN
+						sys_org_info AS orgInfo ON userInfo.org_code = orgInfo.sys_org_code
+			)	
+  </insert>
+</mapper>

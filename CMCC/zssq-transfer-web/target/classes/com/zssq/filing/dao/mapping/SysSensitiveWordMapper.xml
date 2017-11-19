@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.filing.dao.mapper.SysSensitiveWordMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.filing.pojo.SysSensitiveWord" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="sensitive_code" property="sensitiveCode" jdbcType="VARCHAR" />
+    <result column="sensitive_value" property="sensitiveValue" jdbcType="VARCHAR" />
+    <result column="sensitive_spell_value" property="sensitiveSpellValue" jdbcType="VARCHAR" />
+    <result column="sensitive_acronym" property="sensitiveAcronym" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="is_enable" property="isEnable" jdbcType="TINYINT" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, sensitive_code, sensitive_value, sensitive_spell_value, sensitive_acronym, create_time, 
+    is_enable, org_code
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from sys_sensitive_word
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from sys_sensitive_word
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.filing.pojo.SysSensitiveWord" >
+    insert into sys_sensitive_word (id, sensitive_code, sensitive_value, 
+      sensitive_spell_value, sensitive_acronym, 
+      create_time, is_enable, org_code
+      )
+    values (#{id,jdbcType=BIGINT}, #{sensitiveCode,jdbcType=VARCHAR}, #{sensitiveValue,jdbcType=VARCHAR}, 
+      #{sensitiveSpellValue,jdbcType=VARCHAR}, #{sensitiveAcronym,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=BIGINT}, #{isEnable,jdbcType=TINYINT}, #{orgCode,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.filing.pojo.SysSensitiveWord" >
+    insert into sys_sensitive_word
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="sensitiveCode != null" >
+        sensitive_code,
+      </if>
+      <if test="sensitiveValue != null" >
+        sensitive_value,
+      </if>
+      <if test="sensitiveSpellValue != null" >
+        sensitive_spell_value,
+      </if>
+      <if test="sensitiveAcronym != null" >
+        sensitive_acronym,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="isEnable != null" >
+        is_enable,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="sensitiveCode != null" >
+        #{sensitiveCode,jdbcType=VARCHAR},
+      </if>
+      <if test="sensitiveValue != null" >
+        #{sensitiveValue,jdbcType=VARCHAR},
+      </if>
+      <if test="sensitiveSpellValue != null" >
+        #{sensitiveSpellValue,jdbcType=VARCHAR},
+      </if>
+      <if test="sensitiveAcronym != null" >
+        #{sensitiveAcronym,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="isEnable != null" >
+        #{isEnable,jdbcType=TINYINT},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.filing.pojo.SysSensitiveWord" >
+    update sys_sensitive_word
+    <set >
+      <if test="sensitiveCode != null" >
+        sensitive_code = #{sensitiveCode,jdbcType=VARCHAR},
+      </if>
+      <if test="sensitiveValue != null" >
+        sensitive_value = #{sensitiveValue,jdbcType=VARCHAR},
+      </if>
+      <if test="sensitiveSpellValue != null" >
+        sensitive_spell_value = #{sensitiveSpellValue,jdbcType=VARCHAR},
+      </if>
+      <if test="sensitiveAcronym != null" >
+        sensitive_acronym = #{sensitiveAcronym,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="isEnable != null" >
+        is_enable = #{isEnable,jdbcType=TINYINT},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.filing.pojo.SysSensitiveWord" >
+    update sys_sensitive_word
+    set sensitive_code = #{sensitiveCode,jdbcType=VARCHAR},
+      sensitive_value = #{sensitiveValue,jdbcType=VARCHAR},
+      sensitive_spell_value = #{sensitiveSpellValue,jdbcType=VARCHAR},
+      sensitive_acronym = #{sensitiveAcronym,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=BIGINT},
+      is_enable = #{isEnable,jdbcType=TINYINT},
+      org_code = #{orgCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  <!-- 批量新增 -->
+  <insert id="bathInsert" parameterType="com.zssq.filing.pojo.SysSensitiveWord">
+  	INSERT INTO sys_sensitive_word 
+  		(
+  		sensitive_code, 
+  		sensitive_value, 
+  		is_enable, 
+    	org_code
+  		)
+  	VALUES
+  		<foreach collection="list" index="index" item="item" separator=",">
+			(
+	  		#{item.sensitiveCode,jdbcType=VARCHAR}, 
+	  		#{item.sensitiveValue,jdbcType=VARCHAR}, 
+	  		#{item.isEnable,jdbcType=TINYINT},
+	  		#{item.orgCode,jdbcType=VARCHAR}
+	  		)
+	  	</foreach>
+  </insert>
+</mapper>

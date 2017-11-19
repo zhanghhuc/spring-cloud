@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.RepositoryKnowledgeContentMapperByGuoYang" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.RepositoryKnowledgeContent" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="content_code" property="contentCode" jdbcType="VARCHAR" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.zssq.dao.pojo.RepositoryKnowledgeContent" extends="BaseResultMap" >
+    <result column="content_info" property="contentInfo" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, content_code, tenant_code, org_code, create_time, modify_time, remark, is_delete
+  </sql>
+  <sql id="Blob_Column_List" >
+    content_info
+  </sql>
+  
+  
+  <resultMap id="GetKnowledgeInfoForGLModel" type="com.zssq.model.GetKnowledgeInfoForGLModel" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="content_code" property="contentCode" jdbcType="VARCHAR" />
+    <result column="content_info" property="contentInfo" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  
+  <select id="selectInfoByCode" resultMap="GetKnowledgeInfoForGLModel" parameterType="com.zssq.dao.pojo.RepositoryKnowledgeContent" >
+    select
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List"/>
+    from repository_knowledge_content
+    where content_code = #{contentCode,jdbcType=BIGINT}
+  </select>
+  
+  
+  
+</mapper>

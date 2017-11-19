@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.blog.dao.mapper.BlogCommentMapper">
+
+	<!-- 查看Index_1索引是否存在 -->
+	<select id="isIndexExists" resultType="string">
+		SELECT
+			index_name
+		FROM information_schema.statistics
+		WHERE table_schema = 'zssq_blog'
+			AND table_name = 'blog_comment'
+			AND index_name = 'Index_1'
+	</select>
+	
+	<!-- 删除索引 -->
+	<update id="deleteIndex">
+		DROP INDEX Index_1 ON blog_comment;
+		DROP INDEX Index_2 ON blog_comment;
+	</update>
+
+	<!-- 查看old_id字段是否存在 -->
+	<select id="isColumnExists" resultType="string">
+		SELECT
+			table_name
+		FROM information_schema. COLUMNS
+		WHERE table_name = 'blog_comment'
+			AND column_name = 'old_id';
+	</select>
+	
+	<!-- 添加字段 -->
+	<update id="addColumn">
+		ALTER TABLE blog_comment ADD old_id INT
+	</update>
+	
+	<!-- 创建索引 -->
+	<update id="createIndex">
+		CREATE UNIQUE INDEX old_id ON blog_comment (old_id);
+		CREATE UNIQUE INDEX Index_1 ON blog_comment (comment_code);
+		CREATE INDEX Index_2 ON blog_comment (comment_is_delete, comment_is_shield, blog_code);
+	</update>
+	
+	<!-- 插入评论数据  -->
+	<insert id="insertSourceComment" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO blog_comment (
+			comment_code,
+			tenant_code,
+			org_code,
+			create_time,
+			modify_time,
+			remark,
+			blog_code,
+			user_code,
+			comment_content,
+			comment_is_delete,
+			comment_is_shield,
+			comment_like_num,
+			comment_reply_num,
+			old_id
+		) SELECT
+			REPLACE (UUID(), '-', '') AS comment_code,
+			sui.saas_tenant_code AS tenant_code,
+			soi.man_org_code AS org_code,
+			UNIX_TIMESTAMP(sbr.create_time) * 1000 AS create_time,
+			UNIX_TIMESTAMP(sbr.update_time) * 1000 AS update_time,
+			'',
+			bt.blog_code,
+			sui.user_code,
+			sbr.reply_content,
+			0,
+			0,
+			0,
+			0,
+			sbr.id AS old_id
+		FROM
+			(
+				SELECT
+					id,
+					blog_id,
+					user_id,
+					create_time,
+					update_time,
+					reply_content
+				FROM source_blog_reply
+				WHERE flag_reply = 0
+					AND del_flag = 0
+			) sbr
+		LEFT JOIN blog_temp bt 
+			ON sbr.blog_id = bt.old_id
+		LEFT JOIN sys_user_info sui 
+			ON sbr.user_id = sui.user_id
+		LEFT JOIN sys_org_info soi 
+			ON sui.org_code = soi.sys_org_code
+		WHERE bt.blog_code IS NOT NULL
+			AND sui.user_code IS NOT NULL
+	</insert>
+	
+</mapper>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.auth.dao.mapper.SysOrgInfoMapper">
+	
+	<!-- sys_org_info 表字段实体映射 -->
+	<resultMap id="BaseResultMap" type="com.zssq.auth.pojo.SysOrgInfo">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="sys_org_code" property="sysOrgCode" jdbcType="VARCHAR" />
+		<result column="parent_code" property="parentCode" jdbcType="VARCHAR" />
+		<result column="man_org_code" property="manOrgCode" jdbcType="VARCHAR" />
+		<result column="src_code" property="srcCode" jdbcType="VARCHAR" />
+		<result column="sys_org_name" property="sysOrgName" jdbcType="VARCHAR" />
+		<result column="sys_org_fullname" property="sysOrgFullname" jdbcType="VARCHAR" />
+		<result column="sys_org_type" property="sysOrgType" jdbcType="TINYINT" />
+		<result column="sys_org_order" property="sysOrgOrder" jdbcType="VARCHAR" />
+		<result column="is_enable" property="isEnable" jdbcType="TINYINT" />
+		<result column="saas_tenant_code" property="saasTenantCode" jdbcType="VARCHAR" />
+		<result column="org_id" property="orgid" jdbcType="INTEGER" />
+		<result column="kc_parent_code" property="kcParentCode" jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<!-- sys_org_info 表字段列表 -->
+	<sql id="Base_Column_List">
+		id, sys_org_code, parent_code, man_org_code, src_code, sys_org_name, sys_org_fullname, sys_org_type, sys_org_order, is_enable, saas_tenant_code
+	</sql>
+	
+	<select id="selectSysOrgCount" resultType="java.lang.Integer">
+		select count(0) from sys_org_info
+	</select>
+	
+	<select id="selectSysOrgBatch" resultMap="BaseResultMap" parameterType="java.util.Map">
+		select * from sys_org_info limit ${startRowNum}, ${executeSize}
+	</select>
+	
+	<select id="selectByOrgCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select * from sys_org_info where sys_org_code = #{value}
+	</select>		
+	
+	<select id="selectBySrcCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select * from sys_org_info where src_code = #{value}
+	</select>	
+	
+	<!-- 新增组织机构信息 -->
+	<insert id="insert" parameterType="com.zssq.auth.pojo.SysOrgInfo">
+		insert into sys_org_info 
+		(
+			sys_org_code, 
+			parent_code,
+			man_org_code,
+			src_code,
+			sys_org_name, 
+			sys_org_fullname, 
+			sys_org_type,
+			sys_org_order, 
+			is_enable,
+			org_status,
+			saas_tenant_code,
+			org_id,
+			kc_parent_code
+		)
+		values 
+		<foreach collection="list" index="index" item="item" separator=",">
+			(
+				#{item.sysOrgCode,jdbcType=VARCHAR},
+				#{item.parentCode,jdbcType=VARCHAR},
+				#{item.manOrgCode,jdbcType=VARCHAR},
+				#{item.srcCode,jdbcType=VARCHAR},
+				#{item.sysOrgName,jdbcType=VARCHAR}, 
+				#{item.sysOrgFullname,jdbcType=VARCHAR}, 
+				#{item.sysOrgType,jdbcType=VARCHAR}, 
+				#{item.sysOrgOrder,jdbcType=VARCHAR}, 
+				#{item.isEnable,jdbcType=TINYINT},
+				#{item.orgStatus,jdbcType=TINYINT},
+				#{item.saasTenantCode,jdbcType=VARCHAR},
+				#{item.orgid,jdbcType=INTEGER},
+				#{item.kcParentCode,jdbcType=VARCHAR}
+			)
+		</foreach>
+	</insert>
+	
+	<update id="updateParentCodeAndLevel" parameterType="com.zssq.auth.pojo.SysOrgInfo">
+		update sys_org_info set 
+			parent_code = #{parentCode,jdbcType=VARCHAR},
+			sys_org_type = #{sysOrgType,jdbcType=VARCHAR}
+		where 
+			sys_org_code = #{sysOrgCode,jdbcType=VARCHAR}
+	</update>
+	
+	<update id="updateProvinceParentCode" parameterType="java.lang.String">
+		update sys_org_info set parent_code = #{value} where kc_parent_code = '00000000000000000000' and src_code != '00030000000000000000'
+	</update>	
+	
+	<update id="updateManOrgCode" parameterType="com.zssq.auth.pojo.SysOrgInfo">
+		update sys_org_info set 
+			man_org_code = #{manOrgCode,jdbcType=VARCHAR}
+		where 
+			sys_org_code = #{sysOrgCode,jdbcType=VARCHAR}
+	</update>			
+</mapper>

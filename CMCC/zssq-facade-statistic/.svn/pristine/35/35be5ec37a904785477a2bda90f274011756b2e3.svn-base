@@ -1,0 +1,101 @@
+package com.zssq.service;
+
+import java.util.List;
+
+import com.zssq.dao.pojo.StatisticApp;
+import com.zssq.dao.pojo.StatisticCommon;
+import com.zssq.dao.pojo.StatisticCompany;
+import com.zssq.dao.pojo.StatisticPortal;
+import com.zssq.dao.pojo.StatisticVisitDetail;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+
+public interface IStatisticService {
+	
+	/**
+	 * 获取班组分页数据(默认：当月数据)
+	 * @param pageParam 分页参数
+	 * @param record 查询参数
+	 * @return
+	 * @throws BusinessException
+	 */
+	public PageBean getTeam(PageParam pageParam,StatisticCommon record) throws BusinessException; 
+	
+	/**
+	 * 获取个人分页数据(默认：当月数据)
+	 * @param pageParam 分页参数
+	 * @param record 查询参数
+	 * @return
+	 * @throws BusinessException
+	 */
+	public PageBean getPeople(PageParam pageParam,StatisticCommon record) throws BusinessException; 
+	
+	/**
+	 * 获取应用统计(默认：昨日数据)
+	 * @param record 查询参数
+	 * @return
+	 * @throws BusinessException
+	 */
+	public StatisticApp getApp(StatisticCommon record) throws BusinessException; 
+	
+	/**
+	 * 获取门户分页数据(默认：昨日数据)
+	 * @param pageParam 分页参数
+	 * @param record 查询参数
+	 * @return
+	 * @throws BusinessException
+	 */
+	public PageBean getPortal(PageParam pageParam,StatisticPortal record) throws BusinessException;
+	
+	/**
+	 * 删除访问记录
+	 * @param id 主键
+	 * @return
+	 * @throws BusinessException
+	 */
+	public int deleteVisit(int id) throws BusinessException;
+	
+	/**
+	 * 获取访客分页数据
+	 * @param pageParam 分页参数
+	 * @param record 查询参数
+	 * @return
+	 * @throws BusinessException
+	 */
+	public PageBean getVisit(PageParam pageParam,StatisticVisitDetail record) throws BusinessException;
+	
+	/**
+	 * 获取今日访客总量
+	 * @param record 查询参数
+	 * @return
+	 * @throws BusinessException
+	 */
+	public int getTodayVisit(StatisticVisitDetail record) throws BusinessException;
+	
+	/**
+	 * 添加班组/个人动作记录
+	 * @param record 查询参数
+	 * @return
+	 */
+	public int addRecord(StatisticCommon record);
+	
+	/**
+	 * 获取集团/省/市数据
+	 * @param record 省/市集合code
+	 * @return
+	 * @throws BusinessException
+	 */
+	public List<StatisticCompany> getCompanyVisit(List<StatisticVisitDetail> record) throws BusinessException;
+	
+	/**
+	 * 添加mongodb中的访客记录数据
+	 * @param keys 列名
+	 * @param value 对应列名值
+	 * @param num 显示几条数据,-1为显示全部数据
+	 * @return
+	 * @throws BusinessException
+	 */
+	public boolean addMongoDBVisit(String[] keys,String[] value,int num) throws BusinessException;
+	
+}

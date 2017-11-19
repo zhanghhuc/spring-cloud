@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.zssq.dao.mapper.MapOrgRelationMapper">
+	
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.MapOrgRelation">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+		<result column="portal_type" property="portalType" jdbcType="CHAR" />
+		<result column="map_name" property="mapName" jdbcType="VARCHAR" />
+		<result column="map_province" property="mapProvince" jdbcType="CHAR" />
+		<result column="map_letter" property="mapLetter" jdbcType="CHAR" />
+		<result column="map_value" property="mapValue" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<!-- 查询所有门户地图插件与组织对应关系数据 -->
+	<select id="selectAllRelationData" resultMap="BaseResultMap" parameterType="com.zssq.dao.pojo.MapOrgRelation">
+		select * from map_org_relation where 1=1
+		<if test="portalType != null and portalType != ''">
+			and portal_type = #{portalType,jdbcType=CHAR}
+		</if>
+		<if test="mapProvince != null and mapProvince != ''">
+			and map_province = #{mapProvince,jdbcType=CHAR}
+		</if>
+	</select>
+	
+	<select id="selectByCode" resultMap="BaseResultMap" parameterType="java.lang.String" >
+		select * from map_org_relation where org_code = #{orgCode,jdbcType=VARCHAR}
+	</select>
+	
+</mapper>

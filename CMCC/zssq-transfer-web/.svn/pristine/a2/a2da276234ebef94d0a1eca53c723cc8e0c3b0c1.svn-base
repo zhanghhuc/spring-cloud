@@ -1,0 +1,156 @@
+package com.zssq.vote.service.impl;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.util.DateUtil;
+import com.zssq.utils.StringTools;
+import com.zssq.vote.VoteTrConstants;
+import com.zssq.vote.dao.mapper.TransVoteMapper;
+import com.zssq.vote.dao.mapper.VoteInfoMapper;
+import com.zssq.vote.pojo.VoteInfo;
+import com.zssq.vote.service.ITransferVoteService;
+
+@Service("transferVoteService")
+public class TransferVoteServiceImpl implements ITransferVoteService {
+
+	private Logger log = Logger.getLogger(this.getClass());
+
+	@Autowired
+	private TransVoteMapper transVoteMapper;
+	@Autowired
+	private VoteInfoMapper voteInfoMapper;
+
+	//@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = false, rollbackFor = Exception.class)
+	@Override
+	public void transfer(boolean pageFlag, int startNum, int endNum) throws Exception {
+		try {
+			// 组装查询参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			if (pageFlag) {
+				paramMap.put("limitStart", startNum);
+				paramMap.put("limitEnd", endNum);
+			}
+
+			List<Map<String, Object>> voteList = transVoteMapper.queryOriginalVote(paramMap);
+			if (voteList != null && voteList.size() > 0) {
+				log.info("**transferStepOfOne开始**");
+				for (Map<String, Object> voteMap : voteList) {
+					first(voteMap);
+				}
+			}
+
+		} catch (Exception e) {
+			log.error("*****transferStepOfOne出错*****", e);
+			throw e;
+		}
+	}
+	/**
+	 * 处理投票主表信息
+	 * @Function transferFirst
+	 * @Description 
+	 * @param voteMap
+	 * @throws Exception
+	 */
+	@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = false, rollbackFor = Exception.class)
+	public void first(Map<String, Object> voteMap) throws Exception {
+		VoteInfo voteInfo = new VoteInfo();
+		// 生成投票code
+		String voteInfoCode = UUIDHelper.getUUID();
+		voteInfo.setCode(voteInfoCode);
+		// 租户标识
+		String tenantCode = (String) voteMap.get("saasTenantCode");
+		if (StringTools.isEmpty(tenantCode)) {
+			tenantCode = VoteTrConstants.TENANT_CODE;
+		}
+		voteInfo.setTenantCode(tenantCode);
+		// 组织机构编码
+		String orgCode = (String) voteMap.get("manOrgCode");
+		if (StringTools.isEmpty(orgCode)) {
+			orgCode = VoteTrConstants.NO_DATA;
+		}
+		voteInfo.setOrgCode(orgCode);
+		// 创建时间
+		String createTime = (String) voteMap.get("createTime");
+		voteInfo.setCreateTime(DateUtil.convertStrToLong(createTime));
+		// 修改时间
+		String updateTime = (String) voteMap.get("updateTime");
+		voteInfo.setModifyTime(DateUtil.convertStrToLong(updateTime));
+		// 发起人
+		String sponsorCode = (String) voteMap.get("userCode");
+		if (StringTools.isEmpty(sponsorCode)) {
+			sponsorCode = VoteTrConstants.NO_DATA;
+		}
+		voteInfo.setSponsorCode(sponsorCode);
+		// 发起人类型(1-个人  2-班组  3-门户管理员)
+		//1-个人投票;2-班组投票;3-地区投票;4-省投票;5-集团投票;
+		String voteType = String.valueOf(voteMap.get("voteType")==null?"":voteMap.get("voteType"));
+		String sponsorType = voteType;
+		if ("3".equals(voteType) || "4".equals(voteType) || "5".equals(voteType)) {
+			sponsorType = "3";
+		}
+		voteInfo.setSponsorType(sponsorType);
+		// 发起机构CODE
+		String sponsorOrgCode = "";
+		if ("2".equals(voteType)) {
+			// TODO 传入teamId返回teamCode
+			String teamId = String.valueOf(voteMap.get("teamId")==null?"":voteMap.get("teamId"));
+		} else if ("3".equals(voteType)) {
+			String cityId = String.valueOf(voteMap.get("cityId")==null?"":voteMap.get("cityId"));
+		} else if ("4".equals(voteType)) {
+			String provinceId = String.valueOf(voteMap.get("provinceId")==null?"":voteMap.get("provinceId"));
+		} else if ("5".equals(voteType)) {
+			
+		}
+		if (StringTools.isNotEmpty(sponsorOrgCode)) {
+			voteInfo.setSponsorOrgCode(sponsorOrgCode);
+		}
+		// 状态:5-结束
+		voteInfo.setVoteStatus((byte) 5);
+		// 投票主题
+		String title = (String) voteMap.get("voteTitle");
+		if (StringTools.isEmpty(title)) {
+			title = VoteTrConstants.NO_DATA;
+		}
+		voteInfo.setTitle(title);
+		// 说明
+		String voteExplain = (String) voteMap.get("voteDeclare");
+		if (StringTools.isNotEmpty(voteExplain)) {
+			voteInfo.setVoteExplain(voteExplain);
+		}
+		// 是否可多选 TODO 
+		
+		// 是否启用评论
+		voteInfo.setIsEnableComment((byte) 1);
+		// 开始时间
+		String voteStartTime = (String) voteMap.get("voteStartTime");
+		voteInfo.setStartTime(DateUtil.convertStrToLong(voteStartTime));
+		// 结束时间
+		String voteEndTime = (String) voteMap.get("voteEndTime");
+		voteInfo.setEndTime(DateUtil.convertStrToLong(voteEndTime));
+		
+		voteInfoMapper.insertSelective(voteInfo);
+	}
+
+	// 迁移投票选项数据，用户参与投票数据
+	@Transactional(propagation = Propagation.REQUIRED, readOnly = false, rollbackFor = Exception.class)
+	public void second(int voteId, String voteInfoCode) throws Exception {
+
+	}
+	
+	// 迁移投票评论回复数据
+	@Transactional(propagation = Propagation.REQUIRED, readOnly = false, rollbackFor = Exception.class)
+	public void third(int voteId, String voteInfoCode) throws Exception {
+
+	}
+
+}

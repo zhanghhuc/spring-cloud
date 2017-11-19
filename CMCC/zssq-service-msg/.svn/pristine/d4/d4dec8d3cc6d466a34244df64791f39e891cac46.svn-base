@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.UserMsgSysUsMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.UserMsgSysUs" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="sys_code" property="sysCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, user_code, sys_code, create_time
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from user_msg_sys_us
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from user_msg_sys_us
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.UserMsgSysUs" >
+    insert into user_msg_sys_us (id, user_code, sys_code, 
+      create_time)
+    values (#{id,jdbcType=BIGINT}, #{userCode,jdbcType=VARCHAR}, #{sysCode,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=BIGINT})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.UserMsgSysUs" >
+    insert into user_msg_sys_us
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="userCode != null" >
+        user_code,
+      </if>
+      <if test="sysCode != null" >
+        sys_code,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="userCode != null" >
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="sysCode != null" >
+        #{sysCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.UserMsgSysUs" >
+    update user_msg_sys_us
+    <set >
+      <if test="userCode != null" >
+        user_code = #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="sysCode != null" >
+        sys_code = #{sysCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.UserMsgSysUs" >
+    update user_msg_sys_us
+    set user_code = #{userCode,jdbcType=VARCHAR},
+      sys_code = #{sysCode,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  
+  
+  	<!-- 查询最新的用户信息 -->
+    <select id="selectUseNewsMsg" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from user_msg_sys_us 
+    where user_code =  #{userCode,jdbcType=VARCHAR}
+    
+    ORDER BY create_time DESC 
+    
+    limit 0,1
+    
+  </select>
+  
+  
+  <!-- 批量插入 -->
+  <insert id="batchMsg"  parameterType="java.util.List">  
+	    insert into user_msg_sys_us ( user_code, sys_code, create_time)
+	    values    
+	    <foreach collection="list" item="item" index="index" separator="," >  
+	        (#{item.userCode},#{item.sysCode},#{item.createTime})  
+	    </foreach>  
+ </insert>
+ 
+ 
+    <!-- 分页查询  -->
+   <select id="selectPage" resultMap="BaseResultMap" parameterType="com.zssq.model.MessageSysUserMsgModel" >
+    select 
+    <include refid="Base_Column_List" />
+    from user_msg_sys_us
+    
+  	where user_code = #{userCode} and  sys_code !=  'null' and sys_code != ''
+  	
+    <if test="pageNo != null and pageSize >=0" >
+      limit #{pageNo} , #{pageSize}
+    </if>
+  
+  </select>
+  
+  <!-- 总条数 -->
+   <select id="selectCount" resultType="int" parameterType="com.zssq.model.MessageSysUserMsgModel" >
+   select count(1)
+   from user_msg_sys_us 
+   where user_code = #{userCode}  and  sys_code !=  'null' and sys_code != ''
+  </select> 
+  
+  
+  <!-- selCountDelete 查询未删除的数量 -->
+    <select id="selCountDelete" resultType="int" parameterType="com.zssq.model.TempDelMsgSysModel"  >
+   select count(1)
+   from user_msg_sys_us 
+   where user_code = #{userCode} 
+  </select> 
+  
+  <!-- delUserMsg  删除消息 -->
+    <delete id="delUserMsg"  >
+    delete from user_msg_sys_us
+    where user_code = #{userCode} and sys_code = #{msgCode}
+  </delete>
+ 
+  <!-- delLastUserMsg 删除最后一条消息 -->
+  	<update id="delLastUserMsg" parameterType="com.zssq.model.TempDelMsgSysModel" >
+    update user_msg_sys_us
+    <set >
+        sys_code = '' 
+    </set>
+    where user_code=#{userCode} and sys_code = #{msgCode}
+  </update>
+  
+  <!-- getUserMsgTime 获取当前用户最新的消息时间 -->
+   <select id="getUserMsgTime"  resultMap="BaseResultMap"  parameterType="com.zssq.model.TempDelMsgSysModel">
+	   select  
+	   <include refid="Base_Column_List" />
+	   from user_msg_sys_us 
+	   where user_code = #{userCode}  
+    
+    <if test="msgCode != null">
+    	and sys_code = #{msgCode}
+    </if>
+    order by create_time
+    limit 0,1 
+  </select> 
+  
+  <!-- updateUserMsgTime  更新最后一条时间 -->
+   <update id="updateUserMsgTime" parameterType="com.zssq.model.TempDelMsgSysModel" >
+    update user_msg_sys_us
+    <set >
+        create_time = #{createTime}
+    </set>
+     where user_code = #{userCode}  
+     and sys_code = #{msgCode}
+  </update>
+
+ <!-- delgarbage 删除垃圾数据 -->
+    <delete id="delGarbage"  parameterType="com.zssq.model.TempDelMsgSysModel"  >
+	    delete from user_msg_sys_us
+	    where user_code = #{userCode} and sys_code = ''
+  </delete>
+
+  
+</mapper>

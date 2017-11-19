@@ -1,0 +1,121 @@
+package com.zssq.msg.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.dao.pojo.UserMsgSubscribe;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.model.MessageSubscribeModel;
+import com.zssq.msg.vo.SubscribesModel;
+import com.zssq.pojo.Message;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.ISysUserService;
+import com.zssq.service.MessageSubscribeService;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PropertiesUtil;
+
+/**
+ * 
+ * @ClassName: MsgSubscribeService  
+ * @Description: 订阅通知
+ * @author YDB  
+ * @date 2017年3月31日  
+ *
+ */
+@Controller
+@RequestMapping("/msg")
+public class MsgSubscribeController {
+	
+	private Logger log = LoggerFactory.getLogger(this.getClass());	
+
+	
+	@Autowired
+	private MessageSubscribeService messageSubscribeService;
+	
+	@Autowired
+	private ISysUserService userService;
+	
+	/**
+	 * 
+	 * @Title: getMsgSubscribesList  
+	 * @Description: 获取订阅通知列表
+	 * @param vo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping("/getMsgSubscribesList")
+	@ResponseBody
+	public ResultJSON getMsgSubscribesList(@RequireValid SubscribesModel  vo) throws BusinessException{
+		ResultJSON resJson=new ResultJSON();
+		Message m = null;
+		
+		JSONObject json=new JSONObject();
+		JSONArray jsonArray=new JSONArray();
+		try {
+			MessageSubscribeModel subModel=new MessageSubscribeModel(); 
+			
+			
+			subModel.setUserCode(vo.getUserCode());
+			subModel.setPageNo(vo.getPageNo());
+			subModel.setPageSize(vo.getPageSize());
+			subModel.setSubType(vo.getType());
+			//查询条件
+			PageBean pageBean=messageSubscribeService.getMsgSubscribesList(subModel);
+			List<UserMsgSubscribe> list=pageBean.getRecordList();
+			
+			List<String> userCodeList=new ArrayList<>();
+			for (int i = 0; i < list.size(); i++) {
+				userCodeList.add(list.get(i).getSubUserCode());
+			}
+			
+			List<SysUserInfo> userInfoList=userService.selectByCodes(userCodeList);
+			for(int i=0;i<list.size();i++){
+				json.put("subCode",list.get(i).getSubCode());
+				json.put("subType",list.get(i).getSubType());
+				json.put("createTime",list.get(i).getCreatTime());
+				
+				for (SysUserInfo userInfo:userInfoList) {
+					if(list.get(i).getSubUserCode().equals(userInfo.getUserCode())){
+						json.put("subName",userInfo.getUserName());
+						continue;
+					}
+				}
+				
+				jsonArray.add(json);
+				json=new JSONObject();
+			}
+			
+			json.put("total", pageBean.getTotalCount());
+			json.put("subList", jsonArray);
+			
+			m = PropertiesUtil.getMessage("COMMON_200");
+			resJson.setReturnCode(m.getCode());
+			resJson.setReturnTip(m.getTip());
+			resJson.setBody(JSONObject.toJSON(json));
+        	
+		} catch (BusinessException e) {
+			throw e;
+			
+		} catch (Exception e) {
+			log.error("获取订阅通知-etMsgSubscribesList:"+JSONObject.toJSONString(vo),e);
+			throw new BusinessException().build("MSG_26001", "获取列表");
+		}
+		
+		return resJson;
+		
+	}
+	
+
+}

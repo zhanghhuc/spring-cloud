@@ -1,0 +1,913 @@
+package com.zssq.vote.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.constants.AuthConstants;
+import com.zssq.constants.CreditConstants;
+import com.zssq.constants.RelationConstants;
+import com.zssq.constants.VoteConstants;
+import com.zssq.dao.pojo.GetVoteInfoEntity;
+import com.zssq.dao.pojo.OrgLinkList;
+import com.zssq.dao.pojo.RelationSubjectInfo;
+import com.zssq.dao.pojo.SysOrgInfo;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.dao.pojo.VoteComment;
+import com.zssq.dao.pojo.VoteCommentReply;
+import com.zssq.dao.pojo.VoteDetailModel;
+import com.zssq.dao.pojo.VoteInfo;
+import com.zssq.dao.pojo.VoteJoin;
+import com.zssq.dao.pojo.VoteJoinAuth;
+import com.zssq.dao.pojo.VoteOptions;
+import com.zssq.dao.pojo.VoteReview;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.IVoteManageService;
+import com.zssq.service.RelationThirdSubjectService;
+import com.zssq.utils.DateUtils;
+import com.zssq.utils.PageInfo;
+import com.zssq.utils.StringTools;
+import com.zssq.vo.RelationSubjectVO;
+import com.zssq.vote.vo.AdvanceFinishVoteVo;
+import com.zssq.vote.vo.CheckVoteVo;
+import com.zssq.vote.vo.GetVoteCommentFixedListVo;
+import com.zssq.vote.vo.GetVoteInfoDetailVo;
+import com.zssq.vote.vo.GetVoteInfoVo;
+import com.zssq.vote.vo.GetVoteListForMonitor;
+import com.zssq.vote.vo.GetVoteListVo;
+import com.zssq.vote.vo.GetVoteReplyFixedListVo;
+import com.zssq.vote.vo.Option;
+import com.zssq.vote.vo.SendVoteByGlVo;
+import com.zssq.vote.vo.SubmitOrNotExamineVo;
+import com.zssq.vote.vo.UpdateVoteInfoVo;
+
+/**
+ * 投票管理端Controller
+ * @author POWER
+ *
+ */
+@Controller
+@RequestMapping("/vote")
+public class VoteControllerByGl extends BaseController {
+
+	@Autowired
+	private IVoteManageService voteManageService;
+	@Autowired
+	private RelationThirdSubjectService subjectService;
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	/**
+	 * 发起投票
+	 * @param vo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "/launch", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON sendVoteByGl(@RequireValid SendVoteByGlVo vo) throws BusinessException {
+		try {
+			// 根据userCode信息查询tenant_code(租户标识)、org_code(组织机构编码)、org_level(组织机构等级)
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+			
+			/** 设置投票对象参数 */
+			VoteInfo voteInfo = new VoteInfo();
+			voteInfo.setTenantCode(tenantCode);
+			voteInfo.setOrgCode(orgCode);
+			voteInfo.setSponsorCode(vo.getUserCode());
+			voteInfo.setSponsorOrgCode(vo.getSponsorOrgCode());
+			voteInfo.setSponsorType(VoteConstants.SPONSOR_TYPE_MANAGER);
+			voteInfo.setTitle(vo.getTitle());
+			voteInfo.setVoteExplain(vo.getExplain());
+			voteInfo.setIsMultiOption(Byte.parseByte(vo.getIsMulti()));
+			voteInfo.setIsEnableComment(Byte.parseByte(vo.getIsEnableComment()));
+			voteInfo.setEndTime(DateUtils.getDateFromString(vo.getEndTime()+" 23:59:59", "yyyy-MM-dd HH:mm:ss").getTime());
+			long curTime = DateUtils.getFormatDateLong();
+			voteInfo.setStartTime(curTime);
+			if (VoteConstants.YES.equals(Byte.parseByte(vo.getIsSubmitReview()))) {
+				voteInfo.setVoteStatus(VoteConstants.STATUS_2);
+			} else {
+				voteInfo.setVoteStatus(VoteConstants.STATUS_1);
+			}
+			
+			/** 设置权限对象参数 */
+			OrgLinkList orgLinkList = getOrgTreeByAnyOrgCode(vo.getJoinRange(), vo.getRangeCode());
+			VoteJoinAuth joinAuth = new VoteJoinAuth();
+			joinAuth.setTenantCode(tenantCode);
+			joinAuth.setOrgCode(orgCode);
+			joinAuth.setIsCascade(Byte.parseByte(vo.getIsCascade()));// 参与范围:1-集团；2-省；3-市
+			joinAuth.setRangeType(Byte.parseByte(vo.getJoinRange()));// 是否范围级联:0-否  1-是
+        	joinAuth.setgRangeCode(orgLinkList.getTopOrg().getSysOrgCode());// 参与范围集团CODE
+        	joinAuth.setgRangeName(orgLinkList.getTopOrg().getSysOrgName());// 参与方集团名称
+        	if (VoteConstants.RANGE_TYPE_PRO.equals(Byte.parseByte(vo.getJoinRange()))
+					|| VoteConstants.RANGE_TYPE_CITY.equals(Byte.parseByte(vo.getJoinRange()))) {
+
+
+				SysOrgInfo province = orgLinkList.getProList().get(0);
+				joinAuth.setpRangeCode(province.getSysOrgCode());// 参与范围省CODE
+				joinAuth.setpRangeName(province.getSysOrgName());// 参与方省名称
+				if (VoteConstants.RANGE_TYPE_CITY.equals(Byte.parseByte(vo.getJoinRange()))) {
+					// 如果是市范围，再新增市CODE和市名称
+					SysOrgInfo city = orgLinkList.getCityList().get(0);
+					joinAuth.setcRangeCode(city.getSysOrgCode());// 参与范围市CODE
+					joinAuth.setcRangeName(city.getSysOrgName());// 参与方市名称
+				}
+			}
+        	
+        	/** 设置投票选项对象参数 */
+        	List<VoteOptions> options = new ArrayList<VoteOptions>();
+			List<Option> list = vo.getOption();
+			for (Option o : list) {
+				VoteOptions v = new VoteOptions();
+				v.setTenantCode(tenantCode);
+				v.setOrgCode(orgCode);
+				v.setOrderNumber(Integer.parseInt(o.getOrderNum()));
+				v.setContent(o.getContent());
+				
+				options.add(v);
+			}
+			
+			/** 插入数据 */
+			String voteInfoCode = voteManageService.insertVoteInfo(voteInfo, options, joinAuth);
+			
+			/** 积分操作*/
+			String orgType = userInfo.getManageOrgInfo().getSysOrgType();
+			// A级门户:集团 
+			if (AuthConstants.ORG_TYPE_A.equals(orgType)) {
+				noticeAction(orgCode, CreditConstants.COMMAND_VOTE_GROUPPUBLISH, orgCode, CreditConstants.TYPE_CORPORATION);
+			}
+			// B级门户:省
+			if (AuthConstants.ORG_TYPE_B.equals(orgType)) {
+				noticeAction(orgCode, CreditConstants.COMMAND_VOTE_PROVINCEPUBLISH, orgCode, CreditConstants.TYPE_CORPORATION);
+			}
+			// C级门户:市
+			if (AuthConstants.ORG_TYPE_C.equals(orgType)) {
+				noticeAction(orgCode, CreditConstants.COMMAND_VOTE_CITYPUBLISH, orgCode, CreditConstants.TYPE_CORPORATION);
+			}
+			
+			/**生成分享时展示的内容*/
+			RelationSubjectInfo subjectInfo = new RelationSubjectInfo();
+			subjectInfo.setSubjectCode(voteInfoCode);
+			subjectInfo.setTenantCode(tenantCode);
+			subjectInfo.setOrgCode(orgCode);
+			subjectInfo.setCreateTime(curTime);
+			subjectInfo.setModifyTime(curTime);
+			subjectInfo.setSubjectClass(RelationConstants.RELATION_SUBJECT_VOTE);
+			subjectInfo.setSubjectDepend(RelationConstants.RELATION_SUBJECT_DEPEND_ORG);
+			subjectInfo.setUserCode(vo.getUserCode());
+			subjectInfo.setSubjectPublishTime(curTime);
+			subjectInfo.setSubjectTitle(vo.getTitle());
+			subjectInfo.setSubjectDigest(vo.getExplain());
+			subjectInfo.setSubjectSource(RelationConstants.RELATION_SUBJECT_SOURCE_ORIGINAL);
+			subjectInfo.setSubjectEndTime(voteInfo.getEndTime());
+			subjectInfo.setSubjectBeginTime(curTime);
+			
+			subjectService.saveSubject(subjectInfo);
+			
+			JSONObject body = new JSONObject();
+			body.put("voteInfoCode", voteInfoCode);
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(body);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteControllerByGl.sendVoteByGl", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * 提交/撤销投票审核
+	 * @param vo
+	 * @return
+	 * @throws BusinessException 
+	 */
+	@RequestMapping(value = "/submitOrNotExamine", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON submitOrNotExamine(@RequireValid SubmitOrNotExamineVo vo) throws BusinessException {
+		try {
+			// 根据userCode信息查询tenant_code(租户标识)、org_code(组织机构编码)、org_level(组织机构等级)
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+			
+			voteManageService.updateSubmitOrNotExamine(tenantCode, orgCode, vo.getVoteInfoCode(), vo.getOperateType());
+			
+			JSONObject body = new JSONObject();
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(body);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteControllerByGl.sendVoteByGl", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * 获取管理员发起的投票列表
+	 * @param vo
+	 * @return
+	 * @throws BusinessException 
+	 */
+	@RequestMapping(value = "/getPublishedVoteList", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getVoteList(@RequireValid GetVoteListVo vo) throws BusinessException {
+		try {
+			// 根据userCode信息查询tenant_code(租户标识)、org_code(组织机构编码)、org_level(组织机构等级)
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+			
+			//设置查询条件
+			VoteInfo info = new VoteInfo();
+			info.setTenantCode(tenantCode);
+			info.setOrgCode(orgCode);
+			if (StringTools.isNotEmpty(vo.getSponsorCode())) {
+				info.setSponsorCode(vo.getSponsorCode());
+			}
+			if (StringTools.isNotEmpty(vo.getVoteStatus())) {
+				//info.setVoteStatus(Byte.parseByte(vo.getVoteStatus()));
+				String[] statuss = vo.getVoteStatus().split("\\|");
+				List<Byte> statusList = new ArrayList<Byte>();
+				for(String s : statuss){
+					statusList.add(Byte.parseByte(s));
+				}
+				info.setStatusList(statusList);
+			}
+			if (StringTools.isNotEmpty(vo.getIsMultiOption())) {
+				info.setIsMultiOption(Byte.parseByte(vo.getIsMultiOption()));
+			}
+			if (StringTools.isNotEmpty(vo.getIsEnableComment())) {
+				info.setIsEnableComment(Byte.parseByte(vo.getIsEnableComment()));
+			}
+			if (StringTools.isNotEmpty(vo.getTitle())) {
+				info.setTitle(vo.getTitle());
+			}
+			
+			//设置分页数据
+			PageInfo page = new PageInfo(Integer.parseInt(vo.getPageNo()) + 1, Integer.parseInt(vo.getPageSize()));
+			
+			//查询数据库
+			PageInfo pageInfo = voteManageService.selectVoteList(info,page);
+			
+			//组织返回数据
+			List<VoteInfo> list = pageInfo.getList();
+			JSONArray array = new JSONArray();
+			for (VoteInfo v : list) {
+				JSONObject item = new JSONObject();
+				item.put("code", v.getCode());
+				item.put("voteStatus", StringTools.formatToString(v.getVoteStatus()));
+				item.put("title", v.getTitle());
+				item.put("isMultiOption", StringTools.formatToString(v.getIsMultiOption()));
+				item.put("startTime", StringTools.formatToString(v.getStartTime()));
+				item.put("endTime", StringTools.formatToString(v.getEndTime()));
+				item.put("createTime", StringTools.formatToString(v.getCreateTime()));
+				item.put("isEnableComment", StringTools.formatToString(v.getIsEnableComment()));
+				// 根据rangeCode 查询组织机构信息
+				VoteJoinAuth auth = voteManageService.selectVoteJoinAuth(v.getCode());
+				if (auth != null) {
+					item.put("isCascade", StringTools.formatToString(auth.getIsCascade()));
+					if (VoteConstants.RANGE_TYPE_ORG == auth.getRangeType()) {
+						item.put("rangeName", StringTools.formatToString(auth.getgRangeName()));
+					}
+					if (VoteConstants.RANGE_TYPE_PRO == auth.getRangeType()) {
+						item.put("rangeName", StringTools.formatToString(auth.getpRangeName()));
+					}
+					if (VoteConstants.RANGE_TYPE_CITY == auth.getRangeType()) {
+						item.put("rangeName", StringTools.formatToString(auth.getcRangeName()));
+					}
+				} else {
+					item.put("isCascade", "");
+					item.put("rangeName", "");
+				}
+				
+				array.add(item);
+			}
+			
+			JSONObject body = new JSONObject();
+			body.put("totalCount", StringTools.formatToString(pageInfo.getTotalItem()));
+			body.put("votesList", array);
+			
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(body);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteControllerByGl.getVoteList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * 查询投票信息
+	 * @param vo
+	 * @return
+	 * @throws BusinessException 
+	 */
+	@RequestMapping(value = "/getVoteInfo", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getVoteInfo(@RequireValid GetVoteInfoVo vo) throws BusinessException {
+		try {
+			// 根据userCode信息查询tenant_code(租户标识)、org_code(组织机构编码)、org_level(组织机构等级)
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+
+			VoteInfo info = new VoteInfo();
+			info.setTenantCode(tenantCode);
+			info.setOrgCode(orgCode);
+			info.setCode(vo.getVoteInfoCode());
+			
+			VoteInfo vote = voteManageService.selectVoteInfo(info);
+			JSONObject body = new JSONObject();
+			if(vote != null){
+				body.put("voteInfoCode", vote.getCode());
+				body.put("startTime", StringTools.formatToString(vote.getStartTime()));
+				body.put("endTime", StringTools.formatToString(vote.getEndTime()));
+				body.put("createTime", StringTools.formatToString(vote.getCreateTime()));
+				body.put("dynamicCode", StringTools.formatToString(vote.getDynamicCode()));
+				body.put("title", vote.getTitle());
+				body.put("explain", StringTools.formatToString(vote.getVoteExplain()));
+				body.put("isMulti", StringTools.formatToString(vote.getIsMultiOption()));
+				body.put("isEnableComment", StringTools.formatToString(vote.getIsEnableComment()));
+				if (vote.getSponsorCode().equals(vo.getUserCode()) && vote.getEndTime() > DateUtils.getFormatDateLong()) {
+					body.put("canbeFinish", StringTools.formatToString(VoteConstants.YES));
+				} else {
+					body.put("canbeFinish", StringTools.formatToString(VoteConstants.NO));
+				}
+				body.put("voteStatus", StringTools.formatToString(vote.getVoteStatus()));
+				body.put("joinRange", StringTools.formatToString(vote.getJoinAuth().getRangeType()));
+				body.put("isCascade", StringTools.formatToString(vote.getJoinAuth().getIsCascade()));
+				body.put("gRangeCode", StringTools.formatToString(vote.getJoinAuth().getgRangeCode()));
+				body.put("pRangeCode", StringTools.formatToString(vote.getJoinAuth().getpRangeCode()));
+				body.put("cRangeCode", StringTools.formatToString(vote.getJoinAuth().getcRangeCode()));
+				
+				JSONArray array = new JSONArray();
+				List<VoteOptions> list = vote.getOptions();
+				for (VoteOptions o : list) {
+					JSONObject item = new JSONObject();
+					item.put("optionCode", o.getCode());
+					item.put("orderNum", StringTools.formatToString(o.getOrderNumber()));
+					item.put("content", o.getContent());
+					array.add(item);
+				}
+				
+				body.put("optionsList", array);
+			}
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(body);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteControllerByGl.getVoteInfo", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * 审核投票
+	 * @param vo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "/reviewing", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON checkVote(@RequireValid CheckVoteVo vo) throws BusinessException {
+		try {
+			// 根据userCode信息查询tenant_code(租户标识)、org_code(组织机构编码)、org_level(组织机构等级)
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+			String userName = userInfo.getUserName();
+
+			//生成投票记录实体
+			VoteReview review = new VoteReview();
+			review.setTenantCode(tenantCode);
+			review.setOrgCode(orgCode);
+			review.setVoteInfoCode(vo.getVoteInfoCode());
+			review.setReviewResult(Byte.parseByte(vo.getResult()));
+			review.setOpinion(vo.getOpinion());
+			review.setReviewerCode(vo.getUserCode());
+			review.setReviewerName(userName);
+			
+			//插入数据
+			voteManageService.insertVoteReview(review);
+			
+			JSONObject body = new JSONObject();
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(body);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteControllerByGl.checkVote", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	
+	/**
+	 * @Function updateVoteInfo
+	 * @Description 修改投票信息
+	 * @param inVo
+	 * @return ResultJSON
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "updateVoteInfo", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON updateVoteInfo(@RequireValid UpdateVoteInfoVo inVo) throws BusinessException {
+		try {
+			// 根据userCode信息查询tenant_code(租户标识)、org_code(组织机构编码)、org_level(组织机构等级)
+			SysUserInfo userInfo = getUserInfo(inVo.getUserCode());
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+			
+			/** 设置投票对象参数 */
+			VoteInfo voteInfo = new VoteInfo();
+			voteInfo.setCode(inVo.getVoteInfoCode());
+			voteInfo.setTenantCode(tenantCode);
+			voteInfo.setOrgCode(orgCode);
+			voteInfo.setSponsorCode(inVo.getUserCode());
+			voteInfo.setSponsorType(VoteConstants.SPONSOR_TYPE_MANAGER);// 发起人类型：3 管理员
+			voteInfo.setSponsorOrgCode(inVo.getSponsorOrgCode());
+			
+			voteInfo.setTitle(inVo.getTitle());
+			voteInfo.setVoteExplain(inVo.getExplain());
+			
+			voteInfo.setIsMultiOption(Byte.parseByte(inVo.getIsMulti()));
+			voteInfo.setIsEnableComment(Byte.parseByte(inVo.getIsEnableComment()));
+			voteInfo.setEndTime(DateUtils.getDateFromString(inVo.getEndTime()+" 23:59:59", "yyyy-MM-dd HH:mm:ss").getTime());
+			
+			if(VoteConstants.YES.equals(Byte.parseByte(inVo.getIsSubmitReview()))){
+				voteInfo.setVoteStatus(VoteConstants.STATUS_2);
+			}else{
+				voteInfo.setVoteStatus(VoteConstants.STATUS_1);
+			}
+			
+			/** 设置权限对象参数 */
+			VoteJoinAuth joinAuth = new VoteJoinAuth();
+			String gRangeCode = "";
+			String gRangeName = "";
+			OrgLinkList orgLinkList = getOrgTreeByAnyOrgCode(inVo.getJoinRange(), inVo.getRangeCode());
+			joinAuth.setTenantCode(tenantCode);
+			joinAuth.setOrgCode(orgCode);
+			joinAuth.setIsCascade(Byte.parseByte(inVo.getIsCascade()));// 是否范围级联:0-否;1-是
+			joinAuth.setRangeType(Byte.parseByte(inVo.getJoinRange()));// 参与范围:1-集团；2-省；3-市；4-班组
+			gRangeCode = orgLinkList.getTopOrg().getSysOrgCode();
+			gRangeName = orgLinkList.getTopOrg().getSysOrgName();
+			if (VoteConstants.RANGE_TYPE_PRO.equals(inVo.getJoinRange())
+					|| VoteConstants.RANGE_TYPE_CITY.equals(inVo.getJoinRange())) {
+				// 如果是省范围，则新增省CODE和省名称
+				SysOrgInfo province = orgLinkList.getProList().get(0);
+				joinAuth.setpRangeCode(province.getSysOrgCode());// 参与范围省CODE
+				joinAuth.setpRangeCode(province.getSysOrgName());// 参与方省名称
+				if (VoteConstants.RANGE_TYPE_CITY.equals(inVo.getJoinRange())) {
+					// 如果是市范围，再新增市CODE和市名称
+					SysOrgInfo city = orgLinkList.getCityList().get(0);
+					joinAuth.setcRangeCode(city.getSysOrgCode());// 参与范围市CODE
+					joinAuth.setcRangeCode(city.getSysOrgName());// 参与方市名称
+				}
+			}
+			joinAuth.setgRangeCode(gRangeCode);// 参与范围集团CODE
+			joinAuth.setgRangeName(gRangeName);// 参与方集团名称
+			
+			// 设置投票选项对象参数
+			List<VoteOptions> options = new ArrayList<VoteOptions>();
+			List<Option> list = inVo.getOption();
+			for (Option o : list) {
+				VoteOptions v = new VoteOptions();
+				v.setTenantCode(tenantCode);
+				v.setOrgCode(orgCode);
+				v.setOrderNumber(Integer.parseInt(o.getOrderNum()));
+				v.setContent(o.getContent());
+				options.add(v);
+			}
+			
+			//更新数据
+			String voteInfoCode = voteManageService.updateVoteInfo(voteInfo, options, joinAuth);
+			
+			/**修改投票分享时展示的内容*/
+			RelationSubjectVO vo = new RelationSubjectVO();
+			vo.setSubjectCode(inVo.getVoteInfoCode());
+			vo.setSubjectClass(RelationConstants.RELATION_SUBJECT_VOTE);
+			vo.setSubjectTitle(inVo.getTitle());
+			if(StringTools.isNotEmpty(inVo.getExplain())){
+				vo.setSubjectDigest(inVo.getExplain());
+			}
+			vo.setModifyTime(DateUtils.getFormatDateLong());
+			
+			subjectService.updateSubject(vo);
+			
+			JSONObject body = new JSONObject();
+			body.put("voteInfoCode", voteInfoCode);
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(body);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteControllerByGl.updateVoteInfo", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	
+	
+	/**
+	 * @Function advanceFinishVote
+	 * @Description  终止/提前结束投票
+	 * @param inVo
+	 * @return ResultJSON
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "advanceFinishVote", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON advanceFinishVote(@RequireValid AdvanceFinishVoteVo inVo) throws BusinessException {
+		try {
+			// 入参
+			VoteInfo voteInfo = new VoteInfo();
+			voteInfo.setCode(inVo.getVoteInfoCode());
+			voteInfo.setSponsorCode(inVo.getUserCode());
+
+			// 根据userCode信息查询tenant_code(租户标识)、org_code(组织机构编码)、org_level(组织机构等级)
+			SysUserInfo userInfo = getUserInfo(inVo.getUserCode());
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+			voteInfo.setTenantCode(tenantCode);
+			voteInfo.setOrgCode(orgCode);
+			if (voteManageService.updateVoteInfoStatus(voteInfo)) {
+				ResultJSON result = new ResultJSON("COMMON_200");
+				result.setBody(new JSONObject());
+				return result;
+			}
+			throw BusinessException.build("COMMON_400");
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteControllerByGl.advanceFinishVote", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * @Function getVoteInfoDetail
+	 * @Description 查询投票详情 
+	 * @param vo 
+	 * @return ResultJSON
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "getVoteInfoDetail", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getVoteInfoDetail(@RequireValid GetVoteInfoDetailVo vo) throws BusinessException {
+		try {
+			// 根据userCode信息查询tenant_code(租户标识)
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			String tenantCode = userInfo.getTenantCode();
+
+			// 组织查询参数实体
+			GetVoteInfoEntity entity = new GetVoteInfoEntity();
+			entity.setVoteInfoCode(vo.getVoteInfoCode());
+			entity.setTenantCode(tenantCode);
+			entity.setUserCode(vo.getUserCode());
+			// 查询数据库
+			VoteDetailModel model = voteManageService.selectVoteInfoDetail(entity);
+			
+			VoteInfo info = model.getVoteInfo();
+			if (info == null) {
+				info = new VoteInfo();
+			}
+			
+			//组织返回数据
+			JSONObject body = new JSONObject();
+			body.put("voteInfoCode", StringTools.formatToString(info.getCode()));
+			body.put("sponsorCode", StringTools.formatToString(info.getSponsorCode()));
+			// 查询发起人用户名和所属公司
+			SysUserInfo sponsorInfo = getUserInfo(info.getSponsorCode());
+			if(sponsorInfo != null){
+				body.put("sponsorName", sponsorInfo.getUserName());
+				body.put("sponsorCompany", sponsorInfo.getManageOrgInfo().getSysOrgName());
+			}else{
+				body.put("sponsorName", "");
+				body.put("sponsorCompany", "");
+			}
+			body.put("startTime", StringTools.formatToString(info.getStartTime()));
+			body.put("endTime", StringTools.formatToString(info.getEndTime()));
+			body.put("createTime", StringTools.formatToString(info.getCreateTime()));
+			body.put("title", StringTools.formatToString(info.getTitle()));
+			body.put("explain", StringTools.formatToString(info.getVoteExplain()));
+			body.put("collectionNum", StringTools.formatToString(info.getCollectionNum()));
+			body.put("shareNum", StringTools.formatToString(info.getShareNum()));
+			body.put("praiseNum", StringTools.formatToString(info.getPraiseNum()));
+			body.put("joinNum", StringTools.formatToString(info.getJoinNum()));
+			if (StringTools.isNotEmpty(info.getCollectionCode())) {
+				body.put("isCollection", StringTools.formatToString(VoteConstants.YES));
+			} else {
+				body.put("isCollection", StringTools.formatToString(VoteConstants.NO));
+			}
+			if (StringTools.isNotEmpty(info.getPraiseCode())) {
+				body.put("isPraise", StringTools.formatToString(VoteConstants.YES));
+			} else {
+				body.put("isPraise", StringTools.formatToString(VoteConstants.NO));
+			}
+			body.put("isMulti", StringTools.formatToString(info.getIsMultiOption()));
+			body.put("isEnableComment", StringTools.formatToString(info.getIsEnableComment()));
+			// 是否能提前结束0-否  1-是（判断条件：发起人CODE = userCode）
+			if (vo.getUserCode().equals(info.getSponsorCode())) {
+				// 如果该投票已经结束，则无提前结束说法
+				if (info.getEndTime() < DateUtils.getFormatDateLong()) {
+					body.put("canbeFinish", StringTools.formatToString(VoteConstants.NO));
+				} else {
+					body.put("canbeFinish", StringTools.formatToString(VoteConstants.YES));
+				}
+			} else {
+				body.put("canbeFinish", StringTools.formatToString(VoteConstants.NO));
+			}
+			
+			// 设置投票状态
+			body.put("voteStatus", StringTools.formatToString(info.getVoteStatus()));
+			
+			VoteJoin voteJoin = model.getVoteJoin();
+			// 参与状态：1-已参与  2-未参与（判断条件：voteJoin != null）
+			String[] selected = {};
+			if (voteJoin == null) {
+				body.put("joinStatus", VoteConstants.JOIN_STATUS_2);
+			} else {
+				body.put("joinStatus", VoteConstants.JOIN_STATUS_1);
+				selected = voteJoin.getSelectedNumber().split(VoteConstants.SPLIT_REGX);
+			}
+			// 选项总选择人数
+			int totalSelectedNum = model.getTotalSelectedNum();
+			// 组织选项列表数据
+			List<VoteOptions> oList = model.getOptions();
+			JSONArray array = new JSONArray();
+			// userCode是否选择了此选项，默认0-否
+			String isSelected = String.valueOf(VoteConstants.NO);
+			for (VoteOptions voteOptions : oList) {
+				JSONObject optionJSON = new JSONObject();
+				optionJSON.put("optionCode", voteOptions.getCode());
+				optionJSON.put("orderNum", StringTools.formatToString(voteOptions.getOrderNumber()));
+				optionJSON.put("content", voteOptions.getContent());
+				optionJSON.put("selectedNum", StringTools.formatToString(voteOptions.getSelectedNum()));
+				optionJSON.put("percent", divide(voteOptions.getSelectedNum(), totalSelectedNum, 6) + "");
+				for (int i = 0; i < selected.length; i++) {
+					if (selected[i].equals(voteOptions.getOrderNumber())) {
+						isSelected = String.valueOf(VoteConstants.YES);
+						break;
+					}
+				}
+				optionJSON.put("isSelected", isSelected);
+				
+				array.add(optionJSON);
+			}
+			body.put("optionsList", array);
+			
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(body);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteControllerByGl.getVoteInfoDetail", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * @Function getVoteCommentFixedList
+	 * @Description 获取投票评论列表 定位
+	 * @param inVo
+	 * @return ResultJSON
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "getVoteCommentFixedList", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getVoteCommentFixedList(@RequireValid GetVoteCommentFixedListVo inVo) throws BusinessException {
+		try {
+			//入参
+			VoteComment voteComment = new VoteComment();
+			voteComment.setVoteInfoCode(inVo.getVoteInfoCode());
+			voteComment.setCode(inVo.getCommentCode());
+			voteComment.setPageSize(Integer.valueOf(inVo.getPageSize()));
+			if(StringTools.isNotEmpty(inVo.getId())){
+				voteComment.setId(Long.valueOf(inVo.getId()));
+			}
+			voteComment.setAdmirerCode(inVo.getUserCode());  //点赞人
+			// 根据userCode 查询tenant_code(租户标识)、org_code(组织机构编码)、org_level(组织机构等级)
+			SysUserInfo userInfo = getUserInfo(inVo.getUserCode());
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+			voteComment.setTenantCode(tenantCode);
+			voteComment.setOrgCode(orgCode);
+			
+			PageInfo pageInfo = voteManageService.getVoteCommentFixedList(voteComment);
+			List<VoteComment> list = pageInfo.getList();
+			JSONArray jsonArray = new JSONArray();
+			for (VoteComment vi : list) {
+				JSONObject jsonObject = new JSONObject();
+				jsonObject.put("id", StringTools.formatToString(vi.getId()));
+				jsonObject.put("commentCode", vi.getCode());
+				jsonObject.put("voteInfoCode", vi.getVoteInfoCode());
+				jsonObject.put("commenterCode", vi.getCommenterCode());
+				// 根据 commenterCode 查询 commenterName commenterUrl commenterOrg
+				SysUserInfo commenterInfo = getUserInfo(vi.getCommenterCode());
+				if(commenterInfo != null){
+					jsonObject.put("commenterName", commenterInfo.getUserName());
+					jsonObject.put("commenterUrl", StringTools.formatToString(commenterInfo.getHeadPortrait()));
+					jsonObject.put("commenterOrg", commenterInfo.getManageOrgInfo().getSysOrgName());
+				}else{
+					jsonObject.put("commenterName", "");
+					jsonObject.put("commenterUrl", "");
+					jsonObject.put("commenterOrg", "");
+				}
+				jsonObject.put("content", vi.getContent());
+				jsonObject.put("createTime", StringTools.formatToString(vi.getCreateTime()));
+				jsonObject.put("replyCount", StringTools.formatToString(vi.getReplyCount()));
+				jsonObject.put("praiseCount", StringTools.formatToString(vi.getPraiseCount()));
+				if (null != vi.getAdmirerCode()) {
+					jsonObject.put("isPraise", StringTools.formatToString(VoteConstants.YES));
+				} else {
+					jsonObject.put("isPraise", StringTools.formatToString(VoteConstants.NO));
+				}
+
+				jsonArray.add(jsonObject);
+			}
+			
+			ResultJSON result = new ResultJSON("COMMON_200");
+			JSONObject jsonObject = new JSONObject();
+			jsonObject.put("commentList", jsonArray);
+			jsonObject.put("totalCount", StringTools.formatToString(pageInfo.getTotalItem()));
+			result.setBody(jsonObject);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteControllerByGl.getVoteCommentFixedList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+	}
+	
+	
+	/**
+	 * @Function getVoteReplyList
+	 * @Description 获取投票评论回复列表 定位
+	 * @param inVo
+	 * @return ResultJSON
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "getVoteReplyFixedList", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getVoteReplyList(@RequireValid GetVoteReplyFixedListVo inVo) throws BusinessException {
+		try {
+			// 入参
+			VoteCommentReply voteCommentReply = new VoteCommentReply();
+			voteCommentReply.setVoteInfoCode(inVo.getVoteInfoCode());
+			voteCommentReply.setCommentCode(inVo.getCommentCode());
+			voteCommentReply.setCode(inVo.getReplyCode());
+			voteCommentReply.setPageSize(Integer.valueOf(inVo.getPageSize()));
+			if (StringTools.isNotEmpty(inVo.getId())) {
+				voteCommentReply.setId(Long.valueOf(inVo.getId()));
+			}
+			//点赞人
+			voteCommentReply.setAdmirerCode(inVo.getUserCode());  
+			
+			// 根据userCode 查询tenant_code(租户标识)、org_code(组织机构编码)、org_level(组织机构等级)
+			SysUserInfo userInfo = getUserInfo(inVo.getUserCode());
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+			voteCommentReply.setTenantCode(tenantCode);
+			voteCommentReply.setOrgCode(orgCode);
+			
+			PageInfo pageInfo = voteManageService.getVoteReplyFixedList(voteCommentReply);
+			List<VoteCommentReply> list = pageInfo.getList();
+			JSONArray jsonArray = new JSONArray();
+			for (VoteCommentReply vcr : list) {
+				JSONObject jsonObject = new JSONObject();
+				jsonObject.put("id", StringTools.formatToString(vcr.getId()));
+				jsonObject.put("replyCode", vcr.getCode());
+				jsonObject.put("commentCode", vcr.getCommentCode());
+				jsonObject.put("voteInfoCode", vcr.getVoteInfoCode());
+				jsonObject.put("replierCode", vcr.getReplierCode());
+				// 根据 replierCode 查询 replierName replierUrl replierOrg
+				SysUserInfo replierInfo = getUserInfo(vcr.getReplierCode());
+				if(replierInfo != null){
+					jsonObject.put("replierName", replierInfo.getUserName());
+					jsonObject.put("replierUrl", StringTools.formatToString(replierInfo.getHeadPortrait()));
+					jsonObject.put("replierOrg", StringTools.formatToString(replierInfo.getManageOrgInfo().getSysOrgName()));
+				}else{
+					jsonObject.put("replierName", "");
+					jsonObject.put("replierUrl", "");
+					jsonObject.put("replierOrg", "");
+				}
+				jsonObject.put("questionerCode", vcr.getQuestionerCode());
+				// 根据 questionerCode 查询 questionerName questionerUrl questionerOrg
+				SysUserInfo questionerInfo = getUserInfo(vcr.getQuestionerCode());
+				if(questionerInfo != null){
+					jsonObject.put("questionerName", questionerInfo.getUserName());
+					jsonObject.put("questionerUrl", StringTools.formatToString(questionerInfo.getHeadPortrait()));
+					jsonObject.put("questionerOrg", StringTools.formatToString(questionerInfo.getManageOrgInfo().getSysOrgName()));
+				}else{
+					jsonObject.put("questionerName", "");
+					jsonObject.put("questionerUrl", "");
+					jsonObject.put("questionerOrg", "");
+				}
+				jsonObject.put("content", vcr.getContent());
+				jsonObject.put("createTime", StringTools.formatToString(vcr.getCreateTime()));
+				jsonObject.put("praiseCount", StringTools.formatToString(vcr.getPraiseCount()));
+				if (null != vcr.getAdmirerCode()) {
+					jsonObject.put("isPraise", StringTools.formatToString(VoteConstants.YES));
+				} else {
+					jsonObject.put("isPraise", StringTools.formatToString(VoteConstants.NO));
+				}
+				jsonArray.add(jsonObject);
+			}
+			
+			ResultJSON result = new ResultJSON("COMMON_200");
+			JSONObject jsonObject = new JSONObject();
+			jsonObject.put("replyList", jsonArray);
+			jsonObject.put("surplusCount", StringTools.formatToString(pageInfo.getTotalItem()));
+			result.setBody(jsonObject);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteControllerByGl.getVoteReplyList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * 内容监控-查询投票列表
+	 * @param vo
+	 * @return
+	 * @throws BusinessException 
+	 */
+	@RequestMapping(value = "/getVoteListForMonitor", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getVoteListForMonitor(@RequireValid GetVoteListForMonitor vo) throws BusinessException{
+		
+		try {
+			// 根据userCode 查询tenant_code(租户标识)、org_code(组织机构编码)、org_level(组织机构等级)
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+			
+			//设置分页数据
+			PageInfo page = new PageInfo(Integer.parseInt(vo.getPageNo()) + 1, Integer.parseInt(vo.getPageSize()));
+			
+			page = voteManageService.selectVoteListForMonitor(tenantCode,orgCode,page);
+			
+			JSONArray array = new JSONArray();
+			List<VoteInfo> list = page.getList();
+			for (VoteInfo v : list) {
+				JSONObject item = new JSONObject();
+				item.put("id", StringTools.formatToString(v.getId()));
+				item.put("voteInfoCode", v.getCode());
+				item.put("dynamicCode", StringTools.formatToString(v.getDynamicCode()));
+				item.put("sponsorCode", v.getSponsorCode());
+				SysUserInfo person = getUserInfo(v.getSponsorCode());
+				if(person != null){
+					item.put("sponsorName", person.getUserName());
+					item.put("sponsorCompany", person.getManageOrgInfo().getSysOrgName());
+				}else{
+					item.put("sponsorName", "");
+					item.put("sponsorCompany", "");
+				}
+				item.put("createTime", StringTools.formatToString(v.getCreateTime()));
+				item.put("sponsorType", StringTools.formatToString(v.getSponsorType()));
+				item.put("sponsorOrgCode", StringTools.formatToString(v.getSponsorOrgCode()));
+				item.put("title", v.getTitle());
+				array.add(item);
+			}
+			
+			ResultJSON result = new ResultJSON("COMMON_200");
+			JSONObject jsonObject = new JSONObject();
+			jsonObject.put("voteList", array);
+			jsonObject.put("totalCount", StringTools.formatToString(page.getTotalItem()));
+			result.setBody(jsonObject);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteControllerByGl.getVoteListForMonitor", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+}

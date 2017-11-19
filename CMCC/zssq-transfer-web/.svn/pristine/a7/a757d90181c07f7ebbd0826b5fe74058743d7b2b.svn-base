@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.filing.dao.mapper.SynFilterBaseMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.filing.pojo.SynFilterBase" >
+    <result column="WORD_ID" property="wordId" jdbcType="INTEGER" />
+    <result column="WORD" property="word" jdbcType="VARCHAR" />
+    <result column="USER_ID" property="userId" jdbcType="INTEGER" />
+    <result column="SUBMIT_TIME" property="submitTime" jdbcType="VARCHAR" />
+    <result column="REPLACE_WORD" property="replaceWord" jdbcType="VARCHAR" />
+    <result column="REGULAR" property="regular" jdbcType="VARCHAR" />
+    <result column="USER_NAME" property="userName" jdbcType="VARCHAR" />
+  </resultMap>
+  <insert id="insert" parameterType="com.zssq.filing.pojo.SynFilterBase" >
+    insert into syn_filter_base (WORD_ID, WORD, USER_ID, 
+      SUBMIT_TIME, REPLACE_WORD, REGULAR, 
+      USER_NAME)
+    values (#{wordId,jdbcType=INTEGER}, #{word,jdbcType=VARCHAR}, #{userId,jdbcType=INTEGER}, 
+      #{submitTime,jdbcType=VARCHAR}, #{replaceWord,jdbcType=VARCHAR}, #{regular,jdbcType=VARCHAR}, 
+      #{userName,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.filing.pojo.SynFilterBase" >
+    insert into syn_filter_base
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="wordId != null" >
+        WORD_ID,
+      </if>
+      <if test="word != null" >
+        WORD,
+      </if>
+      <if test="userId != null" >
+        USER_ID,
+      </if>
+      <if test="submitTime != null" >
+        SUBMIT_TIME,
+      </if>
+      <if test="replaceWord != null" >
+        REPLACE_WORD,
+      </if>
+      <if test="regular != null" >
+        REGULAR,
+      </if>
+      <if test="userName != null" >
+        USER_NAME,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="wordId != null" >
+        #{wordId,jdbcType=INTEGER},
+      </if>
+      <if test="word != null" >
+        #{word,jdbcType=VARCHAR},
+      </if>
+      <if test="userId != null" >
+        #{userId,jdbcType=INTEGER},
+      </if>
+      <if test="submitTime != null" >
+        #{submitTime,jdbcType=VARCHAR},
+      </if>
+      <if test="replaceWord != null" >
+        #{replaceWord,jdbcType=VARCHAR},
+      </if>
+      <if test="regular != null" >
+        #{regular,jdbcType=VARCHAR},
+      </if>
+      <if test="userName != null" >
+        #{userName,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  
+  <!-- 查询记录总数 -->
+  <select id="selectCount" resultType="java.lang.Integer">
+  	SELECT COUNT(*) FROM syn_filter_base
+  </select>
+  
+  <!-- 分页查询记录 -->
+  <select id="selectPage" parameterType="java.util.Map" resultType="com.zssq.filing.pojo.SynFilterBase">
+  	SELECT word AS word FROM syn_filter_base LIMIT #{startRowNum},#{executeSize}
+  </select>
+</mapper>

@@ -1,0 +1,946 @@
+package com.zssq.filing.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.constants.AuthConstants;
+import com.zssq.constants.FilingConstants;
+import com.zssq.constants.StatisticConstants;
+import com.zssq.dao.pojo.MyCount;
+import com.zssq.dao.pojo.MyGroup;
+import com.zssq.dao.pojo.StatisticCommon;
+import com.zssq.dao.pojo.StatisticCompany;
+import com.zssq.dao.pojo.StatisticVisitDetail;
+import com.zssq.dao.pojo.SysOrgInfo;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.dao.pojo.UserBlacklist;
+import com.zssq.dao.pojo.UserConcerns;
+import com.zssq.dao.pojo.UserFriend;
+import com.zssq.dao.pojo.UserState;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.filing.vo.AddBlackVo;
+import com.zssq.filing.vo.BlackListVo;
+import com.zssq.filing.vo.CompanyViewVo;
+import com.zssq.filing.vo.ConcernsVo;
+import com.zssq.filing.vo.DelFansVo;
+import com.zssq.filing.vo.DelUserVisitorVo;
+import com.zssq.filing.vo.FriendsGroupVo;
+import com.zssq.filing.vo.GroupChangeVo;
+import com.zssq.filing.vo.GroupDelVo;
+import com.zssq.filing.vo.GroupVo;
+import com.zssq.filing.vo.ListConVo;
+import com.zssq.filing.vo.MyCountVo;
+import com.zssq.filing.vo.ShieldVo;
+import com.zssq.filing.vo.UserStateVo;
+import com.zssq.filing.vo.UserVisitorVo;
+import com.zssq.pojo.Message;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.IStatisticService;
+import com.zssq.service.ISysOrgService;
+import com.zssq.service.ISysUserService;
+import com.zssq.service.IUserRelationService;
+import com.zssq.utils.DateUtils;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.utils.PropertiesUtil;
+import com.zssq.utils.StringTools;
+
+@Controller
+@RequestMapping("/userRelation")
+public class UserRelationController {
+
+	private Logger logger = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private IUserRelationService userRelationService;
+	
+	@Autowired
+	private ISysUserService sysUserService;
+	
+	@Autowired
+	private ISysOrgService sysOrgService;
+	
+	@Autowired
+	private IStatisticService statisticService;
+	
+	/**
+	 * @Function concernsAdd
+	 * @Description 加关注
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/concerns/add")  
+	public ResultJSON concernsAdd(@RequireValid ConcernsVo param) throws BusinessException {
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			boolean isSuccess = userRelationService.addUserConcerns(param.getUserCode(), param.getIsConcernsUserCode());
+			JSONObject body = new JSONObject();
+			if(isSuccess){
+				message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_200);
+				// 统计操作
+				SysUserInfo sysUserInfo = sysUserService.selectByCode(param.getUserCode());
+				StatisticCommon statisticCommon = new StatisticCommon();
+				statisticCommon.setOrgCode(sysUserInfo.getOrgCode());
+				statisticCommon.setPeopleCode(sysUserInfo.getUserCode());
+				statisticCommon.setPeopleName(sysUserInfo.getUserName());
+				statisticCommon.setFaces(StatisticConstants.FACES);
+				statisticCommon.setCreateTime(DateUtils.nowTimeMillis());
+				statisticService.addRecord(statisticCommon);
+			}else{
+				message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			}
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "添加关注"));
+	        rj.setBody(body);
+			return rj;
+		} catch(BusinessException e){
+			throw e; 
+		} catch (Exception e) {
+			logger.error("添加关注失败", e);
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "添加关注"));
+		}
+	}
+	
+	/**
+	 * @Function concernsDel
+	 * @Description 取消关注
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/concerns/del")  
+	public ResultJSON concernsDel(@RequireValid ConcernsVo param) throws BusinessException {
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			boolean isSuccess = userRelationService.delUserConcerns(param.getUserCode(), param.getIsConcernsUserCode());
+			JSONObject body = new JSONObject();
+			if(isSuccess){
+				message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_200);
+				// 统计操作
+				SysUserInfo sysUserInfo = sysUserService.selectByCode(param.getUserCode());
+				StatisticCommon statisticCommon = new StatisticCommon();
+				statisticCommon.setOrgCode(sysUserInfo.getOrgCode());
+				statisticCommon.setPeopleCode(sysUserInfo.getUserCode());
+				statisticCommon.setPeopleName(sysUserInfo.getUserName());
+				statisticCommon.setFaces(StatisticConstants.FACES);
+				statisticCommon.setCreateTime(DateUtils.nowTimeMillis());
+				statisticService.addRecord(statisticCommon);
+			}else{
+				message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			}
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "移除关注"));
+	        rj.setBody(body);
+			return rj;
+		} catch (Exception e) {
+			logger.error("移除关注失败", e);
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "移除关注"));
+		}
+	}
+	
+	/**
+	 * @Function concernsList
+	 * @Description 我的关注
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/concerns/list")  
+	public ResultJSON concernsList(@RequireValid ListConVo param) throws BusinessException {
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+        	PageParam pageParam = new PageParam(Integer.parseInt(param.getPageNo()),Integer.parseInt(param.getPageSize()));
+        	PageBean pageBean = userRelationService.selectConcerns(pageParam, param.getOtherCode());
+        	List<UserConcerns> myConcerns = pageBean.getRecordList();
+			JSONObject body = new JSONObject();
+			JSONArray jsonArray = new JSONArray();
+			for (int i = 0; i < myConcerns.size(); i++) {
+				JSONObject myConcern = new JSONObject();
+				myConcern.put("concernsCode", StringTools.formatToString(myConcerns.get(i).getConcernsCode()));
+				myConcern.put("userCode", StringTools.formatToString(myConcerns.get(i).getIsConcernsUserCode()));
+				SysUserInfo userInfo = sysUserService.selectByCode(myConcerns.get(i).getIsConcernsUserCode());
+				myConcern.put("userName", StringTools.formatToString(userInfo.getUserName()));
+				myConcern.put("orgCode", StringTools.formatToString(userInfo.getOrgCode()));
+				SysOrgInfo orgInfo = sysOrgService.selectByCode(userInfo.getOrgCode());
+				if(orgInfo != null){
+					myConcern.put("orgName", StringTools.formatToString(orgInfo.getSysOrgFullname()));
+				}else{
+					myConcern.put("orgName", "");
+				}
+				myConcern.put("head", StringTools.formatToString(userInfo.getHeadPortrait()));
+				jsonArray.add(myConcern);
+			}
+			body.put("totalCount", pageBean.getTotalCount());
+			body.put("dataList", jsonArray);
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_200);
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "获取关注列表"));
+	        rj.setBody(body);
+			return rj;
+		} catch (Exception e) {
+			logger.error("获取关注列表失败", e);
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "获取关注列表"));
+		}
+	}
+	
+	/**
+	 * @Function fansList
+	 * @Description 我的粉丝
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/fans/list")  
+	public ResultJSON fansList(@RequireValid ListConVo param) throws BusinessException {
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			PageParam pageParam = new PageParam(Integer.parseInt(param.getPageNo()),Integer.parseInt(param.getPageSize()));
+        	PageBean pageBean = userRelationService.selectFans(pageParam, param.getOtherCode());
+        	List<UserConcerns> fans = pageBean.getRecordList();
+			JSONObject body = new JSONObject();
+			JSONArray jsonArray = new JSONArray();
+			for (int i = 0; i < fans.size(); i++) {
+				JSONObject myFans = new JSONObject();
+				myFans.put("concernsCode", StringTools.formatToString(fans.get(i).getConcernsCode()));
+				myFans.put("userCode", StringTools.formatToString(fans.get(i).getConcernsUserCode()));
+				SysUserInfo userInfo = sysUserService.selectByCode(fans.get(i).getConcernsUserCode());
+				myFans.put("userName", StringTools.formatToString(userInfo.getUserName()));
+				myFans.put("orgCode", StringTools.formatToString(userInfo.getOrgCode()));
+				SysOrgInfo orgInfo = sysOrgService.selectByCode(userInfo.getOrgCode());
+				if(orgInfo != null){
+					myFans.put("orgName", StringTools.formatToString(orgInfo.getSysOrgFullname()));
+				}else{
+					myFans.put("orgName", "");
+				}
+				myFans.put("head", StringTools.formatToString(userInfo.getHeadPortrait()));
+				//查询该粉丝的关注人数、好友数、粉丝数
+				MyCount myCount = userRelationService.selectMyCount(fans.get(i).getConcernsUserCode());
+				myFans.put("concernsCount", StringTools.formatToString(myCount.getConcernsCount()));
+				myFans.put("friendsCount", StringTools.formatToString(myCount.getFriendsCount()));
+				myFans.put("fansCount", StringTools.formatToString(myCount.getFansCount()));
+				jsonArray.add(myFans);
+			}
+			body.put("totalCount", pageBean.getTotalCount());
+			body.put("dataList", jsonArray);
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_200);
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "获取粉丝列表"));
+	        rj.setBody(body);
+			return rj;
+		} catch (Exception e) {
+			logger.error("获取粉丝列表失败", e);
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "获取粉丝列表"));
+		}
+	}
+	
+	/**
+	 * @Function fansDel
+	 * @Description 移除粉丝
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/fans/del")  
+	public ResultJSON fansDel(@RequireValid DelFansVo param) throws BusinessException {
+		
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			boolean isSuccess = userRelationService.delUserConcerns(param.getConcernsUserCode(), param.getUserCode());
+			JSONObject body = new JSONObject();
+			if(isSuccess){
+				message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_200);
+				// 统计操作
+				SysUserInfo sysUserInfo = sysUserService.selectByCode(param.getUserCode());
+				StatisticCommon statisticCommon = new StatisticCommon();
+				statisticCommon.setOrgCode(sysUserInfo.getOrgCode());
+				statisticCommon.setPeopleCode(sysUserInfo.getUserCode());
+				statisticCommon.setPeopleName(sysUserInfo.getUserName());
+				statisticCommon.setFaces(StatisticConstants.FACES);
+				statisticCommon.setCreateTime(DateUtils.nowTimeMillis());
+				statisticService.addRecord(statisticCommon);
+			}else{
+				message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			}
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "移除粉丝"));
+	        rj.setBody(body);
+			return rj;
+		} catch (Exception e) {
+			logger.error("移除粉丝", e);
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "移除粉丝"));
+		}
+	}
+	
+	
+	/**
+	 * @Function friendsList
+	 * @Description 我的好友
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/friends/list")  
+	public ResultJSON friendsList(@RequireValid ListConVo param) throws BusinessException {
+		
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			PageParam pageParam = new PageParam(Integer.parseInt(param.getPageNo()),Integer.parseInt(param.getPageSize()));
+			PageBean pageBean = userRelationService.selectFriends(pageParam,param.getOtherCode(),param.getGroupCode());
+			List<UserFriend> myFriends = pageBean.getRecordList();
+			JSONObject body = new JSONObject();
+			JSONArray jsonArray = new JSONArray();
+			for (int i = 0; i < myFriends.size(); i++) {
+				JSONObject myFriend = new JSONObject();
+				myFriend.put("userCode", StringTools.formatToString(myFriends.get(i).getUserCode()));
+				myFriend.put("friendCode", StringTools.formatToString(myFriends.get(i).getFriendUserCode()));
+				SysUserInfo userInfo = sysUserService.selectByCode(myFriends.get(i).getFriendUserCode());
+				myFriend.put("friendName", StringTools.formatToString(userInfo.getUserName()));
+				myFriend.put("orgCode", StringTools.formatToString(userInfo.getOrgCode()));
+				SysOrgInfo orgInfo = sysOrgService.selectByCode(userInfo.getOrgCode());
+				if(orgInfo != null){
+					myFriend.put("orgName", StringTools.formatToString(orgInfo.getSysOrgFullname()));
+				}else{
+					myFriend.put("orgName", "");
+				}
+				myFriend.put("head", StringTools.formatToString(userInfo.getHeadPortrait()));
+				//该好友的groupName和groupCode
+				myFriend.put("groupCode", StringTools.formatToString(myFriends.get(i).getFriendGroupCode()));
+				myFriend.put("groupName", StringTools.formatToString(myFriends.get(i).getGroupName()));
+				//查询该好友的关注人数、好友数、粉丝数
+				MyCount myCount = userRelationService.selectMyCount(myFriends.get(i).getFriendUserCode());
+				myFriend.put("concernsCount", StringTools.formatToString(myCount.getConcernsCount()));
+				myFriend.put("friendsCount", StringTools.formatToString(myCount.getFriendsCount()));
+				myFriend.put("fansCount", StringTools.formatToString(myCount.getFansCount()));
+				jsonArray.add(myFriend);
+			}
+			body.put("totalCount", pageBean.getTotalCount());
+			body.put("dataList", jsonArray);
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_200);
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "获取好友列表"));
+	        rj.setBody(body);
+			return rj;
+		} catch (Exception e) {
+			logger.error("获取好友列表失败", e);
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "获取好友列表"));
+		}
+	}
+	
+	
+	/**
+	 * @Function blackAdd
+	 * @Description 拉黑
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/black/add")  
+	public ResultJSON blackAdd(@RequireValid AddBlackVo param) throws BusinessException {
+		
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			boolean isSuccess = userRelationService.addBlack(param.getUserCode(), param.getBlackUserCode());
+			JSONObject body = new JSONObject();
+			if(isSuccess){
+				message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_200);
+			}else{
+				message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			}
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "添加黑名单"));
+	        rj.setBody(body);
+			return rj;
+		} catch(BusinessException e){
+			throw new BusinessException(e.getMessage(),e.getMessage()); 
+		} catch (Exception e) {
+			logger.error("添加黑名单", e);
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "添加黑名单"));
+		}
+	}
+	
+	/**
+	 * @Function blackDel
+	 * @Description 移出黑名单
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/black/del")  
+	public ResultJSON blackDel(@RequireValid AddBlackVo param) throws BusinessException {
+		
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			boolean isSuccess = userRelationService.delBlack(param.getUserCode(), param.getBlackUserCode());
+			JSONObject body = new JSONObject();
+			if(isSuccess){
+				message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_200);
+			}else{
+				message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			}
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "移出黑名单"));
+	        rj.setBody(body);
+			return rj;
+		} catch (Exception e) {
+			logger.error("移出黑名单异常", e);
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "移出黑名单"));
+		}
+	}
+	
+	/**
+	 * @Function blackList
+	 * @Description 黑名单列表
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/black/list")  
+	public ResultJSON blackList(@RequireValid BlackListVo param) throws BusinessException {
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+        	PageParam pageParam = new PageParam(Integer.parseInt(param.getPageNo()),Integer.parseInt(param.getPageSize()));
+        	PageBean pageBean = userRelationService.selectBlacks(pageParam, param.getUserCode());
+        	List<UserBlacklist> myBlacks = pageBean.getRecordList();
+			JSONObject body = new JSONObject();
+			JSONArray jsonArray = new JSONArray();
+			for (int i = 0; i < myBlacks.size(); i++) {
+				JSONObject myBlack = new JSONObject();
+				myBlack.put("blackListCode", StringTools.formatToString(myBlacks.get(i).getBlacklistCode()));
+				myBlack.put("userCode", StringTools.formatToString(myBlacks.get(i).getUserCode()));
+				SysUserInfo userInfo = sysUserService.selectByCode(myBlacks.get(i).getBlacklistUserCode());
+				myBlack.put("blackCode", StringTools.formatToString(userInfo.getUserCode()));
+				myBlack.put("blackName", StringTools.formatToString(userInfo.getUserName()));
+				myBlack.put("orgCode", StringTools.formatToString(userInfo.getOrgCode()));
+				SysOrgInfo orgInfo = sysOrgService.selectByCode(userInfo.getOrgCode());
+				if(orgInfo != null){
+					myBlack.put("orgName", StringTools.formatToString(orgInfo.getSysOrgFullname()));
+				}else{
+					myBlack.put("orgName", "");
+				}
+				myBlack.put("head", StringTools.formatToString(userInfo.getHeadPortrait()));
+				//查询该黑名单人员的关注人数、好友数、粉丝数
+				MyCount myCount = userRelationService.selectMyCount(userInfo.getUserCode());
+				myBlack.put("concernsCount", StringTools.formatToString(myCount.getConcernsCount()));
+				myBlack.put("friendsCount", StringTools.formatToString(myCount.getFriendsCount()));
+				myBlack.put("fansCount", StringTools.formatToString(myCount.getFansCount()));
+				jsonArray.add(myBlack);
+			}
+			body.put("totalCount", pageBean.getTotalCount());
+			body.put("dataList", jsonArray);
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_200);
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "获取黑名单列表"));
+	        rj.setBody(body);
+			return rj;
+		} catch (Exception e) {
+			logger.error("获取黑名单列表", e);
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "获取黑名单列表"));
+		}
+	}
+	
+	
+	/**
+	 * @Function state
+	 * @Description 用户间状态  是否关注/是否拉黑
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/state")  
+	public ResultJSON state(@RequireValid UserStateVo param) throws BusinessException {
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			UserState userState = userRelationService.selectUserState(param.getUserCode(), param.getOtherCode());
+			JSONObject body = new JSONObject();
+			body.put("isFriend", userState.getIsFriend());
+			body.put("isConcerns", userState.getIsConcerns());
+			body.put("isBlack", userState.getIsBlack());
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_200);
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "获取用户间状态"));
+	        rj.setBody(body);
+			return rj;
+		} catch(BusinessException e){
+			throw e; 
+		} catch (Exception e) {
+			logger.error("获取用户间状态异常", e);
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "获取用户间状态"));
+		}
+	}
+	
+	/**
+	 * @Function groupAdd
+	 * @Description 添加好友分组
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/group/add")  
+	public ResultJSON groupAdd(@RequireValid GroupVo param) throws BusinessException {
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			boolean isSuccess = userRelationService.addGroup(param.getUserCode(), param.getGroupName());
+			JSONObject body = new JSONObject();
+			if(isSuccess){
+				message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_200);
+			}else{
+				message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			}
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "添加好友分组"));
+	        rj.setBody(body);
+			return rj;
+		} catch(BusinessException e){
+			throw new BusinessException(e.getMessage(),e.getMessage()); 
+		} catch (Exception e) {
+			logger.error("添加好友分组", e);
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "添加好友分组"));
+		}
+	}
+
+
+	/**
+	 * @Function groupDel
+	 * @Description 移除好友分组
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/group/del")  
+	public ResultJSON groupDel(@RequireValid GroupDelVo param) throws BusinessException {
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			boolean isSuccess = userRelationService.delGroup(param.getGroupCode());
+			JSONObject body = new JSONObject();
+			if(isSuccess){
+				message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_200);
+			}else{
+				message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			}
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "移除好友分组"));
+	        rj.setBody(body);
+			return rj;
+		} catch(BusinessException e){
+			throw new BusinessException(e.getMessage(),e.getMessage()); 
+		} catch (Exception e) {
+			logger.error("移除好友分组", e);
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "移除好友分组"));
+		}
+	}
+	
+	/**
+	 * @Function groupChange
+	 * @Description 变更好友分组
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/group/change")  
+	public ResultJSON groupChange(@RequireValid GroupChangeVo param) throws BusinessException {
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			boolean isSuccess = userRelationService.changeUserGroup(param.getUserCode(), param.getFriendCode(), param.getGroupCode());
+			JSONObject body = new JSONObject();
+			if(isSuccess){
+				message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_200);
+			}else{
+				message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			}
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "变更好友分组"));
+	        rj.setBody(body);
+			return rj;
+		} catch(BusinessException e){
+			throw new BusinessException(e.getMessage(),e.getMessage()); 
+		} catch (Exception e) {
+			logger.error("变更好友分组", e);
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "变更好友分组"));
+		}
+	}
+	
+	
+	/**
+	 * @Function groupList
+	 * @Description 获取我的好友分组及数量
+	 * @param request
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/group/list")  
+	public ResultJSON groupList(@RequireValid FriendsGroupVo param) throws BusinessException {
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			List<MyGroup> groupList = userRelationService.selectMyGroup(param.getOtherCode());
+			JSONObject body = new JSONObject();
+			JSONArray jsonArray = new JSONArray();
+			for (int i = 0; i < groupList.size(); i++) {
+				JSONObject group = new JSONObject();
+				group.put("groupCode", StringTools.formatToString(groupList.get(i).getGroupCode()));
+				group.put("groupName", StringTools.formatToString(groupList.get(i).getGroupName()));
+				group.put("sumCount", StringTools.formatToString(groupList.get(i).getSumCount()));
+				jsonArray.add(group);
+			}
+			body.put("dataList", jsonArray);
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_200);
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "获取好友分组"));
+	        rj.setBody(body);
+			return rj;
+		} catch (Exception e) {
+			logger.error("获取好友分组", e);
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "获取好友分组"));
+		}
+	}
+	
+	/**
+	 * @Function myCount
+	 * @Description 获取我的好友 粉丝 关注 黑名单
+	 * @param request
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/myCount")  
+	public ResultJSON myCount(@RequireValid MyCountVo param) throws BusinessException {
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			MyCount myCount = userRelationService.selectMyCount(param.getOtherCode());
+			JSONObject body = new JSONObject();
+			body.put("friendsCount", StringTools.formatToString(myCount.getFriendsCount()));
+			body.put("fansCount", StringTools.formatToString(myCount.getFansCount()));
+			body.put("concernsCount", StringTools.formatToString(myCount.getConcernsCount()));
+			body.put("blackCount", StringTools.formatToString(myCount.getBlackCount()));
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_200);
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "获取我的数量"));
+	        rj.setBody(body);
+			return rj;
+		} catch (Exception e) {
+			logger.error("获取我的数量", e);
+			message = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "获取我的数量"));
+		}
+	}
+	
+	
+	/**
+	 * @Function visitorList
+	 * @Description 个人空间访客
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/visitor/list")
+	public ResultJSON visitorList(@RequireValid UserVisitorVo param) throws BusinessException{  
+	    Message m = null;
+	    ResultJSON rj = new ResultJSON();
+	    try {
+			PageParam pageParam = new PageParam(Integer.parseInt(param.getPageNo()),Integer.parseInt(param.getPageSize()));
+			StatisticVisitDetail record = new StatisticVisitDetail();
+			record.setPeopleCode(param.getOtherCode());
+			PageBean pageBean = statisticService.getVisit(pageParam, record);
+			JSONObject body = new JSONObject();
+			JSONArray jsonArray = new JSONArray();
+			List<StatisticVisitDetail> visitorList = pageBean.getRecordList();
+			for (int i = 0; i < visitorList.size(); i++) {
+				JSONObject info = new JSONObject();
+				SysUserInfo visitorInfo = sysUserService.selectByCode(visitorList.get(i).getVisitCode());
+				info.put("id", StringTools.formatToString(visitorList.get(i).getId()));
+				info.put("head", StringTools.formatToString(visitorInfo.getHeadPortrait()));
+				info.put("userName", StringTools.formatToString(visitorInfo.getUserName()));
+				info.put("userCode", StringTools.formatToString(visitorInfo.getUserCode()));
+				info.put("visitTime", StringTools.formatToString(visitorList.get(i).getVisitTime()));
+				jsonArray.add(info);
+			}
+			record.setStartTime(DateUtils.getCurDayStart());
+			record.setEndTime(DateUtils.getCurDayEnd());
+			int dayCount = statisticService.getTodayVisit(record);
+			body.put("dayCount", dayCount);
+	    	body.put("totalCount", pageBean.getNumPerPage());
+	    	body.put("totalViewCount", pageBean.getTotalCount());
+	    	body.put("dataList", jsonArray);
+	    	m = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_200);
+	    	rj.setReturnCode(m.getCode());
+	    	rj.setReturnTip(String.format(m.getTip(),"获取个人访客列表"));
+	    	rj.setBody(body);
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			m = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			logger.error("获取个人访客列表异常", e);
+			throw new BusinessException(m.getCode(),String.format(m.getTip(),"获取个人访客列表"));
+		}
+	    return rj;
+	}
+	
+	
+	/**
+	 * @Function delVisitor
+	 * @Description 个人空间访客删除
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/visitor/del")
+	public ResultJSON delVisitor(@RequireValid DelUserVisitorVo param) throws BusinessException{  
+	    Message m = null;
+	    ResultJSON rj = new ResultJSON();
+	    try {
+	    	StatisticVisitDetail record = new StatisticVisitDetail();
+	    	record.setVisitCode(param.getVisitCode());
+	    	record.setPeopleCode(param.getUserCode());
+	    	int count = statisticService.deleteVisit(record);
+	    	if(count >= 1){
+	    		m = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_200);
+	    		rj.setReturnCode(m.getCode());
+	    		rj.setReturnTip(String.format(m.getTip(),"删除个人访客"));
+	    	}else{
+	    		m = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+	    		rj.setReturnCode(m.getCode());
+	    		rj.setReturnTip(String.format(m.getTip(),"删除个人访客"));
+	    	}
+	    	rj.setBody(new JSONObject());
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			m = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			logger.error("删除个人访客异常", e);
+			throw new BusinessException(m.getCode(),String.format(m.getTip(),"删除个人访客"));
+		}
+	    return rj;
+	}
+	
+	/**
+	 * @Function companyView
+	 * @Description 公司访问量排行榜
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/company/view")
+	public ResultJSON companyView(@RequireValid CompanyViewVo param) throws BusinessException{  
+	    Message m = null;
+	    ResultJSON rj = new ResultJSON();
+	    try {
+	    	SysOrgInfo orgInfo = sysOrgService.selectManageOrgByCode(param.getOrgCode());
+	    	List<StatisticVisitDetail> recordList = new ArrayList<StatisticVisitDetail>();
+	    	if(orgInfo != null){
+	    		SysOrgInfo record = new SysOrgInfo();
+	    		if(AuthConstants.ORG_TYPE_A.equals(orgInfo.getSysOrgType())){
+	    			record.setParentCode(orgInfo.getSysOrgCode());
+	    			record.setSysOrgType(AuthConstants.ORG_TYPE_B);
+	    		}else if(AuthConstants.ORG_TYPE_B.equals(orgInfo.getSysOrgType())){
+	    			record.setParentCode(orgInfo.getSysOrgCode());
+	    			record.setSysOrgType(AuthConstants.ORG_TYPE_C);
+	    		}else if(AuthConstants.ORG_TYPE_C.equals(orgInfo.getSysOrgType())){
+	    			record.setParentCode(orgInfo.getParentCode());
+	    			record.setSysOrgType(AuthConstants.ORG_TYPE_C);
+	    		}else{
+	    			m = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11004);
+	    			throw new BusinessException(m.getCode(),String.format(m.getTip(),"公司访问量排行榜","组织机构code无效"));
+	    		}
+	    		List<SysOrgInfo> orgList = sysOrgService.selectByRecord(record);
+	    		for (int i = 0; i < orgList.size(); i++) {
+	    			StatisticVisitDetail detail = new StatisticVisitDetail();
+	    			detail.setIsFlag(1);
+	    			detail.setOrgCode(orgList.get(i).getSysOrgCode());
+	    			recordList.add(detail);
+				}
+	    	}else{
+	    		m = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+	    		rj.setReturnCode(m.getCode());
+	    		rj.setReturnTip(String.format(m.getTip(),"公司访问量排行榜"));
+	    	}
+	    	List<StatisticCompany> viewList = statisticService.getCompanyVisit(recordList);
+	    	int count = Integer.parseInt(param.getCount());
+	    	int length = viewList.size() < count ? viewList.size() :count;
+	    	JSONObject body = new JSONObject();
+	    	JSONArray array = new JSONArray();
+	    	for (int i = 0; i < length; i++) {
+	    		JSONObject info = new JSONObject();
+	    		info.put("orgCode", StringTools.formatToString(viewList.get(i).getOrgCode()));
+	    		orgInfo = sysOrgService.selectByCode(viewList.get(i).getOrgCode());
+	    		if(orgInfo != null){
+	    			info.put("orgName", StringTools.formatToString(orgInfo.getSysOrgFullname()));
+	    			info.put("srcOrgCode", StringTools.formatToString(orgInfo.getSrcCode()));
+	    			info.put("orgType", StringTools.formatToString(orgInfo.getSysOrgType()));
+	    		}else{
+	    			info.put("orgName", "");
+	    			info.put("srcOrgCode", "");
+	    			info.put("orgType", "");
+	    		}
+	    		info.put("viewCount", StringTools.formatToString(viewList.get(i).getVisitCount()));
+	    		array.add(info);
+			}
+	    	body.put("dataList", array);
+    		m = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_200);
+    		rj.setReturnCode(m.getCode());
+    		rj.setReturnTip(String.format(m.getTip(),"公司访问量排行榜"));
+	    	rj.setBody(body);
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			m = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			logger.error("公司访问量排行榜异常", e);
+			throw new BusinessException(m.getCode(),String.format(m.getTip(),"公司访问量排行榜"));
+		}
+	    return rj;
+	}
+	
+	
+	/**
+	 * 
+	 * @Function shieldOn
+	 * @Description 开启私信屏蔽
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/shield/shieldOn")
+	public ResultJSON shieldOn(@RequireValid ShieldVo param) throws BusinessException{  
+		Message m = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			boolean isSuccess = userRelationService.shieldOn(param.getUserCode());
+			if(isSuccess){
+				m = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_200);
+			}else{
+				m = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			}
+			rj.setReturnCode(m.getCode());
+			rj.setReturnTip(String.format(m.getTip(),"开启私信屏蔽"));
+			rj.setBody(new JSONObject());
+		} catch (Exception e) {
+			m = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			logger.error("开启私信屏蔽异常", e);
+			throw new BusinessException(m.getCode(),String.format(m.getTip(),"开启私信屏蔽"));
+		}
+		return rj;
+	}
+	
+	
+	/**
+	 * 
+	 * @Function shieldOff
+	 * @Description 关闭私信屏蔽（开启私信）
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/shield/shieldOff")
+	public ResultJSON shieldOff(@RequireValid ShieldVo param) throws BusinessException{  
+		Message m = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			boolean isSuccess = userRelationService.shieldOff(param.getUserCode());
+			if(isSuccess){
+				m = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_200);
+			}else{
+				m = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			}
+			rj.setReturnCode(m.getCode());
+			rj.setReturnTip(String.format(m.getTip(),"关闭私信屏蔽"));
+			rj.setBody(new JSONObject());
+		} catch (Exception e) {
+			m = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			logger.error("关闭私信屏蔽异常", e);
+			throw new BusinessException(m.getCode(),String.format(m.getTip(),"关闭私信屏蔽"));
+		}
+		return rj;
+	}
+	
+	
+	/**
+	 * 
+	 * @Function checkShield
+	 * @Description 查询屏蔽私信状态
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/shield/checkShield")
+	public ResultJSON checkShield(@RequireValid ShieldVo param) throws BusinessException{  
+		Message m = null;
+		ResultJSON rj = new ResultJSON();
+		JSONObject body = new JSONObject();
+		try {
+			boolean shieldStatus = userRelationService.checkShield(param.getUserCode());
+			if(shieldStatus){
+				body.put("shieldStatus", FilingConstants.BOOLEAN_TRUE);
+			}else{
+				body.put("shieldStatus", FilingConstants.BOOLEAN_FALSE);
+			}
+			m = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_200);
+			rj.setReturnCode(m.getCode());
+			rj.setReturnTip(String.format(m.getTip(),"查询屏蔽私信状态"));
+			rj.setBody(body);
+		} catch (Exception e) {
+			m = PropertiesUtil.getMessage(FilingConstants.RETURNCODE_FILING_11002);
+			logger.error("查询屏蔽私信状态", e);
+			throw new BusinessException(m.getCode(),String.format(m.getTip(),"查询屏蔽私信状态"));
+		}
+		return rj;
+	}
+	
+	
+}

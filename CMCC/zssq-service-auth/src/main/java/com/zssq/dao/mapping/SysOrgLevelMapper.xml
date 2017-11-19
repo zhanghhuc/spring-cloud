@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.SysOrgLevelMapper">
+
+	<!-- sys_org_level 表字段实体映射 -->
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.SysOrgLevel">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="level_code" property="levelCode" jdbcType="VARCHAR" />
+		<result column="level" property="level" jdbcType="VARCHAR" />
+		<result column="level_name" property="levelName" jdbcType="VARCHAR" />
+		<result column="saas_tenant_code" property="saasTenantCode" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<!-- sys_org_level 表字段列表 -->
+	<sql id="Base_Column_List">
+		id, level_code, level, level_name, saas_tenant_code
+	</sql>
+
+	<!-- 根据Code查询组织级别详细信息 -->
+	<select id="selectByCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from sys_org_level
+		where level_code = #{value}
+	</select>
+	
+	<!-- 根据租户Code查询组织级别集合 -->
+	<select id="selectByTenantCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from sys_org_level
+		where saas_tenant_code = #{value}
+	</select>	
+
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+		delete from
+		sys_org_level
+		where id = #{id,jdbcType=BIGINT}
+	</delete>
+
+	<insert id="insert" parameterType="com.zssq.dao.pojo.SysOrgLevel">
+		insert into sys_org_level (id,
+		level_code, level,
+		level_name, saas_tenant_code)
+		values
+		(#{id,jdbcType=BIGINT}, #{levelCode,jdbcType=VARCHAR},
+		#{level,jdbcType=VARCHAR},
+		#{levelName,jdbcType=VARCHAR},
+		#{saasTenantCode,jdbcType=VARCHAR})
+	</insert>
+
+	<update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.SysOrgLevel">
+		update
+		sys_org_level
+		set level_code = #{levelCode,jdbcType=VARCHAR},
+		level = #{level,jdbcType=VARCHAR},
+		level_name =
+		#{levelName,jdbcType=VARCHAR},
+		saas_tenant_code =
+		#{saasTenantCode,jdbcType=VARCHAR}
+		where id = #{id,jdbcType=BIGINT}
+	</update>
+	
+	<!-- 根据level查询记录 -->
+	<select id="selectBylevel" parameterType="java.lang.String" resultMap="BaseResultMap">
+		SELECT
+			<include refid="Base_Column_List" />
+		FROM sys_org_level
+		WHERE level = #{level,jdbcType=VARCHAR}
+	</select>
+</mapper>

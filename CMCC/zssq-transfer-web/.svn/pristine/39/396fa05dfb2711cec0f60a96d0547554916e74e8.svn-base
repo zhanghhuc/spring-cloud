@@ -1,0 +1,205 @@
+package com.zssq.credit.service;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.credit.dao.mapper.CoinAccountMapper;
+import com.zssq.credit.dao.mapper.CoinAccountMigrateStrictMapper;
+import com.zssq.credit.dao.mapper.CreditAccountUserMapper;
+import com.zssq.credit.dao.mapper.GoldUserStaMapper;
+import com.zssq.credit.dao.mapper.IntegralAccountMapper;
+import com.zssq.credit.dao.mapper.IntegralAccountMigrateStrictMapper;
+import com.zssq.credit.pojo.CoinAccount;
+import com.zssq.credit.pojo.CoinAccountMigrateStrict;
+import com.zssq.credit.pojo.CreditAccountUser;
+import com.zssq.credit.pojo.IntegralAccount;
+import com.zssq.credit.pojo.IntegralAccountMigrateStrict;
+
+@Service("creditUserTransferService")
+public class CreditUserTransferServiceImpl implements CreditUserTransferService {
+
+	/** 积分账户映射器 */
+	@Autowired
+	IntegralAccountMapper integralAccountMapper;
+
+	/** 金币账户映射器 */
+	@Autowired
+	CoinAccountMapper coinAccountMapper;
+
+	/** 源库个人积分、金币账户映射器 */
+	@Autowired
+	GoldUserStaMapper goldUserStaMapper;
+
+	/** 连接查询个人积分、金币账户映射器 */
+	@Autowired
+	CreditAccountUserMapper creditAccountUserMapper;
+
+	/** 数据迁移积分账户映射器 */
+	@Autowired
+	IntegralAccountMigrateStrictMapper integralAccountMigrateStrictMapper;
+
+	/** 数据迁移金币账户映射器 */
+	@Autowired
+	CoinAccountMigrateStrictMapper coinAccountMigrateStrictMapper;
+
+	@Override
+	public void userAccount() {
+		// 导入的偏移量
+		int offset = 0;
+		// 分批次查询的条数
+		int pageSize = 500;
+		// 需要导入的总条数
+		int totalSize = goldUserStaMapper.selectPageCount();
+
+		// 严格迁移
+		this.userAccountMigrateStrict(offset, pageSize, totalSize);
+
+		while (offset <= totalSize) {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("limitStart", offset);
+			map.put("limitEnd", pageSize);
+			// 分批次连接查询源库与本地库
+			List<CreditAccountUser> userAccountList = creditAccountUserMapper.selectPage(map);
+
+			if (CollectionUtils.isNotEmpty(userAccountList)) {
+				// 分批次导入数据的积分账户集合
+				List<IntegralAccount> integralList = new ArrayList<IntegralAccount>();
+				// 分批次导入数据的金币账户集合
+				List<CoinAccount> coinList = new ArrayList<CoinAccount>();
+				// 积分账户
+				IntegralAccount integralAccount = null;
+				// 金币账户
+				CoinAccount coinAccount = null;
+
+				for (CreditAccountUser userAccount : userAccountList) {
+					String userCode = userAccount.getUserCode();
+					// 如果在本地依赖库中没有查到源库中的user_id，则跳过
+					if (StringUtils.isBlank(userCode)) {
+						continue;
+					}
+					Long createTime = userAccount.getCreateTime() == null ? null
+							: userAccount.getCreateTime().getTime();
+					Long modifyTime = userAccount.getUpdateTime() == null ? null
+							: userAccount.getUpdateTime().getTime();
+					String manOrgCode = userAccount.getManOrgCode();
+
+					integralAccount = new IntegralAccount();
+					integralAccount.setAccountCode(userCode);
+					integralAccount.setAccountType((byte) 1);// 账户类型：1-个人，2-班组
+					integralAccount.setCreateTime(createTime);
+					integralAccount.setModifyTime(modifyTime);
+					integralAccount.setIntegralBalance(
+							userAccount.getPointNum() == null ? 0 : userAccount.getPointNum().intValue());
+					integralAccount.setOrgCode(manOrgCode);
+					integralAccount.setSaasTenantCode("856966d06b96418fab2e430d71a1e84e");
+					integralList.add(integralAccount);
+
+					coinAccount = new CoinAccount();
+					coinAccount.setAccountCode(userCode);
+					coinAccount.setAccountType((byte) 1);// 账户类型：1-个人，2-班组
+					coinAccount.setCoinBalance(
+							userAccount.getGoldCoin() == null ? 0 : userAccount.getGoldCoin().intValue());
+					coinAccount.setCreateTime(createTime);
+					coinAccount.setModifyTime(modifyTime);
+					coinAccount.setOrgCode(manOrgCode);
+					coinAccount.setSaasTenantCode("856966d06b96418fab2e430d71a1e84e");
+					coinList.add(coinAccount);
+				}
+
+				// 分批次导入积分账户
+				if (CollectionUtils.isNotEmpty(integralList)) {
+					integralAccountMapper.batchInsert(integralList);
+				}
+				// 分批次导入积分账户
+				if (CollectionUtils.isNotEmpty(coinList)) {
+					coinAccountMapper.batchInsert(coinList);
+				}
+
+				// 增加偏移量
+				offset += pageSize;
+			}
+		}
+
+	}
+
+	/**
+	 * 
+	 * @Title: userAccountMigrateStrict @Description:
+	 * 针对原系统个人积分、金币账户数据的严格迁移 @param @param offset @param @param
+	 * pageSize @param @param totalSize 参数 @return void 返回类型 @throws
+	 */
+	private void userAccountMigrateStrict(int offset, int pageSize, int totalSize) {
+
+		while (offset <= totalSize) {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("limitStart", offset);
+			map.put("limitEnd", pageSize);
+			// 分批次连接查询源库与本地库
+			List<CreditAccountUser> userAccountList = creditAccountUserMapper.selectPage(map);
+
+			if (CollectionUtils.isNotEmpty(userAccountList)) {
+				// 分批次导入数据的积分账户集合
+				List<IntegralAccountMigrateStrict> integralList = new ArrayList<IntegralAccountMigrateStrict>();
+				// 分批次导入数据的金币账户集合
+				List<CoinAccountMigrateStrict> coinList = new ArrayList<CoinAccountMigrateStrict>();
+				// 积分账户
+				IntegralAccountMigrateStrict integralAccount = null;
+				// 金币账户
+				CoinAccountMigrateStrict coinAccount = null;
+
+				for (CreditAccountUser userAccount : userAccountList) {
+					String userCode = userAccount.getUserCode() == null ? "user" + userAccount.getUserId()
+							: userAccount.getUserCode();
+					Long createTime = userAccount.getCreateTime() == null ? null
+							: userAccount.getCreateTime().getTime();
+					Long modifyTime = userAccount.getUpdateTime() == null ? null
+							: userAccount.getUpdateTime().getTime();
+					String manOrgCode = userAccount.getManOrgCode();
+
+					integralAccount = new IntegralAccountMigrateStrict();
+					integralAccount.setAccountCode(userCode);
+					integralAccount.setAccountType((byte) 1);// 账户类型：1-个人，2-班组
+					integralAccount.setCreateTime(createTime);
+					integralAccount.setModifyTime(modifyTime);
+					integralAccount.setIntegralBalance(
+							userAccount.getPointNum() == null ? 0 : userAccount.getPointNum().intValue());
+					integralAccount.setOrgCode(manOrgCode);
+					integralAccount.setSaasTenantCode("856966d06b96418fab2e430d71a1e84e");
+					integralList.add(integralAccount);
+
+					coinAccount = new CoinAccountMigrateStrict();
+					coinAccount.setAccountCode(userCode);
+					coinAccount.setAccountType((byte) 1);// 账户类型：1-个人，2-班组
+					coinAccount.setCoinBalance(
+							userAccount.getGoldCoin() == null ? 0 : userAccount.getGoldCoin().intValue());
+					coinAccount.setCreateTime(createTime);
+					coinAccount.setModifyTime(modifyTime);
+					coinAccount.setOrgCode(manOrgCode);
+					coinAccount.setSaasTenantCode("856966d06b96418fab2e430d71a1e84e");
+					coinList.add(coinAccount);
+				}
+
+				// 分批次导入积分账户
+				if (CollectionUtils.isNotEmpty(integralList)) {
+					integralAccountMigrateStrictMapper.batchInsert(integralList);
+				}
+				// 分批次导入积分账户
+				if (CollectionUtils.isNotEmpty(coinList)) {
+					coinAccountMigrateStrictMapper.batchInsert(coinList);
+				}
+
+				// 增加偏移量
+				offset += pageSize;
+			}
+		}
+
+	}
+
+}

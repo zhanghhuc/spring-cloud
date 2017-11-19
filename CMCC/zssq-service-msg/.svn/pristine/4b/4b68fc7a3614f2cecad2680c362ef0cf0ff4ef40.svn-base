@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.UserMsgATMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.UserMsgAT" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="at_code" property="atCode" jdbcType="VARCHAR" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="at_user_code" property="atUserCode" jdbcType="VARCHAR" />
+    <result column="content" property="content" jdbcType="VARCHAR" />
+    <result column="at_type" property="atType" jdbcType="TINYINT" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <result column="original_code" property="originalCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, at_code, user_code, at_user_code, content, at_type, is_delete, original_code, 
+    create_time, tenant_code, org_code
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from user_msg_at
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from user_msg_at
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.UserMsgAT" >
+    insert into user_msg_at (id, at_code, user_code, 
+      at_user_code, content, at_type, 
+      is_delete, original_code, create_time, 
+      tenant_code, org_code)
+    values (#{id,jdbcType=BIGINT}, #{atCode,jdbcType=VARCHAR}, #{userCode,jdbcType=VARCHAR}, 
+      #{atUserCode,jdbcType=VARCHAR}, #{content,jdbcType=VARCHAR}, #{atType,jdbcType=TINYINT}, 
+      #{isDelete,jdbcType=TINYINT}, #{originalCode,jdbcType=VARCHAR}, #{createTime,jdbcType=BIGINT}, 
+      #{tenantCode,jdbcType=VARCHAR}, #{orgCode,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.UserMsgAT" >
+    insert into user_msg_at
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="atCode != null" >
+        at_code,
+      </if>
+      <if test="userCode != null" >
+        user_code,
+      </if>
+      <if test="atUserCode != null" >
+        at_user_code,
+      </if>
+      <if test="content != null" >
+        content,
+      </if>
+      <if test="atType != null" >
+        at_type,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+      <if test="originalCode != null" >
+        original_code,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="atCode != null" >
+        #{atCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="atUserCode != null" >
+        #{atUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null" >
+        #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="atType != null" >
+        #{atType,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="originalCode != null" >
+        #{originalCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.UserMsgAT" >
+    update user_msg_at
+    <set >
+      <if test="atCode != null" >
+        at_code = #{atCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        user_code = #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="atUserCode != null" >
+        at_user_code = #{atUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null" >
+        content = #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="atType != null" >
+        at_type = #{atType,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="originalCode != null" >
+        original_code = #{originalCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.UserMsgAT" >
+    update user_msg_at
+    set at_code = #{atCode,jdbcType=VARCHAR},
+      user_code = #{userCode,jdbcType=VARCHAR},
+      at_user_code = #{atUserCode,jdbcType=VARCHAR},
+      content = #{content,jdbcType=VARCHAR},
+      at_type = #{atType,jdbcType=TINYINT},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      original_code = #{originalCode,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=BIGINT},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  
+    <!-- 分页查询  -->
+   <select id="selectPage" resultMap="BaseResultMap" parameterType="com.zssq.dao.pojo.UserMsgPraise" >
+    select 
+    <include refid="Base_Column_List" />
+    from user_msg_at
+    where 1 = 1
+    
+     <if test="userCode != null">
+      and  user_code = #{userCode,jdbcType=VARCHAR}
+   	</if>
+    and  is_delete=0
+    <if test="limitStart != null and limitStart>=0" >
+      limit #{limitStart} , #{limitEnd}
+    </if>
+  
+  </select>
+  
+  <!-- 总条数 -->
+   <select id="selectCount" resultType="int" parameterType="com.zssq.dao.pojo.UserMsgPraise" >
+   select count(1)
+   from user_msg_at
+   where 1 = 1
+   
+   <if test="userCode != null">
+       and  user_code = #{userCode,jdbcType=VARCHAR}
+   </if>
+   and  is_delete=0
+  
+  </select>
+  
+  
+  
+   <update id="" parameterType="com.zssq.dao.pojo.UserMsgAT" >
+    update user_msg_at
+    <set >
+      <if test="atCode != null" >
+        at_code = #{atCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        user_code = #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="atUserCode != null" >
+        at_user_code = #{atUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null" >
+        content = #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="originalContent != null" >
+        original_content = #{originalContent,jdbcType=VARCHAR},
+      </if>
+      <if test="atType != null" >
+        at_type = #{atType,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="originalCode != null" >
+        original_code = #{originalCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        org_level = #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="atCategory != null" >
+        at_category = #{atCategory,jdbcType=TINYINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  
+  
+   <!-- 批量插入 -->
+  <insert id="batchMsg"  parameterType="com.zssq.dao.pojo.UserMsgAT">  
+     insert into user_msg_at (at_code, user_code, 
+      at_user_code, content, at_type, 
+      is_delete, original_code, create_time, 
+      tenant_code, org_code
+      )
+	    values    
+	    <foreach collection="list" item="item" index="index" separator="," >  
+	    ( #{item.atCode,jdbcType=VARCHAR}, #{item.userCode,jdbcType=VARCHAR}, 
+	      #{item.atUserCode,jdbcType=VARCHAR}, #{item.content,jdbcType=VARCHAR}, #{item.atType,jdbcType=TINYINT}, 
+	      #{item.isDelete,jdbcType=TINYINT}, #{item.originalCode,jdbcType=VARCHAR}, #{item.createTime,jdbcType=BIGINT}, 
+	      #{item.tenantCode,jdbcType=VARCHAR},  #{item.orgCode,jdbcType=VARCHAR}
+      	)
+	    </foreach>  
+ </insert>
+  
+  
+  
+</mapper>

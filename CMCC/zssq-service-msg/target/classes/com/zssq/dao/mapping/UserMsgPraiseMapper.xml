@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.UserMsgPraiseMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.UserMsgPraise" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="praise_code" property="praiseCode" jdbcType="VARCHAR" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="praise_user_code" property="praiseUserCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="praise_type" property="praiseType" jdbcType="TINYINT" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <result column="praise_number" property="praiseNumber" jdbcType="INTEGER" />
+    <result column="comment_number" property="commentNumber" jdbcType="INTEGER" />
+    <result column="original_code" property="originalCode" jdbcType="VARCHAR" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="content" property="content" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, praise_code, user_code, praise_user_code, create_time, praise_type, is_delete, 
+    praise_number, comment_number, original_code, tenant_code, org_code, content
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from user_msg_praise
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from user_msg_praise
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.UserMsgPraise" >
+    insert into user_msg_praise (id, praise_code, user_code, 
+      praise_user_code, create_time, praise_type, 
+      is_delete, praise_number, comment_number, 
+      original_code, tenant_code, org_code, 
+      content)
+    values (#{id,jdbcType=BIGINT}, #{praiseCode,jdbcType=VARCHAR}, #{userCode,jdbcType=VARCHAR}, 
+      #{praiseUserCode,jdbcType=VARCHAR}, #{createTime,jdbcType=BIGINT}, #{praiseType,jdbcType=TINYINT}, 
+      #{isDelete,jdbcType=TINYINT}, #{praiseNumber,jdbcType=INTEGER}, #{commentNumber,jdbcType=INTEGER}, 
+      #{originalCode,jdbcType=VARCHAR}, #{tenantCode,jdbcType=VARCHAR}, #{orgCode,jdbcType=VARCHAR}, 
+      #{content,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.UserMsgPraise" >
+    insert into user_msg_praise
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="praiseCode != null" >
+        praise_code,
+      </if>
+      <if test="userCode != null" >
+        user_code,
+      </if>
+      <if test="praiseUserCode != null" >
+        praise_user_code,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="praiseType != null" >
+        praise_type,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+      <if test="praiseNumber != null" >
+        praise_number,
+      </if>
+      <if test="commentNumber != null" >
+        comment_number,
+      </if>
+      <if test="originalCode != null" >
+        original_code,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="content != null" >
+        content,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="praiseCode != null" >
+        #{praiseCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="praiseUserCode != null" >
+        #{praiseUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="praiseType != null" >
+        #{praiseType,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="praiseNumber != null" >
+        #{praiseNumber,jdbcType=INTEGER},
+      </if>
+      <if test="commentNumber != null" >
+        #{commentNumber,jdbcType=INTEGER},
+      </if>
+      <if test="originalCode != null" >
+        #{originalCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null" >
+        #{content,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.UserMsgPraise" >
+    update user_msg_praise
+    <set >
+      <if test="praiseCode != null" >
+        praise_code = #{praiseCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        user_code = #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="praiseUserCode != null" >
+        praise_user_code = #{praiseUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="praiseType != null" >
+        praise_type = #{praiseType,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="praiseNumber != null" >
+        praise_number = #{praiseNumber,jdbcType=INTEGER},
+      </if>
+      <if test="commentNumber != null" >
+        comment_number = #{commentNumber,jdbcType=INTEGER},
+      </if>
+      <if test="originalCode != null" >
+        original_code = #{originalCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null" >
+        content = #{content,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.UserMsgPraise" >
+    update user_msg_praise
+    set praise_code = #{praiseCode,jdbcType=VARCHAR},
+      user_code = #{userCode,jdbcType=VARCHAR},
+      praise_user_code = #{praiseUserCode,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=BIGINT},
+      praise_type = #{praiseType,jdbcType=TINYINT},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      praise_number = #{praiseNumber,jdbcType=INTEGER},
+      comment_number = #{commentNumber,jdbcType=INTEGER},
+      original_code = #{originalCode,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      content = #{content,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  <!-- 分页查询  -->
+   <select id="selectPage" resultMap="BaseResultMap" parameterType="com.zssq.dao.pojo.UserMsgPraise" >
+    select 
+    <include refid="Base_Column_List" />
+    from user_msg_praise
+    where 1 = 1
+    
+     <if test="userCode != null">
+      and user_code = #{userCode,jdbcType=VARCHAR}
+   	</if>
+    and  is_delete=0
+     ORDER BY  create_time DESC
+    <if test="limitStart != null and limitStart>=0" >
+      limit #{limitStart} , #{limitEnd}
+    </if>
+  
+  </select>
+  
+  <!-- 总条数 -->
+   <select id="selectCount" resultType="int" parameterType="com.zssq.dao.pojo.UserMsgPraise" >
+   select count(1)
+   from user_msg_praise
+   where 1 = 1
+   
+   <if test="userCode != null">
+     and  user_code = #{userCode,jdbcType=VARCHAR}
+   </if>
+ 	and  is_delete=0
+  </select>
+  
+  
+  
+  <!-- 删除点赞 -->
+   <update id="delPraise" parameterType="com.zssq.dao.pojo.UserMsgPraise" >
+    update user_msg_praise
+    <set >
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=TINYINT}
+      </if>
+    </set>
+    where 
+    <if test="praiseCode != null" >
+        praise_code = #{praiseCode,jdbcType=VARCHAR}
+    </if>
+    
+    
+  </update>
+  
+  
+</mapper>

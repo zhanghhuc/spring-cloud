@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
+    <wb-module deploy-name="zssq-glpc-web">
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
+        <wb-resource deploy-path="/" source-path="/target/m2e-wtp/web-resources"/>
+        <wb-resource deploy-path="/" source-path="/src/main/webapp" tag="defaultRootSource"/>
+        <dependent-module archiveName="zssq-common-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-common/zssq-common">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-common-core-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-common-core/zssq-common-core">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-news-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-news/zssq-facade-news">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-vote-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-vote/zssq-facade-vote">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-honor-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-honor/zssq-facade-honor">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-auth-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-auth/zssq-facade-auth">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-filing-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-filing/zssq-facade-filing">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-credit-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-credit/zssq-facade-credit">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-team-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-team/zssq-facade-team">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-complaint-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-complaint/zssq-facade-complaint">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-forum-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-forum/zssq-facade-forum">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-activity-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-activity/zssq-facade-activity">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-mblog-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-mblog/zssq-facade-mblog">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-msg-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-msg/zssq-facade-msg">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-disk-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-disk/zssq-facade-disk">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-relation-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-relation/zssq-facade-relation">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-statistic-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-statistic/zssq-facade-statistic">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-blog-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-blog/zssq-facade-blog">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-knowledgeLib-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-knowledgeLib/zssq-facade-knowledgeLib">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="zssq-facade-search-1.0.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/zssq-facade-search/zssq-facade-search">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <property name="context-root" value="zssq-glpc-web"/>
+        <property name="java-output-path" value="/zssq-glpc-web/target/classes"/>
+    </wb-module>
+</project-modules>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.auth.dao.mapper.KcUserMapper">
+	
+	<resultMap id="BaseResultMap" type="com.zssq.auth.pojo.KcUser">
+		<result column="USER_ID" property="userId" jdbcType="INTEGER" />
+		<result column="USER_CODE" property="userCode" jdbcType="VARCHAR" />
+		<result column="USER_NAME" property="userName" jdbcType="VARCHAR" />
+		<result column="SEX" property="sex" jdbcType="INTEGER" />
+		<result column="POSITION" property="position" jdbcType="VARCHAR" />
+		<result column="POST_LEVEL" property="postLevel" jdbcType="INTEGER" />
+		<result column="OFFICE_PHONE" property="officePhone" jdbcType="VARCHAR" />
+		<result column="USER_ORDER" property="userOrder" jdbcType="INTEGER" />
+		<result column="PHOTO" property="photo" jdbcType="VARCHAR" />
+		<result column="STATUS" property="status" jdbcType="INTEGER" />
+		<result column="ORG_ID" property="orgId" jdbcType="INTEGER" />
+		<result column="PROVINCE_ID" property="provinceId" jdbcType="INTEGER" />
+		<result column="CITY_ID" property="cityId" jdbcType="INTEGER" />
+		<result column="ORG_CODE" property="orgCode" jdbcType="VARCHAR" />
+		<result column="PROVINCE_CODE" property="provinceCode" jdbcType="VARCHAR" />
+		<result column="CITY_CODE" property="cityCode" jdbcType="VARCHAR" />
+		<result column="PINYIN" property="pinyin" jdbcType="VARCHAR" />
+		<result column="PY" property="py" jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<select id="selectKcUserCount" resultType="java.lang.Integer">
+		select count(0) from kc_user
+	</select>	
+
+	<select id="selectKcUserBatch" resultMap="BaseResultMap" parameterType="java.util.Map">
+		select * from kc_user limit ${startRowNum}, ${executeSize}
+	</select>
+</mapper>

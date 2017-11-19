@@ -1,0 +1,6 @@
+ip=172.16.126.195
+port=27017
+user=statistic
+pwd=123456
+db=statistic
+dbCollectionName=statistic_visit_detail

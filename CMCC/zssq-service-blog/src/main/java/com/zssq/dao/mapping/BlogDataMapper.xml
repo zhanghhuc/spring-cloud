@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.BlogDataMapper">
+
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.BlogData">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="data_code" property="dataCode" jdbcType="VARCHAR" />
+		<result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+		<result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+		<result column="remark" property="remark" jdbcType="VARCHAR" />
+		<result column="blog_code" property="blogCode" jdbcType="VARCHAR" />
+		<result column="team_quality_num" property="teamQualityNum" jdbcType="INTEGER" />
+		<result column="group_quality_num" property="groupQualityNum" jdbcType="INTEGER" />
+		<result column="province_quality_num" property="provinceQualityNum" jdbcType="INTEGER" />
+		<result column="city_quality_num" property="cityQualityNum" jdbcType="INTEGER" />
+		<result column="read_num" property="readNum" jdbcType="INTEGER" />
+		<result column="like_num" property="likeNum" jdbcType="INTEGER" />
+		<result column="collect_num" property="collectNum" jdbcType="INTEGER" />
+		<result column="forward_num" property="forwardNum" jdbcType="INTEGER" />
+		<result column="comment_num" property="commentNum" jdbcType="INTEGER" />
+		<result column="share_num" property="shareNum" jdbcType="INTEGER" />
+	</resultMap>
+	
+	<!-- 列列表 -->
+	<sql id="Base_Column_List">
+		id, data_code, tenant_code, org_code, create_time, modify_time, remark,
+		blog_code, team_quality_num, group_quality_num, province_quality_num, city_quality_num,
+		read_num, like_num, collect_num, forward_num, comment_num, share_num
+	</sql>
+	
+	<!-- 插入 -->
+	<insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.zssq.dao.pojo.BlogData">
+		INSERT INTO blog_data (
+			data_code, 
+			tenant_code,
+			org_code, 
+			create_time,
+			modify_time, 
+			remark, 
+			blog_code,
+			team_quality_num, 
+			group_quality_num, 
+			province_quality_num,
+			city_quality_num, 
+			read_num, 
+			like_num,
+			collect_num, 
+			forward_num, 
+			comment_num,
+			share_num
+		) VALUES (
+			#{dataCode,jdbcType=VARCHAR},
+			#{tenantCode,jdbcType=VARCHAR},
+			#{orgCode,jdbcType=VARCHAR}, 
+			#{createTime,jdbcType=BIGINT},
+			#{modifyTime,jdbcType=BIGINT}, 
+			#{remark,jdbcType=VARCHAR},
+			#{blogCode,jdbcType=VARCHAR},
+			#{teamQualityNum,jdbcType=INTEGER}, 
+			#{groupQualityNum,jdbcType=INTEGER},
+			#{provinceQualityNum,jdbcType=INTEGER},
+			#{cityQualityNum,jdbcType=INTEGER}, 
+			#{readNum,jdbcType=INTEGER},
+			#{likeNum,jdbcType=INTEGER},
+			#{collectNum,jdbcType=INTEGER}, 
+			#{forwardNum,jdbcType=INTEGER}, 
+			#{commentNum,jdbcType=INTEGER},
+			#{shareNum,jdbcType=INTEGER}
+		)
+	</insert>
+	
+	<!-- 修改 -->
+	<update id="update" parameterType="map">
+		UPDATE blog_data SET
+			modify_time = #{modifyTime,jdbcType=BIGINT},
+			<choose>
+				<!-- 班组置精次数 -->
+				<when test="updateField == 'teamQualityNum'.toString()">
+					team_quality_num = team_quality_num + #{updateNumber,jdbcType=INTEGER}
+				</when>
+				<!-- 集团置精次数 -->
+				<when test="updateField == 'groupQualityNum'.toString()">
+					group_quality_num = group_quality_num + #{updateNumber,jdbcType=INTEGER}
+				</when>
+				<!-- 省置精次数 -->
+				<when test="updateField == 'provinceQualityNum'.toString()">
+					province_quality_num = province_quality_num + #{updateNumber,jdbcType=INTEGER}
+				</when>
+				<!-- 市置精次数 -->
+				<when test="updateField == 'cityQualityNum'.toString()">
+					city_quality_num = city_quality_num + #{updateNumber,jdbcType=INTEGER}
+				</when>
+				<!-- 浏览量 -->
+				<when test="updateField == 'readNum'.toString()">
+					read_num = read_num + #{updateNumber,jdbcType=INTEGER}
+				</when>
+				<!-- 点赞量 -->
+				<when test="updateField == 'likeNum'.toString()">
+					like_num = like_num + #{updateNumber,jdbcType=INTEGER}
+				</when>
+				<!-- 收藏量 -->
+				<when test="updateField == 'collectNum'.toString()">
+					collect_num = collect_num + #{updateNumber,jdbcType=INTEGER}
+				</when>
+				<!-- 转发量 -->
+				<when test="updateField == 'forwardNum'.toString()">
+					forward_num = forward_num + #{updateNumber,jdbcType=INTEGER}
+				</when>
+				<!-- 评论量 -->
+				<when test="updateField == 'commentNum'.toString()">
+					comment_num = comment_num + #{updateNumber,jdbcType=INTEGER}
+				</when>
+				<!-- 分享量 -->
+				<when test="updateField == 'shareNum'.toString()">
+					share_num = share_num + #{updateNumber,jdbcType=INTEGER}
+				</when>
+				<otherwise>
+				</otherwise>
+			</choose>
+		WHERE blog_code = #{blogCode,jdbcType=VARCHAR}
+	</update>
+
+</mapper>

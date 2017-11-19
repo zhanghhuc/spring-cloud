@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.SensitiveWordMapper">
+
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.SensitiveWordInfo">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="sensitive_code" property="sensitiveCode" jdbcType="VARCHAR" />
+		<result column="sensitive_value" property="sensitiveValue" jdbcType="VARCHAR" />
+		<result column="sensitive_spell_value" property="sensitiveSpellValue" jdbcType="VARCHAR" />
+		<result column="sensitive_acronym" property="sensitiveAcronym" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="is_enable" property="isEnable" jdbcType="TINYINT" />
+		<result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<sql id="Base_Column_List">
+		id, sensitive_code, sensitive_value, sensitive_spell_value,
+		sensitive_acronym, create_time, is_enable, org_code
+	</sql>
+
+	<insert id="insertSelective" parameterType="com.zssq.dao.pojo.SensitiveWordInfo">
+		INSERT INTO sys_sensitive_word
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id!=null">
+				id,
+			</if>
+			<if test="sensitiveCode!=null">
+				sensitive_code,
+			</if>
+			<if test="sensitiveValue!=null">
+				sensitive_value,
+			</if>
+			<if test="sensitiveSpellValue!=null">
+				sensitive_spell_value,
+			</if>
+			<if test="sensitiveAcronym!=null">
+				sensitive_acronym,
+			</if>
+			<if test="createTime!=null">
+				create_time,
+			</if>
+			<if test="isEnable!=null">
+				is_enable,
+			</if>
+			<if test="orgCode!=null">
+				org_code,
+			</if>
+		</trim>
+		
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id!=null">
+				#{id,jdbcType=BIGINT},
+			</if>
+			<if test="sensitiveCode!=null">
+				#{sensitiveCode,jdbcType=VARCHAR},
+			</if>
+			<if test="sensitiveValue!=null">
+				#{sensitiveValue,jdbcType=VARCHAR},
+			</if>
+			<if test="sensitiveSpellValue!=null">
+				#{sensitiveSpellValue,jdbcType=VARCHAR},
+			</if>
+			<if test="sensitiveAcronym!=null">
+				#{sensitiveAcronym,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime!=null">
+				#{createTime,jdbcType=BIGINT},
+			</if>
+			<if test="isEnable!=null">
+				#{isEnable,jdbcType=TINYINT},
+			</if>
+			<if test="orgCode!=null">
+				#{orgCode,jdbcType=VARCHAR},
+			</if>
+		</trim>
+		
+	</insert>
+	
+	<select id="selectPage" parameterType="com.zssq.dao.pojo.SensitiveWordInfo" resultMap="BaseResultMap">
+		select 
+		<include refid="Base_Column_List"/>
+		from sys_sensitive_word
+		where 1=1
+		<if test="orgCode!=null">
+			and org_code=#{orgCode}
+		</if>
+		<if test="sensitiveValue!=null">
+			and sensitive_value like concat('%',#{sensitiveValue},'%')
+		</if>
+		<if test="limitStart != null and limitStart>=0" >
+	    	limit #{limitStart} , #{limitEnd}
+	    </if>
+	</select>
+	
+	<select id="selectPageCount" resultType="java.lang.Integer">
+		select count(1) from sys_sensitive_word
+		where 1=1
+		<if test="orgCode!=null">
+			and org_code=#{orgCode}
+		</if>
+		<if test="sensitiveValue!=null">
+			and sensitive_value like concat('%',#{sensitiveValue},'%')
+		</if>
+	</select>
+	
+	<delete id="deleteBySensitiveCode" parameterType="java.lang.String">
+		delete from sys_sensitive_word
+		where sensitive_code=#{sensitiveCode,jdbcType=VARCHAR}
+	</delete>
+	
+	<insert id="batchInsert" parameterType="java.util.List">
+		INSERT INTO sys_sensitive_word (
+		  sensitive_code,
+		  sensitive_value,
+		  create_time,
+		  is_enable,
+		  org_code
+		) 
+		VALUES 
+	    <foreach collection="list" item="item" index="index" separator="," >  
+	        (#{item.sensitiveCode,jdbcType=VARCHAR}, 
+	        #{item.sensitiveValue,jdbcType=VARCHAR},
+	        #{item.createTime,jdbcType=BIGINT},
+			#{item.isEnable,jdbcType=TINYINT},
+			#{item.orgCode,jdbcType=VARCHAR})
+	    </foreach>
+	</insert>
+
+</mapper>

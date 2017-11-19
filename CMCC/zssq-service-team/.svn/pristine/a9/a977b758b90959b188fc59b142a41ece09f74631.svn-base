@@ -1,0 +1,48 @@
+package com.zssq.dao.mapper;
+
+import java.util.List;
+
+import com.zssq.dao.pojo.TeamFans;
+
+public interface TeamFansMapper {
+
+    int insertSelective(TeamFans record);
+
+    TeamFans selectByCode(String code);
+    
+    /**
+     * @Function selectPage
+     * @Description 查询班组粉丝
+     * @param record
+     * @return
+     */
+    List<TeamFans> selectPage(TeamFans record);
+    
+    /**
+     * @Function selectCount
+     * @Description 查询班组粉丝(数量)
+     * @param record
+     * @return
+     */
+    int selectCount(TeamFans record);
+    
+    /**
+     * @Function selectConcersTeamPage
+     * @Description 查询我关注的班组
+     * @param record
+     * @return
+     */
+    List<TeamFans> selectConcersTeamPage(TeamFans record);
+    
+    /**
+     * @Function selectConcersTeamCount
+     * @Description 查询我关注的班组(数量)
+     * @param record
+     * @return
+     */
+    int selectConcersTeamCount(TeamFans record);
+    
+    int deleteByCode(String code);
+    
+    List<String> selectConcernsTeam(String userCode);
+}

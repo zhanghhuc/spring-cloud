@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.IntegralAccountMapper">
+	
+	<!-- integral_account 表字段实体映射 -->
+	<resultMap type="com.zssq.dao.pojo.IntegralAccount" id="BaseResultMap">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="rownum" property="rownum" jdbcType="VARCHAR" />
+		<result column="account_code" property="accountCode" jdbcType="VARCHAR" />
+		<result column="account_type" property="accountType" jdbcType="TINYINT" />
+		<result column="integral_balance" property="integralBalance" jdbcType="INTEGER" />
+		<result column="integral_balance_salt" property="integralBalanceSalt" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+		<result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+		<result column="saas_tenant_code" property="saasTenantCode" jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<!-- 班组积分、金币排行榜输出参数实体映射 -->
+	<resultMap type="com.zssq.dao.pojo.IntegralAndCoin" id="BaseResultMap2">
+		<result column="rownum" property="rownum" jdbcType="VARCHAR" />
+		<result column="account_code" property="accountCode" jdbcType="VARCHAR" />
+		<result column="account_type" property="accountType" jdbcType="TINYINT" />
+		<result column="integral_balance" property="integralBalance" jdbcType="INTEGER" />
+		<result column="coin_balance" property="coinBalance" jdbcType="INTEGER" />
+	</resultMap>
+
+	<!-- integral_account 表字段实体映射 -->
+	<sql id="Base_Column_List">
+		id, account_code, account_type, integral_balance,
+		integral_balance_salt,
+		create_time, modify_time, org_code, saas_tenant_code
+	</sql>
+
+	<!-- 根据账户编号查询积分账户信息 -->
+	<select id="selectByAccountCode" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from integral_account
+		where account_code=#{accountCode}
+	</select>
+
+	<!-- 新增积分账户 -->
+	<insert id="insert" parameterType="com.zssq.dao.pojo.IntegralAccount">
+		insert into integral_account(
+			id, account_code, account_type,
+			integral_balance, integral_balance_salt,
+			create_time, modify_time, org_code, saas_tenant_code
+		)
+		values(
+			#{id,jdbcType=BIGINT}, 
+			#{accountCode,jdbcType=VARCHAR},
+			#{accountType,jdbcType=TINYINT},
+			#{integralBalance,jdbcType=INTEGER},
+			#{integralBalanceSalt,jdbcType=VARCHAR},
+			#{createTime,jdbcType=BIGINT},
+			#{modifyTime,jdbcType=BIGINT},
+			#{orgCode,jdbcType=VARCHAR},
+			#{saasTenantCode,jdbcType=VARCHAR}
+		)
+	</insert>
+
+	<!-- 修改积分账户 -->
+	<update id="updateByAccountCode" parameterType="com.zssq.dao.pojo.IntegralAccount">
+		update integral_account
+		<set>
+			<if test="integralBalance != null">
+				integral_balance=#{integralBalance,jdbcType=INTEGER},
+			</if>
+			<if test="integralBalanceSalt != null">
+				integral_balance_salt=#{integralBalanceSalt,jdbcType=VARCHAR},
+			</if>
+			<if test="modifyTime != null">
+				modify_time=#{modifyTime,jdbcType=BIGINT}
+			</if>
+		</set>
+		where account_code=#{accountCode,jdbcType=VARCHAR}
+	</update>
+
+	<!-- 分页查询积分账户列表 -->
+	<select id="selectPage" parameterType="com.zssq.dao.pojo.IntegralAccount" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from integral_account
+		where account_type=#{accountType,jdbcType=TINYINT}
+		<if test="orgCode!=null">
+			and org_code=#{orgCode,jdbcType=VARCHAR}
+		</if>
+		<if test="limitStart!=null and limitStart>=0">
+			limit ${limitStart},${limitEnd}
+		</if>
+	</select>
+	
+	<!-- 排行榜分页查询积分账户列表 -->
+	<select id="selectPageRank" parameterType="com.zssq.dao.pojo.IntegralAccount" resultMap="BaseResultMap">
+		select @rownum:=@rownum+1 as rownum, temp.*
+		from (select @rownum:=0) r, (
+			select
+			<include refid="Base_Column_List" />
+			from integral_account
+			where account_type=#{accountType,jdbcType=TINYINT}
+			<if test="orgCode!=null">
+				and org_code=#{orgCode,jdbcType=VARCHAR}
+			</if>
+			order by integral_balance desc, id
+			<if test="limitStart!=null and limitStart>=0">
+				limit ${limitStart},${limitEnd}
+			</if>
+		) temp
+	</select>
+	
+	<!-- 查询积分账户列表的总记录数 -->
+	<select id="selectPageCount" parameterType="com.zssq.dao.pojo.IntegralAccount" resultType="java.lang.Integer">
+		select count(1) from integral_account
+		where account_type=#{accountType,jdbcType=TINYINT}
+		<if test="orgCode!=null">
+			and org_code=#{orgCode,jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<!-- 查询积分账户列表并排序（先按积分倒序排列，再按金币倒序排列） -->
+	<select id="sort" parameterType="com.zssq.dao.pojo.RankEntity" resultMap="BaseResultMap2">
+		select @rownum:=@rownum+1 as rownum, temp.*
+		from (select @rownum:=0) r, (
+			select
+				integral.account_code,
+				integral.account_type,
+				integral.integral_balance,
+				coin.coin_balance
+			from 
+				integral_account integral,coin_account coin
+			where
+				integral.account_code = coin.account_code
+				and integral.account_code in
+				<foreach item="item" index="index" collection="list" open="(" separator="," close=")">  
+	 				#{item}  
+	 			</foreach>
+			order by 
+				integral.integral_balance desc,coin.coin_balance desc, coin.id
+			<if test="limitStart!=null and limitStart>=0 and limitEnd!=null and limitEnd>=0">
+				limit ${limitStart},${limitEnd}
+			</if>
+		) temp
+	</select>
+	
+	<!-- 查询积分账户列表并排序的总记录数 -->
+	<select id="sortCount" parameterType="com.zssq.dao.pojo.RankEntity" resultType="java.lang.Integer">
+		select
+			count(1)
+		from 
+			integral_account integral,coin_account coin
+		where
+			integral.account_code = coin.account_code
+		and integral.account_code in
+		<foreach item="item" index="index" collection="list" open="(" separator="," close=")">  
+			#{item}  
+		</foreach>
+	</select>
+	
+	<!-- 分页查询公司积分账户列表并按积分倒序排列 -->
+	<select id="selectPageByOrgCodes" parameterType="com.zssq.dao.pojo.IntegralAccountList" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List"/>
+		from integral_account
+		where account_code in
+		<foreach item="item" index="index" collection="accountCodes" open="(" separator="," close=")">  
+			#{item}  
+		</foreach>
+		order by integral_balance desc, id
+		<if test="limitStart!=null and limitStart>=0 and limitEnd!=null and limitEnd>=0">
+				limit ${limitStart},${limitEnd}
+		</if>
+	</select>
+	
+	<!-- 查询公司积分账户列表并按积分倒序排列的总记录数 -->
+	<select id="selectPageCountByOrgCodes" parameterType="com.zssq.dao.pojo.IntegralAccountList" resultType="java.lang.Integer">
+		select count(1)
+		from integral_account
+		where account_code in
+		<foreach item="item" index="index" collection="accountCodes" open="(" separator="," close=")">  
+			#{item}  
+		</foreach>
+	</select>
+	
+	<!-- 分页查询个人或班组积分账户列表并按积分倒序排列 -->
+	<select id="selectPageByOrgCodesAndAccountType" parameterType="com.zssq.dao.pojo.IntegralAccountListWithType" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List"/>
+		from integral_account
+		where 
+		account_type = #{accountType}
+		and org_code in
+		<foreach item="item" index="index" collection="orgCodes" open="(" separator="," close=")">  
+			#{item}  
+		</foreach>
+		<if test="accountCode != null">
+			and account_code = #{accountCode}
+		</if>
+		<if test="accountCodes != null">
+			and account_code in
+			<foreach item="item" index="index" collection="accountCodes" open="(" separator="," close=")">  
+				#{item}  
+			</foreach> 
+		</if>
+		order by integral_balance desc, id
+		<if test="limitStart!=null and limitStart>=0 and limitEnd!=null and limitEnd>=0">
+				limit ${limitStart},${limitEnd}
+		</if>
+	</select>
+	
+	<!-- 查询个人或班组积分账户列表并按积分倒序排列的总记录数 -->
+	<select id="selectPageCountByOrgCodesAndAccountType" parameterType="com.zssq.dao.pojo.IntegralAccountListWithType" resultType="java.lang.Integer">
+		select count(1)
+		from integral_account
+		where 
+		account_type = #{accountType}
+		and org_code in
+		<foreach item="item" index="index" collection="orgCodes" open="(" separator="," close=")">  
+			#{item}  
+		</foreach>
+		<if test="accountCode != null">
+			and account_code = #{accountCode}
+		</if>
+		<if test="accountCodes != null">
+			and account_code in
+			<foreach item="item" index="index" collection="accountCodes" open="(" separator="," close=")">  
+				#{item}  
+			</foreach> 
+		</if>
+	</select>
+
+</mapper>

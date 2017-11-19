@@ -1,0 +1,86 @@
+package com.zssq.dao.pojo;
+
+import java.io.Serializable;
+
+/**
+ * 门户地图插件与组织对应关系实体
+ * 
+ * @since JDK 1.7
+ * @author 赵翊
+ */
+public class MapOrgRelation implements Serializable {
+
+	private static final long serialVersionUID = -3344144432020713538L;
+	private Long id;
+	private String orgCode;
+	private String portalType;
+	private String mapName;
+	private String mapProvince;
+	private String mapLetter;
+	private String mapValue;
+	private Integer mapUse;
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getOrgCode() {
+		return orgCode;
+	}
+
+	public void setOrgCode(String orgCode) {
+		this.orgCode = orgCode;
+	}
+
+	public String getPortalType() {
+		return portalType;
+	}
+
+	public void setPortalType(String portalType) {
+		this.portalType = portalType;
+	}
+
+	public String getMapName() {
+		return mapName;
+	}
+
+	public void setMapName(String mapName) {
+		this.mapName = mapName;
+	}
+
+	public String getMapProvince() {
+		return mapProvince;
+	}
+
+	public void setMapProvince(String mapProvince) {
+		this.mapProvince = mapProvince;
+	}
+
+	public String getMapLetter() {
+		return mapLetter;
+	}
+
+	public void setMapLetter(String mapLetter) {
+		this.mapLetter = mapLetter;
+	}
+
+	public String getMapValue() {
+		return mapValue;
+	}
+
+	public void setMapValue(String mapValue) {
+		this.mapValue = mapValue;
+	}
+
+	public Integer getMapUse() {
+		return mapUse;
+	}
+
+	public void setMapUse(Integer mapUse) {
+		this.mapUse = mapUse;
+	}
+}

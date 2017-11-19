@@ -1,0 +1,272 @@
+package com.zssq.blog.controller;
+
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.blog.vo.GetBlogInfoVo;
+import com.zssq.blog.vo.GetBlogListVO;
+import com.zssq.constants.BlogConstants;
+import com.zssq.dao.model.BlogModel;
+import com.zssq.dao.pojo.SysOrgInfo;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.dao.pojo.TeamInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.BlogService;
+import com.zssq.service.ISysOrgService;
+import com.zssq.service.ISysUserService;
+import com.zssq.service.ITeamInfoService;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.utils.StringTools;
+import com.zssq.vo.BlogVO;
+
+/**
+ * 
+ * @ClassName: BlogInfoController  
+ * @Description: 博客  
+ * @author sry  
+ * @date 2017年4月15日  
+ *
+ */
+@Controller
+@RequestMapping("/blog")
+public class BlogController {
+	
+	/** log对象 **/
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private BlogService blogService;
+	
+	@Autowired
+	private ISysUserService sysUserService;
+	
+	@Autowired
+	private ISysOrgService sysOrgService;
+	
+	@Autowired
+	private ITeamInfoService teamInfoService;
+	/**
+	 * 
+	 * @Title: goToWeiboCom  
+	 * @Description: 获取博客详情
+	 * @param req
+	 * @param res
+	 * @param inVo
+	 * @return
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping(value = "/getBlogInfo",method = RequestMethod.POST)  
+	@ResponseBody
+	public ResultJSON getBlogInfo(@RequireValid GetBlogInfoVo inVo) throws BusinessException{  
+		try{
+			log.info("BlogController.getBlogInfo：获取博客详情");
+			// 创建QO
+			BlogVO qo = new BlogVO();
+			qo.setUserCode(inVo.getUserCode());
+			qo.setBlogCode(inVo.getBlogCode());
+			
+			// 获取数据
+			BlogModel blogModel = blogService.getBlogInfo(qo);
+			//组装返回参数
+			JSONObject body = new JSONObject();
+			if (blogModel != null) {
+				body.put("blogCode", StringTools.formatToString(blogModel.getBlogCode()));
+				body.put("dynamicCode", StringTools.formatToString(blogModel.getDynamicCode()));
+				body.put("userCode", StringTools.formatToString(blogModel.getUserCode()));
+				String userName = "";
+				String userPhotoUrl = "";
+				String teamName = "";
+				String orgCode = "";
+				String orgName = "";
+				SysUserInfo user = sysUserService.selectByCode(StringTools.formatToString(blogModel.getUserCode()));
+				if(user!=null){
+					userName = user.getUserName();
+					userPhotoUrl =user.getHeadPortrait();
+					orgCode = user.getManageOrgInfo().getSysOrgCode();
+					orgName = user.getManageOrgInfo().getSysOrgFullname();		
+				}
+				body.put("userName", userName);
+				body.put("userPhotoUrl", userPhotoUrl);
+				body.put("blogDepend", StringTools.formatToString(blogModel.getBlogDepend()));
+				String teamCode = StringTools.formatToString(blogModel.getTeamCode());
+				if (BlogConstants.BLOG_CLASS_DEPEND_TEAM.equals(blogModel.getBlogDepend())) {
+					TeamInfo teamInfo = teamInfoService.selectByCode(teamCode);
+					if(teamInfo!=null){
+						teamName = teamInfo.getTeamName();
+						SysOrgInfo sysOrgInfo = sysOrgService.selectByCode(teamInfo.getOrgCode());
+						if(sysOrgInfo!=null){
+							orgCode = teamInfo.getOrgCode();
+							orgName = sysOrgInfo.getSysOrgFullname();
+						}
+					}
+					
+				}
+				body.put("teamCode", teamCode);
+				body.put("teamName", teamName);
+				body.put("orgCode", orgCode);
+				body.put("orgName", orgName);
+				body.put("blogSource", StringTools.formatToString(blogModel.getBlogSource()));
+				String sourceUserName = "";
+				String sourceTeamName = "";
+				String sourceOrgCode = "";
+				String sourceOrgName ="";
+				body.put("sourceUserCode", StringTools.formatToString(blogModel.getSourceUserCode()));
+				body.put("sourceBlogDepend", StringTools.formatToString(blogModel.getSourceBlogDepend()));
+				body.put("sourceTeamCode", StringTools.formatToString(blogModel.getSourceTeamCode()));
+				if (BlogConstants.BLOG_SOURCE_FORWARD.equals(blogModel.getBlogSource())) {
+					SysUserInfo sourceUser = sysUserService.selectByCode(StringTools.formatToString(blogModel.getSourceUserCode()));
+					if(sourceUser!=null){
+						sourceUserName = sourceUser.getUserName();
+						sourceOrgCode = sourceUser.getManageOrgInfo().getSysOrgCode();
+						sourceOrgName = sourceUser.getManageOrgInfo().getSysOrgFullname();
+					}
+					body.put("sourceUserName", sourceUserName);
+					if (blogModel.getSourceBlogDepend() != null && blogModel.getSourceBlogDepend().equals(BlogConstants.BLOG_DEPEND_TEAM)) {
+						TeamInfo sourceTeamInfo = teamInfoService.selectByCode(StringTools.formatToString(blogModel.getSourceTeamCode()));
+						if(sourceTeamInfo!=null){
+							sourceTeamName = sourceTeamInfo.getTeamName();
+							SysOrgInfo sourceSysOrgInfo = sysOrgService.selectByCode(sourceTeamInfo.getOrgCode());
+							if(sourceSysOrgInfo!=null){
+								sourceOrgCode = sourceTeamInfo.getOrgCode();
+								sourceOrgName = sourceSysOrgInfo.getSysOrgFullname();
+							}
+						}
+					}
+					body.put("sourceOrgCode", sourceOrgCode);
+					body.put("sourceOrgName", sourceOrgName);
+				}
+				body.put("sourceUserName", sourceUserName);
+				body.put("sourceTeamName", sourceTeamName);
+				body.put("sourceOrgCode", sourceOrgCode);
+				body.put("sourceOrgName", sourceOrgName);
+				
+				body.put("blogTitle", StringTools.formatToString(blogModel.getBlogTitle()));
+				body.put("blogTags", StringTools.formatToString(blogModel.getBlogTags()));
+				body.put("className", StringTools.formatToString(blogModel.getClassName()));
+				body.put("contentInfo", StringTools.formatToString(blogModel.getContentInfo()));
+				body.put("blogPublishTime", StringTools.formatToString(blogModel.getBlogPublishTime()));
+				body.put("readNum", StringTools.formatToString(blogModel.getReadNum()));
+				body.put("likeNum", StringTools.formatToString(blogModel.getLikeNum()));
+				body.put("collectNum", StringTools.formatToString(blogModel.getCollectNum()));
+				body.put("commentNum", StringTools.formatToString(blogModel.getCommentNum()));
+				body.put("forwardNum", StringTools.formatToString(blogModel.getForwardNum()));
+				body.put("shareNum", StringTools.formatToString(blogModel.getShareNum()));
+				body.put("isLike", StringTools.formatToString(blogModel.getIsLike()));
+				body.put("isCollect", StringTools.formatToString(blogModel.getIsCollect()));
+			}
+			// 创建返回值
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(body);
+			log.info("BlogController.getBlogInfo：获取博客详情成功");
+			return result;
+		}catch(BusinessException e){
+			throw e;
+		}catch(Exception e){
+			log.error("BlogController.getBlogInfo", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * 
+	 * @Title: getBlogList  
+	 * @Description: 查询博客列表
+	 * @param getUserBlogListVO
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping(value="getBlogList",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getBlogList(@RequireValid GetBlogListVO getBlogListVO) throws BusinessException {
+		// 返回值
+		ResultJSON result = null;
+		
+		try {
+			log.info("BlogController.getBlogList：查询博客列表");
+			
+			// 获取参数
+			Integer pageSize = Integer.valueOf(getBlogListVO.getPageSize()); // 每页条数
+			Integer pageNo = Integer.valueOf(getBlogListVO.getPageNo()); // 页码
+			String queryTime = getBlogListVO.getQueryTime(); // 首次查询时间
+			Byte blogIsShield = getBlogListVO.getBlogIsShield();
+			String userCode = getBlogListVO.getUserCode();
+			SysUserInfo user = sysUserService.selectByCode(StringTools.formatToString(getBlogListVO.getUserCode()));
+			if(user==null||user.getManageOrgInfo()==null||StringTools.isEmpty(user.getManageOrgInfo().getSysOrgCode())){
+				log.error("BlogController.getUserBlogList：用户或组织没有获取到userCode:"+userCode);
+				throw BusinessException.build("BLOG_13002", "查询");
+			}
+			String orgCode = user.getManageOrgInfo().getSysOrgCode();
+			// 拼接参数
+			PageParam pageParam = new PageParam(pageNo, pageSize);
+			BlogVO blogVO = new BlogVO();
+			blogVO.setQueryTime(Long.valueOf(queryTime)); // 首次查询时间
+			blogVO.setBlogIsShield(blogIsShield);
+			blogVO.setOrgCode(orgCode);
+			// 查询
+			PageBean pageBean = blogService.getBlogListByGL(pageParam, blogVO);
+			if (pageBean == null) {
+				log.error("BlogController.getUserBlogList：查询失败");
+				throw BusinessException.build("BLOG_13002", "查询");
+			}
+			
+			// 获取数据
+			List<Object> recordList = pageBean.getRecordList();
+			JSONArray ja = new JSONArray();
+			if (recordList != null && !recordList.isEmpty()) {
+				int recordSize = recordList.size();
+				for (int i = 0; i < recordSize; i++) {
+					BlogModel blogModel = (BlogModel) recordList.get(i);
+					JSONObject jo = new JSONObject();
+					jo.put("blogCode", StringTools.formatToString(blogModel.getBlogCode()));
+					jo.put("dynamicCode", StringTools.formatToString(blogModel.getDynamicCode()));
+					jo.put("userCode", StringTools.formatToString(blogModel.getUserCode()));
+					String userName = "";
+					orgCode ="";
+					String orgName = "";
+					SysUserInfo useUser = sysUserService.selectByCode(StringTools.formatToString(blogModel.getUserCode()));
+					if(null != useUser){
+						userName = useUser.getUserName();
+						orgName = useUser.getManageOrgInfo().getSysOrgFullname();
+						orgCode = useUser.getManageOrgInfo().getSysOrgCode();
+					}
+					jo.put("userName", userName);
+					jo.put("orgCode", orgCode);
+					jo.put("orgName", orgName);
+					jo.put("blogSource", StringTools.formatToString(blogModel.getBlogSource()));
+					// 转发时获取来源发布人信息
+					jo.put("blogTitle", StringTools.formatToString(blogModel.getBlogTitle()));
+					jo.put("blogPublishTime", StringTools.formatToString(blogModel.getBlogPublishTime()));
+					ja.add(jo);
+				}
+			}
+			
+			// 返回值赋值
+			result = new ResultJSON("COMMON_200", "查询");
+			JSONObject body = new JSONObject();
+			body.put("total", pageBean.getTotalCount());
+			body.put("blogList", ja);
+			result.setBody(body);
+			
+			log.info("BlogController.getUserBlogList：查询博客列表成功");
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("BlogController.getUserBlogList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+		return result;
+	}
+}

@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.StatisticVisitDetailMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.StatisticVisitDetail" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="org_name" property="orgName" jdbcType="VARCHAR" />
+    <result column="team_code" property="teamCode" jdbcType="VARCHAR" />
+    <result column="people_code" property="peopleCode" jdbcType="VARCHAR" />
+    <result column="ip" property="ip" jdbcType="VARCHAR" />
+    <result column="visit_code" property="visitCode" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, org_code,org_name, team_code, people_code, ip,visit_code, type, create_time
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from statistic_visit_detail
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectPage" resultMap="BaseResultMap" parameterType="com.zssq.dao.pojo.StatisticVisitDetail" >
+    select 
+    <include refid="Base_Column_List" />
+    from statistic_visit_detail
+    where 1 = 1
+    <if test="orgCode != null" >
+      and org_code = #{orgCode,jdbcType=VARCHAR}
+    </if>
+    <if test="orgName != null" >
+      and org_name = #{orgName,jdbcType=VARCHAR}
+    </if>
+    <if test="teamCode != null" >
+      and team_code = #{teamCode,jdbcType=VARCHAR}
+    </if>
+    <if test="peopleCode != null" >
+      and people_code = #{peopleCode,jdbcType=VARCHAR}
+    </if>
+    <if test="ip != null" >
+      and ip = #{ip,jdbcType=VARCHAR}
+    </if>
+    <if test="visitCode != null" >
+      and visit_code = #{visitCode,jdbcType=VARCHAR}
+    </if>
+    <if test="type != null" >
+      and type = #{type,jdbcType=INTEGER}
+    </if>
+    <if test="createTime != null" >
+      and create_time = #{createTime,jdbcType=BIGINT}
+    </if>
+    <if test="startTime != null" >
+      and create_time >= #{startTime,jdbcType=BIGINT}
+    </if>
+    <if test="endTime != null" >
+    <![CDATA[
+      and create_time <= #{endTime,jdbcType=BIGINT}
+    ]]>
+    </if>
+    <if test="isFlag == 1" >
+      AND 
+	  (people_code = ""
+	   AND team_code = ""
+	   OR team_code IS NULL
+	   AND people_code IS NULL)
+    </if>
+    order by create_time desc
+    <if test="limitStart != null and limitStart>=0" >
+      limit #{limitStart} , #{limitEnd}
+    </if>
+  </select>
+  <select id="selectVisitCount" resultType="java.lang.Integer" parameterType="com.zssq.dao.pojo.StatisticVisitDetail" >
+    select 
+    count(*)
+    from statistic_visit_detail
+    where 1 = 1
+    <if test="orgCode != null" >
+      and org_code = #{orgCode,jdbcType=VARCHAR}
+    </if>
+    <if test="teamCode != null" >
+      and team_code = #{teamCode,jdbcType=VARCHAR}
+    </if>
+    <if test="orgName != null" >
+      and org_name = #{orgName,jdbcType=VARCHAR}
+    </if>
+    <if test="peopleCode != null" >
+      and people_code = #{peopleCode,jdbcType=VARCHAR}
+    </if>
+    <if test="ip != null" >
+      and ip = #{ip,jdbcType=VARCHAR}
+    </if>
+    <if test="visitCode != null" >
+      and visit_code = #{visitCode,jdbcType=VARCHAR}
+    </if>
+    <if test="type != null" >
+      and type = #{type,jdbcType=INTEGER}
+    </if>
+    <if test="createTime != null" >
+      and create_time = #{createTime,jdbcType=BIGINT}
+    </if>
+    <if test="startTime != null" >
+      and create_time >= #{startTime,jdbcType=BIGINT}
+    </if>
+    <if test="endTime != null" >
+    <![CDATA[
+      and create_time <= #{endTime,jdbcType=BIGINT}
+    ]]>
+    </if>
+    <if test="isFlag == 1" >
+      AND 
+	  (people_code = ""
+	   AND team_code = ""
+	   OR team_code IS NULL
+	   AND people_code IS NULL)
+    </if>
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from statistic_visit_detail
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.StatisticVisitDetail" >
+    insert into statistic_visit_detail (id, org_code,org_name, team_code, 
+      people_code, ip,visit_code, type, 
+      create_time)
+    values (#{id,jdbcType=BIGINT}, #{orgCode,jdbcType=VARCHAR},#{orgName,jdbcType=VARCHAR}, #{teamCode,jdbcType=VARCHAR}, 
+      #{peopleCode,jdbcType=VARCHAR}, #{ip,jdbcType=VARCHAR},#{visitCode,jdbcType=VARCHAR}, #{type,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=BIGINT})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.StatisticVisitDetail" >
+    insert into statistic_visit_detail
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="orgName != null" >
+        org_name,
+      </if>
+      <if test="teamCode != null" >
+        team_code,
+      </if>
+      <if test="peopleCode != null" >
+        people_code,
+      </if>
+      <if test="ip != null" >
+        ip,
+      </if>
+      <if test="visitCode != null" >
+        visit_code,
+      </if>
+      <if test="type != null" >
+        type,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgName != null" >
+        #{orgName,jdbcType=VARCHAR},
+      </if>
+      <if test="teamCode != null" >
+        #{teamCode,jdbcType=VARCHAR},
+      </if>
+      <if test="peopleCode != null" >
+        #{peopleCode,jdbcType=VARCHAR},
+      </if>
+      <if test="ip != null" >
+        #{ip,jdbcType=VARCHAR},
+      </if>
+      <if test="visitCode != null" >
+        #{visitCode,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        #{type,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.StatisticVisitDetail" >
+    update statistic_visit_detail
+    <set >
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgName != null" >
+        org_name = #{orgName,jdbcType=VARCHAR},
+      </if>
+      <if test="teamCode != null" >
+        team_code = #{teamCode,jdbcType=VARCHAR},
+      </if>
+      <if test="peopleCode != null" >
+        people_code = #{peopleCode,jdbcType=VARCHAR},
+      </if>
+      <if test="ip != null" >
+        ip = #{ip,jdbcType=VARCHAR},
+      </if>
+      <if test="visitCode != null" >
+        visitCode = #{visitCode,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        type = #{type,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.StatisticVisitDetail" >
+    update statistic_visit_detail
+    set org_code = #{orgCode,jdbcType=VARCHAR},
+      org_name = #{orgName,jdbcType=VARCHAR},
+      team_code = #{teamCode,jdbcType=VARCHAR},
+      people_code = #{peopleCode,jdbcType=VARCHAR},
+      ip = #{ip,jdbcType=VARCHAR},
+      visit_code = #{visitCode,jdbcType=VARCHAR},
+      type = #{type,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

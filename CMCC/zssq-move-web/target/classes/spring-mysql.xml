@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+   http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+   http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+	
+	
+	<bean id="mysqlsso" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${mysqlDriver}"></property>
+		<property name="url" value="${mysql.sso.url}"></property>
+		<property name="username" value="${mysql.sso.username}"></property>
+		<property name="password" value="${mysql.sso.password}"></property>
+	</bean>
+	
+	<bean id="mysqlcomplaint" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${mysqlDriver}"></property>
+		<property name="url" value="${mysql.complaint.url}"></property>
+		<property name="username" value="${mysql.complaint.username}"></property>
+		<property name="password" value="${mysql.complaint.password}"></property>
+	</bean>
+	
+	<bean id="mysqlhonor" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${mysqlDriver}"></property>
+		<property name="url" value="${mysql.honor.url}"></property>
+		<property name="username" value="${mysql.honor.username}"></property>
+		<property name="password" value="${mysql.honor.password}"></property>
+	</bean>
+	
+	<bean id="mysqlforum" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${mysqlDriver}"></property>
+		<property name="url" value="${mysql.forum.url}"></property>
+		<property name="username" value="${mysql.forum.username}"></property>
+		<property name="password" value="${mysql.forum.password}"></property>
+	</bean>
+	
+	<bean id="mysqlteam" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${mysqlDriver}"></property>
+		<property name="url" value="${mysql.team.url}"></property>
+		<property name="username" value="${mysql.team.username}"></property>
+		<property name="password" value="${mysql.team.password}"></property>
+	</bean>
+	
+	<bean id="mysqlauth" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${mysqlDriver}"></property>
+		<property name="url" value="${mysql.auth.url}"></property>
+		<property name="username" value="${mysql.auth.username}"></property>
+		<property name="password" value="${mysql.auth.password}"></property>
+	</bean>
+	
+	<bean id="mysqlfiling" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${mysqlDriver}"></property>
+		<property name="url" value="${mysql.filing.url}"></property>
+		<property name="username" value="${mysql.filing.username}"></property>
+		<property name="password" value="${mysql.filing.password}"></property>
+	</bean>
+	
+	<bean id="mysqlcredit" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${mysqlDriver}"></property>
+		<property name="url" value="${mysql.credit.url}"></property>
+		<property name="username" value="${mysql.credit.username}"></property>
+		<property name="password" value="${mysql.credit.password}"></property>
+	</bean>
+	
+	<bean id="mysqlmblog" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${mysqlDriver}"></property>
+		<property name="url" value="${mysql.mblog.url}"></property>
+		<property name="username" value="${mysql.mblog.username}"></property>
+		<property name="password" value="${mysql.mblog.password}"></property>
+	</bean>
+	<bean id="mysqlrelation" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${mysqlDriver}"></property>
+		<property name="url" value="${mysql.relation.url}"></property>
+		<property name="username" value="${mysql.relation.username}"></property>
+		<property name="password" value="${mysql.relation.password}"></property>
+	</bean>
+	
+	<bean id="mysqlblog" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${mysqlDriver}"></property>
+		<property name="url" value="${mysql.blog.url}"></property>
+		<property name="username" value="${mysql.blog.username}"></property>
+		<property name="password" value="${mysql.blog.password}"></property>
+	</bean>
+	
+	<bean id="mysqlmessage" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${mysqlDriver}"></property>
+		<property name="url" value="${mysql.message.url}"></property>
+		<property name="username" value="${mysql.message.username}"></property>
+		<property name="password" value="${mysql.message.password}"></property>
+	</bean>
+	
+	<bean id="mysqlvote" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${mysqlDriver}"></property>
+		<property name="url" value="${mysql.vote.url}"></property>
+		<property name="username" value="${mysql.vote.username}"></property>
+		<property name="password" value="${mysql.vote.password}"></property>
+	</bean>
+	
+	<bean id="mysqlstatistic" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${mysqlDriver}"></property>
+		<property name="url" value="${mysql.statistic.url}"></property>
+		<property name="username" value="${mysql.statistic.username}"></property>
+		<property name="password" value="${mysql.statistic.password}"></property>
+	</bean>
+	
+	<bean id="mysqldisk" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${mysqlDriver}"></property>
+		<property name="url" value="${mysql.disk.url}"></property>
+		<property name="username" value="${mysql.disk.username}"></property>
+		<property name="password" value="${mysql.disk.password}"></property>
+	</bean>
+	
+	<bean id="mysqlactivity" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${mysqlDriver}"></property>
+		<property name="url" value="${mysql.activity.url}"></property>
+		<property name="username" value="${mysql.activity.username}"></property>
+		<property name="password" value="${mysql.activity.password}"></property>
+	</bean>
+	
+	<bean id="mysqlknowledgeLib" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${mysqlDriver}"></property>
+		<property name="url" value="${mysql.knowledgeLib.url}"></property>
+		<property name="username" value="${mysql.knowledgeLib.username}"></property>
+		<property name="password" value="${mysql.knowledgeLib.password}"></property>
+	</bean>
+</beans>

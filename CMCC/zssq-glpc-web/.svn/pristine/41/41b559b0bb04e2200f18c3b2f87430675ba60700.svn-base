@@ -1,0 +1,155 @@
+/*group.html*/
+.group-intent1 .lr{border-top: 2px solid #0177d9;}
+.group-intent1 .intent1-left li:hover a{color: #0177d9;}
+.group-intent1 .intent1-map{background: url(/images/map-bg.png) no-repeat left top;}
+.intent1-map .map-list .list-head{background: #eaf9f7;}
+.intent1-map .list-intent{background: #def4f5;}
+.list-new{color: #0177d9;}
+.ranking-list li.bg-none{border-top: 2px solid #0177d9;}
+.left-list2 .left-trends .trends-list li.bg-none{border-top: 2px solid #0177d9;}
+.group-intent1 .intent1-right .china-mobile{color: #0177d9;background: url(/images/position.png) no-repeat left center;}
+.white-intent3 .wintent3-left .lunbo-imgbox a{height: 520px;}
+/*group-white.html*/
+.intent7Tab .Tab-nav li.bg-none{color: #0177d9;}
+.list-new{color:#0177d9;}
+.gw-box{background: url(/images/map-bg1.png) no-repeat center center;}
+.intent1-map .map-list .list1-head{background: #0587f1;}
+.intent1-map .list-intentw{background: #fff;}
+.wb-new{color: #0077d8;}
+.wb-more:hover{color: #0077d8;}
+.wb-title{border-bottom: 1px solid #0077d8;}
+.white-intent2 .first-news{background: #0077d8;}
+.wnews-list1 .wnew-mask{background: #1a81d8;}
+.wintent3-right .right-wangpan{background: url(/images/wangpan-box.png) no-repeat center center;}
+.wintent3-left .wintent3-words .words-btn span.btn-bg{background: #0077d8;}
+.list4-explain:hover{background: #0077d8;}
+.intent7Tab .Tab-nav li{background: #0177d9; }
+.ListEven{background: url(/images/dongtai-right.png) no-repeat center center;}
+.ListOdd{background: url(/images/dongtai-left.png) no-repeat center center;}
+.white-intent6 .vote6-title {background: #0177d9;}
+.vote6-xiangqing{border:1px solid #0077d8;}
+.vote6-xiangqing a.see-xiangqing{color: #0077d8;}
+.intent5-common{border:1px solid #0077d8;}
+.intent5-common .staff5-title{background: #0077d8;}
+.list4-explain:hover .intent4-arrow{background-position: center center;}
+
+.TOP{background: url(/images/yijian-top.png) no-repeat center center;}
+
+.wb-new1,.active-news,.hotspots-new,.dongtai-new,.cream-new,.vote-new{display: none;}
+
+/*allComments*/
+.newsDetails-comments .comments-count span.countData i{color: #0177d9;}
+.newsDetails-comments .comments-count span.send-comments{background: #0177d9;}
+.border-bg{border-bottom: 2px solid #0177d9;}
+.ListMore{color: #0177d9;}
+
+/*creamPage.html/dynamicPage-two.html*/
+.NavList{border-top: 2px solid #0177d9;}
+.NavList li.navBg {background: #0177d9;}
+.newsPage-intent .ListMore{color: #0177d9;}
+/*newsDetails-page.html*/
+.newsDetails-alert .alert-pic .alert-list .alert-btn{background: #0177d9;}
+
+
+.intent1-map .map-btn{background: url(/images/arrow-top.png) no-repeat left center;color: #fff; }
+
+.newsDetais-new{border-bottom: 2px solid #0177d9;}
+
+.newsPage-srtz li.newsPage-star .StarPic{background: url(/images/xingbiao.png) no-repeat top left;}
+.newsPage-srtz li.newsPage-relay .RelayPic{background: url(/images/zhuanfa.png) no-repeat top left;}
+.newsPage-srtz li.newsPage-topic .TopicPic{background: url(/images/talk.png) no-repeat top left;}
+.newsPage-srtz li.newsPage-star .StarPic:hover,.newsPage-srtz li.newsPage-relay .RelayPic:hover,.newsPage-srtz li.newsPage-topic .TopicPic:hover{background-position: bottom left; }
+
+.srtz6 li.star6 .star6-pic{background: url(/images/xingbiao.png) no-repeat top left;}
+.srtz6 li.relay6 .relay6-pic{background: url(/images/zhuanfa.png) no-repeat top left;}
+.srtz6 li.topic6 .topic6-pic{background: url(/images/talk.png) no-repeat top left;}
+.srtz6 li.star6 .star6-pic:hover,.srtz6 li.relay6 .relay6-pic:hover,.srtz6 li.topic6 .topic6-pic:hover{background-position: bottom left; }
+
+.personRight .Srtz li.Star .Star-pic{background: url(/images/xingbiao.png) no-repeat top left;}
+.personRight .Srtz li.Relay .Relay-pic{background: url(/images/zhuanfa.png) no-repeat top left;}
+.personRight .Srtz li.Topic .Topic-pic{background: url(/images/talk.png) no-repeat top left;}
+.personRight .Srtz li.Star .Star-pic:hover,.personRight .Srtz li.Relay .Relay-pic:hover,.personRight .Srtz li.Topic .Topic-pic:hover{background-position: bottom left; }
+
+
+.srtz li.star .star-pic{background: url(/images/xingbiao.png) no-repeat top left;}
+.srtz li.relay .relay-pic{background: url(/images/zhuanfa.png) no-repeat top left;}
+.srtz li.topic .topic-pic{background: url(/images/talk.png) no-repeat top left;}
+.srtz li.see .see-pic{background: url(/images/see.png) no-repeat top left;}
+.srtz li.star .star-pic:hover,.srtz li.relay .relay-pic:hover,.srtz li.topic .topic-pic:hover,.srtz li.see .see-pic:hover{background-position: bottom left; }
+
+.newsDetails-srtz li.newsDetails-star .Star-Pic{background: url(../images/xingbiao.png) no-repeat top left;}
+.newsDetails-srtz li.newsDetails-relay .Relay-Pic{background: url(../images/zhuanfa.png) no-repeat top left;}
+.newsDetails-srtz li.newsDetails-star .Star-Pic:hover,.newsDetails-srtz li.newsDetails-relay .Relay-Pic:hover,.newsDetails-srtz li.newsDetails-topic .Topic-Pic:hover{background-position: bottom left; }
+
+/*group-vote.html开始*/
+.vote-list1 .vote-title{background: #0177d9;}
+.vote-list1 .vote-people a{background: url(/images/bei-head1.png) no-repeat left center;}
+.vote-list1 .vote-time{background: url(/images/bei-click.png) no-repeat left top;}
+
+.left-list1 .vote-people a{background: url(/images/bei-head1.png) no-repeat left center;}
+.left-list1 .vote-time{background: url(/images/bei-click.png) no-repeat left top;}
+
+.white-intent6 .vote6-people a{background: url(/images/bei-head1.png) no-repeat left center;}
+.white-intent6 .vote6-time{background: url(/images/bei-click.png) no-repeat left top;}
+
+
+.notVote-listVote .notVote-voteName{
+    background: #0177d9;
+}
+.notVote-contentNav .notVote-toupiao{
+    background: #0177d9;
+}
+.notVote-votePerson a{
+    background: url("/images/bei-head1.png") no-repeat;
+}
+.notVote-voteDetail .notVote-voterTime>a{
+    background: url("/images/bei-click.png") no-repeat;
+}
+.notVote-voteSelect .notVote-voteDeploy .notVote-sort{
+    background: #d4231f;
+}
+
+.notVote-person .vote-btn span{background: #0177d9;}
+
+.sky-head .sky-transfer span.file-transfer{background: #0177d9;}
+
+.file-messages td .btn-common{border:1px solid #0177d9;color: #0177d9;}
+.file-messages td span.btn-jubao{color: #0177d9;}
+.btn-two span.download-btn{color: #0177d9;border:1px solid #0177d9;}
+
+.going-title span{background: #0177d9;}
+.newsDetails-comment .comments-count span.countData i{color: #0177d9;}
+
+.going-nav li.nav-bgnone{border-top:2px solid #0177d9;}
+.smallPic li.smallPic-border{border:2px solid #0177d9;}
+
+.knowledge-left li.left-bg{background: #0177d9;}
+.skill-person i{color: #0177d9;}
+.skill-person{border:1px solid #0177d9;}
+
+.skill-list .open-down{color: #0177d9;background: url(/images/open-down.png) no-repeat right center;}
+.skill-list .close-down{color: #0177d9;background: url(/images/close-down.png) no-repeat right center;}
+.skill-bottom .skill-right li i.skill-com1{background: url(/images/xingbiao.png) no-repeat top left;}
+.skill-bottom .skill-right li i.skill-com2{background: url(/images/zhuanfa.png) no-repeat top left;}
+
+.skill-bottom .skill-right li i.skill-com2:hover,.skill-bottom .skill-right li i.skill-com1:hover{background-position: left bottom;}
+.skill-bottom .skill-right li i.skilled-com1,.skill-bottom .skill-right li i.skilled-com2{background-position: left bottom;}
+
+.skill-people1 .buchong{background: #0177d9;}
+.skill-bottom .skill-right li.zhuijia-knowledge i{color: #0177d9;}
+
+.formBtn1 a{background: #0177d9;}
+.zj-persons i{color: #0177d9;}
+.search-nav li.nav-none {border-top: 2px solid #0177d9;}
+.pageCenter .number span.pitch{
+    background:#0177d9;
+}
+
+.successLists li .success-common{background: #0177d9;}
+.successLists li .persons{color: #0177d9;}
+
+.lr{border-top: 2px solid #0177d9;}
+
+ span.common-smile i{background: url(/images/rightBanzu.png) no-repeat center center;}
+
+span.send-comments{background:#0177d9;}

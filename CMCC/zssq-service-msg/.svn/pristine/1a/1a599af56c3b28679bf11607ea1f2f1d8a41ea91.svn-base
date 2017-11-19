@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.UserMsgBoardMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.UserMsgBoard" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="message_board_code" property="messageBoardCode" jdbcType="VARCHAR" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="message_board_user_code" property="messageBoardUserCode" jdbcType="VARCHAR" />
+    <result column="is_read" property="isRead" jdbcType="TINYINT" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <result column="is_delete_all" property="isDeleteAll" jdbcType="TINYINT" />
+    <result column="bz_code" property="bzCode" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="TINYINT" />
+  </resultMap>
+  
+  
+   <resultMap id="test" type="com.zssq.dao.pojo.UserBordAndReply" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="message_board_code" property="messageBoardCode" jdbcType="VARCHAR" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="message_board_user_code" property="messageBoardUserCode" jdbcType="VARCHAR" />
+    <result column="is_read" property="isRead" jdbcType="TINYINT" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <result column="is_delete_all" property="isDeleteAll" jdbcType="TINYINT" />
+    <result column="bz_code" property="bzCode" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="TINYINT" />
+    
+     <collection  property="replyList" column="message_board_code" jdbcType="VARCHAR" ofType="com.zssq.dao.pojo.UserMsgBoardReply"                     
+            select="selectReplyList" />
+    
+  </resultMap>
+  
+  <select id="selectBordList"  resultMap="test" parameterType="com.zssq.model.MessageBoradModel" >
+  
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    
+    from user_message_board
+    where 1 = 1
+    
+    <!-- 我收到的留言 -->
+    <if test="type !=null and type==1">
+	     <if test="userCode != null">
+	      and  user_code = #{userCode,jdbcType=VARCHAR} and is_delete = 0
+	   	 </if>
+    </if>
+    
+    <!-- 我发出的留言 -->
+     <if test="type !=null and type==2">
+	     <if test="userCode != null">
+	      and  message_board_user_code = #{userCode,jdbcType=VARCHAR} and is_delete = 0
+	   	 </if>
+    </if>
+    
+     ORDER BY create_time  DESC
+     
+    <if test="pageNo != null and pageSize&gt;=0">
+     limit #{pageNo} , #{pageSize}
+    </if>
+  
+  </select>
+  
+  <select id="selectReplyList" parameterType="java.lang.String" resultType="java.util.Map">
+  		
+  	SELECT id, reply_code as replyCode ,  user_code as replyUserCode, creat_time as  replyCreatTime, reply_content as replyContent
+  	
+  	from user_message_board_reply  
+     
+      where  1= 1 and board=#{messageBoardCode}  and is_delete=0
+	  
+	  ORDER BY creat_time  DESC   limit 0 , 3
+  		
+  </select>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <resultMap id="ResultMapWithBLOBs" type="com.zssq.dao.pojo.UserMsgBoard" extends="BaseResultMap" >
+    <result column="content" property="content" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  
+  
+  <sql id="Base_Column_List" >
+    id, message_board_code, user_code, message_board_user_code, is_read, create_time, 
+    modify_time, org_code, tenant_code, is_delete, is_delete_all, bz_code, type
+  </sql>
+  <sql id="Blob_Column_List" >
+    content
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from user_message_board
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from user_message_board
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.UserMsgBoard" >
+    insert into user_message_board (id, message_board_code, user_code, 
+      message_board_user_code, is_read, create_time, 
+      modify_time, org_code, tenant_code, 
+      is_delete, is_delete_all, bz_code, 
+      type, content)
+    values (#{id,jdbcType=BIGINT}, #{messageBoardCode,jdbcType=VARCHAR}, #{userCode,jdbcType=VARCHAR}, 
+      #{messageBoardUserCode,jdbcType=VARCHAR}, #{isRead,jdbcType=TINYINT}, #{createTime,jdbcType=BIGINT}, 
+      #{modifyTime,jdbcType=BIGINT}, #{orgCode,jdbcType=VARCHAR}, #{tenantCode,jdbcType=VARCHAR}, 
+      #{isDelete,jdbcType=TINYINT}, #{isDeleteAll,jdbcType=TINYINT}, #{bzCode,jdbcType=VARCHAR}, 
+      #{type,jdbcType=TINYINT}, #{content,jdbcType=LONGVARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.UserMsgBoard" >
+    insert into user_message_board
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="messageBoardCode != null" >
+        message_board_code,
+      </if>
+      <if test="userCode != null" >
+        user_code,
+      </if>
+      <if test="messageBoardUserCode != null" >
+        message_board_user_code,
+      </if>
+      <if test="isRead != null" >
+        is_read,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+      <if test="isDeleteAll != null" >
+        is_delete_all,
+      </if>
+      <if test="bzCode != null" >
+        bz_code,
+      </if>
+      <if test="type != null" >
+        type,
+      </if>
+      <if test="content != null" >
+        content,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="messageBoardCode != null" >
+        #{messageBoardCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="messageBoardUserCode != null" >
+        #{messageBoardUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isRead != null" >
+        #{isRead,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="isDeleteAll != null" >
+        #{isDeleteAll,jdbcType=TINYINT},
+      </if>
+      <if test="bzCode != null" >
+        #{bzCode,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        #{type,jdbcType=TINYINT},
+      </if>
+      <if test="content != null" >
+        #{content,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.UserMsgBoard" >
+    update user_message_board
+    <set >
+      <if test="messageBoardCode != null" >
+        message_board_code = #{messageBoardCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        user_code = #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="messageBoardUserCode != null" >
+        message_board_user_code = #{messageBoardUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isRead != null" >
+        is_read = #{isRead,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="isDeleteAll != null" >
+        is_delete_all = #{isDeleteAll,jdbcType=TINYINT},
+      </if>
+      <if test="bzCode != null" >
+        bz_code = #{bzCode,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        type = #{type,jdbcType=TINYINT},
+      </if>
+      <if test="content != null" >
+        content = #{content,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.zssq.dao.pojo.UserMsgBoard" >
+    update user_message_board
+    set message_board_code = #{messageBoardCode,jdbcType=VARCHAR},
+      user_code = #{userCode,jdbcType=VARCHAR},
+      message_board_user_code = #{messageBoardUserCode,jdbcType=VARCHAR},
+      is_read = #{isRead,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      is_delete_all = #{isDeleteAll,jdbcType=TINYINT},
+      bz_code = #{bzCode,jdbcType=VARCHAR},
+      type = #{type,jdbcType=TINYINT},
+      content = #{content,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.UserMsgBoard" >
+    update user_message_board
+    set message_board_code = #{messageBoardCode,jdbcType=VARCHAR},
+      user_code = #{userCode,jdbcType=VARCHAR},
+      message_board_user_code = #{messageBoardUserCode,jdbcType=VARCHAR},
+      is_read = #{isRead,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      is_delete_all = #{isDeleteAll,jdbcType=TINYINT},
+      bz_code = #{bzCode,jdbcType=VARCHAR},
+      type = #{type,jdbcType=TINYINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  
+  
+  
+  
+    <select id="selectPage" parameterType="com.zssq.model.MessageBoradModel" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    
+    from user_message_board
+    where 1 = 1
+    
+    <!-- 我收到的留言 -->
+    <if test="type !=null and type==1">
+	     <if test="userCode != null">
+	      and  user_code = #{userCode,jdbcType=VARCHAR} and is_delete = 0
+	   	 </if>
+    </if>
+    
+    <!-- 我发出的留言 -->
+     <if test="type !=null and type==2">
+	     <if test="userCode != null">
+	      and  message_board_user_code = #{userCode,jdbcType=VARCHAR} and is_delete_all = 0
+	   	 </if>
+    </if>
+    
+    
+    <if test="pageNo != null and pageSize&gt;=0">
+     limit #{pageNo} , #{pageSize}
+    </if>
+  
+  </select>
+  
+  <!-- 总条数 -->
+   <select id="selectCount" parameterType="com.zssq.model.MessageBoradModel" resultType="int">
+   select count(1)
+   from user_message_board
+   where 1 = 1
+   
+    <!-- 我收到的留言 -->
+    <if test="type !=null and type==1">
+	     <if test="userCode != null">
+	      and  user_code = #{userCode,jdbcType=VARCHAR} and is_delete = 0
+	   	 </if>
+    </if>
+    
+    <!-- 我发出的留言 -->
+     <if test="type !=null and type==2">
+	     <if test="userCode != null">
+	      and  message_board_user_code = #{userCode,jdbcType=VARCHAR} and is_delete_all = 0
+	   	 </if>
+    </if>
+ 
+  </select>
+  
+  
+  
+   <update id="delBoard" parameterType="java.lang.String" >
+    update user_message_board
+    <set >
+        is_delete = 1
+    </set>
+    where 1=1
+    
+      and  message_board_code = #{msgCode}
+    
+    
+  </update>
+  
+  
+   <update id="reportBoard" parameterType="com.zssq.model.ReportBoardModel" >
+    update user_message_board
+    <set >
+        is_delete = #{delete}
+    </set>
+    where 1=1
+    
+      and  message_board_code = #{msgCode}
+    
+  </update>
+  
+  
+  
+  
+  
+  
+  
+  
+</mapper>

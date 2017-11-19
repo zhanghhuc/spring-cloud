@@ -1,0 +1,852 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.TeamInfoMapper">
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.TeamInfo">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="team_code" property="teamCode" jdbcType="VARCHAR" />
+		<result column="team_name" property="teamName" jdbcType="VARCHAR" />
+		<result column="team_intro" property="teamIntro" jdbcType="VARCHAR" />
+		<result column="team_icon" property="teamIcon" jdbcType="VARCHAR" />
+		<result column="team_type" property="teamType" jdbcType="TINYINT" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="dissolve_time" property="dissolveTime" jdbcType="BIGINT" />
+		<result column="is_dissolve" property="isDissolve" jdbcType="TINYINT" />
+		<result column="is_record" property="isRecord" jdbcType="TINYINT" />
+		<result column="record_file_url" property="recordFileUrl" jdbcType="VARCHAR" />
+		<result column="user_code" property="userCode" jdbcType="VARCHAR" />
+		<result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+		<result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+		<result column="sumCount" property="sumCount" jdbcType="INTEGER" />
+		<result column="leaderCodes" property="leaderCodes" jdbcType="VARCHAR" />
+	</resultMap>
+	<!-- 我管理的班组 -->
+	<resultMap id="ManageResultMap" type="com.zssq.dao.pojo.MyManageTeam" extends="BaseResultMap">
+		<result column="is_recommend" property="isRecommend" jdbcType="TINYINT" />
+		<result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+	</resultMap>
+	<!-- 我收到的推荐/我推荐的班组 -->
+	<resultMap id="RecommondResultMap" type="com.zssq.dao.pojo.RecommondTeam" extends="BaseResultMap">
+		<result column="is_recommend" property="isRecommend" jdbcType="TINYINT" />
+		<result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+		<result column="current_recommend_reason" property="currentRecommendReason" jdbcType="VARCHAR" />
+	</resultMap>
+	<!-- 百强班组 -->
+	<resultMap id="HonorResultMap" type="com.zssq.dao.pojo.HonorTeam" extends="BaseResultMap">
+		<result column="is_honor" property="isHonor" jdbcType="VARCHAR" />
+	</resultMap>
+	<!-- 班组头信息 -->
+	<resultMap id="HeadInfoMap" type="com.zssq.dao.pojo.TeamInfo" extends="BaseResultMap">
+		<result column="is_leader" property="isLeader" jdbcType="TINYINT" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, team_code, team_name, team_intro, team_icon, team_type, create_time,
+		dissolve_time, is_dissolve, is_record, record_file_url, user_code, org_code,tenant_code
+	</sql>
+	
+	<!-- 根据班组编码查询 -->
+	<select id="selectByCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+			<include refid="Base_Column_List" />
+		from 
+			team_info
+		where team_code = #{teamCode,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 根据班组编码集合查询 -->
+	<select id="selectByCodes" resultMap="BaseResultMap" parameterType="java.util.List">
+		select 
+			<include refid="Base_Column_List" />
+		from 
+			team_info
+		where team_code in 
+		<foreach collection="list" item="item" index="index" separator="," open="(" close=")">  
+        	#{item,jdbcType=VARCHAR}
+    	</foreach>
+	</select>
+	
+	<!-- 查询班组头信息 -->
+	<select id="selectHeadInfo" resultMap="HeadInfoMap" parameterType="com.zssq.dao.pojo.TeamMember">
+		SELECT distinct
+		  t1.team_code,
+		  t1.team_name,
+		  t1.team_intro,
+		  t1.team_icon,
+		  t1.team_type,
+		  t1.create_time,
+		  t1.dissolve_time,
+		  t1.is_dissolve,
+		  t1.is_record,
+		  t1.record_file_url,
+		  t1.user_code,
+		  t1.org_code,
+		  t1.tenant_code,
+		  t2.is_leader 
+		FROM
+		  team_info t1 
+		  LEFT JOIN team_member t2 
+		    ON t1.team_code = t2.team_code 
+		  AND t2.user_code = #{userCode,jdbcType=VARCHAR} 
+		WHERE t1.team_code = #{teamCode,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 动态插入 -->
+	<insert id="insertSelective" parameterType="com.zssq.dao.pojo.TeamInfo">
+		insert into team_info
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="teamCode != null">
+				team_code,
+			</if>
+			<if test="teamName != null">
+				team_name,
+			</if>
+			<if test="teamIntro != null">
+				team_intro,
+			</if>
+			<if test="teamIcon != null">
+				team_icon,
+			</if>
+			<if test="teamType != null">
+				team_type,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+			<if test="dissolveTime != null">
+				dissolve_time,
+			</if>
+			<if test="isDissolve != null">
+				is_dissolve,
+			</if>
+			<if test="isRecord != null">
+				is_record,
+			</if>
+			<if test="recordFileUrl != null">
+				record_file_url,
+			</if>
+			<if test="userCode != null">
+				user_code,
+			</if>
+			<if test="orgCode != null">
+				org_code,
+			</if>
+			<if test="tenantCode != null">
+				tenant_code,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=BIGINT},
+			</if>
+			<if test="teamCode != null">
+				#{teamCode,jdbcType=VARCHAR},
+			</if>
+			<if test="teamName != null">
+				#{teamName,jdbcType=VARCHAR},
+			</if>
+			<if test="teamIntro != null">
+				#{teamIntro,jdbcType=VARCHAR},
+			</if>
+			<if test="teamIcon != null">
+				#{teamIcon,jdbcType=VARCHAR},
+			</if>
+			<if test="teamType != null">
+				#{teamType,jdbcType=TINYINT},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=BIGINT},
+			</if>
+			<if test="dissolveTime != null">
+				#{dissolveTime,jdbcType=BIGINT},
+			</if>
+			<if test="isDissolve != null">
+				#{isDissolve,jdbcType=TINYINT},
+			</if>
+			<if test="isRecord != null">
+				#{isRecord,jdbcType=TINYINT},
+			</if>
+			<if test="recordFileUrl != null">
+				#{recordFileUrl,jdbcType=VARCHAR},
+			</if>
+			<if test="userCode != null">
+				#{userCode,jdbcType=VARCHAR},
+			</if>
+			<if test="orgCode != null">
+				#{orgCode,jdbcType=VARCHAR},
+			</if>
+			<if test="tenantCode != null">
+				#{tenantCode,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+	
+	<!-- 根据Code修改班组信息 -->
+	<update id="updateByCodeSelective" parameterType="com.zssq.dao.pojo.TeamInfo">
+		update team_info
+		<set>
+			<if test="teamName != null">
+				team_name = #{teamName,jdbcType=VARCHAR},
+			</if>
+			<if test="teamIntro != null">
+				team_intro = #{teamIntro,jdbcType=VARCHAR},
+			</if>
+			<if test="teamIcon != null">
+				team_icon = #{teamIcon,jdbcType=VARCHAR},
+			</if>
+			<if test="teamType != null">
+				team_type = #{teamType,jdbcType=TINYINT},
+			</if>
+			<if test="createTime != null">
+				create_time = #{createTime,jdbcType=BIGINT},
+			</if>
+			<if test="dissolveTime != null">
+				dissolve_time = #{dissolveTime,jdbcType=BIGINT},
+			</if>
+			<if test="isDissolve != null">
+				is_dissolve = #{isDissolve,jdbcType=TINYINT},
+			</if>
+			<if test="isRecord != null">
+				is_record = #{isRecord,jdbcType=TINYINT},
+			</if>
+			<if test="recordFileUrl != null">
+				record_file_url = #{recordFileUrl,jdbcType=VARCHAR},
+			</if>
+			<if test="userCode != null">
+				user_code = #{userCode,jdbcType=VARCHAR},
+			</if>
+			<if test="orgCode != null">
+				org_code = #{orgCode,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where team_code = #{teamCode,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 班组管理查询 -->
+	<select id="selectPage" parameterType="com.zssq.dao.pojo.TeamInfo" resultMap="BaseResultMap" >
+		SELECT 
+		  ti.team_code,
+		  ti.team_name,
+		  ti.team_intro,
+		  ti.team_icon,
+		  ti.team_type,
+		  ti.create_time,
+		  ti.dissolve_time,
+		  ti.is_dissolve,
+		  ti.is_record,
+		  ti.record_file_url,
+		  ti.user_code,
+		  ti.org_code,
+		  ti.tenant_code,
+		  tm.sumCount,
+		  tl.leaderCodes 
+		FROM
+		  team_info ti 
+		  LEFT JOIN 
+		    (SELECT 
+		      COUNT(1) sumCount,
+		      team_code 
+		    FROM
+		      team_member 
+		    GROUP BY team_code) tm 
+		    ON ti.team_code = tm.team_code 
+		  LEFT JOIN 
+		    (SELECT 
+		      GROUP_CONCAT(user_code) leaderCodes,
+		      team_code 
+		    FROM
+		      team_member 
+		    WHERE is_leader = 1 
+		    GROUP BY team_code) tl 
+		    ON ti.team_code = tl.team_code
+		  <if test="leaders != null">
+		  	JOIN 
+			  (SELECT DISTINCT 
+			    team_code 
+			  FROM
+			    team_member 
+			  WHERE is_leader = 1 
+			    AND user_code IN 
+				<foreach collection="leaders" item="item" index="index" separator="," open="(" close=")">
+					#{item,jdbcType=VARCHAR}
+				</foreach>) t2 
+			  ON t2.team_code = ti.team_code 
+		  </if>  
+		WHERE ti.is_dissolve = 0 
+		<if test="orgCode != null">
+			and ti.org_code = #{orgCode,jdbcType=VARCHAR}
+		</if>
+		<if test="teamName != null">
+			and ti.team_name like CONCAT('%',#{teamName,jdbcType=VARCHAR},'%')
+		</if>
+		<if test="teamType != null">
+			and ti.team_type = #{teamType,jdbcType=TINYINT}
+		</if>
+		<if test="teamCode != null">
+			and ti.team_code = #{teamCode,jdbcType=VARCHAR}
+		</if>
+		<if test="startDate != null">
+			and ti.create_time <![CDATA[>=]]> #{startDate,jdbcType=BIGINT}
+		</if>
+		<if test="endDate != null">
+			and ti.create_time <![CDATA[<=]]> #{endDate,jdbcType=BIGINT}
+		</if>
+		<if test="orgCodes != null">
+			and ti.org_code in
+			<foreach collection="orgCodes" item="item" index="index" separator="," open="(" close=")">
+				#{item,jdbcType=VARCHAR}
+			</foreach>
+		</if>
+		order by ti.create_time desc
+		<if test="limitStart != null and limitStart>=0" >
+	    	limit #{limitStart} , #{limitEnd}
+	    </if>
+	</select>
+	<!-- 班组管理查询(数量) -->
+	<select id="selectPageCount" parameterType="com.zssq.dao.pojo.TeamInfo" resultType="java.lang.Integer">
+		select 
+			count(1)
+		from 
+			team_info ti
+		<if test="leaders != null">
+		  	JOIN 
+			  (SELECT DISTINCT 
+			    team_code 
+			  FROM
+			    team_member 
+			  WHERE is_leader = 1 
+			    AND user_code IN 
+				<foreach collection="leaders" item="item" index="index" separator="," open="(" close=")">
+					#{item,jdbcType=VARCHAR}
+				</foreach>) t2 
+			  ON t2.team_code = ti.team_code 
+		</if>  
+		where is_dissolve = 0 
+		<if test="orgCode != null">
+			and org_code = #{orgCode,jdbcType=VARCHAR}
+		</if>
+		<if test="teamName != null">
+			and team_name like CONCAT('%',#{teamName,jdbcType=VARCHAR},'%')
+		</if>
+		<if test="teamType != null">
+			and ti.team_type = #{teamType,jdbcType=TINYINT}
+		</if>
+		<if test="startDate != null">
+			and create_time <![CDATA[>=]]> #{startDate,jdbcType=BIGINT}
+		</if>
+		<if test="endDate != null">
+			and create_time <![CDATA[<=]]> #{endDate,jdbcType=BIGINT}
+		</if>
+	</select>
+	
+	<!-- 颁发荣誉百强班组查询 -->
+	<select id="selectHonorTeamPage" parameterType="com.zssq.dao.pojo.TeamRecommend" resultMap="HonorResultMap" >
+		SELECT 
+		  ti.team_code,
+		  ti.team_name,
+		  ti.team_intro,
+		  ti.team_icon,
+		  ti.team_type,
+		  ti.create_time,
+		  ti.dissolve_time,
+		  ti.is_dissolve,
+		  ti.is_record,
+		  ti.record_file_url,
+		  ti.user_code,
+		  ti.org_code,
+		  ti.tenant_code,
+		  tm.sumCount,
+		  tl.leaderCodes,
+		  tr.is_honor,
+		  tr.elect_time electTime
+		FROM
+		  team_recommend tr 
+		  LEFT JOIN team_info ti 
+		    ON tr.team_code = ti.team_code 
+		  LEFT JOIN 
+		    (SELECT 
+		      COUNT(1) sumCount,
+		      team_code 
+		    FROM
+		      team_member 
+		    GROUP BY team_code) tm 
+		    ON ti.team_code = tm.team_code 
+		  LEFT JOIN 
+		    (SELECT 
+		      GROUP_CONCAT(user_code) leaderCodes,
+		      team_code 
+		    FROM
+		      team_member 
+		    WHERE is_leader = 1 
+		    GROUP BY team_code) tl 
+		    ON ti.team_code = tl.team_code 
+		WHERE ti.is_dissolve = 0
+		<if test="teamElectCode != null">
+			and tr.team_elect_code = #{teamElectCode,jdbcType=VARCHAR}
+		</if>
+		order by ti.team_type desc
+		<if test="limitStart != null and limitStart>=0" >
+			limit #{limitStart} , #{limitEnd}
+	    </if>
+	</select>
+	<!-- 颁发荣誉百强班组数量 -->
+	<select id="selectHonorTeamCount" parameterType="com.zssq.dao.pojo.TeamRecommend" resultType="java.lang.Integer" >
+		select 
+			count(1)
+		from 
+			team_recommend tr
+		LEFT JOIN team_info ti 
+		    ON tr.team_code = ti.team_code 
+		where ti.is_dissolve = 0
+		<if test="teamElectCode != null">
+			and team_elect_code = #{teamElectCode,jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<!-- 我管理的班组 -->
+	<select id="selectMyManageList" parameterType="com.zssq.dao.pojo.MyManageTeam" resultMap="ManageResultMap" >
+		SELECT 
+		  ti.team_code,
+		  ti.team_name,
+		  ti.team_intro,
+		  ti.team_icon,
+		  ti.team_type,
+		  ti.create_time,
+		  ti.dissolve_time,
+		  ti.is_dissolve,
+		  ti.is_record,
+		  ti.record_file_url,
+		  ti.user_code,
+		  ti.org_code,
+		  ti.tenant_code,
+		  tm.sumCount,
+		  tl.leaderCodes,
+		  tc.is_recommend,
+		  t3.create_time modify_time 
+		FROM
+		  team_info ti 
+		  LEFT JOIN 
+		    (SELECT 
+		      COUNT(1) sumCount,
+		      team_code 
+		    FROM
+		      team_member 
+		    GROUP BY team_code) tm 
+		    ON ti.team_code = tm.team_code 
+		  LEFT JOIN 
+		    (SELECT 
+		      MAX(create_time) create_time,
+		      team_code 
+		    FROM
+		      team_course 
+		    WHERE team_elect_code = #{teamElectCode,jdbcType=VARCHAR}
+		    GROUP BY team_code) t3 
+		    ON t3.team_code = ti.team_code 
+		  LEFT JOIN 
+		    (SELECT 
+		      GROUP_CONCAT(user_code) leaderCodes,
+		      team_code 
+		    FROM
+		      team_member 
+		    WHERE is_leader = 1 
+		    GROUP BY team_code) tl 
+		    ON ti.team_code = tl.team_code 
+		  LEFT JOIN team_course tc 
+		    ON tc.current_org_code = ti.org_code 
+		    AND team_elect_code = #{teamElectCode,jdbcType=VARCHAR}
+		    AND tc.team_code = ti.team_code
+		    AND tc.is_recommend = '1' and tc.current_org_type != 'X'
+		 <if test="leaders != null">
+		  	JOIN 
+			  (SELECT DISTINCT 
+			    team_code 
+			  FROM
+			    team_member 
+			  WHERE is_leader = 1 
+			    AND user_code IN 
+				<foreach collection="leaders" item="item" index="index" separator="," open="(" close=")">
+					#{item,jdbcType=VARCHAR}
+				</foreach>) t2 
+			  ON t2.team_code = ti.team_code 
+		  </if>     
+		WHERE ti.is_dissolve = 0
+		<if test="orgCode != null">
+			and ti.org_code = #{orgCode,jdbcType=VARCHAR}
+		</if>
+		<if test="teamName != null">
+			and ti.team_name like CONCAT('%',#{teamName,jdbcType=VARCHAR},'%')
+		</if>
+		<if test="teamType != null">
+			and ti.team_type = #{teamType,jdbcType=TINYINT}
+		</if>
+		<if test="startDate != null">
+			and t3.create_time <![CDATA[  >=  ]]> #{startDate,jdbcType=BIGINT}
+		</if>
+		<if test="endDate != null">
+			and t3.create_time <![CDATA[   <=  ]]> #{endDate,jdbcType=BIGINT}
+		</if>
+		order by tc.create_time desc
+		<if test="limitStart != null" >
+	    	limit #{limitStart} , #{limitEnd}
+	    </if>
+	</select>
+	<!-- 我管理的班组(数量) -->
+	<select id="selectMyManageCount" parameterType="com.zssq.dao.pojo.MyManageTeam" resultType="java.lang.Integer" >
+		select 
+			count(1)
+		from 
+			team_info ti
+		 LEFT JOIN 
+		    (SELECT 
+		      MAX(create_time) create_time,
+		      team_code 
+		    FROM
+		      team_course 
+		    WHERE team_course_code = #{teamElectCode,jdbcType=VARCHAR}
+		    GROUP BY team_code) t3 
+		    ON t3.team_code = ti.team_code 
+		<if test="leaders != null">
+		  	JOIN 
+			  (SELECT DISTINCT 
+			    team_code 
+			  FROM
+			    team_member 
+			  WHERE is_leader = 1 
+			    AND user_code IN 
+				<foreach collection="leaders" item="item" index="index" separator="," open="(" close=")">
+					#{item,jdbcType=VARCHAR}
+				</foreach>) t2 
+			  ON t2.team_code = ti.team_code 
+		</if>  
+		where ti.is_dissolve = 0
+		<if test="orgCode != null">
+			and ti.org_code = #{orgCode,jdbcType=VARCHAR}
+		</if>
+		<if test="teamName != null">
+			and ti.team_name like CONCAT('%',#{teamName,jdbcType=VARCHAR},'%')
+		</if>
+		<if test="teamType != null">
+			and ti.team_type = #{teamType,jdbcType=TINYINT}
+		</if>
+		<if test="startDate != null">
+			and t3.create_time <![CDATA[  >=  ]]> #{startDate,jdbcType=BIGINT}
+		</if>
+		<if test="endDate != null">
+			and t3.create_time <![CDATA[   <=  ]]> #{endDate,jdbcType=BIGINT}
+		</if>
+	</select>
+	
+	<!-- 我推荐的班组/我收到的推荐 -->
+	<select id="selectMyRecommondList" parameterType="com.zssq.dao.pojo.TeamCourse" resultMap="RecommondResultMap" >
+		SELECT 
+		  ti.team_code,
+		  ti.team_name,
+		  ti.team_intro,
+		  ti.team_icon,
+		  ti.team_type,
+		  ti.create_time,
+		  ti.dissolve_time,
+		  ti.is_dissolve,
+		  ti.is_record,
+		  ti.record_file_url,
+		  ti.user_code,
+		  ti.org_code,
+		  ti.tenant_code,
+		  tm.sumCount,
+		  tl.leaderCodes,
+		  tc.current_recommend_reason,
+		  t3.create_time modify_time,
+		  te.is_recommend 
+		FROM
+		  team_course tc 
+		  LEFT JOIN team_info ti 
+		    ON tc.team_code = ti.team_code 
+		  LEFT JOIN 
+		    (SELECT 
+		      COUNT(1) sumCount,
+		      team_code 
+		    FROM
+		      team_member 
+		    GROUP BY team_code) tm 
+		    ON ti.team_code = tm.team_code 
+		  LEFT JOIN 
+		    (SELECT 
+		      GROUP_CONCAT(user_code) leaderCodes,
+		      team_code 
+		    FROM
+		      team_member 
+		    WHERE is_leader = 1 
+		    GROUP BY team_code) tl 
+		    ON ti.team_code = tl.team_code
+		    <if test="leaders != null">
+		  	JOIN 
+			  (SELECT DISTINCT 
+			    team_code 
+			  FROM
+			    team_member 
+			  WHERE is_leader = 1 
+			    AND user_code IN 
+				<foreach collection="leaders" item="item" index="index" separator="," open="(" close=")">
+					#{item,jdbcType=VARCHAR}
+				</foreach>) t2 
+			  ON t2.team_code = tc.team_code 
+		  	</if> 
+		  	 LEFT JOIN 
+		    (SELECT 
+		      MAX(create_time) create_time,
+		      team_code 
+		    FROM
+		      team_course 
+		    WHERE team_elect_code = #{teamElectCode,jdbcType=VARCHAR}
+		    GROUP BY team_code) t3 
+		    ON t3.team_code = tc.team_code
+		    LEFT JOIN 
+			(SELECT 
+			  team_code,
+			  is_recommend 
+			FROM
+			  team_course 
+			WHERE team_elect_code = #{teamElectCode,jdbcType=VARCHAR}
+			  AND current_org_code = #{superOrgCode,jdbcType=VARCHAR}
+			  AND is_recommend = '1' 
+			  AND current_org_type != 'X' 
+			GROUP BY team_code,
+			  is_recommend) te 
+			ON te.team_code = tc.team_code
+		WHERE tc.current_org_type != 'X'
+		<if test="currentOrgCode != null"><!-- 我推荐的  -->
+			and tc.current_org_code = #{currentOrgCode,jdbcType=VARCHAR}
+		</if>
+		<if test="superOrgCode != null"><!-- 我收到的推荐  -->
+			and tc.super_org_code = #{superOrgCode,jdbcType=VARCHAR}
+		</if>
+		<if test="teamOrgCode != null">
+			and ti.org_code = #{teamOrgCode,jdbcType=VARCHAR}
+		</if>
+		<if test="currentOrgType != null">
+			and tc.current_org_type = #{currentOrgType,jdbcType=VARCHAR}
+		</if>
+		<if test="isRecommend != null">
+			and tc.is_recommend = #{isRecommend,jdbcType=VARCHAR}
+		</if>
+		<if test="teamElectCode != null">
+			and tc.team_elect_code = #{teamElectCode,jdbcType=VARCHAR}
+		</if>
+		<if test="teamName != null">
+			and ti.team_name like CONCAT('%',#{teamName,jdbcType=VARCHAR},'%')
+		</if>
+		<if test="teamType != null">
+			and ti.team_type = #{teamType,jdbcType=TINYINT}
+		</if>
+		<if test="startDate != null">
+			and t3.create_time <![CDATA[  >=  ]]> #{startDate,jdbcType=BIGINT}
+		</if>
+		<if test="endDate != null">
+			and t3.create_time <![CDATA[   <=  ]]> #{endDate,jdbcType=BIGINT}
+		</if>
+		order by tc.create_time desc
+		<if test="limitStart != null and limitStart>=0" >
+			limit #{limitStart} , #{limitEnd}
+	    </if>
+	</select>
+	<!-- 我推荐的班组/我收到的推荐(数量) -->
+	<select id="selectMyRecommondCount" parameterType="com.zssq.dao.pojo.TeamInfo" resultType="java.lang.Integer" >
+		select 
+			count(1)
+		from 
+			team_course tc
+			 LEFT JOIN team_info ti 
+		    ON tc.team_code = ti.team_code
+			<if test="leaders != null">
+		  	JOIN 
+			  (SELECT DISTINCT 
+			    team_code 
+			  FROM
+			    team_member 
+			  WHERE is_leader = 1 
+			    AND user_code IN 
+				<foreach collection="leaders" item="item" index="index" separator="," open="(" close=")">
+					#{item,jdbcType=VARCHAR}
+				</foreach>) t2 
+			  ON t2.team_code = tc.team_code 
+		  	</if>
+		  	 LEFT JOIN 
+		    (SELECT 
+		      MAX(create_time) create_time,
+		      team_code 
+		    FROM
+		      team_course 
+		    WHERE team_course_code = #{teamElectCode,jdbcType=VARCHAR}
+		    GROUP BY team_code) t3 
+		    ON t3.team_code = tc.team_code
+		where tc.current_org_type != 'X'
+		<if test="currentOrgCode != null"><!-- 我推荐的  -->
+			and tc.current_org_code = #{currentOrgCode,jdbcType=VARCHAR}
+		</if>
+		<if test="superOrgCode != null"><!-- 我收到的推荐  -->
+			and tc.super_org_code = #{superOrgCode,jdbcType=VARCHAR}
+		</if>
+		<if test="currentOrgType != null">
+			and tc.current_org_type = #{currentOrgType,jdbcType=VARCHAR}
+		</if>
+		<if test="isRecommend != null">
+			and tc.is_recommend = #{isRecommend,jdbcType=VARCHAR}
+		</if>
+		<if test="teamElectCode != null">
+			and tc.team_elect_code = #{teamElectCode,jdbcType=VARCHAR}
+		</if>
+		<if test="teamType != null">
+			and ti.team_type = #{teamType,jdbcType=TINYINT}
+		</if>
+		<if test="startDate != null">
+			and t3.create_time <![CDATA[  >=  ]]> #{startDate,jdbcType=BIGINT}
+		</if>
+		<if test="endDate != null">
+			and t3.create_time <![CDATA[   <=  ]]> #{endDate,jdbcType=BIGINT}
+		</if>
+	</select>
+	
+	<!-- 含有的我班组 -->
+	<select id="selectMyTeam" parameterType="com.zssq.dao.pojo.TeamInfo" resultMap="BaseResultMap">
+		SELECT 
+		  t1.team_code,
+		  t1.team_name,
+		  t1.team_intro,
+		  t1.team_icon,
+		  t1.team_type,
+		  t1.create_time,
+		  t1.dissolve_time,
+		  t1.is_dissolve,
+		  t1.is_record,
+		  t1.record_file_url,
+		  t1.user_code,
+		  t1.org_code,
+		  t1.tenant_code 
+		FROM
+		  team_info t1 
+		  LEFT JOIN team_member t2 
+		    ON t1.team_code = t2.team_code 
+		WHERE t2.user_code = #{userCode,jdbcType=VARCHAR}
+		  and t1.is_dissolve = 0
+		ORDER BY t1.create_time 
+	</select>
+	
+	<!-- 根据name查询code -->
+	<select id="selectCodeByName" parameterType="java.lang.String" resultType="java.lang.String">
+		select
+			team_code
+		from
+			team_info
+		where team_name like concat('%',#{value},'%')
+		  and is_dissolve = 0
+	</select>
+	
+	<!-- 根据teamCodes返回多个对象(人数/班组orgCode/班组名称) -->
+	<select id="selectByTeamCodes" parameterType="java.util.List" resultMap="BaseResultMap">
+		SELECT 
+		  t1.team_name,
+		  t1.org_code,
+		  t3.sumCount,
+		  t1.team_code
+		FROM
+		  team_info t1 
+		  LEFT JOIN 
+		    (SELECT 
+		      COUNT(1) sumCount,
+		      team_code 
+		    FROM
+		      team_member t2 
+		    WHERE t2.team_code in
+			<foreach collection="list" item="item" index="index" separator="," open="(" close=")">  
+	        	#{item,jdbcType=VARCHAR}
+	    	</foreach> 
+		    GROUP BY t2.team_code) t3 
+		    ON t3.team_code = t1.team_code 
+		WHERE t1.is_dissolve = 0 and t1.team_code in
+		<foreach collection="list" item="item" index="index" separator="," open="(" close=")">  
+        	#{item,jdbcType=VARCHAR}
+    	</foreach> 
+	</select>
+	
+	<!-- 根据orgCode返回班组信息 -->
+	<select id="selectByOrgCode" parameterType="com.zssq.dao.pojo.TeamInfo" resultMap="BaseResultMap">
+		SELECT 
+		  t1.team_name,
+		  t1.org_code,
+		  t3.sumCount,
+		  t1.team_code,
+		  t1.team_intro,
+		  t1.team_icon
+		FROM
+		  team_info t1 
+		  LEFT JOIN 
+		    (SELECT 
+		      COUNT(1) sumCount,
+		      team_code 
+		    FROM
+		      team_member t2 
+		    GROUP BY t2.team_code) t3 
+		    ON t3.team_code = t1.team_code 
+		WHERE t1.is_dissolve = 0 and t1.org_code=#{orgCode,jdbcType=VARCHAR}
+		<if test="limitStart != null">
+			limit #{limitStart,jdbcType=VARCHAR},#{limitEnd,jdbcType=VARCHAR}
+		</if>
+	</select>
+	<!-- 根据orgCode返回班组信息(数量) -->
+	<select id="selectByOrgCodeCount" parameterType="com.zssq.dao.pojo.TeamInfo" resultType="java.lang.Integer">
+		SELECT 
+		  count(1)
+		FROM
+		  team_info t1 
+		WHERE t1.is_dissolve = 0 and t1.org_code=#{orgCode,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 按班组名称查询数量 -->
+	<select id="selectRepeatName" parameterType="com.zssq.dao.pojo.TeamInfo" resultType="java.lang.Integer">
+		SELECT 
+		  count(1)
+		FROM
+		  team_info
+		WHERE is_dissolve = 0 and team_name=#{teamName,jdbcType=VARCHAR}
+		<if test="teamCode != null">
+			and team_code != #{teamCode,jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<!-- 根据teamName返回班组信息 -->
+	<select id="selectByName" parameterType="com.zssq.dao.pojo.TeamInfo" resultMap="BaseResultMap">
+		SELECT 
+		  t.team_code,
+		  t.team_name,
+		  t.team_icon,
+		  t.team_intro ,
+		  t.org_code
+		FROM
+		  team_info t 
+		WHERE is_dissolve = 0 and t.team_name LIKE concat('%',#{teamName,jdbcType=VARCHAR},'%')
+		<if test="limitStart != null">
+			limit #{limitStart,jdbcType=VARCHAR},#{limitEnd,jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<!-- 根据teamName返回班组信息(数量) -->
+	<select id="selectByNameCount" parameterType="com.zssq.dao.pojo.TeamInfo" resultType="java.lang.Integer">
+		SELECT 
+		  count(1)
+		FROM
+		  team_info
+		WHERE is_dissolve = 0 and team_name LIKE concat('%',#{teamName,jdbcType=VARCHAR},'%')
+	</select>
+	
+	<!-- 根据组织编码返回班组编码集合 -->
+	<select id="selectCodesByOrg" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT
+			team_code
+		FROM
+			team_info
+		WHERE
+			org_code =  #{orgCode,jdbcType=VARCHAR}
+	</select>
+	
+</mapper>

@@ -1,0 +1,752 @@
+package com.zssq.relation.controller;
+
+import java.util.Date;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.constants.AuthConstants;
+import com.zssq.constants.BlogConstants;
+import com.zssq.constants.MblogConstants;
+import com.zssq.constants.RelationConstants;
+import com.zssq.dao.pojo.RelationQuality;
+import com.zssq.dao.pojo.RelationRecommend;
+import com.zssq.dao.pojo.SysOrgInfo;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.kafka.core.KafkaProducerTemplate;
+import com.zssq.model.EtRelationRecommendModel;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.qo.sync.MblogEssenceVo;
+import com.zssq.relation.vo.GetRecListVo;
+import com.zssq.relation.vo.IgnoreRecVO;
+import com.zssq.relation.vo.RecSubjectVO;
+import com.zssq.relation.vo.RemoveQualityTopVO;
+import com.zssq.relation.vo.RemoveQualityVO;
+import com.zssq.relation.vo.SendVo;
+import com.zssq.relation.vo.SetQualityTopVO;
+import com.zssq.relation.vo.SetQualityVO;
+import com.zssq.relation.vo.UpdateQualitySeqVO;
+import com.zssq.service.ISysUserService;
+import com.zssq.service.RelationQualityService;
+import com.zssq.service.RelationRecService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.utils.StringTools;
+import com.zssq.vo.BlogThirdDataVO;
+import com.zssq.vo.RelationQualityVO;
+import com.zssq.vo.RelationRecVO;
+
+/**
+ * @ClassName RelationRecommendByGlController
+ * @Description 集中对门户推荐|置精相关进行管理
+ * @author LXW
+ * @date 2017年4月11日 下午6:24:12
+ * @version 1.0
+ * @since JDK 1.7
+ */
+@RequestMapping("/relation/")
+@Controller
+public class RelationRecommendByGlController {
+	private Logger log = Logger.getLogger(this.getClass());
+	@Autowired
+	private RelationRecService relationRecService;
+	@Autowired
+	private RelationQualityService relationQualityService;
+	@Autowired
+	private ISysUserService sysUserService;
+	@SuppressWarnings("rawtypes")
+	@Autowired
+	private KafkaProducerTemplate producerTemplate;
+
+	/**
+	 * @Function recSubject
+	 * @Description 门户推荐
+	 * @param recSubjectVO
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "recSubject",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON recSubject(@RequireValid RecSubjectVO recSubjectVO) throws BusinessException {
+		// 返回值
+		ResultJSON result = null;
+		try {
+			log.info("RelationRecommendByGlController.recSubject：门户推荐");
+
+			// 获取参数
+			
+			
+			Byte subjectClass= Byte.parseByte(recSubjectVO.getSubjectClass());// 推荐内容类型：1.微博；2.博客
+			String subjectCode = recSubjectVO.getSubjectCode();// 推荐内容编号
+			String userCode = recSubjectVO.getUserCode();// 当前用户
+			// 验证是否已经推荐了
+			SysUserInfo selectByCode = sysUserService.selectByCode(userCode);
+			SysUserInfo sysUserInfo = selectByCode != null ? selectByCode : new SysUserInfo();
+			SysOrgInfo manageOrgInfo = sysUserInfo.getManageOrgInfo();
+			SysOrgInfo orgInfo = manageOrgInfo != null ? manageOrgInfo
+					: new SysOrgInfo();
+			RelationRecommend rec = new RelationRecommend();
+			rec.setSubjectCode(subjectCode);
+			rec.setSubjectClass(subjectClass);
+			rec.setRecOrgCode(sysUserInfo.getOrgCode());
+			rec.setRecToOrgCode(orgInfo.getSysOrgCode());
+			if (relationRecService.isRecommend(rec)) {
+				throw BusinessException.build("RELATION_19402");
+			}
+
+			// 新增推荐记录
+			RelationRecommend recommend = new RelationRecommend();
+			recommend.setRecCode(UUIDHelper.getUUID());
+			recommend.setCreateTime(new Date().getTime());
+			recommend.setModifyTime(new Date().getTime());
+			// 获取租户编号
+			recommend.setTenantCode(sysUserInfo.getTenantCode());
+			recommend.setSubjectCode(subjectCode);
+			recommend.setSubjectClass((byte) subjectClass);
+			recommend.setRecSource(RelationConstants.RELATION_RECOMMEND_SOURCE_PORTAL);
+			recommend.setRecUserCode(userCode);
+			// 推荐人组织信息
+			recommend.setRecOrgCode(sysUserInfo.getOrgCode());
+
+			// 被推荐上级机构信息
+			recommend.setRecToOrgCode(orgInfo.getSysOrgCode());
+			recommend.setRecStatus(RelationConstants.RELATION_REC_STATUS_UNTREATED);
+
+			// 新增推荐记录,记录该动态
+			if (relationRecService.saveRec(recommend)) {
+				// 返回值赋值
+				result = new ResultJSON("COMMON_200");
+				JSONObject body = new JSONObject();
+				result.setBody(body);
+				log.info("RelationRecommendByGlController.recSubject：推荐成功");
+			} else {
+				log.error("RelationRecommendByGlController.recSubject：推荐失败");
+				throw BusinessException.build("RELATION_19002", "推荐");
+			}
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("RelationRecommendByGlController.recSubject", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		return result;
+
+	}
+
+	/**
+	 * @Function setQuality
+	 * @Description 门户 置精
+	 * @param recSubjectVO
+	 * @return
+	 * @throws BusinessException
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value = "setQuality",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON setQuality(@RequireValid SetQualityVO inVo) throws BusinessException {
+		// 返回值
+		ResultJSON result = null;
+		try {
+			log.info("RelationRecommendByGlController.setQuality：门户 置精");
+
+			// 获取参数
+			String recCode = inVo.getRecCode();// 推荐编号
+			String userCode = inVo.getUserCode();// 当前用户
+
+			// 获取精华信息
+			RelationRecommend Recommend = new RelationRecommend();
+			Recommend.setRecCode(recCode);
+			RelationRecommend quality = relationRecService.getQualityInfoByCond(Recommend);
+
+			// 验证是否已经置精了
+			RelationQuality relationQuality = new RelationQuality();
+			relationQuality.setSubjectClass(quality.getSubjectClass());
+			relationQuality.setSubjectCode(quality.getSubjectCode());
+			relationQuality.setOrgCode(quality.getRecOrgCode());
+			if (relationQualityService.isQuality(relationQuality)) {
+				throw BusinessException.build("RELATION_19403");
+			}
+
+			// 新增加精记录
+			RelationQuality recommend = new RelationQuality();
+			recommend.setQualityCode(UUIDHelper.getUUID());
+			recommend.setCreateTime(new Date().getTime());
+			recommend.setModifyTime(new Date().getTime());
+			// 获取租户编号
+			SysUserInfo selectByCode = sysUserService.selectByCode(userCode);
+			SysUserInfo sysUserInfo = selectByCode != null? selectByCode : new SysUserInfo();
+			SysOrgInfo manageOrgInfo2 = sysUserInfo.getManageOrgInfo();
+			SysOrgInfo manageOrgInfo = manageOrgInfo2 != null ? manageOrgInfo2: new SysOrgInfo();
+			recommend.setOrgCode(manageOrgInfo.getSysOrgCode());
+			recommend.setTenantCode(sysUserInfo.getTenantCode());
+			recommend.setSubjectCode(quality.getSubjectCode());
+			recommend.setSubjectClass(quality.getSubjectClass());
+			recommend.setQualityDepend(RelationConstants.RELATION_QUALITY_DEPEND_GROUP);
+			recommend.setQualityIsTop(RelationConstants.RELATION_NO);
+			recommend.setQualityTopTime((long) 0);
+			RelationRecVO relationRecVO = new RelationRecVO();
+			relationRecVO.setRecCode(recCode);
+
+			// 修改推荐信息
+			if (relationRecService.updateRecStatus(relationRecVO, recommend)) {
+				// 返回值赋值
+				result = new ResultJSON("COMMON_200");
+				JSONObject body = new JSONObject();
+				result.setBody(body);
+				log.info("RelationRecommendByGlController.setQuality：门户置精成功");
+
+				// 调用关系消息队列 增加置精次数
+				Byte updateClass = 0;
+				switch (manageOrgInfo.getSysOrgType()) {
+				case AuthConstants.ORG_TYPE_A:
+					updateClass = RelationConstants.RELATION_THIRD_DATANUM_TYPE_GROUP;
+					break;
+				case AuthConstants.ORG_TYPE_B:
+					updateClass = RelationConstants.RELATION_THIRD_DATANUM_TYPE_PROVINCE;
+					break;
+				case AuthConstants.ORG_TYPE_C:
+					updateClass = RelationConstants.RELATION_THIRD_DATANUM_TYPE_CITY;
+					break;
+				default:
+					break;
+				}
+				
+				SendVo sendVo = new SendVo();
+				sendVo.setModifyTime(new Date().getTime());
+				sendVo.setSubjectCode(quality.getSubjectCode());
+				sendVo.setUpdateClass(updateClass);
+				sendVo.setUpdateNumber((byte) RelationConstants.NUM_ONE.intValue());
+				producerTemplate.send(RelationConstants.RELATION_TOPIC, JSONObject.toJSONString(sendVo));
+
+				// 调用微博或者 博客 消息队列修改置精数目
+				if (quality.getSubjectClass() == RelationConstants.RELATION_SUBJECT_MBLOG) {
+					// 内容为微博
+					
+					Byte scope = 0;
+					switch (manageOrgInfo.getSysOrgType()) {
+					case AuthConstants.ORG_TYPE_A:
+						scope = RelationConstants.RELATION_THIRD_DATANUM_TYPE_GROUP;
+						break;
+					case AuthConstants.ORG_TYPE_B:
+						scope = RelationConstants.RELATION_THIRD_DATANUM_TYPE_PROVINCE;
+						break;
+					case AuthConstants.ORG_TYPE_C:
+						scope = RelationConstants.RELATION_THIRD_DATANUM_TYPE_CITY;
+						break;
+					default:
+						break;
+					}
+					MblogEssenceVo mblogEssenceVo = new MblogEssenceVo();
+					mblogEssenceVo.setUserCode(userCode);
+					mblogEssenceVo.setMblogCode(quality.getSubjectCode());
+					mblogEssenceVo.setIsEssence(RelationConstants.RELATION_YES);
+					mblogEssenceVo.setScope(scope);
+					producerTemplate.send(MblogConstants.MBLOG_KAFKA_TOPIC_ESSENCE,
+							JSONObject.toJSONString(mblogEssenceVo));
+				} else if (quality.getSubjectClass() == RelationConstants.RELATION_SUBJECT_BLOG) {
+					// 内容为博客
+					Byte updateNumber = 0;
+					switch (manageOrgInfo.getSysOrgType()) {
+					case AuthConstants.ORG_TYPE_A:
+						updateNumber = RelationConstants.RELATION_THIRD_DATANUM_TYPE_GROUP;
+						break;
+					case AuthConstants.ORG_TYPE_B:
+						updateNumber = RelationConstants.RELATION_THIRD_DATANUM_TYPE_PROVINCE;
+						break;
+					case AuthConstants.ORG_TYPE_C:
+						updateNumber = RelationConstants.RELATION_THIRD_DATANUM_TYPE_CITY;
+						break;
+					default:
+						break;
+					}
+					BlogThirdDataVO blogThirdDataVO = new BlogThirdDataVO();
+					blogThirdDataVO.setModifyTime(new Date().getTime());
+					blogThirdDataVO.setSubjectCode(recommend.getSubjectCode());
+					blogThirdDataVO.setUpdateNumber(RelationConstants.NUM_ONE);
+					blogThirdDataVO.setUpdateClass( updateNumber);
+					producerTemplate.send(BlogConstants.BLOG_TOPIC, JSONObject.toJSONString(blogThirdDataVO));
+				}
+
+			} else {
+				log.error("RelationRecommendByGlController.setQuality：门户置精失败");
+				throw BusinessException.build("RELATION_19002", "门户置精");
+			}
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("RelationRecommendByGlController.setQuality", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		return result;
+
+	}
+
+	/**
+	 * @Function removeQuality
+	 * @Description 门户取消加精
+	 * @param recSubjectVO
+	 * @return
+	 * @throws BusinessException
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value = "removeQuality",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON removeQuality(@RequireValid RemoveQualityVO removeQualityVO) throws BusinessException {
+		// 返回值
+		ResultJSON result = null;
+		try {
+			log.info("RelationRecommendByGlController.removeQuality：门户取消加精");
+
+			// 获取参数
+
+			String recCode = removeQualityVO.getRecCode();// 推荐编号
+			String qualityCode = removeQualityVO.getQualityCode();// 精华编号
+			String userCode = removeQualityVO.getUserCode();
+			RelationRecVO relationRecVO = new RelationRecVO();
+			relationRecVO.setRecCode(recCode);
+
+			RelationQuality quality = new RelationQuality();
+			quality.setQualityCode(qualityCode);
+			// 修改推荐状态,删除精华记录
+			// 获取精华信息
+			RelationQuality qualityByCode = relationQualityService.getQualityByCode(quality);
+			if (relationRecService.updateRecStatus(relationRecVO, quality)) {
+				// 返回值赋值
+				result = new ResultJSON("COMMON_200");
+				JSONObject body = new JSONObject();
+				result.setBody(body);
+
+				// 调用关系消息队列 增加置精次数
+
+				//获取人员信息
+				SysUserInfo selectByCode = sysUserService.selectByCode(userCode);
+				SysUserInfo sysUserInfo = selectByCode != null? selectByCode : new SysUserInfo();
+				SysOrgInfo manageOrgInfo2 = sysUserInfo.getManageOrgInfo();
+				SysOrgInfo manageOrgInfo = manageOrgInfo2 != null ? manageOrgInfo2: new SysOrgInfo();
+
+				Byte updateClass = 0;
+				switch (manageOrgInfo.getSysOrgType()) {
+				case AuthConstants.ORG_TYPE_A:
+					updateClass = RelationConstants.RELATION_THIRD_DATANUM_TYPE_GROUP;
+					break;
+				case AuthConstants.ORG_TYPE_B:
+					updateClass = RelationConstants.RELATION_THIRD_DATANUM_TYPE_PROVINCE;
+					break;
+				case AuthConstants.ORG_TYPE_C:
+					updateClass = RelationConstants.RELATION_THIRD_DATANUM_TYPE_CITY;
+					break;
+				default:
+					break;
+				}
+
+				SendVo sendVo = new SendVo();
+				sendVo.setModifyTime(new Date().getTime());
+				sendVo.setSubjectCode(qualityByCode.getSubjectCode());
+				sendVo.setUpdateClass(updateClass);
+				sendVo.setUpdateNumber((byte) RelationConstants.NUM_BELOW_ONE.intValue());
+				producerTemplate.send(RelationConstants.RELATION_TOPIC, JSONObject.toJSONString(sendVo));
+
+				// 调用微博或者 博客 消息队列修改置精数目
+
+				if (qualityByCode.getSubjectClass() == RelationConstants.RELATION_SUBJECT_MBLOG) {
+					// 内容为微博
+					
+					Byte scope = 0;
+					switch (manageOrgInfo.getSysOrgType()) {
+					case AuthConstants.ORG_TYPE_A:
+						scope = RelationConstants.RELATION_THIRD_DATANUM_TYPE_GROUP;
+						break;
+					case AuthConstants.ORG_TYPE_B:
+						scope = RelationConstants.RELATION_THIRD_DATANUM_TYPE_PROVINCE;
+						break;
+					case AuthConstants.ORG_TYPE_C:
+						scope = RelationConstants.RELATION_THIRD_DATANUM_TYPE_CITY;
+						break;
+					default:
+						break;
+					}
+					MblogEssenceVo mblogEssenceVo = new MblogEssenceVo();
+					mblogEssenceVo.setUserCode(userCode);
+					// 微博code
+					mblogEssenceVo.setMblogCode(qualityByCode.getSubjectCode());
+					mblogEssenceVo.setIsEssence(RelationConstants.RELATION_NO);
+					mblogEssenceVo.setScope(scope);
+					producerTemplate.send(MblogConstants.MBLOG_KAFKA_TOPIC_ESSENCE,
+							JSONObject.toJSONString(mblogEssenceVo));
+
+				} else if (qualityByCode.getSubjectClass() == RelationConstants.RELATION_SUBJECT_BLOG) {
+					// 内容为博客
+					
+					Byte updateNumber = 0;
+					switch (manageOrgInfo.getSysOrgType()) {
+					case AuthConstants.ORG_TYPE_A:
+						updateNumber = RelationConstants.RELATION_THIRD_DATANUM_TYPE_GROUP;
+						break;
+					case AuthConstants.ORG_TYPE_B:
+						updateNumber = RelationConstants.RELATION_THIRD_DATANUM_TYPE_PROVINCE;
+						break;
+					case AuthConstants.ORG_TYPE_C:
+						updateNumber = RelationConstants.RELATION_THIRD_DATANUM_TYPE_CITY;
+						break;
+					default:
+						break;
+					}
+					BlogThirdDataVO blogThirdDataVO = new BlogThirdDataVO();
+					blogThirdDataVO.setModifyTime(new Date().getTime());
+					blogThirdDataVO.setSubjectCode(qualityByCode.getSubjectCode());
+					// 修改数量
+					blogThirdDataVO.setUpdateNumber(RelationConstants.NUM_BELOW_ONE);
+					blogThirdDataVO.setUpdateClass( updateNumber);
+					producerTemplate.send(BlogConstants.BLOG_TOPIC, JSONObject.toJSONString(blogThirdDataVO));
+				}
+				log.info("RelationRecommendByGlController.removeQuality：门户取消加精成功");
+			} else {
+				log.error("RelationRecommendByGlController.removeQuality：门户取消加精失败");
+				throw BusinessException.build("RELATION_19002", "门户取消加精");
+			}
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("RelationRecommendByGlController.removeQuality", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		return result;
+
+	}
+
+	/**
+	 * @Function ignoreRec
+	 * @Description 门户忽略
+	 * @param ignoreRecVO
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "ignoreRec",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON ignoreRec(@RequireValid IgnoreRecVO ignoreRecVO) throws BusinessException {
+		// 返回值
+		ResultJSON result = null;
+		try {
+			log.info("RelationRecommendByGlController.ignoreRec：门户忽略");
+
+			// 获取参数
+			String recCode = ignoreRecVO.getRecCode();// 推荐编号
+
+			RelationRecVO relationRecVO = new RelationRecVO();
+			relationRecVO.setRecCode(recCode);
+			// 修改推荐状态
+			if (relationRecService.updateRecStatus(relationRecVO, new RelationQuality())) {
+				// 返回值赋值
+				result = new ResultJSON("COMMON_200");
+				JSONObject body = new JSONObject();
+				result.setBody(body);
+				log.info("RelationRecommendByGlController.ignoreRec：门户忽略成功");
+			} else {
+				log.error("RelationRecommendByGlController.ignoreRec：门户忽略失败");
+				throw BusinessException.build("RELATION_19002", "门户忽略");
+			}
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("RelationRecommendByGlController.ignoreRec", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		return result;
+
+	}
+
+	/**
+	 * @Function setQualityTop
+	 * @Description 门户精华置顶
+	 * @param setQualityTopVO
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "setQualityTop",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON setQualityTop(@RequireValid SetQualityTopVO setQualityTopVO) throws BusinessException {
+		// 返回值
+		ResultJSON result = null;
+		try {
+			log.info("RelationRecommendByGlController.setQualityTop：门户精华置顶");
+
+			// 获取参数
+
+			String qualityCode = setQualityTopVO.getQualityCode();// 精华编号
+
+			// 修改精华状态
+			RelationQualityVO relationQualityVO = new RelationQualityVO();
+			relationQualityVO.setQualityCode(qualityCode);
+			if (relationQualityService.setPortalQualityTop(relationQualityVO, RelationConstants.RELATION_YES)) {
+				// 返回值赋值
+				result = new ResultJSON("COMMON_200");
+				JSONObject body = new JSONObject();
+				result.setBody(body);
+				log.info("RelationRecommendByGlController.setQualityTop：门户精华置顶成功");
+			} else {
+				log.error("RelationRecommendByGlController.setQualityTop：门门户精华置顶失败");
+				throw BusinessException.build("RELATION_19002", "门户精华置顶");
+			}
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("RelationRecommendByGlController.setQualityTop", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		return result;
+
+	}
+
+	/**
+	 * @Function removeQualityTop
+	 * @Description 门户精华取消置顶
+	 * @param setQualityTopVO
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "removeQualityTop",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON setQualityTop(@RequireValid RemoveQualityTopVO inVo) throws BusinessException {
+		// 返回值
+		ResultJSON result = null;
+		try {
+			log.info("RelationRecommendByGlController.removeQualityTop：门户精华置顶");
+
+			// 获取参数
+			String qualityCode = inVo.getQualityCode();// 精华编号
+			String userCode = inVo.getUserCode();// 当前用户
+			// 修改精华状态
+			RelationQualityVO relationQualityVO = new RelationQualityVO();
+			relationQualityVO.setQualityCode(qualityCode);
+			// 获取用户上级信息
+			SysUserInfo selectByCode = sysUserService.selectByCode(userCode);
+			SysUserInfo sysUserInfo = selectByCode != null? selectByCode : new SysUserInfo();
+			SysOrgInfo manageOrgInfo2 = sysUserInfo.getManageOrgInfo();
+			SysOrgInfo manageOrgInfo = manageOrgInfo2 != null ? manageOrgInfo2: new SysOrgInfo();
+			relationQualityVO.setOrgCode(manageOrgInfo.getSysOrgCode());
+			
+			if (relationQualityService.setPortalQualityTop(relationQualityVO, RelationConstants.RELATION_NO)) {
+				// 返回值赋值
+				result = new ResultJSON("COMMON_200");
+				JSONObject body = new JSONObject();
+				result.setBody(body);
+				log.info("RelationRecommendByGlController.removeQualityTop：门户精华取消置顶成功");
+			} else {
+				log.error("RelationRecommendByGlController.removeQualityTop：门户精华取消置顶失败");
+				throw BusinessException.build("RELATION_19002", "门户精华取消置顶");
+			}
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("RelationRecommendByGlController.removeQualityTop", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		return result;
+
+	}
+
+	/**
+	 * @Function getRecList
+	 * @Description 门户推荐列表
+	 * @param inVo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "getRecList",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getRecList(@RequireValid GetRecListVo inVo) throws BusinessException {
+		ResultJSON result;
+		try {
+			// 获取参数
+			RelationRecVO relationRecVO = new RelationRecVO();
+			String userCode = inVo.getUserCode();
+			if (!inVo.getBeginTime().equals("")) {
+				Long beginTime = Long.parseLong(inVo.getBeginTime());
+				relationRecVO.setBeginTime(beginTime);
+			}
+			if (!inVo.getEndTime().equals("")) {
+				Long endTime = Long.parseLong(inVo.getEndTime());
+				relationRecVO.setEndTime(endTime);
+			}
+			if (!inVo.getRecStatus().equals("")) {
+				Byte recStatus = Byte.parseByte(inVo.getRecStatus());
+				relationRecVO.setRecStatus(recStatus);
+			}
+			if (!inVo.getSubjectClass().equals("")) {
+				Byte subjectClass = Byte.parseByte(inVo.getSubjectClass());
+				relationRecVO.setSubjectClass(subjectClass);
+			}
+			if (!inVo.getSubjectTitle().equals("")) {
+				String subjectTitle = inVo.getSubjectTitle();
+				relationRecVO.setSubjectTitle(subjectTitle);
+			}
+
+			Integer pageNo = Integer.parseInt(inVo.getPageNo());
+			Integer pageSize = Integer.parseInt(inVo.getPageSize());
+			Long queryTime = Long.parseLong(inVo.getQueryTime());
+
+			relationRecVO.setQueryTime(queryTime);
+
+			// 获取组织信息
+			SysUserInfo selectByCode = sysUserService.selectByCode(userCode);
+			SysUserInfo sysUserInfo = selectByCode != null? selectByCode : new SysUserInfo();
+			SysOrgInfo manageOrgInfo2 = sysUserInfo.getManageOrgInfo();
+			SysOrgInfo manageOrgInfo = manageOrgInfo2 != null ? manageOrgInfo2: new SysOrgInfo();
+			
+			relationRecVO.setOrgCode(manageOrgInfo.getSysOrgCode());
+			// 分页
+			PageParam pageParam = new PageParam(pageNo, pageSize);
+			PageBean pageBean = relationRecService.getPortalRecList(pageParam, relationRecVO);
+
+			// 返回数据
+			List<Object> list = pageBean.getRecordList();
+			JSONArray jSONArray = new JSONArray();
+			long topCount = 0;
+			if (null != list && !list.isEmpty()) {
+				for (Object obj : list) {
+					EtRelationRecommendModel recommend = (EtRelationRecommendModel) obj;
+					if (recommend != null) {
+						JSONObject temp = new JSONObject();
+						if (relationRecVO.getRecStatus() == RelationConstants.RELATION_REC_STATUS_SHOW) {
+							if (recommend.getQualityIsTop() != null) {
+								if (recommend.getQualityIsTop() == 1) {
+									topCount++;
+								}
+							}
+						}
+
+						temp.put("recCode", StringTools.formatToString(recommend.getRecCode()));// 推荐编号
+						temp.put("subjectCode", StringTools.formatToString(recommend.getSubjectCode()));// 内容编号
+						temp.put("subjectClass", StringTools.formatToString(recommend.getSubjectClass()));// 内容类型：1.微博；2.博客；
+						temp.put("subjectTitle", StringTools.formatToString(recommend.getSubjectTitle()));// 内容标题
+						temp.put("userCode", StringTools.formatToString(recommend.getUserCode()));// 内容发布人
+						// 获取发布人信息
+						SysUserInfo selectByCode2 = sysUserService.selectByCode(recommend.getUserCode());
+						SysUserInfo tempSysUserInfo = selectByCode2 != null? selectByCode2 : new SysUserInfo();
+						SysOrgInfo orgInfo = sysUserInfo.getOrgInfo();
+						SysOrgInfo tempOrgInfo = orgInfo != null ? orgInfo: new SysOrgInfo();
+						
+						temp.put("userName", StringTools.formatToString(tempSysUserInfo.getUserName()));// 内容发布人名称
+						temp.put("orgCode", StringTools.formatToString(tempOrgInfo.getSysOrgCode()));// 内容发布人所属公司编号
+						temp.put("orgName", StringTools.formatToString(tempOrgInfo.getSysOrgFullname()));// 内容发布人所属公司名称
+
+						temp.put("subjectPublishTime", StringTools.formatToString(recommend.getSubjectPublishTime()));// 内容发布时间
+						temp.put("createTime", StringTools.formatToString(recommend.getCreateTime()));// 推荐时间
+						temp.put("recUserCode", StringTools.formatToString(recommend.getRecUserCode()));// 推荐人编号
+						// 获取推荐人信息
+						SysUserInfo selectByCode3 = sysUserService.selectByCode(recommend.getRecUserCode());
+						SysUserInfo tempSysUserInfo1 = selectByCode3 != null? selectByCode3 : new SysUserInfo();
+						temp.put("recUserName", StringTools.formatToString(tempSysUserInfo1.getUserName()));// 推荐人名称
+						temp.put("modifyTime", StringTools.formatToString(recommend.getModifyTime()));// 操作时间
+						temp.put("qualityIsTop", StringTools.formatToString(recommend.getQualityIsTop()));// 是否置顶：0.否；1.是
+						temp.put("recQualityTime", StringTools.formatToString(recommend.getRecQualityTime()));// 置精时间
+						temp.put("qualitySeqNum", StringTools.formatToString(recommend.getQualitySeqNum()));// 排序
+						temp.put("qualityCode", StringTools.formatToString(recommend.getQualityCode()));// 精华编号
+						jSONArray.add(temp);
+					}
+
+				}
+			}
+			JSONObject body = new JSONObject();
+
+			body.put("total", pageBean.getTotalCount());
+			if (relationRecVO.getRecStatus() == RelationConstants.RELATION_REC_STATUS_SHOW) {
+				body.put("topTotal", topCount);
+			}
+			body.put("recList", jSONArray);
+			// 创建返回值
+			result = new ResultJSON("COMMON_200");
+			result.setBody(body);
+			log.info("RelationRecommendByGlController.getRecList：查询门户推荐列表成功");
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("RelationRecommendByGlController.getRecList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	/**
+	 * @Function updateQualitySeq
+	 * @Description 修改精华排序
+	 * @param inVo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "updateQualitySeq",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON updateQualitySeq(@RequireValid UpdateQualitySeqVO inVo) throws BusinessException {
+		// 返回值
+		ResultJSON result = null;
+		try {
+			log.info("RelationRecommendByGlController.updateQualitySeq：修改精华排序");
+
+			// 获取参数
+
+			String qualityCode = inVo.getQualityCode();// 精华编号
+			String userCode = inVo.getUserCode();// 当前用户
+			Long qualitySeqNum = Long.parseLong(inVo.getQualitySeqNum());// 排序值
+			Byte actionClass = Byte.parseByte(inVo.getActionClass());// 1上移2下移
+			
+			//修改精华入参
+			RelationQualityVO relationQualityVO = new RelationQualityVO();
+			relationQualityVO.setActionClass(actionClass);
+			relationQualityVO.setSortNum(qualitySeqNum);
+			relationQualityVO.setQualityCode(qualityCode);
+			// 获取组织编号
+			SysUserInfo selectByCode = sysUserService.selectByCode(userCode);
+			SysUserInfo sysUserInfo = selectByCode != null? selectByCode : new SysUserInfo();
+			SysOrgInfo manageOrgInfo2 = sysUserInfo.getManageOrgInfo();
+			SysOrgInfo manageOrgInfo = manageOrgInfo2 != null ? manageOrgInfo2: new SysOrgInfo();
+			
+			relationQualityVO.setOrgCode(manageOrgInfo.getSysOrgCode());
+			if (inVo.getBeginTime() != null && !inVo.getBeginTime().equals("")) {
+				relationQualityVO.setBeginTime(Long.valueOf(inVo.getBeginTime()));
+			}
+			if (inVo.getEndTime() != null && !inVo.getEndTime().equals("")) {
+				relationQualityVO.setEndTime(Long.valueOf(inVo.getEndTime()));
+			}
+			if (inVo.getQueryTime() != null && !inVo.getQueryTime().equals("")) {
+				relationQualityVO.setQueryTime(Long.valueOf(inVo.getQueryTime()));
+			}
+			if (inVo.getRecStatus() != null && !inVo.getRecStatus().equals("")) {
+				relationQualityVO.setRecStatus(Integer.valueOf(inVo.getRecStatus()));
+			}
+			if (inVo.getSubjectClass() != null && !inVo.getSubjectClass().equals("")) {
+				relationQualityVO.setSubjectClass(Byte.parseByte(inVo.getSubjectClass()));
+			}
+			if (inVo.getSubjectTitle() != null && !inVo.getSubjectTitle().equals("")) {
+				relationQualityVO.setSubjectTitle(inVo.getSubjectTitle());
+			}
+
+			if (relationQualityService.updatePortalQualitySeq(relationQualityVO)) {
+				// 返回值赋值
+				result = new ResultJSON("COMMON_200");
+				JSONObject body = new JSONObject();
+				result.setBody(body);
+				log.info("RelationRecommendByGlController.updateQualitySeq：修改精华排序");
+			} else {
+				log.error("RelationRecommendByGlController.updateQualitySeq：修改精华排序");
+				throw BusinessException.build("RELATION_19002", "修改精华排序");
+			}
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("RelationRecommendByGlController.updateQualitySeq", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		return result;
+
+	}
+}

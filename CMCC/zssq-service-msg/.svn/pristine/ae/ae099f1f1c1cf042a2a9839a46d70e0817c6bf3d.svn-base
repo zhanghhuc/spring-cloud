@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.UserMsgCommentMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.UserMsgComment" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="msg_code" property="msgCode" jdbcType="VARCHAR" />
+    <result column="comment_code" property="commentCode" jdbcType="VARCHAR" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="comment_user_code" property="commentUserCode" jdbcType="VARCHAR" />
+    <result column="commet_type" property="commetType" jdbcType="TINYINT" />
+    <result column="commentContent" property="commentcontent" jdbcType="VARCHAR" />
+    <result column="original_content" property="originalContent" jdbcType="VARCHAR" />
+    <result column="original_code" property="originalCode" jdbcType="VARCHAR" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="public_code" property="publicCode" jdbcType="VARCHAR" />
+    <result column="receive_user_code" property="receiveUserCode" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, msg_code, comment_code, user_code, create_time, comment_user_code, commet_type, 
+    commentContent, original_content, original_code, tenant_code, is_delete, org_code, 
+    public_code, receive_user_code
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from user_msg_comment
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from user_msg_comment
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.UserMsgComment" >
+    insert into user_msg_comment (id, msg_code, comment_code, 
+      user_code, create_time, comment_user_code, 
+      commet_type, commentContent, original_content, 
+      original_code, tenant_code, is_delete, 
+      org_code, public_code, receive_user_code
+      )
+    values (#{id,jdbcType=BIGINT}, #{msgCode,jdbcType=VARCHAR}, #{commentCode,jdbcType=VARCHAR}, 
+      #{userCode,jdbcType=VARCHAR}, #{createTime,jdbcType=BIGINT}, #{commentUserCode,jdbcType=VARCHAR}, 
+      #{commetType,jdbcType=TINYINT}, #{commentcontent,jdbcType=VARCHAR}, #{originalContent,jdbcType=VARCHAR}, 
+      #{originalCode,jdbcType=VARCHAR}, #{tenantCode,jdbcType=VARCHAR}, #{isDelete,jdbcType=TINYINT}, 
+      #{orgCode,jdbcType=VARCHAR}, #{publicCode,jdbcType=VARCHAR}, #{receiveUserCode,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.UserMsgComment" >
+    insert into user_msg_comment
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="msgCode != null" >
+        msg_code,
+      </if>
+      <if test="commentCode != null" >
+        comment_code,
+      </if>
+      <if test="userCode != null" >
+        user_code,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="commentUserCode != null" >
+        comment_user_code,
+      </if>
+      <if test="commetType != null" >
+        commet_type,
+      </if>
+      <if test="commentcontent != null" >
+        commentContent,
+      </if>
+      <if test="originalContent != null" >
+        original_content,
+      </if>
+      <if test="originalCode != null" >
+        original_code,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="publicCode != null" >
+        public_code,
+      </if>
+      <if test="receiveUserCode != null" >
+        receive_user_code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="msgCode != null" >
+        #{msgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="commentCode != null" >
+        #{commentCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="commentUserCode != null" >
+        #{commentUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="commetType != null" >
+        #{commetType,jdbcType=TINYINT},
+      </if>
+      <if test="commentcontent != null" >
+        #{commentcontent,jdbcType=VARCHAR},
+      </if>
+      <if test="originalContent != null" >
+        #{originalContent,jdbcType=VARCHAR},
+      </if>
+      <if test="originalCode != null" >
+        #{originalCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="publicCode != null" >
+        #{publicCode,jdbcType=VARCHAR},
+      </if>
+      <if test="receiveUserCode != null" >
+        #{receiveUserCode,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.UserMsgComment" >
+    update user_msg_comment
+    <set >
+      <if test="msgCode != null" >
+        msg_code = #{msgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="commentCode != null" >
+        comment_code = #{commentCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        user_code = #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="commentUserCode != null" >
+        comment_user_code = #{commentUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="commetType != null" >
+        commet_type = #{commetType,jdbcType=TINYINT},
+      </if>
+      <if test="commentcontent != null" >
+        commentContent = #{commentcontent,jdbcType=VARCHAR},
+      </if>
+      <if test="originalContent != null" >
+        original_content = #{originalContent,jdbcType=VARCHAR},
+      </if>
+      <if test="originalCode != null" >
+        original_code = #{originalCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="publicCode != null" >
+        public_code = #{publicCode,jdbcType=VARCHAR},
+      </if>
+      <if test="receiveUserCode != null" >
+        receive_user_code = #{receiveUserCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.UserMsgComment" >
+    update user_msg_comment
+    set msg_code = #{msgCode,jdbcType=VARCHAR},
+      comment_code = #{commentCode,jdbcType=VARCHAR},
+      user_code = #{userCode,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=BIGINT},
+      comment_user_code = #{commentUserCode,jdbcType=VARCHAR},
+      commet_type = #{commetType,jdbcType=TINYINT},
+      commentContent = #{commentcontent,jdbcType=VARCHAR},
+      original_content = #{originalContent,jdbcType=VARCHAR},
+      original_code = #{originalCode,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      public_code = #{publicCode,jdbcType=VARCHAR},
+      receive_user_code = #{receiveUserCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  <!-- 分页查询  -->
+   <select id="selectPage" resultMap="BaseResultMap" parameterType="com.zssq.model.MessageCommentModel" >
+    select 
+    <include refid="Base_Column_List" />
+    from user_msg_comment
+    where 1 = 1
+    
+    <!-- 查询收到的评论 -->
+     <if test="type == 0">
+      and user_code = #{userCode,jdbcType=VARCHAR} and  receive_user_code= #{userCode,jdbcType=VARCHAR}
+   	</if>
+   	
+   	<!-- 查看自己的评论 -->
+     <if test="type == 1">
+      and user_code = #{userCode,jdbcType=VARCHAR} and comment_user_code= #{userCode,jdbcType=VARCHAR}
+   	</if>
+   	and  is_delete=0
+   	order by create_time desc
+   	 
+    <if test="pageSize != null and pageNo>=0" >
+      limit #{pageNo} , #{pageSize}
+    </if>
+  
+  </select>
+  
+  <!-- 总条数 -->
+   <select id="selectCount" resultType="int" parameterType="com.zssq.model.MessageCommentModel" >
+   select count(1)
+   from user_msg_comment
+   where 1 = 1
+   
+   	<!-- 查询收到的评论 -->
+ 	<if test="type == 0">
+      and user_code = #{userCode,jdbcType=VARCHAR} and  receive_user_code= #{userCode,jdbcType=VARCHAR}
+   	</if>
+   	
+   	<!-- 查看自己的评论 -->
+     <if test="type == 1">
+      and user_code = #{userCode,jdbcType=VARCHAR} and comment_user_code= #{userCode,jdbcType=VARCHAR}
+   	 </if>
+   and  is_delete=0
+  
+  </select>
+  
+  
+  
+  
+   <update id="delComment" parameterType="com.zssq.dao.pojo.UserMsgComment" >
+    update user_msg_comment
+    <set >
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=TINYINT},
+      </if>
+    </set>
+    where 
+    
+     <if test="msgCode != null" >
+      msg_code = #{msgCode,jdbcType=VARCHAR}
+     </if>
+  </update>
+  
+  
+  
+  
+  
+  
+</mapper>

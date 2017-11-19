@@ -1,0 +1,92 @@
+package com.zssq.interceptor;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.pojo.Message;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.ISysUserService;
+import com.zssq.utils.PropertiesUtil;
+  
+public class SSOAuthInterceptor implements HandlerInterceptor {  
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	
+	@Autowired
+	private ISysUserService sysUserService;
+  
+	//false:被拦截
+	//true：进入方法
+    @Override  
+    public boolean preHandle(HttpServletRequest request,  
+            HttpServletResponse response, Object handler) throws Exception {  
+    	System.out.println("进入方法前");
+    	
+    	String uid = request.getParameter("userCode");
+    	log.info("SSOAuthInterceptor.preHandle:uid:" + uid);
+    	
+    	boolean result = true;
+    	
+    	if(!"".equals(uid) && uid != null){ //验证用户状态
+	    	SysUserInfo sysUserInfo = new SysUserInfo();
+	    	sysUserInfo.setUserCode(uid);
+	    	List<SysUserInfo> sysUserInfos = sysUserService.selectByRecord(sysUserInfo);
+	    	log.info("sysUserInfos.size():" + sysUserInfos.size());
+	    	if(sysUserInfos.size() > 0){ //本地验证用户状态
+	    		int userStatus = Integer.valueOf(sysUserInfos.get(0).getUserStatus());
+	    		ResultJSON resultJSON = new ResultJSON();
+	    		Message m = PropertiesUtil.getMessage("SSO_0005");
+	    		resultJSON.setReturnCode(m.getCode());
+	    		resultJSON.setBody(new JSONObject());
+	    		if(userStatus == 1){
+	    			log.info("userStatus:" + userStatus);
+	        		resultJSON.setReturnTip(m.getTip().replace("%s", "锁定"));
+	    			request.setAttribute("ticketMsgAuth", JSONObject.toJSONString(resultJSON));
+	    			return true;
+	    		}else if(userStatus == 2){
+	    			log.info("userStatus:" + userStatus);
+	        		resultJSON.setReturnTip(m.getTip().replace("%s", "未启用"));
+	    			request.setAttribute("ticketMsgAuth", JSONObject.toJSONString(resultJSON));
+	    			return true;
+	    		}else if(userStatus == 3){
+	    			log.info("userStatus:" + userStatus);
+	        		resultJSON.setReturnTip(m.getTip().replace("%s", "注销"));
+	    			request.setAttribute("ticketMsgAuth", JSONObject.toJSONString(resultJSON));
+	    			return true;
+	    		}
+	    		log.info("userStatus:" + userStatus);
+	    	}
+    	}
+    	
+		
+        return result; 
+        
+    }  
+      
+    @Override  
+    public void postHandle(HttpServletRequest request,  
+            HttpServletResponse response, Object handler,  
+            ModelAndView modelAndView) throws Exception {  
+
+    	//System.out.println("进入方法中");
+    	
+    }  
+  
+    @Override  
+    public void afterCompletion(HttpServletRequest request,  
+            HttpServletResponse response, Object handler, Exception ex)  
+    throws Exception {  
+
+    	//System.out.println("方法执行后");
+    }  
+      
+}  

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.NewsTransmitMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.news.dao.pojo.NewsTransmit" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="transmit_code" property="transmitCode" jdbcType="VARCHAR" />
+    <result column="news_code" property="newsCode" jdbcType="VARCHAR" />
+    <result column="transmit_people_code" property="transmitPeopleCode" jdbcType="VARCHAR" />
+    <result column="org_level" property="orgLevel" jdbcType="TINYINT" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, transmit_code, news_code, transmit_people_code, org_level, org_code, create_time, 
+    modify_time, remark, tenant_code
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from news_transmit
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from news_transmit
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.news.dao.pojo.NewsTransmit" >
+    insert into news_transmit (id, transmit_code, news_code, 
+      transmit_people_code, org_level, org_code, 
+      create_time, modify_time, remark, 
+      tenant_code)
+    values (#{id,jdbcType=BIGINT}, #{transmitCode,jdbcType=VARCHAR}, #{newsCode,jdbcType=VARCHAR}, 
+      #{transmitPeopleCode,jdbcType=VARCHAR}, #{orgLevel,jdbcType=TINYINT}, #{orgCode,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=BIGINT}, #{modifyTime,jdbcType=BIGINT}, #{remark,jdbcType=VARCHAR}, 
+      #{tenantCode,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.news.dao.pojo.NewsTransmit" >
+    insert into news_transmit
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="transmitCode != null" >
+        transmit_code,
+      </if>
+      <if test="newsCode != null" >
+        news_code,
+      </if>
+      <if test="transmitPeopleCode != null" >
+        transmit_people_code,
+      </if>
+      <if test="orgLevel != null" >
+        org_level,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="transmitCode != null" >
+        #{transmitCode,jdbcType=VARCHAR},
+      </if>
+      <if test="newsCode != null" >
+        #{newsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="transmitPeopleCode != null" >
+        #{transmitPeopleCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.news.dao.pojo.NewsTransmit" >
+    update news_transmit
+    <set >
+      <if test="transmitCode != null" >
+        transmit_code = #{transmitCode,jdbcType=VARCHAR},
+      </if>
+      <if test="newsCode != null" >
+        news_code = #{newsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="transmitPeopleCode != null" >
+        transmit_people_code = #{transmitPeopleCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        org_level = #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.news.dao.pojo.NewsTransmit" >
+    update news_transmit
+    set transmit_code = #{transmitCode,jdbcType=VARCHAR},
+      news_code = #{newsCode,jdbcType=VARCHAR},
+      transmit_people_code = #{transmitPeopleCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

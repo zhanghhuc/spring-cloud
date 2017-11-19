@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.blog.dao.mapper.BlogMapper">
+
+	<!-- 查看临时表是否存在 -->
+	<select id="isTempTableExists" resultType="string">
+		SELECT
+			table_name
+		FROM information_schema. TABLES
+		WHERE table_name = 'blog_temp'
+	</select>
+	
+	<!-- 创建临时表 -->
+	<update id="createTempTable">
+		CREATE TABLE blog_temp (
+			old_id INTEGER NOT NULL,
+			blog_code VARCHAR (32) NOT NULL,
+			tenant_code VARCHAR(32),
+			org_code VARCHAR(32),
+			create_time BIGINT(20),
+			modify_time BIGINT(20),
+			PRIMARY KEY (old_id)
+		) ENGINE = INNODB DEFAULT CHARACTER
+		SET = utf8 COLLATE = utf8_general_ci 
+		ROW_FORMAT = COMPACT
+	</update>
+	
+	<!-- 删除临时表 -->
+	<update id="dropTempTable">
+		DROP TABLE IF EXISTS blog_temp
+	</update>
+	
+	<!-- 创建索引 -->
+	<update id="createIndex">
+		CREATE UNIQUE INDEX Index_1 ON blog_info (blog_code);
+		CREATE INDEX Index_2 ON blog_info (blog_depend, team_code, user_code, blog_is_delete, blog_is_shield);
+	</update>
+	
+	<!-- 查询原博客表中数据总量 -->
+	<select id="getSourceBlogCount" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM source_blog sb
+		WHERE sb.blog_state = 0
+	</select>
+	
+	<!-- 获取原个人博客数据 -->
+	<select id="getSourceUserBlogList" parameterType="map" resultType="com.zssq.blog.pojo.SourceBlogModel">
+		SELECT
+			sbil.blog_id AS blogId,
+			sui.user_code AS userCode,
+			sui.saas_tenant_code AS tenantCode,
+			sbil.create_time AS createTime,
+			sbil.updatetime AS updateTime,
+			sbil.title AS title,
+			sbil.digest AS digest,
+			sbil.blog_logo AS blogLogo,
+			sbil.view_num AS viewNum,
+			soi1.man_org_code AS cityCode,
+			soi2.man_org_code AS provinceCode,
+			bc.class_code AS classCode
+		FROM
+			(
+				SELECT
+					sb.blog_id,
+					sb.user_id,
+					sb.create_time,
+					sb.updatetime,
+					sb.title,
+					sb.digest,
+					sb.cata_level_two_id,
+					sb.blog_logo,
+					sb.view_num,
+					sbi.city_id,
+					sbi.province_id,
+					sbi.team_id
+				FROM
+					(
+						SELECT
+							blog_id,
+							user_id,
+							create_time,
+							updatetime,
+							title,
+							digest,
+							cata_level_two_id,
+							blog_logo,
+							view_num
+						FROM source_blog
+						WHERE blog_state = 0
+						ORDER BY BLOG_ID
+						LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+					) sb
+				LEFT JOIN source_blog_index sbi 
+					ON sb.user_id = sbi.user_id
+					AND sb.blog_id = sbi.blog_id
+				WHERE sbi.team_id = 0
+			) sbil
+		LEFT JOIN sys_user_info sui 
+			ON sbil.user_id = sui.user_id
+		LEFT JOIN sys_org_info soi1 
+			ON sbil.city_id = soi1.org_id
+		LEFT JOIN sys_org_info soi2 
+			ON sbil.province_id = soi2.org_id
+		LEFT JOIN blog_class bc 
+			ON sbil.user_id = bc.user_id
+			AND bc.team_id = 0
+			AND sbil.cata_level_two_id = bc.old_id
+	</select>
+	
+	<!-- 获取原班组博客数据 -->
+	<select id="getSourceTeamBlogList" parameterType="map" resultType="com.zssq.blog.pojo.SourceBlogModel">
+		SELECT
+			sbil.blog_id AS blogId,
+			sui.user_code AS userCode,
+			sui.saas_tenant_code AS tenantCode,
+			sbil.create_time AS createTime,
+			sbil.updatetime AS updateTime,
+			sbil.title AS title,
+			sbil.digest AS digest,
+			sbil.blog_logo AS blogLogo,
+			sbil.view_num AS viewNum,
+			soi1.man_org_code AS cityCode,
+			soi2.man_org_code AS provinceCode,
+			ti.team_code AS teamCode,
+			bc.class_code AS classCode
+		FROM
+			(
+				SELECT
+					sb.blog_id,
+					sb.user_id,
+					sb.create_time,
+					sb.updatetime,
+					sb.title,
+					sb.digest,
+					sb.cata_level_two_id,
+					sb.blog_logo,
+					sb.view_num,
+					sbi.city_id,
+					sbi.province_id,
+					sbi.team_id
+				FROM
+					(
+						SELECT
+							blog_id,
+							user_id,
+							create_time,
+							updatetime,
+							title,
+							digest,
+							cata_level_two_id,
+							blog_logo,
+							view_num
+						FROM source_blog
+						WHERE blog_state = 0
+						ORDER BY BLOG_ID
+						LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+					) sb
+				LEFT JOIN source_blog_index sbi 
+					ON sb.user_id = sbi.user_id
+					AND sb.blog_id = sbi.blog_id
+				WHERE sbi.team_id != 0
+			) sbil
+		LEFT JOIN sys_user_info sui 
+			ON sbil.user_id = sui.user_id
+		LEFT JOIN team_info ti 
+			ON sbil.team_id = ti.team_id
+		LEFT JOIN sys_org_info soi1 
+			ON sbil.city_id = soi1.org_id
+		LEFT JOIN sys_org_info soi2 
+			ON sbil.province_id = soi2.org_id
+		LEFT JOIN blog_class bc 
+			ON bc.user_id = 0
+			AND sbil.team_id = bc.team_id
+			AND sbil.cata_level_two_id = bc.old_id
+	</select>
+	
+	<!-- 插入博客列表 -->
+	<insert id="insertBlogList" useGeneratedKeys="true" keyProperty="id" parameterType="list">
+		INSERT IGNORE INTO blog_info (
+			blog_code, 
+			tenant_code,
+			org_code, 
+			create_time,
+			modify_time, 
+			remark, 
+			dynamic_code,
+			user_code, 
+			blog_agent_flag, 
+			agent_user_code,
+			blog_source, 
+			source_blog_code, 
+			source_user_code,
+			source_blog_depend,
+			source_team_code,
+			blog_depend, 
+			team_code, 
+			blog_title,
+			blog_digest, 
+			class_code, 
+			blog_tags,
+			blog_plan_publish_time, 
+			blog_publish_time, 
+			blog_logo,
+			blog_is_delete, 
+			blog_is_shield, 
+			blog_tips
+		) VALUES
+			<foreach collection="list" item="item" index="index" separator=",">
+				(
+					#{item.blogCode,jdbcType=VARCHAR},
+					#{item.tenantCode,jdbcType=VARCHAR},
+					#{item.orgCode,jdbcType=VARCHAR}, 
+					#{item.createTime,jdbcType=BIGINT},
+					#{item.modifyTime,jdbcType=BIGINT}, 
+					#{item.remark,jdbcType=VARCHAR}, 
+					#{item.dynamicCode,jdbcType=VARCHAR},
+					#{item.userCode,jdbcType=VARCHAR}, 
+					#{item.blogAgentFlag,jdbcType=TINYINT},
+					#{item.agentUserCode,jdbcType=VARCHAR},
+					#{item.blogSource,jdbcType=TINYINT}, 
+					#{item.sourceBlogCode,jdbcType=VARCHAR},
+					#{item.sourceUserCode,jdbcType=VARCHAR},
+					#{item.sourceBlogDepend,jdbcType=TINYINT},
+					#{item.sourceTeamCode,jdbcType=VARCHAR},
+					#{item.blogDepend,jdbcType=TINYINT}, 
+					#{item.teamCode,jdbcType=VARCHAR}, 
+					#{item.blogTitle,jdbcType=VARCHAR},
+					#{item.blogDigest,jdbcType=VARCHAR}, 
+					#{item.classCode,jdbcType=VARCHAR},
+					#{item.blogTags,jdbcType=VARCHAR},
+					#{item.blogPlanPublishTime,jdbcType=BIGINT}, 
+					#{item.blogPublishTime,jdbcType=BIGINT}, 
+					#{item.blogLogo,jdbcType=VARCHAR},
+					#{item.blogIsDelete,jdbcType=TINYINT}, 
+					#{item.blogIsShield,jdbcType=TINYINT},
+					#{item.blogTips,jdbcType=LONGVARCHAR}
+				)
+			</foreach>
+	</insert>
+	
+	<!-- 插入博客数据列表 -->
+	<insert id="insertBlogDataList" useGeneratedKeys="true" keyProperty="id" parameterType="list">
+		INSERT IGNORE INTO blog_data (
+			data_code, 
+			tenant_code,
+			org_code, 
+			create_time,
+			modify_time, 
+			remark, 
+			blog_code,
+			team_quality_num, 
+			group_quality_num, 
+			province_quality_num,
+			city_quality_num, 
+			read_num, 
+			like_num,
+			collect_num, 
+			forward_num, 
+			comment_num,
+			share_num
+		) VALUES
+			<foreach collection="list" item="item" index="index" separator=",">
+				(
+					#{item.dataCode,jdbcType=VARCHAR},
+					#{item.tenantCode,jdbcType=VARCHAR},
+					#{item.orgCode,jdbcType=VARCHAR}, 
+					#{item.createTime,jdbcType=BIGINT},
+					#{item.modifyTime,jdbcType=BIGINT}, 
+					#{item.remark,jdbcType=VARCHAR},
+					#{item.blogCode,jdbcType=VARCHAR},
+					#{item.teamQualityNum,jdbcType=INTEGER}, 
+					#{item.groupQualityNum,jdbcType=INTEGER},
+					#{item.provinceQualityNum,jdbcType=INTEGER},
+					#{item.cityQualityNum,jdbcType=INTEGER}, 
+					#{item.readNum,jdbcType=INTEGER},
+					#{item.likeNum,jdbcType=INTEGER},
+					#{item.collectNum,jdbcType=INTEGER}, 
+					#{item.forwardNum,jdbcType=INTEGER}, 
+					#{item.commentNum,jdbcType=INTEGER},
+					#{item.shareNum,jdbcType=INTEGER}
+				)
+			</foreach>
+	</insert>
+	
+	<!-- 插入博客临时列表 -->
+	<insert id="insertBlogTempList" useGeneratedKeys="true" keyProperty="id" parameterType="list">
+		INSERT IGNORE INTO blog_temp (
+			old_id,
+			blog_code,
+			tenant_code,
+			org_code,
+			create_time,
+			modify_time
+		) VALUES
+			<foreach collection="list" item="item" index="index" separator=",">
+				(
+					#{item.oldId,jdbcType=INTEGER},
+					#{item.blogCode,jdbcType=VARCHAR},
+					#{item.tenantCode,jdbcType=VARCHAR},
+					#{item.orgCode,jdbcType=VARCHAR}, 
+					#{item.createTime,jdbcType=BIGINT},
+					#{item.modifyTime,jdbcType=BIGINT}
+				)
+			</foreach>
+	</insert>
+	
+	<!-- 插入博客内容数据  -->
+	<insert id="insertSourceBlogContent" useGeneratedKeys="true" keyProperty="id">
+		INSERT IGNORE INTO blog_content (
+			content_code,
+			tenant_code,
+			org_code,
+			create_time,
+			modify_time,
+			remark,
+			blog_code,
+			content_info
+		) SELECT
+				REPLACE (UUID(), '-', '') AS content_code,
+				bt.tenant_code AS tenant_code,
+				bt.org_code AS org_code,
+				bt.create_time AS create_time,
+				bt.modify_time AS modify_time,
+				'' AS remark,
+				bt.blog_code AS blog_code,
+				sb.content AS content_info
+			FROM blog_temp bt
+			LEFT JOIN source_blog sb 
+				ON bt.old_id = sb.blog_id
+	</insert>
+	
+</mapper>

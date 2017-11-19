@@ -1,0 +1,213 @@
+package com.zssq.blog.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+
+import com.zssq.blog.vo.DB2MsSubscribeRelation;
+import com.zssq.blog.vo.MySQLBlogSubscribe;
+import com.zssq.datasource.DataSource;
+import com.zssq.datasource.DataSourceConstants;
+
+/**
+ * 
+ * @ClassName: BlogSubscribeService  
+ * @Description: 博客订阅数据迁移Service  
+ * @author ZKZ  
+ * @date 2017年5月18日  
+ *
+ */
+@Service("blogSubscribeService")
+public class BlogSubscribeService {
+
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+	
+	/**
+	 * 
+	 * @Title: getSourceDB2SubCount  
+	 * @Description: 查询DB2库中订阅关系数据总个数
+	 * @return: int    返回类型
+	 */
+	@DataSource(DataSourceConstants.DB2_PORTALDB)
+	public int getSourceDB2SubCount() {
+		// 拼接SQL
+		StringBuffer sql = new StringBuffer();
+		sql.append("SELECT ");
+		sql.append("COUNT(*) ");
+		sql.append("FROM ");
+		sql.append("ms_subscribe_relation ");
+		sql.append("WHERE ");
+		sql.append("type = 12 ");
+			
+		// 查询
+		return jdbcTemplate.queryForObject(sql.toString(), Integer.class);
+	}
+	
+	@DataSource(DataSourceConstants.DB2_PORTALDB)
+	public int getSourceMySQLSubCount() {
+		// 拼接SQL
+		StringBuffer sql = new StringBuffer();
+		sql.append("SELECT ");
+		sql.append("COUNT(*) ");
+		sql.append("FROM ");
+		sql.append("ms_subscribe_relation ");
+		sql.append("WHERE ");
+		sql.append("type = 12 ");
+		
+		// 查询
+		return jdbcTemplate.queryForObject(sql.toString(), Integer.class);
+	}
+	
+	/**
+	 * 
+	 * @Title: getSourceDB2SubList  
+	 * @Description: 查询DB2库中订阅关系数据
+	 * @param pageNo 页码
+	 * @param pageSize 每页个数
+	 * @return: List<DB2MsSubscribeRelation>    返回类型
+	 */
+	@DataSource(DataSourceConstants.DB2_PORTALDB)
+	public List<DB2MsSubscribeRelation> getSourceDB2SubList(int pageNo, int pageSize) {
+		// 拼接SQL
+		StringBuffer sql = new StringBuffer();
+		sql.append("SELECT ");
+		sql.append("msrt.publish_user AS publishUser, ");
+		sql.append("msrt.subscribe_user AS subscribeUser, ");
+		sql.append("msrt.create_time AS createTime "); 
+		sql.append("FROM ");
+		sql.append("( ");
+		sql.append("SELECT ");
+		sql.append("msr.publish_user, ");
+		sql.append("msr.subscribe_user, ");
+		sql.append("msr.create_time, ");
+		sql.append("rownumber() over() AS rn "); 
+		sql.append("FROM ");
+		sql.append("ms_subscribe_relation msr ");
+		sql.append("WHERE ");
+		sql.append("msr.TYPE = 12 ");
+		sql.append("ORDER BY create_time ASC ");
+		sql.append(") AS msrt ");
+		sql.append("WHERE ");
+		sql.append("msrt.rn BETWEEN ? AND ?");
+		
+		// 拼接参数
+		Object[] params = new Object[2];
+		params[0] = pageNo * pageSize + 1;
+		params[1] = pageNo * pageSize + pageSize;
+		
+		// 查询
+		return jdbcTemplate.query(sql.toString(), params, new BeanPropertyRowMapper<DB2MsSubscribeRelation>(DB2MsSubscribeRelation.class));
+	}
+	
+	@DataSource(DataSourceConstants.DB2_PORTALDB)
+	public List<DB2MsSubscribeRelation> getSourceMySQLSubList(int pageNo, int pageSize) {
+		// 拼接SQL
+		StringBuffer sql = new StringBuffer();
+		sql.append("SELECT ");
+		sql.append("publish_user AS publishUser, ");
+		sql.append("subscribe_user AS subscribeUser, ");
+		sql.append("create_time AS createTime ");
+		sql.append("FROM ");
+		sql.append("ms_subscribe_relation ");
+		sql.append("WHERE ");
+		sql.append("TYPE = 12 ");
+		sql.append("ORDER BY ");
+		sql.append("create_time ASC ");
+		sql.append("LIMIT ?, ? ");
+		
+		// 拼接参数
+		Object[] params = new Object[2];
+		params[0] = pageNo * pageSize;
+		params[1] = pageSize;
+		
+		// 查询
+		return jdbcTemplate.query(sql.toString(), params, new BeanPropertyRowMapper<DB2MsSubscribeRelation>(DB2MsSubscribeRelation.class));
+	}
+	
+	/**
+	 * 
+	 * @Title: insertMySQLSubList  
+	 * @Description: 批量向MySQL库中插入订阅数据
+	 * @param mySQLSubList
+	 * @return: boolean    返回类型
+	 */
+	@DataSource(DataSourceConstants.MYSQL_BLOG)
+	public boolean insertMySQLSubList(List<MySQLBlogSubscribe> mySQLSubList) {
+		// 参数校验
+		if (mySQLSubList == null || mySQLSubList.isEmpty()) {
+			return false;
+		}
+		
+		// 获取总量
+		int size = mySQLSubList.size();
+		
+		// 拼接SQL
+		StringBuffer sql = new StringBuffer();
+		sql.append("INSERT INTO blog_subscribe ");
+		sql.append("(sub_code, ");
+		sql.append("tenant_code, ");
+		sql.append("org_code, ");
+		sql.append("create_time, ");
+		sql.append("modify_time, ");
+		sql.append("remark, ");
+		sql.append("user_code, ");
+		sql.append("sub_class, ");
+		sql.append("team_code, ");
+		sql.append("sub_user_code) ");
+		sql.append("VALUES ");
+		
+		// 订阅参数
+		Object[] params = new Object[10 * size];
+		
+		for (int i = 0; i < mySQLSubList.size(); i++) {
+			MySQLBlogSubscribe mySQLBlogSubscribe = mySQLSubList.get(i);
+			if (i != 0) {
+				sql.append("), ");
+			}
+			sql.append("(? ");
+//			sql.append("\"" + mySQLBlogSubscribe.getSubCode() + "\"");
+			params[i * 10] = mySQLBlogSubscribe.getSubCode();
+			sql.append(",? ");
+//			sql.append("\"" + mySQLBlogSubscribe.getTenantCode() + "\"");
+			params[i * 10 + 1] = mySQLBlogSubscribe.getTenantCode();
+			sql.append(",? ");
+//			sql.append("\"" + mySQLBlogSubscribe.getOrgCode() + "\"");
+			params[i * 10 + 2] = mySQLBlogSubscribe.getOrgCode();
+			sql.append(",? ");
+//			sql.append("\"" + mySQLBlogSubscribe.getCreateTime() + "\"");
+			params[i * 10 + 3] = mySQLBlogSubscribe.getCreateTime();
+			sql.append(",? ");
+//			sql.append("\"" + mySQLBlogSubscribe.getModifyTime() + "\"");
+			params[i * 10 + 4] = mySQLBlogSubscribe.getModifyTime();
+			sql.append(",? ");
+//			sql.append("\"" + mySQLBlogSubscribe.getRemark() + "\"");
+			params[i * 10 + 5] = mySQLBlogSubscribe.getRemark();
+			sql.append(",? ");
+//			sql.append("\"" + mySQLBlogSubscribe.getUserCode() + "\"");
+			params[i * 10 + 6] = mySQLBlogSubscribe.getUserCode();
+			sql.append(",? ");
+//			sql.append("\"" + mySQLBlogSubscribe.getSubClass() + "\"");
+			params[i * 10 + 7] = mySQLBlogSubscribe.getSubClass();
+			sql.append(",? ");
+//			sql.append("\"" + mySQLBlogSubscribe.getTeamCode() + "\"");
+			params[i * 10 + 8] = mySQLBlogSubscribe.getTeamCode();
+			sql.append(",? ");
+//			sql.append("\"" + mySQLBlogSubscribe.getSubUserCode() + "\"");
+			params[i * 10 + 9] = mySQLBlogSubscribe.getSubUserCode();
+		}
+		sql.append(") ");
+		
+		// 插入
+		int updateNum = jdbcTemplate.update(sql.toString(), params);
+		if (updateNum <= 0) {
+			return false;
+		} 
+		
+		return true;
+	}
+	
+}

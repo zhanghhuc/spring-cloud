@@ -1,0 +1,91 @@
+package com.zssq.dao.mapper;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.zssq.dao.pojo.ForumTopics;
+import com.zssq.dao.pojo.ForumTopicsExample;
+
+public interface ForumTopicsMapper {
+    int countByExample(ForumTopicsExample example);
+
+    int deleteByExample(ForumTopicsExample example);
+
+    int deleteByPrimaryKey(Long id);
+
+    int insert(ForumTopics record);
+
+    int insertSelective(ForumTopics record);
+
+    List<ForumTopics> selectByExampleWithBLOBs(ForumTopicsExample example);
+
+    List<ForumTopics> selectByExample(ForumTopicsExample example);
+
+    ForumTopics selectByPrimaryKey(Long id);
+
+    int updateByExampleSelective(@Param("record") ForumTopics record, @Param("example") ForumTopicsExample example);
+
+    int updateByExampleWithBLOBs(@Param("record") ForumTopics record, @Param("example") ForumTopicsExample example);
+
+    int updateByExample(@Param("record") ForumTopics record, @Param("example") ForumTopicsExample example);
+
+    int updateByPrimaryKeySelective(ForumTopics record);
+
+    int updateByPrimaryKeyWithBLOBs(ForumTopics record);
+
+    int updateByPrimaryKey(ForumTopics record);
+    
+    List<ForumTopics> selectTopicAndPostman(Map<String, Object> map);
+    /**
+     * 主帖浏览量+1
+     * @Function updateIncreaseViewCount
+     * @Description 
+     * @param topicCode 主帖CODE
+     * @return
+     */
+    int updateIncreaseViewCount(String topicCode);
+    /**
+     * 主帖回复数+1，更新最后回复时间
+     * @Function updateReplyCountAndTime
+     * @Description 
+     * @param params
+     * @return
+     */
+    int updateReplyCountAndTime(Map<String, Object> params);
+    /**
+     * 加载更多分页查询列表数据
+     * @Function queryByPageWithLoadMore
+     * @Description 
+     * @param map
+     * @return
+     */
+    List<ForumTopics> queryByPageWithLoadMore(Map<String, Object> map);
+    
+    /**
+     * @Function counForMoniter
+     * @Description 查询内容监控-班组论坛主贴数
+     * @param paramMap
+     * @return
+     */
+	int counForMoniter(HashMap<Object, Object> paramMap);
+
+	/**
+	 * @Function selectForumTopicsForMoniter
+	 * @Description 内容监控-查询主贴列表
+	 * @param paramMap
+	 * @return
+	 */
+	List<ForumTopics> selectForumTopicsForMoniter(HashMap<Object, Object> paramMap);
+	/**
+	 * 根据班组code分页查询主帖列表
+	 * @Function queryTopicByBelong
+	 * @Description 
+	 * @param paramMap
+	 * @return
+	 */
+	List<ForumTopics> queryTopicByBelong(Map<String, Object> paramMap);
+
+}

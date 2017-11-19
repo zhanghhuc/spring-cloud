@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.SSOMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.SSO" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="uid" property="uid" jdbcType="VARCHAR" />
+    <result column="uid_password" property="uidPassword" jdbcType="VARCHAR" />
+    <result column="app" property="app" jdbcType="VARCHAR" />
+    <result column="ticket" property="ticket" jdbcType="VARCHAR" />
+    <result column="login_time" property="loginTime" jdbcType="BIGINT" />
+    <result column="logout_time" property="logoutTime" jdbcType="BIGINT" />
+    <result column="is_certification" property="isCertification" jdbcType="INTEGER" />
+    <result column="is_renew" property="isRenew" jdbcType="INTEGER" />
+    <result column="is_over" property="isOver" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, uid, uid_password, app, ticket, login_time, logout_time, is_certification, is_renew, is_over, 
+    create_time, modify_time, remark
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from sso
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectInfo" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from sso
+    where 
+    logout_time is not null
+	AND
+	(is_over is null or is_over = 0)
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" parameterType="com.zssq.dao.pojo.SSO" >
+    select 
+    <include refid="Base_Column_List" />
+    from sso
+    where 1 = 1
+    <if test="id != null" >
+      and id = #{id,jdbcType=BIGINT}
+    </if>
+    <if test="uid != null" >
+      and uid = #{uid,jdbcType=VARCHAR}
+    </if>
+    <if test="uidPassword != null" >
+      and uid_password = #{uidPassword,jdbcType=VARCHAR}
+    </if>
+    <if test="app != null" >
+      and app = #{app,jdbcType=VARCHAR}
+    </if>
+    <if test="ticket != null" >
+      and ticket = #{ticket,jdbcType=VARCHAR}
+    </if>
+    <if test="loginTime != null" >
+      and login_time = #{loginTime,jdbcType=BIGINT}
+    </if>
+    <if test="logoutTime != null" >
+      and logout_time = #{logoutTime,jdbcType=BIGINT}
+    </if>
+    <if test="isCertification != null" >
+      and is_certification = #{isCertification,jdbcType=INTEGER}
+    </if>
+    <if test="isRenew != null" >
+      and is_renew = #{isRenew,jdbcType=INTEGER}
+    </if>
+    <if test="createTime != null" >
+      and create_time = #{createTime,jdbcType=BIGINT}
+    </if>
+    <if test="modifyTime != null" >
+      and modify_time = #{modifyTime,jdbcType=BIGINT}
+    </if>
+    <if test="remark != null" >
+      and remark = #{remark,jdbcType=VARCHAR}
+    </if>
+    order by login_time desc
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from sso
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.SSO" >
+    insert into sso (id, uid, uid_password, 
+      app, ticket, login_time, 
+      logout_time, is_certification, is_renew, is_over 
+      create_time, modify_time, remark
+      )
+    values (#{id,jdbcType=BIGINT}, #{uid,jdbcType=VARCHAR}, #{uidPassword,jdbcType=VARCHAR}, 
+      #{app,jdbcType=VARCHAR}, #{ticket,jdbcType=VARCHAR}, #{loginTime,jdbcType=BIGINT}, 
+      #{logoutTime,jdbcType=BIGINT}, #{isCertification,jdbcType=INTEGER}, #{isRenew,jdbcType=INTEGER}, #{isOver,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=BIGINT}, #{modifyTime,jdbcType=BIGINT}, #{remark,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.SSO" >
+    insert into sso
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="uid != null" >
+        uid,
+      </if>
+      <if test="uidPassword != null" >
+        uid_password,
+      </if>
+      <if test="app != null" >
+        app,
+      </if>
+      <if test="ticket != null" >
+        ticket,
+      </if>
+      <if test="loginTime != null" >
+        login_time,
+      </if>
+      <if test="logoutTime != null" >
+        logout_time,
+      </if>
+      <if test="isCertification != null" >
+        is_certification,
+      </if>
+      <if test="isRenew != null" >
+        is_renew,
+      </if>
+      <if test="isOver != null" >
+        is_over,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="uid != null" >
+        #{uid,jdbcType=VARCHAR},
+      </if>
+      <if test="uidPassword != null" >
+        #{uidPassword,jdbcType=VARCHAR},
+      </if>
+      <if test="app != null" >
+        #{app,jdbcType=VARCHAR},
+      </if>
+      <if test="ticket != null" >
+        #{ticket,jdbcType=VARCHAR},
+      </if>
+      <if test="loginTime != null" >
+        #{loginTime,jdbcType=BIGINT},
+      </if>
+      <if test="logoutTime != null" >
+        #{logoutTime,jdbcType=BIGINT},
+      </if>
+      <if test="isCertification != null" >
+        #{isCertification,jdbcType=INTEGER},
+      </if>
+      <if test="isRenew != null" >
+        #{isRenew,jdbcType=INTEGER},
+      </if>
+      <if test="isOver != null" >
+        #{isOver,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.SSO" >
+    update sso
+    <set >
+      <if test="uid != null" >
+        uid = #{uid,jdbcType=VARCHAR},
+      </if>
+      <if test="uidPassword != null" >
+        uid_password = #{uidPassword,jdbcType=VARCHAR},
+      </if>
+      <if test="app != null" >
+        app = #{app,jdbcType=VARCHAR},
+      </if>
+      <if test="ticket != null" >
+        ticket = #{ticket,jdbcType=VARCHAR},
+      </if>
+      <if test="loginTime != null" >
+        login_time = #{loginTime,jdbcType=BIGINT},
+      </if>
+      <if test="logoutTime != null" >
+        logout_time = #{logoutTime,jdbcType=BIGINT},
+      </if>
+      <if test="isCertification != null" >
+        is_certification = #{isCertification,jdbcType=INTEGER},
+      </if>
+      <if test="isRenew != null" >
+        is_renew = #{isRenew,jdbcType=INTEGER},
+      </if>
+      <if test="isOver != null" >
+        is_over = #{isOver,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.SSO" >
+    update sso
+    set uid = #{uid,jdbcType=VARCHAR},
+      uid_password = #{uidPassword,jdbcType=VARCHAR},
+      app = #{app,jdbcType=VARCHAR},
+      ticket = #{ticket,jdbcType=VARCHAR},
+      login_time = #{loginTime,jdbcType=BIGINT},
+      logout_time = #{logoutTime,jdbcType=BIGINT},
+      is_certification = #{isCertification,jdbcType=INTEGER},
+      is_renew = #{isRenew,jdbcType=INTEGER},
+      is_over = #{isOver,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  <!-- <update id="updateBatch" parameterType="com.zssq.dao.pojo.SSO">    
+    update sso  set     
+        is_over = #{isOver,jdbcType=INTEGER} 
+    where id in     
+    <foreach collection="list" index="index" item="item" open="(" separator="," close=")">    
+        #{id}    
+    </foreach>  
+  </update> -->
+  
+  <update id="updateBatch"  parameterType="java.util.List">  
+    <foreach collection="list" item="item" index="index" separator=";">
+       update sso
+       <set>
+          <if test="item.isOver != null" >
+            is_over = #{item.isOver,jdbcType=INTEGER},
+          </if>
+        </set>
+        where id = #{item.id,jdbcType=BIGINT}
+    </foreach>       
+  </update>
+</mapper>

@@ -1,0 +1,45 @@
+package com.zssq.pojo;
+
+import java.io.Serializable;
+
+import org.hibernate.validator.constraints.NotBlank;
+
+public class Login implements Serializable {
+	private static final long serialVersionUID = 1L;
+	
+	@NotBlank(message = "{empty.message}")
+	private String userCode;
+	@NotBlank(message = "{empty.message}")
+	private String app;
+//	@NotBlank(message = "{empty.message}")
+	private String uidPassword;
+	private String token;
+	public String getUserCode() {
+		return userCode;
+	}
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
+	}
+	public String getApp() {
+		return app;
+	}
+	public void setApp(String app) {
+		this.app = app;
+	}
+	public String getUidPassword() {
+		return uidPassword;
+	}
+	public void setUidPassword(String uidPassword) {
+		this.uidPassword = uidPassword;
+	}
+	public String getToken() {
+		return token;
+	}
+	public void setToken(String token) {
+		this.token = token;
+	}
+
+	
+	
+
+}

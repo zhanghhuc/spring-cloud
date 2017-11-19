@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.MblogTopicMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.MblogTopic" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="mblog_topic_code" property="mblogTopicCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="topic_name" property="topicName" jdbcType="VARCHAR" />
+    <result column="topic_num" property="topicNum" jdbcType="INTEGER" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, mblog_topic_code, create_time, modify_time, remark, org_code,  topic_name, 
+    topic_num, tenant_code
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from mblog_topic
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from mblog_topic
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.MblogTopic" >
+    insert into mblog_topic (id, mblog_topic_code, create_time, 
+      modify_time, remark, org_code, 
+       topic_name, topic_num, 
+      tenant_code)
+    values (#{id,jdbcType=BIGINT}, #{mblogTopicCode,jdbcType=VARCHAR}, #{createTime,jdbcType=BIGINT}, 
+      #{modifyTime,jdbcType=BIGINT}, #{remark,jdbcType=VARCHAR}, #{orgCode,jdbcType=VARCHAR}, 
+       #{topicName,jdbcType=VARCHAR}, #{topicNum,jdbcType=INTEGER}, 
+      #{tenantCode,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.MblogTopic" >
+    insert into mblog_topic
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="mblogTopicCode != null" >
+        mblog_topic_code,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="topicName != null" >
+        topic_name,
+      </if>
+      <if test="topicNum != null" >
+        topic_num,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="mblogTopicCode != null" >
+        #{mblogTopicCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="topicName != null" >
+        #{topicName,jdbcType=VARCHAR},
+      </if>
+      <if test="topicNum != null" >
+        #{topicNum,jdbcType=INTEGER},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.MblogTopic" >
+    update mblog_topic
+    <set >
+      <if test="mblogTopicCode != null" >
+        mblog_topic_code = #{mblogTopicCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="topicName != null" >
+        topic_name = #{topicName,jdbcType=VARCHAR},
+      </if>
+      <if test="topicNum != null" >
+        topic_num = #{topicNum,jdbcType=INTEGER},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.MblogTopic" >
+    update mblog_topic
+    set mblog_topic_code = #{mblogTopicCode,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      topic_name = #{topicName,jdbcType=VARCHAR},
+      topic_num = #{topicNum,jdbcType=INTEGER},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  <!-- ************************ -->
+  <sql id="Self_Column_List" >
+    id, mblog_topic_code, topic_name, 
+    topic_num
+  </sql>
+  <select id="queryTopicListByPage" resultMap="BaseResultMap" parameterType="java.util.Map" >
+    SELECT 
+    	<include refid="Self_Column_List" />
+    FROM 
+    	mblog_topic
+    ORDER BY
+    	topic_num DESC, id DESC
+   	<if test="limitStart != null and limitSize != null and limitSize != 0">
+		LIMIT #{limitStart} , #{limitSize}
+	</if>
+  </select>
+  <select id="queryTopicListByPageCount" resultType="java.lang.Long" parameterType="java.util.Map" >
+    SELECT 
+    	COUNT(mblog_topic_code)
+    FROM 
+    	mblog_topic
+  </select>
+  <!-- 校验是否存在指定名字的话题信息 -->
+  <select id="checkIsExist" resultMap="BaseResultMap" parameterType="java.util.Map" >
+    SELECT 
+    	<include refid="Self_Column_List" />
+    FROM 
+    	mblog_topic
+    WHERE
+    	topic_name = #{topicName}
+  </select>
+  
+  <!-- 校验是否存在指定名字的话题信息 -->
+  <select id="checkIsExistByCode" resultType="java.lang.Integer" parameterType="java.lang.String" >
+    SELECT 
+    	COUNT(id)
+    FROM 
+    	mblog_topic
+    WHERE
+    	mblog_topic_code = #{topicCode}
+  </select>
+  
+   <!-- 更新 -->
+  <update id="updateNumByCode" parameterType="java.util.Map" >
+    UPDATE 
+    	mblog_topic
+    SET topic_num = topic_num + 1,
+    	modify_time = #{modifyTime}
+   	WHERE 
+   		mblog_topic_code = #{topicCode}     
+  </update>
+  
+  <!-- 批量更新 -->
+  <update id="batchUpdateNumByCode" parameterType="java.util.Map" >
+    UPDATE 
+    	mblog_topic
+    SET topic_num = topic_num + 1,
+    	modify_time = #{modifyTime}
+   	WHERE 
+   	mblog_topic_code in     
+    <foreach collection="codes" index="index" item="item" open="(" separator="," close=")" >    
+        #{item}    
+    </foreach>
+  </update>
+  
+</mapper>

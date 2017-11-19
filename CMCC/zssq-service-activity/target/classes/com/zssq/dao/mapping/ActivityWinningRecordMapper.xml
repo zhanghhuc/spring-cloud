@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.ActivityWinningRecordMapper">
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.ActivityWinningRecord">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="code" jdbcType="VARCHAR" property="code" />
+    <result column="is_disable" jdbcType="TINYINT" property="isDisable" />
+    <result column="is_delete" jdbcType="TINYINT" property="isDelete" />
+    <result column="tenant_code" jdbcType="VARCHAR" property="tenantCode" />
+    <result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+    <result column="org_level" jdbcType="TINYINT" property="orgLevel" />
+    <result column="create_time" jdbcType="BIGINT" property="createTime" />
+    <result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="activity_code" jdbcType="VARCHAR" property="activityCode" />
+    <result column="join_user_code" jdbcType="VARCHAR" property="joinUserCode" />
+    <result column="activity_join_code" jdbcType="VARCHAR" property="activityJoinCode" />
+    <result column="activity_prize_code" jdbcType="VARCHAR" property="activityPrizeCode" />
+    <result column="prize_name" jdbcType="VARCHAR" property="prizeName" />
+    <result column="award_status" jdbcType="TINYINT" property="awardStatus" />
+    <result column="is_join_prize" jdbcType="TINYINT" property="isJoinPrize" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, code, is_disable, is_delete, tenant_code, org_code, org_level, create_time, modify_time, 
+    remark, activity_code, join_user_code, activity_join_code, activity_prize_code, prize_name, 
+    award_status, is_join_prize
+  </sql>
+  <select id="selectByExample" parameterType="com.zssq.dao.pojo.ActivityWinningRecordExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from activity_winning_record
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+    <if test="limitStart != null and limitStart&gt;=0">
+      limit #{limitStart} , #{limitEnd}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from activity_winning_record
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from activity_winning_record
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.zssq.dao.pojo.ActivityWinningRecordExample">
+    delete from activity_winning_record
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.ActivityWinningRecord">
+    insert into activity_winning_record (id, code, is_disable, 
+      is_delete, tenant_code, org_code, 
+      org_level, create_time, modify_time, 
+      remark, activity_code, join_user_code, 
+      activity_join_code, activity_prize_code, prize_name, 
+      award_status, is_join_prize)
+    values (#{id,jdbcType=BIGINT}, #{code,jdbcType=VARCHAR}, #{isDisable,jdbcType=TINYINT}, 
+      #{isDelete,jdbcType=TINYINT}, #{tenantCode,jdbcType=VARCHAR}, #{orgCode,jdbcType=VARCHAR}, 
+      #{orgLevel,jdbcType=TINYINT}, #{createTime,jdbcType=BIGINT}, #{modifyTime,jdbcType=BIGINT}, 
+      #{remark,jdbcType=VARCHAR}, #{activityCode,jdbcType=VARCHAR}, #{joinUserCode,jdbcType=VARCHAR}, 
+      #{activityJoinCode,jdbcType=VARCHAR}, #{activityPrizeCode,jdbcType=VARCHAR}, #{prizeName,jdbcType=VARCHAR}, 
+      #{awardStatus,jdbcType=TINYINT}, #{isJoinPrize,jdbcType=TINYINT})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.ActivityWinningRecord">
+    insert into activity_winning_record
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="code != null">
+        code,
+      </if>
+      <if test="isDisable != null">
+        is_disable,
+      </if>
+      <if test="isDelete != null">
+        is_delete,
+      </if>
+      <if test="tenantCode != null">
+        tenant_code,
+      </if>
+      <if test="orgCode != null">
+        org_code,
+      </if>
+      <if test="orgLevel != null">
+        org_level,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="modifyTime != null">
+        modify_time,
+      </if>
+      <if test="remark != null">
+        remark,
+      </if>
+      <if test="activityCode != null">
+        activity_code,
+      </if>
+      <if test="joinUserCode != null">
+        join_user_code,
+      </if>
+      <if test="activityJoinCode != null">
+        activity_join_code,
+      </if>
+      <if test="activityPrizeCode != null">
+        activity_prize_code,
+      </if>
+      <if test="prizeName != null">
+        prize_name,
+      </if>
+      <if test="awardStatus != null">
+        award_status,
+      </if>
+      <if test="isJoinPrize != null">
+        is_join_prize,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="code != null">
+        #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="isDisable != null">
+        #{isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null">
+        #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="tenantCode != null">
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null">
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null">
+        #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null">
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null">
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="activityCode != null">
+        #{activityCode,jdbcType=VARCHAR},
+      </if>
+      <if test="joinUserCode != null">
+        #{joinUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="activityJoinCode != null">
+        #{activityJoinCode,jdbcType=VARCHAR},
+      </if>
+      <if test="activityPrizeCode != null">
+        #{activityPrizeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="prizeName != null">
+        #{prizeName,jdbcType=VARCHAR},
+      </if>
+      <if test="awardStatus != null">
+        #{awardStatus,jdbcType=TINYINT},
+      </if>
+      <if test="isJoinPrize != null">
+        #{isJoinPrize,jdbcType=TINYINT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.zssq.dao.pojo.ActivityWinningRecordExample" resultType="java.lang.Integer">
+    select count(*) from activity_winning_record
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update activity_winning_record
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.code != null">
+        code = #{record.code,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDisable != null">
+        is_disable = #{record.isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="record.isDelete != null">
+        is_delete = #{record.isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="record.tenantCode != null">
+        tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgCode != null">
+        org_code = #{record.orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgLevel != null">
+        org_level = #{record.orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="record.createTime != null">
+        create_time = #{record.createTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.modifyTime != null">
+        modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.remark != null">
+        remark = #{record.remark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.activityCode != null">
+        activity_code = #{record.activityCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.joinUserCode != null">
+        join_user_code = #{record.joinUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.activityJoinCode != null">
+        activity_join_code = #{record.activityJoinCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.activityPrizeCode != null">
+        activity_prize_code = #{record.activityPrizeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.prizeName != null">
+        prize_name = #{record.prizeName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.awardStatus != null">
+        award_status = #{record.awardStatus,jdbcType=TINYINT},
+      </if>
+      <if test="record.isJoinPrize != null">
+        is_join_prize = #{record.isJoinPrize,jdbcType=TINYINT},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update activity_winning_record
+    set id = #{record.id,jdbcType=BIGINT},
+      code = #{record.code,jdbcType=VARCHAR},
+      is_disable = #{record.isDisable,jdbcType=TINYINT},
+      is_delete = #{record.isDelete,jdbcType=TINYINT},
+      tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      org_code = #{record.orgCode,jdbcType=VARCHAR},
+      org_level = #{record.orgLevel,jdbcType=TINYINT},
+      create_time = #{record.createTime,jdbcType=BIGINT},
+      modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      activity_code = #{record.activityCode,jdbcType=VARCHAR},
+      join_user_code = #{record.joinUserCode,jdbcType=VARCHAR},
+      activity_join_code = #{record.activityJoinCode,jdbcType=VARCHAR},
+      activity_prize_code = #{record.activityPrizeCode,jdbcType=VARCHAR},
+      prize_name = #{record.prizeName,jdbcType=VARCHAR},
+      award_status = #{record.awardStatus,jdbcType=TINYINT},
+      is_join_prize = #{record.isJoinPrize,jdbcType=TINYINT}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.ActivityWinningRecord">
+    update activity_winning_record
+    <set>
+      <if test="code != null">
+        code = #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="isDisable != null">
+        is_disable = #{isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null">
+        is_delete = #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="tenantCode != null">
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null">
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null">
+        org_level = #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null">
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null">
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="activityCode != null">
+        activity_code = #{activityCode,jdbcType=VARCHAR},
+      </if>
+      <if test="joinUserCode != null">
+        join_user_code = #{joinUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="activityJoinCode != null">
+        activity_join_code = #{activityJoinCode,jdbcType=VARCHAR},
+      </if>
+      <if test="activityPrizeCode != null">
+        activity_prize_code = #{activityPrizeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="prizeName != null">
+        prize_name = #{prizeName,jdbcType=VARCHAR},
+      </if>
+      <if test="awardStatus != null">
+        award_status = #{awardStatus,jdbcType=TINYINT},
+      </if>
+      <if test="isJoinPrize != null">
+        is_join_prize = #{isJoinPrize,jdbcType=TINYINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.ActivityWinningRecord">
+    update activity_winning_record
+    set code = #{code,jdbcType=VARCHAR},
+      is_disable = #{isDisable,jdbcType=TINYINT},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      activity_code = #{activityCode,jdbcType=VARCHAR},
+      join_user_code = #{joinUserCode,jdbcType=VARCHAR},
+      activity_join_code = #{activityJoinCode,jdbcType=VARCHAR},
+      activity_prize_code = #{activityPrizeCode,jdbcType=VARCHAR},
+      prize_name = #{prizeName,jdbcType=VARCHAR},
+      award_status = #{awardStatus,jdbcType=TINYINT},
+      is_join_prize = #{isJoinPrize,jdbcType=TINYINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  <!-- 删除活动获奖记录 -->
+  <delete id="delWinningRecord" parameterType="java.util.Map">
+  	DELETE FROM activity_winning_record
+	WHERE is_delete = 0
+		AND is_disable = 0
+        AND is_join_prize = 0
+        AND tenant_code = #{tenantCode}
+        AND activity_join_code = #{joinCode}
+        AND activity_code = #{activityCode}
+  </delete>
+  
+ <select id="getAwardeeList" parameterType="java.util.Map" resultType="com.zssq.dao.pojo.ActivityWinningRecord">
+ 	SELECT awr.id AS id,
+	       awr.code AS code,
+	       awr.activity_code AS activityCode,
+	       awr.join_user_code AS joinUserCode,
+	       awr.org_code AS orgCode,
+	       awr.activity_join_code AS activityJoinCode,
+	       awr.activity_prize_code AS activityPrizeCode,
+	       awr.prize_name AS prizeName,
+	       awr.tenant_code AS tenantCode,
+	       aja.file_name AS prizeWorkName
+	FROM activity_winning_record awr
+	LEFT JOIN activity_join_adjunct aja
+	ON aja.activity_join_code = awr.activity_join_code
+	WHERE awr.is_delete = 0
+	AND awr.is_disable = 0
+	AND awr.is_join_prize = 0
+	AND awr.award_status = 1
+	AND awr.activity_code = #{activityCode}
+ </select>
+  
+</mapper>

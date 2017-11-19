@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.RepositoryInfoBySryMapper" >
+  <resultMap id="RepositoryInfoMHMap" type="com.zssq.model.RepositoryInfoMH" >
+    <result column="repository_code" property="repositoryCode" jdbcType="VARCHAR" />
+    <result column="repository_title" property="repositoryTitle" jdbcType="VARCHAR" />
+    <result column="repository_summary" property="repositorySummary" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <select id="getRepositoryListForMH" parameterType="map" resultMap="RepositoryInfoMHMap">
+  		select 	repository_code,
+  				repository_title,
+  				repository_summary
+  			from repository_info
+  		where org_code = #{orgCode,jdbcType=VARCHAR} AND is_delete = 0
+  </select>
+  
+</mapper>

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.NewsNoticeHistoryMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.news.dao.pojo.NewsNoticeHistory" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="notice_history_code" property="noticeHistoryCode" jdbcType="VARCHAR" />
+    <result column="notice_code" property="noticeCode" jdbcType="VARCHAR" />
+    <result column="notice_time" property="noticeTime" jdbcType="BIGINT" />
+    <result column="notice_operator_code" property="noticeOperatorCode" jdbcType="VARCHAR" />
+    <result column="org_level" property="orgLevel" jdbcType="TINYINT" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="notice_status" property="noticeStatus" jdbcType="TINYINT" />
+    <result column="notice_remark" property="noticeRemark" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, notice_history_code, notice_code, notice_time, notice_operator_code, org_level, 
+    org_code, notice_status, notice_remark, create_time, modify_time, remark, tenant_code
+  </sql>
+
+  <!--<sql id="noticeHistory-where-condition">-->
+    <!--<where>-->
+      <!--<if test="noticeTitle != null">-->
+        <!--AND notice_title = #{noticeTitle}-->
+      <!--</if>-->
+
+      <!--<if test="noticeOperatorName != null">-->
+        <!--AND notice_operator_name = #{noticeOperatorName}-->
+      <!--</if>-->
+
+      <!--<if test="startTime != null">-->
+        <!--AND ${startTime} &lt;= #{modify_time} &gt;= ${endTime}-->
+      <!--</if>-->
+    <!--</where>-->
+  <!--</sql>-->
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from news_notice_history
+    where notice_code =#{noticeCode }
+  </select>
+  <select id="getNoticeHistorys" resultMap="BaseResultMap" parameterType="com.zssq.news.model.NoticeHistoryQuery" >
+    select
+    <include refid="Base_Column_List" />
+    from news_notice_history
+    WHERE notice_code =#{noticeCode }
+    <!--<if test="_parameter != null">-->
+      <!--<include refid="noticeHistory-where-condition" />-->
+    <!--</if>-->
+    <!--<if test="orderByClause != null">-->
+      <!--order by ${orderByClause}-->
+    <!--</if>-->
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from news_notice_history
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.news.dao.pojo.NewsNoticeHistory" >
+    insert into news_notice_history (id, notice_history_code, notice_code, 
+      notice_time, notice_operator_code, org_level, 
+      org_code, notice_status, notice_remark, 
+      create_time, modify_time, remark, 
+      tenant_code)
+    values (#{id,jdbcType=BIGINT}, #{noticeHistoryCode,jdbcType=VARCHAR}, #{noticeCode,jdbcType=VARCHAR}, 
+      #{noticeTime,jdbcType=BIGINT}, #{noticeOperatorCode,jdbcType=VARCHAR}, #{orgLevel,jdbcType=TINYINT}, 
+      #{orgCode,jdbcType=VARCHAR}, #{noticeStatus,jdbcType=TINYINT}, #{noticeRemark,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=BIGINT}, #{modifyTime,jdbcType=BIGINT}, #{remark,jdbcType=VARCHAR}, 
+      #{tenantCode,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.news.dao.pojo.NewsNoticeHistory" >
+    insert into news_notice_history
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="noticeHistoryCode != null" >
+        notice_history_code,
+      </if>
+      <if test="noticeCode != null" >
+        notice_code,
+      </if>
+      <if test="noticeTime != null" >
+        notice_time,
+      </if>
+      <if test="noticeOperatorCode != null" >
+        notice_operator_code,
+      </if>
+      <if test="orgLevel != null" >
+        org_level,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="noticeStatus != null" >
+        notice_status,
+      </if>
+      <if test="noticeRemark != null" >
+        notice_remark,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="noticeHistoryCode != null" >
+        #{noticeHistoryCode,jdbcType=VARCHAR},
+      </if>
+      <if test="noticeCode != null" >
+        #{noticeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="noticeTime != null" >
+        #{noticeTime,jdbcType=BIGINT},
+      </if>
+      <if test="noticeOperatorCode != null" >
+        #{noticeOperatorCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="noticeStatus != null" >
+        #{noticeStatus,jdbcType=TINYINT},
+      </if>
+      <if test="noticeRemark != null" >
+        #{noticeRemark,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.news.dao.pojo.NewsNoticeHistory" >
+    update news_notice_history
+    <set >
+      <if test="noticeHistoryCode != null" >
+        notice_history_code = #{noticeHistoryCode,jdbcType=VARCHAR},
+      </if>
+      <if test="noticeCode != null" >
+        notice_code = #{noticeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="noticeTime != null" >
+        notice_time = #{noticeTime,jdbcType=BIGINT},
+      </if>
+      <if test="noticeOperatorCode != null" >
+        notice_operator_code = #{noticeOperatorCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        org_level = #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="noticeStatus != null" >
+        notice_status = #{noticeStatus,jdbcType=TINYINT},
+      </if>
+      <if test="noticeRemark != null" >
+        notice_remark = #{noticeRemark,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.news.dao.pojo.NewsNoticeHistory" >
+    update news_notice_history
+    set notice_history_code = #{noticeHistoryCode,jdbcType=VARCHAR},
+      notice_code = #{noticeCode,jdbcType=VARCHAR},
+      notice_time = #{noticeTime,jdbcType=BIGINT},
+      notice_operator_code = #{noticeOperatorCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      notice_status = #{noticeStatus,jdbcType=TINYINT},
+      notice_remark = #{noticeRemark,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

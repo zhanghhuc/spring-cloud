@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.UserBoardRemindMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.UserBoardRemind" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="msg_code" property="msgCode" jdbcType="VARCHAR" />
+    <result column="original_content" property="originalContent" jdbcType="VARCHAR" />
+    <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="send_user_code" property="sendUserCode" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="msg_type" property="msgType" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="team_code" property="teamCode" jdbcType="VARCHAR" />
+    <result column="receive_user_code" property="receiveUserCode" jdbcType="VARCHAR" />
+    <result column="borad_code" property="boradCode" jdbcType="VARCHAR" />
+    <result column="msg_content" property="msgContent" jdbcType="LONGVARCHAR" />
+    
+    
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.zssq.dao.pojo.UserBoardRemind" extends="BaseResultMap" >
+    <result column="msg_content" property="msgContent" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, msg_code, original_content, is_delete, user_code, send_user_code, org_code, tenant_code, 
+    msg_type, create_time, team_code, receive_user_code, borad_code
+  </sql>
+  <sql id="Blob_Column_List" >
+    msg_content
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from user_board_remind
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from user_board_remind
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.UserBoardRemind" >
+    insert into user_board_remind (id, msg_code, original_content, 
+      is_delete, user_code, send_user_code, 
+      org_code, tenant_code, msg_type, 
+      create_time, team_code, receive_user_code, 
+      borad_code, msg_content)
+    values (#{id,jdbcType=BIGINT}, #{msgCode,jdbcType=VARCHAR}, #{originalContent,jdbcType=VARCHAR}, 
+      #{isDelete,jdbcType=INTEGER}, #{userCode,jdbcType=VARCHAR}, #{sendUserCode,jdbcType=VARCHAR}, 
+      #{orgCode,jdbcType=VARCHAR}, #{tenantCode,jdbcType=VARCHAR}, #{msgType,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=BIGINT}, #{teamCode,jdbcType=VARCHAR}, #{receiveUserCode,jdbcType=VARCHAR}, 
+      #{boradCode,jdbcType=VARCHAR}, #{msgContent,jdbcType=LONGVARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.UserBoardRemind" >
+    insert into user_board_remind
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="msgCode != null" >
+        msg_code,
+      </if>
+      <if test="originalContent != null" >
+        original_content,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+      <if test="userCode != null" >
+        user_code,
+      </if>
+      <if test="sendUserCode != null" >
+        send_user_code,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="msgType != null" >
+        msg_type,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="teamCode != null" >
+        team_code,
+      </if>
+      <if test="receiveUserCode != null" >
+        receive_user_code,
+      </if>
+      <if test="boradCode != null" >
+        borad_code,
+      </if>
+      <if test="msgContent != null" >
+        msg_content,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="msgCode != null" >
+        #{msgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="originalContent != null" >
+        #{originalContent,jdbcType=VARCHAR},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=INTEGER},
+      </if>
+      <if test="userCode != null" >
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="sendUserCode != null" >
+        #{sendUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="msgType != null" >
+        #{msgType,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="teamCode != null" >
+        #{teamCode,jdbcType=VARCHAR},
+      </if>
+      <if test="receiveUserCode != null" >
+        #{receiveUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="boradCode != null" >
+        #{boradCode,jdbcType=VARCHAR},
+      </if>
+      <if test="msgContent != null" >
+        #{msgContent,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.UserBoardRemind" >
+    update user_board_remind
+    <set >
+      <if test="msgCode != null" >
+        msg_code = #{msgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="originalContent != null" >
+        original_content = #{originalContent,jdbcType=VARCHAR},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=INTEGER},
+      </if>
+      <if test="userCode != null" >
+        user_code = #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="sendUserCode != null" >
+        send_user_code = #{sendUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="msgType != null" >
+        msg_type = #{msgType,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="teamCode != null" >
+        team_code = #{teamCode,jdbcType=VARCHAR},
+      </if>
+      <if test="receiveUserCode != null" >
+        receive_user_code = #{receiveUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="boradCode != null" >
+        borad_code = #{boradCode,jdbcType=VARCHAR},
+      </if>
+      <if test="msgContent != null" >
+        msg_content = #{msgContent,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.zssq.dao.pojo.UserBoardRemind" >
+    update user_board_remind
+    set msg_code = #{msgCode,jdbcType=VARCHAR},
+      original_content = #{originalContent,jdbcType=VARCHAR},
+      is_delete = #{isDelete,jdbcType=INTEGER},
+      user_code = #{userCode,jdbcType=VARCHAR},
+      send_user_code = #{sendUserCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      msg_type = #{msgType,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=BIGINT},
+      team_code = #{teamCode,jdbcType=VARCHAR},
+      receive_user_code = #{receiveUserCode,jdbcType=VARCHAR},
+      borad_code = #{boradCode,jdbcType=VARCHAR},
+      msg_content = #{msgContent,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.UserBoardRemind" >
+    update user_board_remind
+    set msg_code = #{msgCode,jdbcType=VARCHAR},
+      original_content = #{originalContent,jdbcType=VARCHAR},
+      is_delete = #{isDelete,jdbcType=INTEGER},
+      user_code = #{userCode,jdbcType=VARCHAR},
+      send_user_code = #{sendUserCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      msg_type = #{msgType,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=BIGINT},
+      team_code = #{teamCode,jdbcType=VARCHAR},
+      receive_user_code = #{receiveUserCode,jdbcType=VARCHAR},
+      borad_code = #{boradCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  
+    <!-- 分页查询  -->
+<!--    <select id="selectPage" resultMap="BaseResultMap" parameterType="com.zssq.model.QueryBoardRemindModel" >
+      
+	    select     <include refid="Base_Column_List" />
+	    from user_board_remind 
+	    where 1 = 1
+	    
+	      and  user_code = #{userCode,jdbcType=VARCHAR}
+	and is_delete=0  	 
+	
+	original_content !=null
+	
+	UNION 
+	
+	 select     <include refid="Base_Column_List" />
+	 
+	    from user_board_remind 
+	    where 1 = 1
+	    
+	      and  send_user_code = #{userCode,jdbcType=VARCHAR}
+	and is_delete=0  	
+	 
+	 original_content !=null
+	
+	c
+      
+       limit #{pageNo} , #{pageSize}
+      
+  
+  </select> -->
+  
+  
+   <!-- 分页查询  -->
+   <select id="selectPage" resultMap="BaseResultMap" parameterType="com.zssq.model.QueryBoardRemindModel" >
+      
+	    select     <include refid="Base_Column_List" /> , msg_content
+	    from user_board_remind 
+	    where 1 = 1
+	    and  user_code = #{userCode,jdbcType=VARCHAR}
+		and is_delete=0  	ORDER BY  create_time DESC 
+       limit #{pageNo} , #{pageSize}
+  
+  </select>
+  
+  <!-- 总条数 -->
+   <select id="selectCount" resultType="int" parameterType="com.zssq.model.QueryBoardRemindModel" >
+   select count(1)
+   from user_board_remind
+   where 1 = 1
+   
+   and  user_code = #{userCode,jdbcType=VARCHAR}
+       
+   and  is_delete=0
+  
+  </select>
+  
+  
+  <update id="delBoardRemind"  parameterType="string">
+    update user_board_remind
+    set
+        is_delete = 1
+    where 
+      msg_code = #{msgCode,jdbcType=VARCHAR}
+  </update>
+  
+  
+  
+  
+</mapper>

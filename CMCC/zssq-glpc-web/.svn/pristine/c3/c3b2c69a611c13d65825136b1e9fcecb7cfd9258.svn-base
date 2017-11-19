@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>集团门户</title>
+	<link rel="stylesheet" type="text/css" href="css/default.css">
+	<link rel="stylesheet" type="text/css" href="css/common.css">
+	<link rel="stylesheet" type="text/css" href="css/newsDetails-page.css">
+	<link rel="stylesheet" type="text/css" href="css/group-blue.css">
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/dateformat.js"></script>
+	<script type="text/javascript" src="js/file.js"></script>
+	<script type="text/javascript" src="js/lib/em.js"></script>
+	<script type="text/javascript" src="js/data.js"></script>
+	<script type="text/x-handlebars-template" id="news">
+		<li class="newsDetails-intented">
+		<ul>
+			<li class="intented-title">{{ infoTitle }}</li>
+			<li class="intented-date">
+				<span> {{ infoOperatorName }} </span>
+				<span class="intented-time">{{ formatTime publishTime}}</span>
+			</li>
+			<li class="intented-details">
+				{{{ getEmotionSrc infoContentHtml }}}
+			</li>
+			<li>
+				<ul class="newsDetails-srtz">
+					<li class="newsDetails-relay"><span class="Relay-Pic Relay-Piced"></span><span>{{ transmitNumber }}</span></li>
+					<li class="newsDetails-star"><span class="Star-Pic"></span><span>{{ collectNumber }}</span></li>
+					<li class="newsDetails-zan"><span class="ZanPic ZanPiced"></span><span>{{ transmitNumber }}</span></li>
+				</ul>
+			</li>
+		</ul>
+		</li>
+			
+		<li class="newsDetais-hotspots">
+			<ul class="newsDetails-going">
+				<li class="newsDetais-title1">
+					<span class="newsDetais-new border-bg">全部评论</span>
+				</li>
+				<li class="allcommentsBox">
+				
+					<ul class="allcomments-box">
+						
+						{{#each jsoncommentArray}}	
+							<li class="newsDetais-common">
+								<a href="#" class="CommonImg"><img src="{{ renderFile this.headPortrait }}" alt=""></a>
+								<ul class="commonIntent">
+									<li class="commonPerson">
+										<span class="commonTitle">{{ this.userName }}</span>
+										<span class="commonCompany">{{ this.orgName }}</span>
+										<span class="commonTime">{{ formatTime this.createTime }}</span>
+									</li>
+									<li class="commonExplain">{{{ getEmotionSrc this.commentContent }}}</li>
+									<li class="commonBtn">
+										<span class="commonCount commonCount1">
+											<i class="CountPic CountPiced"></i>
+											<i>{{ this.commentGoodCount }}</i>
+										</span>					
+									</li>
+								</ul>
+								<span class="clear"></span>
+								
+								<div class="ag-1">
+									
+									{{#each this.jsonReplyArray}}
+										<div class="newsDetais-common1">
+											<a href="#" class="CommonImg1"><img src="{{ renderFile this.headPortrait }}" alt=""></a>
+											<ul class="commonIntent1">
+												<li class="commonPerson">
+													<span class="commonTitle">{{ this.userName }}</span>
+													<span class="commonCompany">{{ this.orgName }}</span>
+													<span class="commonH">回复</span>
+													<span class="commonTitle">{{ this.revertPeopleName }}</span>
+													<span class="commonCompany">{{ this.revertOrgName }}</span>
+													<span class="commonTime">{{ formatTime this.createTime }}</span>
+												</li>
+												<li class="commonExplain">{{{ getEmotionSrc this.replyContent }}}</li>
+												<li class="commonBtn">
+													<span class="commonCount">
+														<i class="CountPic"></i>
+														<i>{{ this.replyLikeNum }}</i>
+													</span>							
+												</li>
+											</ul>
+											<span class="clear"></span>
+										</div>
+									{{/each}}
+								</div>
+							</li>
+						{{/each}}
+					</ul>
+				</li>			
+			</ul>
+		</li>
+	</script>
+	<script type="text/javascript" src="js/handlebars.js"></script>
+	<script type="text/javascript">
+			
+		$(function(){
+			var source = $("#news").html();
+			//预编译模板
+			var template = Handlebars.compile(source);
+			Handlebars.registerHelper("formatTime",function(value){
+				return formatTime(value);
+			});
+			Handlebars.registerHelper("getEmotionSrc",function(value){
+				return getEmotionSrc(value);
+			});
+			Handlebars.registerHelper("renderFile",function(value){
+				return renderFile(value);
+			});
+			//模拟json数据
+			//匹配json内容
+			var html = template(data);
+			//输入模板
+			$("#newsInfo").html(html);
+		});
+	</script>
+</head>
+<body>
+<div class="GroupBox">
+<ul class="newsDetails-intent" id="newsInfo">
+</ul>
+</div>
+</body>
+</html>

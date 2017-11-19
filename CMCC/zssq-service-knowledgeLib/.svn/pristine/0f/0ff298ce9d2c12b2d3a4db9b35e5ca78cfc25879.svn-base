@@ -1,0 +1,689 @@
+package com.zssq.service.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.dao.mapper.RepositoryInfoMapperByGuoYang;
+import com.zssq.dao.mapper.RepositoryKnowledgeBySryMapper;
+import com.zssq.dao.mapper.RepositoryKnowledgeContentBySryMapper;
+import com.zssq.dao.mapper.RepositoryKnowledgeContentMapperByGuoYang;
+import com.zssq.dao.mapper.RepositoryKnowledgeMapperByGuoYang;
+import com.zssq.dao.pojo.RepositoryInfo;
+import com.zssq.dao.pojo.RepositoryKnowledge;
+import com.zssq.dao.pojo.RepositoryKnowledgeContent;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.model.GetKnowledgeByTitleForGLModel;
+import com.zssq.model.GetKnowledgeInfoForGLModel;
+import com.zssq.model.GetKnowledgeListByLibForGLModel;
+import com.zssq.model.RepositoryKnowledgeFrontMH;
+import com.zssq.model.RepositoryKnowledgeMH;
+import com.zssq.model.RepositoryKnowledgeModelForSearch;
+import com.zssq.service.RepositoryKnowledgeService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.vo.DeleteKnowledgeListForGLForSerVO;
+import com.zssq.vo.EditKnowledgeLibForForInGLVO;
+import com.zssq.vo.GetKnowledgeByTitleForGLForSerVo;
+import com.zssq.vo.GetKnowledgeListByLibForGLForSerVo;
+import com.zssq.vo.MoveKnowledgeForGLSerVO;
+import com.zssq.vo.RepositoryKnowledgeVo;
+import com.zssq.vo.RepositorySearchVo;
+
+/**
+ * 
+ * @ClassName: RepositoryKnowledgeService  
+ * @Description: 知识基本信息
+ * @author sry  
+ * @date 2017年4月28日  
+ *
+ */
+@Service("repositoryKnowledgeService")
+public class RepositoryKnowledgeServiceImpl implements RepositoryKnowledgeService{
+	
+	
+	
+	@Autowired
+	RepositoryInfoMapperByGuoYang repositoryInfoMapperByGuoYang;
+	
+	@Autowired
+	RepositoryKnowledgeMapperByGuoYang repositoryKnowledgeMapperByGuoYang;
+	
+	@Autowired
+	RepositoryKnowledgeContentMapperByGuoYang repositoryKnowledgeContentMapperByGuoYang;
+
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private RepositoryKnowledgeBySryMapper repositoryKnowledgeBySryMapper;
+	
+	@Autowired
+	private RepositoryKnowledgeContentBySryMapper repositoryKnowledgeContentBySryMapper;
+	/**
+	 * 查询知识库下知识列表
+	 */
+	@Override
+	public PageBean getPortalKnowledgeListByLibForMH(PageParam pageParam, RepositoryKnowledgeVo infoVo)
+			throws BusinessException {
+		PageBean pageBean = null;
+		try {
+			// 参数校验
+			if (pageParam == null || infoVo == null) {
+				log.error("RepositoryKnowledgeServiceImpl.getPortalKnowledgeListByLibForMH：参数为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			
+			// 获取参数
+			Integer pageSize = pageParam.getPageSize(); // 每页记录数
+			Integer pageNo = pageParam.getPageNo(); // 当前页数
+			
+			String userCode = infoVo.getUserCode(); // 人员编号
+			String repositoryCode = infoVo.getRepositoryCode();
+			// 参数校验
+			if (pageSize == null || pageNo == null) {
+				log.error("RepositoryKnowledgeServiceImpl.getPortalKnowledgeListByLibForMH：分页信息为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (StringUtils.isBlank(userCode)) {
+				log.error("RepositoryKnowledgeServiceImpl.getPortalKnowledgeListByLibForMH：userCode为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			/*if (StringUtils.isBlank(repositoryCode)) {/
+				log.error("RepositoryKnowledgeServiceImpl.getPortalKnowledgeListByLibForMH：repositoryCode为空");
+				throw BusinessException.build("COMMON_402");
+			}*/
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("limitStart", pageNo*pageSize); // 查询开始条数
+			paramMap.put("limitCount", pageSize); // 查询结果条数
+			paramMap.put("userCode", userCode); // 人员编号
+			if(StringUtils.isNotBlank(repositoryCode)) {//为空查全部
+				paramMap.put("repositoryCode", repositoryCode); // 知识库编号
+			}
+			
+			// 查询列表总数
+			int count = repositoryKnowledgeBySryMapper.selectCount(paramMap);
+			
+			// 查询列表内容
+			List<RepositoryKnowledgeMH> blogList = repositoryKnowledgeBySryMapper.list(paramMap);
+			
+			// 返回值
+			pageBean = new PageBean(pageNo, pageSize, count, blogList);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return pageBean;
+	}
+	/**
+	 * 知识编号 查 知识
+	 */
+	@Override
+	public RepositoryKnowledge getBaseKnowlegeByCond(RepositoryKnowledgeVo qo) throws BusinessException {
+		RepositoryKnowledge rk = null;
+		try {
+			// 参数校验
+			if (qo == null) {
+				log.error("RepositoryKnowledgeServiceImpl.getBaseKnowlegeByCond：参数为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			
+			// 获取参数
+			String knowledgeCode = qo.getKnowledgeCode();
+			if (StringUtils.isBlank(knowledgeCode)) {
+				log.error("RepositoryKnowledgeServiceImpl.getBaseKnowlegeByCond:knowledgeCode为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("knowledgeCode", knowledgeCode); // 知识编号
+			// 查询列表内容
+			rk = repositoryKnowledgeBySryMapper.selectByCode(paramMap);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		return rk;
+	}
+	/**
+	 * 发布知识
+	 */
+	@Override
+	public Boolean addPortalKnowledgeForMH(RepositoryKnowledge kgVo,RepositoryKnowledgeContent kgcVo) throws BusinessException {
+		try {
+			// 参数校验
+			if (kgVo == null || kgcVo == null) {
+				log.error("RepositoryKnowledgeServiceImpl.addPortalKnowledgeForMH：参数为空");
+				throw BusinessException.build("COMMON_402","参数为空");
+			}
+			int insertKgcNum = repositoryKnowledgeContentBySryMapper.insert(kgcVo);
+			if(insertKgcNum!=1){
+				log.error("RepositoryKnowledgeServiceImpl.addPortalKnowledgeForMH：插入" + insertKgcNum + "条知识正文 ");
+				return false;
+			}
+			// 插入
+			int insertkgNum = repositoryKnowledgeBySryMapper.insert(kgVo);
+			if (insertkgNum != 1) {
+				log.error("RepositoryKnowledgeServiceImpl.addPortalKnowledgeForMH：插入" + insertkgNum + "条知识 ");
+				return false;
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * 首页知识热区
+	 */
+	@Override
+	public List<RepositoryKnowledgeFrontMH> getPortalFrontHotKnowledgeLibListForMH(RepositoryKnowledgeVo infoVo)
+			throws BusinessException {
+		List<RepositoryKnowledgeFrontMH> infoList = new ArrayList<RepositoryKnowledgeFrontMH>();
+		try {
+			// 参数校验
+			if (infoVo == null) {
+				log.error("RepositoryKnowledgeServiceImpl.getRepositoryListForMH：参数为空");
+				throw BusinessException.build("COMMON_402", "RepositoryKnowledgeVo");
+			}
+			String orgCode = infoVo.getOrgCode();
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("RepositoryKnowledgeServiceImpl.getRepositoryListForMH：orgCode为空");
+				throw BusinessException.build("COMMON_402", "orgCode");
+			}
+			/*String userCode = infoVo.getUserCode();
+			if (StringUtils.isBlank(userCode)) {
+				log.error("RepositoryKnowledgeServiceImpl.getRepositoryListForMH：userCode为空");
+				throw BusinessException.build("COMMON_402", "userCode");
+			}*/
+			Integer showSize = infoVo.getShowSize();
+			if (showSize==null||showSize<1) {
+				log.error("RepositoryKnowledgeServiceImpl.getRepositoryListForMH：showSize不合法");
+				throw BusinessException.build("COMMON_402", "showSize");
+			}
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("orgCode", orgCode); // 组织编号
+			/*paramMap.put("userCode", userCode);*/
+			paramMap.put("showSize", showSize);
+			// 查询知识库列表
+			infoList = repositoryKnowledgeBySryMapper.getPortalFrontHotKnowledgeLibListForMH(paramMap);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		return infoList;
+	}
+	
+	/**
+	 * 门户搜索
+	 */
+	@Override
+	public PageBean getPortalSearchKnowledgeListForMH(PageParam pageParam, RepositorySearchVo infoVo)
+			throws BusinessException {
+		PageBean pageBean = null;
+		try {
+			// 参数校验
+			if (pageParam == null || infoVo == null) {
+				log.error("RepositoryKnowledgeServiceImpl.getPortalKnowledgeListByLibForMH：参数为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			
+			// 获取参数
+			Integer pageSize = pageParam.getPageSize(); // 每页记录数
+			Integer pageNo = pageParam.getPageNo(); // 当前页数
+			
+			String userCode = infoVo.getUserCode(); // 人员编号
+			String orgCode = infoVo.getOrgCode();//组织编号
+			String keywords = infoVo.getKeywords();//关键词
+			// 参数校验
+			if (pageSize == null || pageNo == null) {
+				log.error("RepositoryKnowledgeServiceImpl.getPortalKnowledgeListByLibForMH：分页信息为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (StringUtils.isBlank(userCode)) {
+				log.error("RepositoryKnowledgeServiceImpl.getPortalKnowledgeListByLibForMH：userCode为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("RepositoryKnowledgeServiceImpl.getPortalKnowledgeListByLibForMH：orgCode为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("limitStart", pageNo*pageSize); // 查询开始条数
+			paramMap.put("limitCount", pageSize); // 查询结果条数
+			paramMap.put("userCode", userCode); // 人员编号
+			paramMap.put("keywords", keywords); // 关键词
+			paramMap.put("orgCode", orgCode);//组织编号
+			
+			// 查询列表总数
+			int count = repositoryKnowledgeBySryMapper.selectCount(paramMap);
+			
+			// 查询列表内容
+			List<RepositoryKnowledgeMH> blogList = repositoryKnowledgeBySryMapper.list(paramMap);
+			
+			// 返回值
+			pageBean = new PageBean(pageNo, pageSize, count, blogList);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return pageBean;
+	}
+
+
+	@Override
+	public PageBean getKnowledgeListByLibForGL(PageParam pp,
+			GetKnowledgeListByLibForGLForSerVo getKnowledgeListByLibForGLForSerVo) throws BusinessException {
+		PageBean pageBean = null;
+		try {
+			// 参数校验
+			if (pp == null || getKnowledgeListByLibForGLForSerVo == null) {
+				log.error("RepositoryKnowledgeServiceImpl.getKnowledgeListByLibForGL：参数为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			
+			// 获取参数
+			Integer pageSize = pp.getPageSize(); // 每页记录数
+			Integer pageNo = pp.getPageNo(); // 当前页数
+			
+			String repositoryCode = getKnowledgeListByLibForGLForSerVo.getRepositoryCode(); // 人员编号
+			String orgCode = getKnowledgeListByLibForGLForSerVo.getOrgCode();//组织编号
+			String keywords = getKnowledgeListByLibForGLForSerVo.getKeyWords();//关键词
+			// 参数校验
+			if (pageSize == null || pageNo == null) {
+				log.error("RepositoryKnowledgeServiceImpl.getKnowledgeListByLibForGL：分页信息为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (StringUtils.isBlank(repositoryCode)) {
+				log.error("RepositoryKnowledgeServiceImpl.getKnowledgeListByLibForGL：repositoryCode为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("RepositoryKnowledgeServiceImpl.getKnowledgeListByLibForGL：orgCode为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			HashMap<String, Object> map = new HashMap<String,Object>();
+			map.put("limitStart",pageSize*pageNo);
+			map.put("limitCount",pageSize);
+			map.put("repositoryCode",repositoryCode);
+			map.put("orgCode",orgCode);
+			map.put("keyWords",keywords);
+			List<GetKnowledgeListByLibForGLModel> list = repositoryKnowledgeMapperByGuoYang.selectByLib(map);
+			int count = repositoryKnowledgeMapperByGuoYang.selectByLibCount(map);
+			pageBean = new	PageBean();
+			pageBean.setTotalCount(count);
+			pageBean.setRecordList(list);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		return pageBean;
+	}
+
+	@Override
+	public boolean moveKnowledgeForGL(MoveKnowledgeForGLSerVO moveKnowledgeForGLSerVO) throws BusinessException {
+		boolean resultBoolean = true;
+		try {
+			// 参数校验
+			if (moveKnowledgeForGLSerVO == null) {
+				log.error("RepositoryKnowledgeContentServiceImpl.moveKnowledgeForGL：moveKnowledgeForGLSerVO为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			
+			// 获取参数
+			String knowledgeCodes = moveKnowledgeForGLSerVO.getKnowledgeCodes();
+			String repositoryCode = moveKnowledgeForGLSerVO.getRepositoryCode();
+			String orgCode = moveKnowledgeForGLSerVO.getOrgCode();
+			
+			// 参数校验
+			if (StringUtils.isBlank(knowledgeCodes)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.moveKnowledgeForGL：knowledgeCodes为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (StringUtils.isBlank(repositoryCode)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.moveKnowledgeForGL：repositoryCode为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.moveKnowledgeForGL：orgCode为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			String[] knowledgeCodeStrs = knowledgeCodes.split(",");
+			
+			
+			RepositoryKnowledge repositoryKnowledge = new RepositoryKnowledge();
+			for(int i = 1 ; i <= knowledgeCodeStrs.length ; i++){
+				repositoryKnowledge.setRepositoryCode(repositoryCode);
+				repositoryKnowledge.setKnowledgeCode(knowledgeCodeStrs[i-1]);
+				repositoryKnowledge.setOrgCode(orgCode);
+				Long modifyTime = new Date().getTime();
+				repositoryKnowledge.setModifyTime(modifyTime);
+				Integer j = repositoryKnowledgeMapperByGuoYang.updateRepositoryInfoForKnowledge(repositoryKnowledge);
+				if(j != 1){
+					resultBoolean = false;
+				}
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		return resultBoolean;
+	}
+
+	@Override
+	public PageBean getShowHotListByGL(PageParam pageParam,RepositorySearchVo repositorySearchVo) throws BusinessException{
+		PageBean pageBean = null;
+		try {
+			// 参数校验
+			if (repositorySearchVo == null || pageParam == null) {
+				log.error("RepositoryKnowledgeContentServiceImpl.getShowHotListByGL：参数为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			String keywords = repositorySearchVo.getKeywords();
+			String orgCode = repositorySearchVo.getOrgCode();
+			Integer pageSize = pageParam.getPageSize();
+			Integer pageNo = pageParam.getPageNo();
+			// 参数校验
+			if (StringUtils.isBlank(keywords)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.getShowHotListByGL：keywords为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.getShowHotListByGL：orgCode为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (pageSize == null) {
+				log.error("RepositoryKnowledgeContentServiceImpl.getShowHotListByGL：pageSize为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (pageNo == null) {
+				log.error("RepositoryKnowledgeContentServiceImpl.getShowHotListByGL：pageNo为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			Map<String, Object> map = new HashMap<>();
+			map.put("keyWords",keywords);
+			map.put("orgCode",orgCode);
+			map.put("limitStart", pageSize*pageNo);
+			map.put("limitCount", pageSize); 
+			
+			List<RepositoryKnowledgeModelForSearch> repositoryKnowledgeModelList = repositoryKnowledgeMapperByGuoYang.getShowHotListByGL(map);
+			int count = repositoryKnowledgeMapperByGuoYang.selectShowCountByGL(map);
+			pageBean.setTotalCount(count);
+			pageBean.setRecordList(repositoryKnowledgeModelList);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		return pageBean;
+	}
+
+	@Override
+	public boolean deleteKnowledgeListForGL(DeleteKnowledgeListForGLForSerVO deleteKnowledgeListForGLForSerVO) throws BusinessException {
+		boolean resultBoolean = true;
+		try {
+			// 参数校验
+			if (deleteKnowledgeListForGLForSerVO == null) {
+				log.error("RepositoryKnowledgeContentServiceImpl.deleteKnowledgeListForGL：参数为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			String knowledgeCodes = deleteKnowledgeListForGLForSerVO.getKnowledgeCodes();
+			// 参数校验
+			if (StringUtils.isBlank(knowledgeCodes)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.deleteKnowledgeListForGL：knowledgeCodes为空");
+				throw BusinessException.build("COMMON_402");
+			}
+
+			String[] split = deleteKnowledgeListForGLForSerVO.getKnowledgeCodes().split(",");
+			
+			
+			RepositoryKnowledge repositoryKnowledge = new RepositoryKnowledge();
+			for(int i = 1 ; i <= split.length ;i++){
+				repositoryKnowledge.setKnowledgeCode(split[i-1]);
+				repositoryKnowledge.setOrgCode(deleteKnowledgeListForGLForSerVO.getOrgCode());
+				long time = new Date().getTime();
+				repositoryKnowledge.setModifyTime(time);
+				Integer j = repositoryKnowledgeMapperByGuoYang.deleteByKnowledgeCode(repositoryKnowledge);
+				if(j != 1){
+					resultBoolean = false;
+				}
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		return resultBoolean;
+	}
+	@Override
+	public Integer insertKnowledgeLib(EditKnowledgeLibForForInGLVO editKnowledgeLibForForInGLVO) throws BusinessException{
+		Integer i = null;
+		try {
+			// 参数校验
+			if (editKnowledgeLibForForInGLVO == null) {
+				log.error("RepositoryKnowledgeContentServiceImpl.insertKnowledgeLib：参数为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			String orgCode = editKnowledgeLibForForInGLVO.getOrgCode();
+			String repositoryCode = editKnowledgeLibForForInGLVO.getRepositoryCode();
+			String repositorySummary = editKnowledgeLibForForInGLVO.getRepositorySummary();
+			String repositoryTitle = editKnowledgeLibForForInGLVO.getRepositoryTitle();
+			String userCode = editKnowledgeLibForForInGLVO.getUserCode();
+			// 参数校验
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.insertKnowledgeLib：orgCode为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (StringUtils.isBlank(repositorySummary)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.insertKnowledgeLib：repositorySummary为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (StringUtils.isBlank(repositoryTitle)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.insertKnowledgeLib：repositoryTitle为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (StringUtils.isBlank(userCode)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.insertKnowledgeLib：userCode为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			RepositoryInfo repositoryInfo = new RepositoryInfo();
+			repositoryInfo.setOrgCode(orgCode);
+			repositoryInfo.setRepositoryCode(repositoryCode);
+			repositoryInfo.setRepositorySummary(repositorySummary);
+			repositoryInfo.setRepositoryTitle(repositoryTitle);
+			repositoryInfo.setUserCode(userCode);
+			long time = new Date().getTime();
+			repositoryInfo.setCreateTime(time);
+			repositoryInfo.setModifyTime(time);
+			String uuid = UUIDHelper.getUUID();
+			repositoryInfo.setRepositoryCode(UUIDHelper.getUUID());
+			
+			Integer count = repositoryInfoMapperByGuoYang.checkLibTitleForGL(repositoryInfo);
+			if(count == 0){
+				i = repositoryInfoMapperByGuoYang.insertRepositoryInfo(repositoryInfo);
+			}else{
+				return i;
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		return i;
+	}
+
+	@Override
+	public Integer updateKnowledgeLib(EditKnowledgeLibForForInGLVO editKnowledgeLibForForInGLVO) throws BusinessException {
+		Integer i = null;
+		try {
+			// 参数校验
+			if (editKnowledgeLibForForInGLVO == null) {
+				log.error("RepositoryKnowledgeContentServiceImpl.updateKnowledgeLib：参数为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			String orgCode = editKnowledgeLibForForInGLVO.getOrgCode();
+			String repositoryCode = editKnowledgeLibForForInGLVO.getRepositoryCode();
+			String repositorySummary = editKnowledgeLibForForInGLVO.getRepositorySummary();
+			String repositoryTitle = editKnowledgeLibForForInGLVO.getRepositoryTitle();
+			String userCode = editKnowledgeLibForForInGLVO.getUserCode();
+			// 参数校验
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.updateKnowledgeLib：orgCode为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (StringUtils.isBlank(repositoryCode)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.updateKnowledgeLib：repositoryCode为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (StringUtils.isBlank(repositorySummary)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.updateKnowledgeLib：repositorySummary为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (StringUtils.isBlank(repositoryTitle)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.updateKnowledgeLib：repositoryTitle为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (StringUtils.isBlank(userCode)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.updateKnowledgeLib：userCode为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			
+			RepositoryInfo repositoryInfo = new RepositoryInfo();
+			repositoryInfo.setOrgCode(orgCode);
+			repositoryInfo.setRepositoryCode(repositoryCode);
+			repositoryInfo.setRepositorySummary(repositorySummary);
+			repositoryInfo.setRepositoryTitle(repositoryTitle);
+			repositoryInfo.setUserCode(userCode);
+			long time = new Date().getTime();
+			repositoryInfo.setModifyTime(time);
+			Integer count = repositoryInfoMapperByGuoYang.isUniqueForUpdate(repositoryInfo);
+			if(count == 0){
+				i = repositoryInfoMapperByGuoYang.updateKnowledgeLib(repositoryInfo);
+			}
+			
+		} catch (BusinessException e) {
+			throw e;
+		}
+		return i;
+	}
+
+	@Override
+	public GetKnowledgeByTitleForGLModel getKnowledgeByTitleForGL(
+			GetKnowledgeByTitleForGLForSerVo getKnowledgeByTitleForGLForSerVo) throws BusinessException {
+		
+		GetKnowledgeByTitleForGLModel getKnowledgeByTitleForGLModel = null;
+		try {
+			// 参数校验
+			if (getKnowledgeByTitleForGLForSerVo == null) {
+				log.error("RepositoryKnowledgeContentServiceImpl.getKnowledgeByTitleForGL：参数为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			String knowledgeCode = getKnowledgeByTitleForGLForSerVo.getKnowledgeCode();
+			String orgCode = getKnowledgeByTitleForGLForSerVo.getOrgCode();
+			// 参数校验
+			if (StringUtils.isBlank(knowledgeCode)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.getKnowledgeByTitleForGL：knowledgeCode为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.getKnowledgeByTitleForGL：orgCode为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			RepositoryKnowledge repositoryKnowledge = new RepositoryKnowledge();
+			repositoryKnowledge.setKnowledgeCode(knowledgeCode);
+			repositoryKnowledge.setOrgCode(orgCode);
+			getKnowledgeByTitleForGLModel = repositoryKnowledgeMapperByGuoYang.selectByTitle(repositoryKnowledge);
+			RepositoryKnowledgeContent repositoryKnowledgeContent = new RepositoryKnowledgeContent();
+			repositoryKnowledgeContent.setContentCode(getKnowledgeByTitleForGLModel.getContentCode());
+			GetKnowledgeInfoForGLModel getKnowledgeInfoForGLModel = repositoryKnowledgeContentMapperByGuoYang.selectInfoByCode(repositoryKnowledgeContent);
+			getKnowledgeByTitleForGLModel.setContentInfo(getKnowledgeInfoForGLModel.getContentInfo());
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return getKnowledgeByTitleForGLModel;
+	}
+	@Override
+	public RepositoryKnowledgeMH getPortalKnowledgeByCodeForMH(RepositoryKnowledgeVo infoVo) throws BusinessException {
+		RepositoryKnowledgeMH rMH = null;
+		try {
+			// 参数校验
+			if (infoVo == null) {
+				log.error("RepositoryKnowledgeContentServiceImpl.getPortalKnowledgeByCodeForMH：repositoryKnowledgeVo为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			
+			// 获取参数
+			String knowledgeCode = infoVo.getKnowledgeCode(); // 正文编号
+			String userCode = infoVo.getUserCode();
+			// 参数校验
+			if (StringUtils.isBlank(knowledgeCode)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.getPortalKnowledgeByCodeForMH：knowledgeCode为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("knowledgeCode", knowledgeCode); // 正文编号
+			paramMap.put("userCode", userCode);
+			// 查询
+			rMH = repositoryKnowledgeBySryMapper.selectKnowledgeContent(paramMap);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return rMH;
+	}
+	
+	
+	@Override
+	public List<String> hadName(MoveKnowledgeForGLSerVO moveKnowledgeForGLSerVO) throws BusinessException {
+		List<String> hadNameList = null;
+		try {
+			// 参数校验
+			if (moveKnowledgeForGLSerVO == null) {
+				log.error("RepositoryKnowledgeContentServiceImpl.hadName：moveKnowledgeForGLSerVO为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			
+			// 获取参数
+			String knowledgeCodes = moveKnowledgeForGLSerVO.getKnowledgeCodes();
+			String repositoryCode = moveKnowledgeForGLSerVO.getRepositoryCode();
+			
+			// 参数校验
+			if (StringUtils.isBlank(knowledgeCodes)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.hadName：knowledgeCodes为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			if (StringUtils.isBlank(repositoryCode)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.hadName：repositoryCode为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			String[] knowledgeCodeStrs = knowledgeCodes.split(",");
+			
+			//查询该知识库下的知识列表
+			HashMap<String, Object> map = new HashMap<String,Object>();
+			map.put("repositoryCode",repositoryCode);
+			List<GetKnowledgeListByLibForGLModel> list = repositoryKnowledgeMapperByGuoYang.selectByLibForMove(map);
+			
+			hadNameList = new ArrayList<String>();
+			for(int i = 1 ; i <= knowledgeCodeStrs.length ; i++){
+				HashMap<String, Object> mapForName = new HashMap<String,Object>();
+				mapForName.put("knowledgeCode",knowledgeCodeStrs[i-1]);
+				GetKnowledgeListByLibForGLModel getKnowledgeListByLibForGLModel2 = repositoryKnowledgeMapperByGuoYang.getByCode(mapForName);
+				
+				for (GetKnowledgeListByLibForGLModel getKnowledgeListByLibForGLModel : list) {
+					if(getKnowledgeListByLibForGLModel.getKnowledgeTitle().equals(getKnowledgeListByLibForGLModel2.getKnowledgeTitle())){
+						hadNameList.add(getKnowledgeListByLibForGLModel2.getKnowledgeTitle());
+					}
+				}
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		return hadNameList;
+	}
+
+	
+}

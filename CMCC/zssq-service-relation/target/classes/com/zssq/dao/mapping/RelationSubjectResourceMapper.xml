@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.RelationSubjectResourceMapper">
+
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.RelationSubjectResource">
+		<id column="id" jdbcType="BIGINT" property="id" />
+		<result column="subject_res_code" jdbcType="VARCHAR" property="subjectResCode" />
+		<result column="tenant_code" jdbcType="VARCHAR" property="tenantCode" />
+		<result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+		<result column="create_time" jdbcType="BIGINT" property="createTime" />
+		<result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+		<result column="remark" jdbcType="VARCHAR" property="remark" />
+		<result column="subject_code" jdbcType="VARCHAR" property="subjectCode" />
+		<result column="res_url" jdbcType="VARCHAR" property="resUrl" />
+		<result column="res_class" jdbcType="TINYINT" property="resClass" />
+	</resultMap>
+	
+	<!-- 列列表 -->
+	<sql id="Base_Column_List">
+		id, subject_res_code, tenant_code, org_code, create_time, modify_time,
+		remark, subject_code, res_url, res_class
+	</sql>
+	
+	<!-- 批量插入 -->
+	<insert id="batchInsert" useGeneratedKeys="true" keyProperty="id" parameterType="list">
+		INSERT INTO relation_subject_resource (
+			subject_res_code, 
+			tenant_code,
+			org_code, 
+			create_time,
+			modify_time, 
+			remark, 
+			subject_code,
+			res_url, 
+			res_class
+		) VALUES 
+		<foreach collection="list" item="item" index="index" separator=",">
+			(
+				#{item.subjectResCode,jdbcType=VARCHAR},
+				#{item.tenantCode,jdbcType=VARCHAR},
+				#{item.orgCode,jdbcType=VARCHAR}, 
+				#{item.createTime,jdbcType=BIGINT},
+				#{item.modifyTime,jdbcType=BIGINT}, 
+				#{item.remark,jdbcType=VARCHAR},
+				#{item.subjectCode,jdbcType=VARCHAR},
+				#{item.resUrl,jdbcType=VARCHAR}, 
+				#{item.resClass,jdbcType=TINYINT}
+			)
+		</foreach>
+	</insert>
+	
+</mapper>

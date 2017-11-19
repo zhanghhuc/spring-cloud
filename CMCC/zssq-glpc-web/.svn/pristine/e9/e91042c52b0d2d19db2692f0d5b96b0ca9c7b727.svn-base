@@ -1,0 +1,89 @@
+package com.zssq.activity.vo;
+
+import org.hibernate.validator.constraints.NotBlank;
+
+import com.zssq.annotation.validation.Date;
+import com.zssq.annotation.validation.EnumType;
+import com.zssq.annotation.validation.IntType;
+
+public class GetActivityListVo {
+
+	private String creatorCode;
+	
+	private String activityName;
+	
+	@Date(required = false, pattern = "yyyy-MM-dd HH:mm:ss")
+	private String startQueryTime;
+
+	@Date(required = false, pattern = "yyyy-MM-dd HH:mm:ss")
+	private String endQueryTime;
+	
+	@EnumType(required=false,allow={"1","2","3","4","5","6","7","8"})
+	private String activityStatus;
+	
+	@IntType(expression=">0")
+	private String pageSize;
+	
+	@IntType(expression=">=0")
+	private String pageNo;
+	
+	@NotBlank(message = "{empty.message}")
+	private String userCode;
+	
+	@NotBlank(message = "{empty.message}")
+	private String token;
+	public String getCreatorCode() {
+		return creatorCode;
+	}
+	public void setCreatorCode(String creatorCode) {
+		this.creatorCode = creatorCode;
+	}
+	public String getActivityName() {
+		return activityName;
+	}
+	public void setActivityName(String activityName) {
+		this.activityName = activityName;
+	}
+	public String getStartQueryTime() {
+		return startQueryTime;
+	}
+	public void setStartQueryTime(String startQueryTime) {
+		this.startQueryTime = startQueryTime;
+	}
+	public String getEndQueryTime() {
+		return endQueryTime;
+	}
+	public void setEndQueryTime(String endQueryTime) {
+		this.endQueryTime = endQueryTime;
+	}
+	public String getActivityStatus() {
+		return activityStatus;
+	}
+	public void setActivityStatus(String activityStatus) {
+		this.activityStatus = activityStatus;
+	}
+	public String getPageSize() {
+		return pageSize;
+	}
+	public void setPageSize(String pageSize) {
+		this.pageSize = pageSize;
+	}
+	public String getPageNo() {
+		return pageNo;
+	}
+	public void setPageNo(String pageNo) {
+		this.pageNo = pageNo;
+	}
+	public String getUserCode() {
+		return userCode;
+	}
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
+	}
+	public String getToken() {
+		return token;
+	}
+	public void setToken(String token) {
+		this.token = token;
+	}
+}

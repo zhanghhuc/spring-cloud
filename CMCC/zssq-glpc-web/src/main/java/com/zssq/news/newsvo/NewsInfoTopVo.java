@@ -1,0 +1,26 @@
+package com.zssq.news.newsvo;
+
+import com.zssq.annotation.validation.IntType;
+
+/**
+ * @author SharlaCheung
+ * @ClassName: NewsInfoTopVo
+ * @Description: 新闻置顶参数类
+ * @date 2017年04月14日
+ */
+public class NewsInfoTopVo extends NewsBaseVo {
+
+	private static final long serialVersionUID = 1L;
+	
+	@IntType(expression = ">=0")
+    private String actionType;
+	
+
+    public String getActionType() {
+        return actionType;
+    }
+
+    public void setActionType(String actionType) {
+        this.actionType = actionType;
+    }
+}

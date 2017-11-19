@@ -1,0 +1,36 @@
+package com.zssq.vote.dao.mapper;
+
+import com.zssq.vote.pojo.VoteCommentReply;
+import com.zssq.vote.pojo.VoteCommentReplyExample;
+import java.util.List;
+import org.apache.ibatis.annotations.Param;
+
+public interface VoteCommentReplyMapper {
+    int countByExample(VoteCommentReplyExample example);
+
+    int deleteByExample(VoteCommentReplyExample example);
+
+    int deleteByPrimaryKey(Long id);
+
+    int insert(VoteCommentReply record);
+
+    int insertSelective(VoteCommentReply record);
+
+    List<VoteCommentReply> selectByExampleWithBLOBs(VoteCommentReplyExample example);
+
+    List<VoteCommentReply> selectByExample(VoteCommentReplyExample example);
+
+    VoteCommentReply selectByPrimaryKey(Long id);
+
+    int updateByExampleSelective(@Param("record") VoteCommentReply record, @Param("example") VoteCommentReplyExample example);
+
+    int updateByExampleWithBLOBs(@Param("record") VoteCommentReply record, @Param("example") VoteCommentReplyExample example);
+
+    int updateByExample(@Param("record") VoteCommentReply record, @Param("example") VoteCommentReplyExample example);
+
+    int updateByPrimaryKeySelective(VoteCommentReply record);
+
+    int updateByPrimaryKeyWithBLOBs(VoteCommentReply record);
+
+    int updateByPrimaryKey(VoteCommentReply record);
+}

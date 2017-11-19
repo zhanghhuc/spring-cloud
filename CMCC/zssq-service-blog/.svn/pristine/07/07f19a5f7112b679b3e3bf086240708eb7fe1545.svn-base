@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.BlogLikeMapper">
+
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.BlogLike">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="like_code" property="likeCode" jdbcType="VARCHAR" />
+		<result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+		<result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+		<result column="remark" property="remark" jdbcType="VARCHAR" />
+		<result column="blog_code" property="blogCode" jdbcType="VARCHAR" />
+		<result column="subject_code" property="subjectCode" jdbcType="VARCHAR" />
+		<result column="subject_class" property="subjectClass" jdbcType="TINYINT" />
+		<result column="user_code" property="userCode" jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<!-- 列列表 -->
+	<sql id="Base_Column_List">
+		id, like_code, tenant_code, org_code, create_time, modify_time, remark,
+		blog_code, subject_code, subject_class, user_code
+	</sql>
+	
+	<!-- 查询列表个数 -->
+	<select id="selectCount" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+		FROM blog_like
+		WHERE subject_class = #{subjectClass,jdbcType=TINYINT}
+		AND subject_code = #{subjectCode,jdbcType=VARCHAR}
+		AND user_code = #{userCode,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 插入 -->
+	<insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.zssq.dao.pojo.BlogLike">
+		INSERT into blog_like (
+			like_code, 
+			tenant_code,
+			org_code, 
+			create_time,
+			modify_time, 
+			remark, 
+			blog_code,
+			subject_code, 
+			subject_class, 
+			user_code
+		) VALUES (
+			#{likeCode,jdbcType=VARCHAR},
+			#{tenantCode,jdbcType=VARCHAR},
+			#{orgCode,jdbcType=VARCHAR}, 
+			#{createTime,jdbcType=BIGINT},
+			#{modifyTime,jdbcType=BIGINT}, 
+			#{remark,jdbcType=VARCHAR},
+			#{blogCode,jdbcType=VARCHAR},
+			#{subjectCode,jdbcType=VARCHAR}, 
+			#{subjectClass,jdbcType=TINYINT}, 
+			#{userCode,jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<!-- 删除 -->
+	<delete id="delete" parameterType="map">
+		DELETE FROM blog_like
+		WHERE subject_class = #{subjectClass,jdbcType=TINYINT}
+		AND subject_code = #{subjectCode,jdbcType=VARCHAR}
+		AND user_code = #{userCode,jdbcType=VARCHAR}
+	</delete>
+
+</mapper>

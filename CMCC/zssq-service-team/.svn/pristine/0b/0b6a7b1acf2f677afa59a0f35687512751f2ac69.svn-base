@@ -1,0 +1,18 @@
+package com.zssq.dao.mapper;
+
+import java.util.List;
+
+import com.zssq.dao.pojo.TeamRecommend;
+
+public interface TeamRecommendMapper {
+
+    int insertSelective(TeamRecommend record);
+
+    int deleteHonorTeam(TeamRecommend record);
+    
+    int awardHonor(TeamRecommend record);
+    
+    List<TeamRecommend> selectByRecord(TeamRecommend record);
+    
+    List<String> selectTeamCodeByElect(String electCode);
+}

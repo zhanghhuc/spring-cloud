@@ -1,0 +1,23 @@
+package com.zssq.vote.init;
+
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.zssq.vote.VoteTrConstants;
+import com.zssq.vote.dao.mapper.SysOrgInfoMapper;
+import com.zssq.vote.pojo.SysOrgInfo;
+
+public class InitResource implements InitializingBean {
+	
+	@Autowired
+	private static SysOrgInfoMapper sysOrgInfoMapper;
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		SysOrgInfo groupInfo = sysOrgInfoMapper.queryGroupInfo(VoteTrConstants.GROUP_SRC_CODE);
+		String groupCode = groupInfo.getSysOrgCode();
+		
+		VoteTrConstants.GROUP_CODE = groupCode;
+	}
+
+}

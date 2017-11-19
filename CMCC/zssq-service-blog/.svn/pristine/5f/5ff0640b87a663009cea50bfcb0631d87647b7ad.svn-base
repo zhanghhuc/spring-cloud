@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.BlogCommentMapper">
+
+	<resultMap id="BaseResultMap" type="com.zssq.dao.model.BlogCommentModel">
+		<result column="blog_code" property="blogCode" jdbcType="VARCHAR" />
+		<result column="comment_code" property="commentCode" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="user_code" property="userCode" jdbcType="VARCHAR" />
+		<result column="comment_like_num" property="commentLikeNum" jdbcType="INTEGER" />
+		<result column="comment_reply_num" property="commentReplyNum" jdbcType="INTEGER" />
+		<result column="comment_content" property="commentContent" jdbcType="LONGVARCHAR" />
+		<result column="is_like" property="isLike" jdbcType="INTEGER" />
+	</resultMap>
+	
+	<!-- 列列表 -->
+	<sql id="Base_Column_List">
+		id, comment_code, tenant_code, org_code, create_time, 
+		modify_time, remark, blog_code, user_code, comment_is_delete, 
+		comment_is_shield, comment_like_num, comment_reply_num, comment_content
+	</sql>
+	
+	<!-- 查询详情 -->
+	<select id="select" parameterType="map" resultMap="BaseResultMap">
+		SELECT 
+			comment_code,
+			blog_code,
+			user_code, 
+			comment_like_num, 
+			comment_reply_num,
+			comment_content
+		FROM blog_comment
+		WHERE comment_is_delete = 0 
+		AND comment_is_shield = 0
+		AND comment_code = #{commentCode,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 查询列表公共SQL -->
+	<sql id="select_list_sql">
+		FROM blog_comment
+		WHERE comment_is_delete = 0
+		AND comment_is_shield = 0
+		AND blog_code = #{blogCode,jdbcType=VARCHAR}
+		AND create_time &lt; #{queryTime,jdbcType=BIGINT}
+	</sql>
+	
+	<!-- 查询列表个数 -->
+	<select id="selectCount" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+		<include refid="select_list_sql" />
+	</select>
+	
+	<!-- 查询列表 -->
+	<select id="list" parameterType="map" resultMap="BaseResultMap">
+		SELECT 
+			bc.comment_code,
+			bc.create_time,
+			bc.user_code,
+			bc.comment_like_num,
+			bc.comment_reply_num,
+			bc.comment_content,
+			(
+				CASE 
+				WHEN bl.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_like
+		FROM
+		(
+			SELECT 
+				comment_code,
+				create_time,
+				user_code,
+				comment_like_num,
+				comment_reply_num,
+				comment_content
+			<include refid="select_list_sql" />
+			ORDER BY create_time DESC
+			LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+		) bc
+		LEFT JOIN blog_like bl
+		ON bl.subject_class = 2
+		AND bc.comment_code = bl.subject_code
+		AND bl.user_code = #{userCode,jdbcType=VARCHAR}
+		ORDER BY bc.create_time DESC
+	</select>
+	
+	<!-- 插入 -->
+	<insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.zssq.dao.pojo.BlogComment">
+		INSERT INTO blog_comment (
+			comment_code, 
+			tenant_code,
+			org_code, 
+			create_time,
+			modify_time, 
+			remark, 
+			blog_code,
+			user_code, 
+			comment_is_delete, 
+			comment_is_shield,
+			comment_like_num, 
+			comment_reply_num, 
+			comment_content
+		) VALUES (
+			#{commentCode,jdbcType=VARCHAR},
+			#{tenantCode,jdbcType=VARCHAR},
+			#{orgCode,jdbcType=VARCHAR}, 
+			#{createTime,jdbcType=BIGINT},
+			#{modifyTime,jdbcType=BIGINT}, 
+			#{remark,jdbcType=VARCHAR},
+			#{blogCode,jdbcType=VARCHAR},
+			#{userCode,jdbcType=VARCHAR}, 
+			#{commentIsDelete,jdbcType=TINYINT},
+			#{commentIsShield,jdbcType=TINYINT},
+			#{commentLikeNum,jdbcType=INTEGER},
+			#{commentReplyNum,jdbcType=INTEGER},
+			#{commentContent,jdbcType=LONGVARCHAR}
+		)
+	</insert>
+	
+	<!-- 删除 -->
+	<update id="delete" parameterType="map">
+		UPDATE blog_comment SET 
+			comment_is_delete = 1,
+			modify_time = #{modifyTime,jdbcType=BIGINT}
+		WHERE comment_code = #{commentCode,jdbcType=VARCHAR}
+		AND user_code = #{userCode,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 屏蔽-->
+	<update id="shield" parameterType="map">
+		UPDATE blog_comment SET 
+			comment_is_shield = #{commentIsShield,jdbcType=TINYINT},
+			modify_time = #{modifyTime,jdbcType=BIGINT}
+		WHERE comment_code = #{commentCode,jdbcType=VARCHAR}
+		AND comment_is_delete = 0
+		AND comment_is_shield != #{commentIsShield,jdbcType=TINYINT}
+	</update>
+	
+	<!-- 修改数量 -->
+	<update id="updateData" parameterType="map">
+		UPDATE blog_comment SET
+			modify_time = #{modifyTime,jdbcType=BIGINT},
+			<choose>
+				<!-- 评论量 -->
+				<when test="updateField == 'commentReplyNum'.toString()">
+					comment_reply_num = comment_reply_num + #{updateNumber,jdbcType=INTEGER}
+				</when>
+				<!-- 分享量 -->
+				<when test="updateField == 'commentLikeNum'.toString()">
+					comment_like_num = comment_like_num + #{updateNumber,jdbcType=INTEGER}
+				</when>
+				<otherwise>
+				</otherwise>
+			</choose>
+		WHERE comment_code = #{commentCode,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 获取 commentCode 所在的 page -->
+	<select id="queryCommentCurrentPageNum" parameterType="map" resultType="int">
+		SELECT 
+			floor(count(0)/#{limitCount}) AS absolutepage
+		FROM   
+			blog_comment
+		WHERE  comment_is_delete = 0
+   		AND comment_is_shield = 0
+   		AND blog_code = #{blogCode,jdbcType=VARCHAR}
+		AND id &lt; (select id from blog_comment where comment_code = #{commentCode,jdbcType=VARCHAR})
+		<if test="queryTime != null" >
+	    	AND create_time &lt; #{queryTime}
+    	</if>
+	</select>
+	
+</mapper>

@@ -1,0 +1,338 @@
+package com.zssq.service;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.zssq.exceptions.BusinessException;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.DateUtils;
+import java.util.List;
+import com.zssq.constants.VoteConstants;
+import com.zssq.dao.mapper.ActivityCommentMapper;
+import com.zssq.dao.mapper.ActivityCommentReplyMapper;
+import com.zssq.dao.mapper.ActivityHistoryMapper;
+import com.zssq.dao.mapper.ActivityInfoMapper;
+import com.zssq.dao.pojo.ActivityComment;
+import com.zssq.dao.pojo.ActivityCommentExample;
+import com.zssq.dao.pojo.ActivityHistory;
+import com.zssq.dao.pojo.ActivityInfo;
+import com.zssq.dao.pojo.ActivityInfoExample;
+
+public class CommonService {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	public static Map<String,String> map = new HashMap<String,String>();
+	@Autowired
+	private ActivityHistoryMapper activityHistoryMapper;
+	@Autowired
+	private ActivityInfoMapper activityInfoMapper;
+	@Autowired
+	private ActivityCommentMapper activityCommentMapper;
+	@Autowired
+	private ActivityCommentReplyMapper activityCommentReplyMapper;
+	
+	static {
+		map.put("create", "创建活动");
+		map.put("update", "修改活动");
+		map.put("cancel", "删除");
+		map.put("submit", "提交审核");
+		map.put("back", "撤销");
+		map.put("notPass", "审核不通过");
+		map.put("pass", "审核通过");
+		map.put("preheat", "开始预热");
+		map.put("begin", "开始进行");
+		map.put("end", "结束");
+		map.put("normaloffline", "正常下线");
+		map.put("offLine", "提前下线");
+	}
+
+	// 加、减运算枚举
+	public enum Operator {
+		ADD, SUB
+	}
+	
+	/**
+	 * @Function getActivityInfoByCode
+	 * @Description 根据code查询 活动实体
+	 * @param code
+	 * @param tenantCode
+	 * @return ActivityInfo
+	 * @throws BusinessException
+	 */
+	public ActivityInfo getActivityInfoByCode(String code,String tenantCode)throws BusinessException{
+		ActivityInfo activityInfo = null;
+	    try{
+	    	ActivityInfoExample example = new ActivityInfoExample();
+	    	ActivityInfoExample.Criteria criteria = example.createCriteria();
+			criteria.andCodeEqualTo(code);
+			criteria.andTenantCodeEqualTo(tenantCode);
+			criteria.andIsDeleteEqualTo(VoteConstants.NO);
+			criteria.andIsDisableEqualTo(VoteConstants.NO);
+			List<ActivityInfo> list = activityInfoMapper.selectByExample(example); 
+			if(list.size() > 0){
+				activityInfo = list.get(0);
+			}
+	    	return activityInfo;
+	    }catch(Exception e){
+			log.error("CommonService.getActivityInfoByCode", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	    
+	}
+
+	/**
+	 * 创建活动历程
+	 * @param tenantCode 租户code
+	 * @param orgCode 组织机构code
+	 * @param remark 备注
+	 * @param activityCode 活动code
+	 * @param userCode 操作人code
+	 * @param userName 操作人姓名
+	 * @param operate 操作
+	 * @throws BusinessException
+	 */
+	public void insertActivityHistory(String tenantCode,String orgCode,String remark,
+			String activityCode,String userCode,String userName,String operate) throws BusinessException{
+		try {
+			ActivityHistory history = new ActivityHistory();
+			Long time = DateUtils.getFormatDateLong();
+			history.setCode(UUIDHelper.getUUID());
+			history.setTenantCode(tenantCode);
+			history.setOrgCode(orgCode);
+			history.setCreateTime(time);
+			history.setModifyTime(time);
+			history.setRemark(remark);
+			history.setActivityCode(activityCode);
+			history.setOperationUserCode(userCode);
+			history.setOperationUserName(userName);
+			history.setOperation(operate);
+			
+			activityHistoryMapper.insertSelective(history);
+		} catch (Exception e) {
+			log.error("CommonService.insertActivityHistory", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	/**
+	 * 增加/减少  活动表中的评论数
+	 * @Function updateCommentNumForActivity
+	 * @Description 
+	 * @param activityCode
+	 * @param opt
+	 * @param count
+	 * @throws BusinessException
+	 */
+	protected synchronized void updateCommentNumForActivity(String activityCode, Operator opt, int count) throws BusinessException {
+		try {
+			long curTime = DateUtils.getFormatDateLong();
+			
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("code", activityCode);// 活动主表CODE
+			map.put("modifyTime", curTime);// 最后更新时间
+			if (opt == Operator.ADD) {
+				map.put("express", "+" + count);
+			}
+			if (opt == Operator.SUB) {
+				map.put("express", "-" + count);
+			}
+			activityInfoMapper.updateCommentNum(map);
+		} catch (Exception e) {
+			log.error("CommonService.updateCommentNumForActivity", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	/**
+	 * 减少/增加评论表中的回复数
+	 * @Function updateReplyCountForVoteComment
+	 * @Description 
+	 * @param commentCode  评论CODE
+	 * @param opt
+	 * @param count
+	 * @throws BusinessException
+	 */
+	protected synchronized void updateReplyCountForComment(String commentCode, Operator opt, int count) throws BusinessException {
+		try {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("code", commentCode);// 评论CODE
+			map.put("modifyTime", DateUtils.getFormatDateLong());// 最后更新时间
+			if (opt == Operator.ADD) {
+				map.put("express", "+" + count);
+			}
+			if (opt == Operator.SUB) {
+				map.put("express", "-" + count);
+			}
+			activityCommentMapper.updateReplyNum(map);
+		} catch (Exception e) {
+			log.error("CommonService.updateReplyCountForVoteComment", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	/**
+	 * 增加/减少 活动表中的点赞数
+	 * @Function updatePraiseNumForActivity
+	 * @Description 
+	 * @param activityCode 活动主表CODE
+	 * @param opt           
+	 * @param count
+	 * @throws BusinessException
+	 */
+	protected synchronized void updatePraiseNumForActivity(String activityCode, Operator opt, int count) throws BusinessException {
+		try {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("code", activityCode);// 活动CODE
+			map.put("modifyTime", DateUtils.getFormatDateLong());// 最后更新时间
+			if (opt == Operator.ADD) {
+				map.put("express", "+" + count);
+			}
+			if (opt == Operator.SUB) {
+				map.put("express", "-" + count);
+			}
+			
+			activityInfoMapper.updatePraiseNum(map);
+		} catch (Exception e) {
+			log.error("CommonService.updatePraiseNumForActivity", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	/**
+	 * 增加/减少 活动表中的收藏数
+	 * @Function updateCollectionNumForActivity
+	 * @Description 
+	 * @param activityCode  活动主表CODE
+	 * @param opt
+	 * @param count
+	 * @throws BusinessException
+	 */
+	protected synchronized void updateCollectionNumForActivity(String activityCode, Operator opt, int count) throws BusinessException {
+		try {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("code", activityCode);// 活动CODE
+			map.put("modifyTime", DateUtils.getFormatDateLong());// 最后更新时间
+			if (opt == Operator.ADD) {
+				map.put("express", "+" + count);
+			}
+			if (opt == Operator.SUB) {
+				map.put("express", "-" + count);
+			}
+			
+			activityInfoMapper.updateCollectionNum(map);
+		} catch (Exception e) {
+			log.error("CommonService.updateCollectionNumForActivity", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	/**
+	 * 增加/减少 评论表中的点赞数
+	 * @Function updatePraiseNumForComment
+	 * @Description 
+	 * @param commentCode  评论CODE
+	 * @param opt
+	 * @param count
+	 * @throws BusinessException
+	 */
+	protected synchronized void updatePraiseNumForComment(String commentCode, Operator opt, int count) throws BusinessException {
+		try {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("code", commentCode);// 评论CODE
+			map.put("modifyTime", DateUtils.getFormatDateLong());// 最后更新时间
+			if (opt == Operator.ADD) {
+				map.put("express", "+" + count);
+			}
+			if (opt == Operator.SUB) {
+				map.put("express", "-" + count);
+			}
+			
+			activityCommentMapper.updatePraiseNum(map);
+		} catch (Exception e) {
+			log.error("CommonService.updatePraiseNumForComment", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	/**
+	 * 增加/减少 回复表中的点赞数
+	 * @Function updatePraiseNumForReply
+	 * @Description 
+	 * @param replyCode 回复CODE
+	 * @param opt
+	 * @param count
+	 * @throws BusinessException
+	 */
+	protected synchronized void updatePraiseNumForReply(String replyCode, Operator opt, int count) throws BusinessException {
+		try {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("code", replyCode);// 评论CODE
+			map.put("modifyTime", DateUtils.getFormatDateLong());// 最后更新时间
+			if (opt == Operator.ADD) {
+				map.put("express", "+" + count);
+			}
+			if (opt == Operator.SUB) {
+				map.put("express", "-" + count);
+			}
+			
+			activityCommentReplyMapper.updatePraiseNum(map);
+		} catch (Exception e) {
+			log.error("CommonService.updatePraiseNumForReply", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	/**
+	 * 增加/减少 活动表中的分享数
+	 * @Function updateShareNumForActivity
+	 * @Description 
+	 * @param activityCode 活动主表CODE
+	 * @param opt           
+	 * @param count
+	 * @throws BusinessException
+	 */
+	protected synchronized void updateShareNumForActivity(String activityCode, Operator opt, int count) throws BusinessException {
+		try {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("code", activityCode);// 活动CODE
+			map.put("modifyTime", DateUtils.getFormatDateLong());// 最后更新时间
+			if (opt == Operator.ADD) {
+				map.put("express", "+" + count);
+			}
+			if (opt == Operator.SUB) {
+				map.put("express", "-" + count);
+			}
+			
+			activityInfoMapper.updateShareNum(map);
+		} catch (Exception e) {
+			log.error("CommonService.updateShareNumForActivity", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	/**
+	 * 查询评论详情
+	 * @Function getCommentByCode
+	 * @Description 
+	 * @param code
+	 * @param tenantCode
+	 * @return
+	 * @throws BusinessException
+	 */
+	protected ActivityComment getCommentByCode(String code, String tenantCode) throws BusinessException {
+		ActivityComment comment = null;
+		try {
+			ActivityCommentExample example = new ActivityCommentExample();
+			ActivityCommentExample.Criteria criteria = example.createCriteria();
+
+			criteria.andCodeEqualTo(code);
+			criteria.andTenantCodeEqualTo(tenantCode);
+			criteria.andIsDeleteEqualTo(VoteConstants.NO);
+			criteria.andIsDisableEqualTo(VoteConstants.NO);
+
+			List<ActivityComment> list = activityCommentMapper.selectByExample(example);
+			if (list.size() > 0) {
+				comment = list.get(0);
+			}
+			return comment;
+		} catch (Exception e) {
+			log.error("CommonService.getCommentByCode", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+}

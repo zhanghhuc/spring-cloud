@@ -1,0 +1,461 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.zssq</groupId>
+		<artifactId>zssq-common-parent</artifactId>
+		<version>1.0</version>
+		<relativePath>../zssq-common-parent</relativePath>
+	</parent>
+
+  <groupId>com.zssq</groupId>
+  <artifactId>zssq-mhpc-web</artifactId>
+  <version>1.0</version>
+  <packaging>war</packaging>
+
+  <name>zssq-mhpc-web</name>
+  <!-- <url>http://maven.apache.org</url> -->
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+  		<dependency>
+			<groupId>com.zssq</groupId>
+		    <artifactId>zssq-common</artifactId>
+		    <version>${zssq-common.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.zssq</groupId>
+		    <artifactId>zssq-common-core</artifactId>
+		    <version>${zssq-common-core.version}</version>
+		</dependency>
+		<!-- 微博 -->
+		<dependency>
+			<groupId>com.zssq</groupId>
+		    <artifactId>zssq-facade-mblog</artifactId>
+		    <version>${zssq-facade-mblog.version}</version>
+		</dependency>
+		<!-- 新闻 -->
+  		<dependency>
+			<groupId>com.zssq</groupId>
+		    <artifactId>zssq-facade-news</artifactId>
+		    <version>${zssq-facade-news.version}</version>
+		</dependency>
+
+		<!-- 搜索 -->
+  		<dependency>
+			<groupId>com.zssq</groupId>
+			<artifactId>zssq-facade-search</artifactId>
+			<version>${zssq-facade-search.version}</version>
+		</dependency>
+
+		<!-- 举报 -->
+  		<dependency>
+			<groupId>com.zssq</groupId>
+		    <artifactId>zssq-facade-complaint</artifactId>
+		    <version>${zssq-facade-complaint.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.zssq</groupId>
+		    <artifactId>zssq-facade-honor</artifactId>
+		    <version>${zssq-facade-honor.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.zssq</groupId>
+		    <artifactId>zssq-facade-vote</artifactId>
+		    <version>${zssq-facade-vote.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.zssq</groupId>
+		    <artifactId>zssq-facade-honor</artifactId>
+		    <version>${zssq-facade-honor.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.zssq</groupId>
+		    <artifactId>zssq-facade-forum</artifactId>
+		    <version>${zssq-facade-forum.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.zssq</groupId>
+		    <artifactId>zssq-facade-auth</artifactId>
+		    <version>${zssq-facade-auth.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.zssq</groupId>
+		    <artifactId>zssq-facade-credit</artifactId>
+		    <version>${zssq-facade-credit.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.zssq</groupId>
+		    <artifactId>zssq-facade-team</artifactId>
+		    <version>${zssq-facade-team.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.zssq</groupId>
+		    <artifactId>zssq-facade-filing</artifactId>
+		    <version>${zssq-facade-filing.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.zssq</groupId>
+		    <artifactId>zssq-facade-statistic</artifactId>
+		    <version>${zssq-facade-statistic.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.zssq</groupId>
+		    <artifactId>zssq-facade-blog</artifactId>
+		    <version>${zssq-facade-blog.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.zssq</groupId>
+		    <artifactId>zssq-facade-relation</artifactId>
+		    <version>${zssq-facade-relation.version}</version>
+		</dependency>
+		
+		<!-- 消息 -->
+		<dependency>
+			<groupId>com.zssq</groupId>
+		    <artifactId>zssq-facade-msg</artifactId>
+		    <version>${zssq-facade-msg.version}</version>
+		</dependency>
+		
+		<!-- 活动模块 -->
+		<dependency>
+			<groupId>com.zssq</groupId>
+		    <artifactId>zssq-facade-activity</artifactId>
+		    <version>${zssq-facade-activity.version}</version>
+		</dependency>
+		
+		<!-- 网盘 -->
+		<dependency>
+			<groupId>com.zssq</groupId>
+		    <artifactId>zssq-facade-disk</artifactId>
+		    <version>${zssq-facade-disk.version}</version>
+		</dependency>
+		
+		<!-- 知识库 -->
+		<dependency>
+			<groupId>com.zssq</groupId>
+		    <artifactId>zssq-facade-knowledgeLib</artifactId>
+		    <version>${zssq-facade-knowledgeLib.version}</version>
+		</dependency>
+		
+		<dependency>  
+            <groupId>junit</groupId>  
+            <artifactId>junit</artifactId>  
+            <version>${junit.version}</version>  
+            <!-- 表示开发的时候引入，发布的时候不会加载此包 -->  
+            <scope>test</scope>  
+        </dependency>
+        <!-- Disconf begin -->
+		<dependency>
+			<groupId>com.baidu.disconf</groupId>
+			<artifactId>disconf-client</artifactId>
+			<version>${com.baidu.disconf.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.baidu.disconf</groupId>
+			<artifactId>disconf-core</artifactId>
+			<version>${com.baidu.disconf.version}</version>
+		</dependency>
+		<!-- Disconf end -->
+		<!-- redis begin -->
+		<dependency>
+			<groupId>zssq.framework</groupId>
+			<artifactId>zssq-common-cache</artifactId>
+			<version>${zssq-common-cache.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
+			<version>${redis.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-redis</artifactId>
+			<version>${spring-data-redis.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>${gson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>jaxen</groupId>
+			<artifactId>jaxen</artifactId>
+			<version>${jaxen.version}</version>
+		</dependency>
+		<!-- redis end -->
+		<!-- kafka start -->
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka_2.11</artifactId>
+			<version>${kafka.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>zssq.framework</groupId>
+			<artifactId>zssq-kafka</artifactId>
+			<version>${zssq-kafka.version}</version>
+		</dependency>
+		<!-- kafka end --> 
+        <!-- spring核心包 -->  
+        <dependency>  
+            <groupId>org.springframework</groupId>  
+            <artifactId>spring-core</artifactId>  
+            <version>${spring.version}</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.springframework</groupId>  
+            <artifactId>spring-web</artifactId>  
+            <version>${spring.version}</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.springframework</groupId>  
+            <artifactId>spring-oxm</artifactId>  
+            <version>${spring.version}</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.springframework</groupId>  
+            <artifactId>spring-tx</artifactId>  
+            <version>${spring.version}</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.springframework</groupId>  
+            <artifactId>spring-jdbc</artifactId>  
+            <version>${spring.version}</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.springframework</groupId>  
+            <artifactId>spring-webmvc</artifactId>  
+            <version>${spring.version}</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.springframework</groupId>  
+            <artifactId>spring-aop</artifactId>  
+            <version>${spring.version}</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.springframework</groupId>  
+            <artifactId>spring-context-support</artifactId>  
+            <version>${spring.version}</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.springframework</groupId>  
+            <artifactId>spring-test</artifactId>  
+            <version>${spring.version}</version>  
+        </dependency>  
+        <!-- mybatis核心包 -->  
+        <dependency>  
+            <groupId>org.mybatis</groupId>  
+            <artifactId>mybatis</artifactId>  
+            <version>${mybatis.version}</version>  
+        </dependency>  
+        <!-- mybatis/spring包 -->  
+        <dependency>  
+            <groupId>org.mybatis</groupId>  
+            <artifactId>mybatis-spring</artifactId>  
+            <version>${mybatis-spring.version}</version>  
+        </dependency>  
+        <!-- 导入Mysql数据库链接jar包 -->  
+        <dependency>  
+            <groupId>mysql</groupId>  
+            <artifactId>mysql-connector-java</artifactId>  
+            <version>${mysql.version}</version>  
+        </dependency>  
+        <!-- 导入dbcp的jar包，用来在applicationContext.xml中配置数据库 -->  
+        <dependency>  
+            <groupId>commons-dbcp</groupId>  
+            <artifactId>commons-dbcp</artifactId>  
+            <version>${commons-dbcp.version}</version>  
+        </dependency>  
+        <!-- JSTL标签类 -->  
+        <dependency>  
+            <groupId>jstl</groupId>  
+            <artifactId>jstl</artifactId>  
+            <version>${jstl.version}</version>  
+        </dependency>  
+        <!-- 日志文件管理包 -->  
+        <dependency>  
+            <groupId>log4j</groupId>  
+            <artifactId>log4j</artifactId>  
+            <version>${log4j.version}</version>  
+        </dependency>  
+        <!-- 格式化对象，方便输出日志 -->  
+        <dependency>  
+            <groupId>com.alibaba</groupId>  
+            <artifactId>fastjson</artifactId>  
+            <version>1.1.41</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.slf4j</groupId>  
+            <artifactId>slf4j-api</artifactId>  
+            <version>${slf4j.version}</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.slf4j</groupId>  
+            <artifactId>slf4j-log4j12</artifactId>  
+            <version>${slf4j.version}</version>  
+        </dependency>  
+        <!-- 映入JSON -->  
+        <dependency>  
+            <groupId>org.codehaus.jackson</groupId>  
+            <artifactId>jackson-mapper-asl</artifactId>  
+            <version>${jackson.version}</version>  
+        </dependency>  
+        <!-- 上传组件包 -->  
+        <dependency>  
+            <groupId>commons-fileupload</groupId>  
+            <artifactId>commons-fileupload</artifactId>
+            <version>${commons-fileupload.version}</version>
+        </dependency>  
+        <dependency>  
+            <groupId>commons-io</groupId>  
+            <artifactId>commons-io</artifactId>  
+            <version>${commons-io.version}</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>commons-codec</groupId>  
+            <artifactId>commons-codec</artifactId>  
+            <version>${commons-codec.version}</version>  
+        </dependency>  
+        <!-- spring4依赖包 -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${spring-jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${spring-jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${spring-jackson.version}</version>
+        </dependency>
+        <!-- 事务依赖包 -->
+        <dependency>
+		  <groupId>org.aspectj</groupId> 
+		  <artifactId>aspectjweaver</artifactId> 
+		  <version>${aspectjweaver.version}</version>
+		</dependency>
+		<!-- dubbo -->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>dubbo</artifactId>
+			<version>${dubbo.version}</version>
+			<exclusions>  
+                <exclusion>  
+                    <groupId>org.springframework</groupId>  
+                    <artifactId>spring</artifactId>  
+                </exclusion>  
+            </exclusions> 
+		</dependency>
+		<dependency>
+			<groupId>org.apache.zookeeper</groupId>
+			<artifactId>zookeeper</artifactId>
+			<version>${zookeeper.version}</version>
+			<exclusions>  
+                <exclusion>  
+                    <artifactId>jmxtools</artifactId>  
+                    <groupId>com.sun.jdmk</groupId>  
+                </exclusion>  
+                <exclusion>  
+                    <artifactId>jmxri</artifactId>  
+                    <groupId>com.sun.jmx</groupId>  
+                </exclusion>  
+                <exclusion>  
+                    <artifactId>jms</artifactId>  
+                    <groupId>javax.jms</groupId>  
+                </exclusion>  
+                <exclusion>  
+                    <groupId>log4j</groupId>  
+                    <artifactId>log4j</artifactId>  
+                </exclusion>  
+                <exclusion>  
+                    <artifactId>slf4j-log4j12</artifactId>  
+                    <groupId>org.slf4j</groupId>  
+                </exclusion>  
+            </exclusions>  
+		</dependency>
+		<dependency>
+			<groupId>com.github.sgroschupf</groupId>
+			<artifactId>zkclient</artifactId>
+			<version>${zkclient.version}</version>
+			<exclusions>  
+                <exclusion>  
+                    <groupId>log4j</groupId>  
+                    <artifactId>log4j</artifactId>  
+                </exclusion>  
+            </exclusions>  
+		</dependency>
+		<!-- hibernate验证包 -->
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<version>${hibernate-validator.version}</version>
+		</dependency>
+		 <!-- 导入java ee jar 包 -->  
+        <dependency>  
+            <groupId>javax</groupId>  
+            <artifactId>javaee-api</artifactId>  
+            <version>${javaee-api.version}</version>  
+        </dependency>
+        
+        <!-- <dependency>
+		    <groupId>javax.validation</groupId>
+		    <artifactId>validation-api</artifactId>
+		    <version>${validation-api.version}</version>
+		</dependency>  --> 
+		
+  </dependencies>
+    <build>
+		<finalName>zssq-mhpc-web</finalName>
+		<!-- 打包的时候包含xml文件 -->
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>**/*.xml</include>
+					<include>**/*.properties</include>
+					<include>**/*.xls</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/java</directory>
+				<includes>
+					<include>**/*.xml</include>
+					<include>**/*.properties</include>
+				</includes>
+			</resource>
+		</resources>
+
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.1.1</version>
+				<configuration>
+				  <source>${jdk.version}</source>
+                  <target>${jdk.version}</target>
+				</configuration>
+			</plugin>
+			<plugin>
+		        <groupId>org.apache.maven.plugins</groupId>
+		        <artifactId>maven-compiler-plugin</artifactId>
+		        <version>3.1</version>
+		        <configuration>
+		          <source>${jdk.version}</source>
+		          <target>${jdk.version}</target>
+		        </configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

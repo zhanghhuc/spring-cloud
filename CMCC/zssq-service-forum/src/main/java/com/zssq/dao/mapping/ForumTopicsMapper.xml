@@ -1,0 +1,712 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.ForumTopicsMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.ForumTopics" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="forum_topics_code" property="forumTopicsCode" jdbcType="VARCHAR" />
+    <result column="is_disable" property="isDisable" jdbcType="TINYINT" />
+    <result column="is_hide" property="isHide" jdbcType="TINYINT" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="org_level" property="orgLevel" jdbcType="TINYINT" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="forum_plates_code" property="forumPlatesCode" jdbcType="VARCHAR" />
+    <result column="postman_code" property="postmanCode" jdbcType="VARCHAR" />
+    <result column="subject" property="subject" jdbcType="VARCHAR" />
+    <result column="is_top" property="isTop" jdbcType="TINYINT" />
+    <result column="is_best" property="isBest" jdbcType="TINYINT" />
+    <result column="view_count" property="viewCount" jdbcType="INTEGER" />
+    <result column="reply_count" property="replyCount" jdbcType="INTEGER" />
+    <result column="last_reply_time" property="lastReplyTime" jdbcType="BIGINT" />
+    
+    <result column="row_id" property="rowId" jdbcType="BIGINT" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.zssq.dao.pojo.ForumTopics" extends="BaseResultMap" >
+    <result column="content" property="content" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, forum_topics_code, is_disable, is_hide, is_delete, tenant_code, org_code, org_level, 
+    create_time, modify_time, remark, forum_plates_code, postman_code, subject, is_top, 
+    is_best, view_count, reply_count, last_reply_time
+  </sql>
+  <sql id="Blob_Column_List" >
+    content
+  </sql>
+  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.zssq.dao.pojo.ForumTopicsExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from forum_topics
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+    <if test="limitStart != null and limitStart>=0" >
+      limit #{limitStart} , #{limitEnd}
+    </if>
+  </select>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.zssq.dao.pojo.ForumTopicsExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from forum_topics
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+    <if test="limitStart != null and limitStart>=0" >
+      limit #{limitStart} , #{limitEnd}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from forum_topics
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from forum_topics
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.zssq.dao.pojo.ForumTopicsExample" >
+    delete from forum_topics
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.ForumTopics" >
+    insert into forum_topics (id, forum_topics_code, is_disable, 
+      is_hide, is_delete, tenant_code, 
+      org_code, org_level, create_time, 
+      modify_time, remark, forum_plates_code, 
+      postman_code, subject, is_top, 
+      is_best, view_count, reply_count, 
+      last_reply_time, content)
+    values (#{id,jdbcType=BIGINT}, #{forumTopicsCode,jdbcType=VARCHAR}, #{isDisable,jdbcType=TINYINT}, 
+      #{isHide,jdbcType=TINYINT}, #{isDelete,jdbcType=TINYINT}, #{tenantCode,jdbcType=VARCHAR}, 
+      #{orgCode,jdbcType=VARCHAR}, #{orgLevel,jdbcType=TINYINT}, #{createTime,jdbcType=BIGINT}, 
+      #{modifyTime,jdbcType=BIGINT}, #{remark,jdbcType=VARCHAR}, #{forumPlatesCode,jdbcType=VARCHAR}, 
+      #{postmanCode,jdbcType=VARCHAR}, #{subject,jdbcType=VARCHAR}, #{isTop,jdbcType=TINYINT}, 
+      #{isBest,jdbcType=TINYINT}, #{viewCount,jdbcType=INTEGER}, #{replyCount,jdbcType=INTEGER}, 
+      #{lastReplyTime,jdbcType=BIGINT}, #{content,jdbcType=LONGVARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.ForumTopics" >
+    insert into forum_topics
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="forumTopicsCode != null" >
+        forum_topics_code,
+      </if>
+      <if test="isDisable != null" >
+        is_disable,
+      </if>
+      <if test="isHide != null" >
+        is_hide,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="orgLevel != null" >
+        org_level,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="forumPlatesCode != null" >
+        forum_plates_code,
+      </if>
+      <if test="postmanCode != null" >
+        postman_code,
+      </if>
+      <if test="subject != null" >
+        subject,
+      </if>
+      <if test="isTop != null" >
+        is_top,
+      </if>
+      <if test="isBest != null" >
+        is_best,
+      </if>
+      <if test="viewCount != null" >
+        view_count,
+      </if>
+      <if test="replyCount != null" >
+        reply_count,
+      </if>
+      <if test="lastReplyTime != null" >
+        last_reply_time,
+      </if>
+      <if test="content != null" >
+        content,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="forumTopicsCode != null" >
+        #{forumTopicsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isDisable != null" >
+        #{isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="isHide != null" >
+        #{isHide,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="forumPlatesCode != null" >
+        #{forumPlatesCode,jdbcType=VARCHAR},
+      </if>
+      <if test="postmanCode != null" >
+        #{postmanCode,jdbcType=VARCHAR},
+      </if>
+      <if test="subject != null" >
+        #{subject,jdbcType=VARCHAR},
+      </if>
+      <if test="isTop != null" >
+        #{isTop,jdbcType=TINYINT},
+      </if>
+      <if test="isBest != null" >
+        #{isBest,jdbcType=TINYINT},
+      </if>
+      <if test="viewCount != null" >
+        #{viewCount,jdbcType=INTEGER},
+      </if>
+      <if test="replyCount != null" >
+        #{replyCount,jdbcType=INTEGER},
+      </if>
+      <if test="lastReplyTime != null" >
+        #{lastReplyTime,jdbcType=BIGINT},
+      </if>
+      <if test="content != null" >
+        #{content,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.zssq.dao.pojo.ForumTopicsExample" resultType="java.lang.Integer" >
+    select count(*) from forum_topics
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update forum_topics
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.forumTopicsCode != null" >
+        forum_topics_code = #{record.forumTopicsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDisable != null" >
+        is_disable = #{record.isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="record.isHide != null" >
+        is_hide = #{record.isHide,jdbcType=TINYINT},
+      </if>
+      <if test="record.isDelete != null" >
+        is_delete = #{record.isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="record.tenantCode != null" >
+        tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgCode != null" >
+        org_code = #{record.orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgLevel != null" >
+        org_level = #{record.orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.modifyTime != null" >
+        modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.remark != null" >
+        remark = #{record.remark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.forumPlatesCode != null" >
+        forum_plates_code = #{record.forumPlatesCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.postmanCode != null" >
+        postman_code = #{record.postmanCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.subject != null" >
+        subject = #{record.subject,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isTop != null" >
+        is_top = #{record.isTop,jdbcType=TINYINT},
+      </if>
+      <if test="record.isBest != null" >
+        is_best = #{record.isBest,jdbcType=TINYINT},
+      </if>
+      <if test="record.viewCount != null" >
+        view_count = #{record.viewCount,jdbcType=INTEGER},
+      </if>
+      <if test="record.replyCount != null" >
+        reply_count = #{record.replyCount,jdbcType=INTEGER},
+      </if>
+      <if test="record.lastReplyTime != null" >
+        last_reply_time = #{record.lastReplyTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.content != null" >
+        content = #{record.content,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExampleWithBLOBs" parameterType="map" >
+    update forum_topics
+    set id = #{record.id,jdbcType=BIGINT},
+      forum_topics_code = #{record.forumTopicsCode,jdbcType=VARCHAR},
+      is_disable = #{record.isDisable,jdbcType=TINYINT},
+      is_hide = #{record.isHide,jdbcType=TINYINT},
+      is_delete = #{record.isDelete,jdbcType=TINYINT},
+      tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      org_code = #{record.orgCode,jdbcType=VARCHAR},
+      org_level = #{record.orgLevel,jdbcType=TINYINT},
+      create_time = #{record.createTime,jdbcType=BIGINT},
+      modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      forum_plates_code = #{record.forumPlatesCode,jdbcType=VARCHAR},
+      postman_code = #{record.postmanCode,jdbcType=VARCHAR},
+      subject = #{record.subject,jdbcType=VARCHAR},
+      is_top = #{record.isTop,jdbcType=TINYINT},
+      is_best = #{record.isBest,jdbcType=TINYINT},
+      view_count = #{record.viewCount,jdbcType=INTEGER},
+      reply_count = #{record.replyCount,jdbcType=INTEGER},
+      last_reply_time = #{record.lastReplyTime,jdbcType=BIGINT},
+      content = #{record.content,jdbcType=LONGVARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update forum_topics
+    set id = #{record.id,jdbcType=BIGINT},
+      forum_topics_code = #{record.forumTopicsCode,jdbcType=VARCHAR},
+      is_disable = #{record.isDisable,jdbcType=TINYINT},
+      is_hide = #{record.isHide,jdbcType=TINYINT},
+      is_delete = #{record.isDelete,jdbcType=TINYINT},
+      tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      org_code = #{record.orgCode,jdbcType=VARCHAR},
+      org_level = #{record.orgLevel,jdbcType=TINYINT},
+      create_time = #{record.createTime,jdbcType=BIGINT},
+      modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      forum_plates_code = #{record.forumPlatesCode,jdbcType=VARCHAR},
+      postman_code = #{record.postmanCode,jdbcType=VARCHAR},
+      subject = #{record.subject,jdbcType=VARCHAR},
+      is_top = #{record.isTop,jdbcType=TINYINT},
+      is_best = #{record.isBest,jdbcType=TINYINT},
+      view_count = #{record.viewCount,jdbcType=INTEGER},
+      reply_count = #{record.replyCount,jdbcType=INTEGER},
+      last_reply_time = #{record.lastReplyTime,jdbcType=BIGINT}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.ForumTopics" >
+    update forum_topics
+    <set >
+      <if test="forumTopicsCode != null" >
+        forum_topics_code = #{forumTopicsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isDisable != null" >
+        is_disable = #{isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="isHide != null" >
+        is_hide = #{isHide,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        org_level = #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="forumPlatesCode != null" >
+        forum_plates_code = #{forumPlatesCode,jdbcType=VARCHAR},
+      </if>
+      <if test="postmanCode != null" >
+        postman_code = #{postmanCode,jdbcType=VARCHAR},
+      </if>
+      <if test="subject != null" >
+        subject = #{subject,jdbcType=VARCHAR},
+      </if>
+      <if test="isTop != null" >
+        is_top = #{isTop,jdbcType=TINYINT},
+      </if>
+      <if test="isBest != null" >
+        is_best = #{isBest,jdbcType=TINYINT},
+      </if>
+      <if test="viewCount != null" >
+        view_count = #{viewCount,jdbcType=INTEGER},
+      </if>
+      <if test="replyCount != null" >
+        reply_count = #{replyCount,jdbcType=INTEGER},
+      </if>
+      <if test="lastReplyTime != null" >
+        last_reply_time = #{lastReplyTime,jdbcType=BIGINT},
+      </if>
+      <if test="content != null" >
+        content = #{content,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.zssq.dao.pojo.ForumTopics" >
+    update forum_topics
+    set forum_topics_code = #{forumTopicsCode,jdbcType=VARCHAR},
+      is_disable = #{isDisable,jdbcType=TINYINT},
+      is_hide = #{isHide,jdbcType=TINYINT},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      forum_plates_code = #{forumPlatesCode,jdbcType=VARCHAR},
+      postman_code = #{postmanCode,jdbcType=VARCHAR},
+      subject = #{subject,jdbcType=VARCHAR},
+      is_top = #{isTop,jdbcType=TINYINT},
+      is_best = #{isBest,jdbcType=TINYINT},
+      view_count = #{viewCount,jdbcType=INTEGER},
+      reply_count = #{replyCount,jdbcType=INTEGER},
+      last_reply_time = #{lastReplyTime,jdbcType=BIGINT},
+      content = #{content,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.ForumTopics" >
+    update forum_topics
+    set forum_topics_code = #{forumTopicsCode,jdbcType=VARCHAR},
+      is_disable = #{isDisable,jdbcType=TINYINT},
+      is_hide = #{isHide,jdbcType=TINYINT},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      forum_plates_code = #{forumPlatesCode,jdbcType=VARCHAR},
+      postman_code = #{postmanCode,jdbcType=VARCHAR},
+      subject = #{subject,jdbcType=VARCHAR},
+      is_top = #{isTop,jdbcType=TINYINT},
+      is_best = #{isBest,jdbcType=TINYINT},
+      view_count = #{viewCount,jdbcType=INTEGER},
+      reply_count = #{replyCount,jdbcType=INTEGER},
+      last_reply_time = #{lastReplyTime,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  <select id="selectTopicAndPostman" parameterType="java.util.Map" resultMap="topicAndPostmanResultMap">
+  	select t.id tid, t.forum_topics_code tTopicCode,
+      t.is_hide tHide,t.tenant_code tTenantCode, 
+      t.org_code tOrgCode, t.org_level tOrgLevel, t.create_time tCreateTime, 
+      t.modify_time tModifyTime, t.forum_plates_code tForumCode, 
+      t.postman_code tPostManCode, t.subject tSubject, t.is_top tTop, 
+      t.is_best tBest, t.view_count tViewCount, t.reply_count tReplyCount, 
+      t.last_reply_time tReplyTime, t.content tContent,m.*
+	from forum_topics t
+	LEFT JOIN forum_plates_member m
+	on t.postman_code = m.member_code
+	where t.is_delete = 0 and t.is_disable = 0
+		and t.forum_plates_code = #{forumPlatesCode}
+		and t.tenant_code = #{tenantCode}
+		and m.is_delete = 0 and m.is_disable = 0
+		and m.tenant_code = #{tenantCode}
+		ORDER BY t.last_reply_time DESC
+		LIMIT #{limitStart},#{limitEnd}
+  </select>
+  <resultMap id="topicAndPostmanResultMap" type="com.zssq.dao.pojo.ForumTopics" >
+    <id column="tid" property="id" jdbcType="BIGINT" />
+    <result column="tTopicCode" property="forumTopicsCode" jdbcType="VARCHAR" />
+    <result column="tHide" property="isHide" jdbcType="TINYINT" />
+    <result column="tTenantCode" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="tOrgCode" property="orgCode" jdbcType="VARCHAR" />
+    <result column="tOrgLevel" property="orgLevel" jdbcType="TINYINT" />
+    <result column="tCreateTime" property="createTime" jdbcType="BIGINT" />
+    <result column="tModifyTime" property="modifyTime" jdbcType="BIGINT" />
+    <result column="tForumCode" property="forumPlatesCode" jdbcType="VARCHAR" />
+    <result column="tPostManCode" property="postmanCode" jdbcType="VARCHAR" />
+    <result column="tSubject" property="subject" jdbcType="VARCHAR" />
+    <result column="tContent" property="content" jdbcType="VARCHAR" />
+    <result column="tTop" property="isTop" jdbcType="TINYINT" />
+    <result column="tBest" property="isBest" jdbcType="TINYINT" />
+    <result column="tViewCount" property="viewCount" jdbcType="INTEGER" />
+    <result column="tReplyCount" property="replyCount" jdbcType="INTEGER" />
+    <result column="tReplyTime" property="lastReplyTime" jdbcType="BIGINT" />
+    <association property="member" javaType="com.zssq.dao.pojo.ForumPlatesMember">
+   	 	<id column="id" property="id" jdbcType="BIGINT" />
+	    <result column="forum_plates_member_code" property="forumPlatesMemberCode" jdbcType="VARCHAR" />
+	    <result column="is_disable" property="isDisable" jdbcType="TINYINT" />
+	    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+	    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+	    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+	    <result column="org_level" property="orgLevel" jdbcType="TINYINT" />
+	    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+	    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+	    <result column="remark" property="remark" jdbcType="VARCHAR" />
+	    <result column="forum_plates_code" property="forumPlatesCode" jdbcType="VARCHAR" />
+	    <result column="member_code" property="memberCode" jdbcType="VARCHAR" />
+	    <result column="member_name" property="memberName" jdbcType="VARCHAR" />
+	    <result column="is_moderator" property="isModerator" jdbcType="TINYINT" />
+	    <result column="is_send" property="isSend" jdbcType="TINYINT" />
+	    <result column="is_reply" property="isReply" jdbcType="TINYINT" />
+    </association>
+  </resultMap>
+  
+  <!-- 主帖浏览量+1 -->
+  <update id="updateIncreaseViewCount" parameterType="java.lang.String">
+  	UPDATE 
+	  forum_topics 
+	SET
+	  view_count = view_count + 1 
+	WHERE forum_topics_code = #{0} 
+  </update>
+  
+  <!-- 主帖回复数+1  更新最后回复时间 -->
+  <update id="updateReplyCountAndTime" parameterType="java.util.Map">
+  	UPDATE 
+	  forum_topics 
+	<set>
+	  <if test="lastReplyTime != null">
+		last_reply_time = #{lastReplyTime,jdbcType=BIGINT},
+	  </if>
+	  reply_count = reply_count ${express},
+	  modify_time = #{modifyTime,jdbcType=BIGINT}
+	</set>
+	WHERE forum_topics_code = #{forumTopicsCode,jdbcType=VARCHAR} 
+  </update>
+  
+  <!-- 加载更多分页查询列表数据 -->
+  <select id="queryByPageWithLoadMore" parameterType="java.util.Map" resultMap="BaseResultMap">
+  	<![CDATA[SELECT 
+	  * 
+	FROM
+	  (SELECT 
+	    @rownum := @rownum + 1 AS row_id,
+	    t.forum_topics_code,
+	    t.is_disable,
+	    t.is_delete,
+	    t.tenant_code,
+	    t.org_code,
+	    t.create_time,
+	    t.modify_time,
+	    t.forum_plates_code,
+	    t.postman_code,
+	    t.subject,
+	    t.is_top,
+	    t.is_best,
+	    t.view_count,
+	    t.reply_count,
+	    t.last_reply_time 
+	  FROM
+	    (SELECT 
+	      @rownum := 0) r,
+	    forum_topics t 
+	  WHERE forum_plates_code = #{forumPlatesCode} 
+	    AND tenant_code = #{tenantCode} 
+	    AND is_delete = 0 
+	    AND is_disable = 0 
+	  ORDER BY t.is_top DESC, t.is_best DESC, t.last_reply_time DESC, t.id DESC) ft 
+	WHERE row_id >= #{startRowId} 
+	  AND row_id <= #{endRowId}]]>
+  </select>
+  
+  
+  <!-- 查询内容监控-班组论坛主贴数 -->
+  <select id = "counForMoniter" parameterType="java.util.Map" resultType="java.lang.Integer">
+  	SELECT count(1)
+  	  FROM forum_plates AS fp,forum_topics AS ft
+	  WHERE fp.forum_plates_code = ft.forum_plates_code 
+	  AND ft.is_delete = 0
+	  AND ft.is_hide = 0
+	  AND ft.org_code = #{orgCode} 
+ 	  AND ft.tenant_code = #{tenantCode}
+  </select>
+  
+  <!-- 查询内容监控-班组论坛列表 -->
+  <select id = "selectForumTopicsForMoniter" parameterType="java.util.Map" resultType="com.zssq.dao.pojo.ForumTopics">
+  	SELECT ft.forum_topics_code as forumTopicsCode,
+  		   ft.postman_code as postmanCode,
+  		   ft.create_time as createTime,
+  		   ft.subject as subject,
+  		   fp.belong_code as belongCode
+  	 FROM forum_plates AS fp, forum_topics AS ft
+	 WHERE fp.forum_plates_code = ft.forum_plates_code 
+	  AND ft.org_code = #{orgCode}
+	  AND ft.is_delete = 0
+	  AND ft.is_hide = 0
+ 	  AND ft.tenant_code = #{tenantCode}
+ 	  ORDER BY ft.create_time desc
+ 	  Limit #{limitStart},#{limitEnd}
+  </select>
+  
+  <select id="queryTopicByBelong" parameterType="java.util.Map" resultMap="BaseResultMap">
+  	SELECT 
+	  ft.id,
+	  ft.forum_topics_code,
+	  ft.is_disable,
+	  ft.is_hide,
+	  ft.is_delete,
+	  ft.tenant_code,
+	  ft.org_code,
+	  ft.org_level,
+	  ft.create_time,
+	  ft.modify_time,
+	  ft.remark,
+	  ft.forum_plates_code,
+	  ft.postman_code,
+	  ft.subject,
+	  ft.is_top,
+	  ft.is_best,
+	  ft.view_count,
+	  ft.reply_count,
+	  ft.last_reply_time 
+	FROM
+	  forum_topics ft 
+	  LEFT JOIN forum_plates fp 
+	    ON ft.forum_plates_code = fp.forum_plates_code 
+	    AND fp.is_delete = 0 
+	    AND fp.is_disable = 0 
+	    AND fp.belong_code = #{teamCode} 
+	WHERE ft.is_delete = 0 
+	  AND ft.is_disable = 0 
+	ORDER BY ft.is_top DESC,
+	  ft.is_best DESC,
+	  ft.last_reply_time DESC,
+	  ft.id DESC 
+	<if test="limitStart != null and limitStart>=0" >
+      LIMIT #{limitStart} , #{limitEnd}
+    </if>
+  </select>
+  
+</mapper>

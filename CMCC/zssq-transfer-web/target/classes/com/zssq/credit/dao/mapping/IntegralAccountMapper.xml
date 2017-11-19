@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.credit.dao.mapper.IntegralAccountMapper">
+	<resultMap id="BaseResultMap" type="com.zssq.credit.pojo.IntegralAccount">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="account_code" property="accountCode" jdbcType="VARCHAR" />
+		<result column="account_type" property="accountType" jdbcType="TINYINT" />
+		<result column="integral_balance" property="integralBalance" jdbcType="INTEGER" />
+		<result column="integral_balance_salt" property="integralBalanceSalt" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+		<result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+		<result column="saas_tenant_code" property="saasTenantCode" jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, account_code, account_type, integral_balance, integral_balance_salt,
+		create_time, modify_time, org_code, saas_tenant_code
+	</sql>
+	
+	<insert id="batchInsert" parameterType="com.zssq.credit.pojo.IntegralAccount">
+		insert into integral_account(
+			id,
+			account_code,
+			account_type,
+			integral_balance,
+			integral_balance_salt,
+			create_time,
+			modify_time,
+			org_code,
+			saas_tenant_code
+		)
+		values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(
+				#{item.id},
+				#{item.accountCode},
+				#{item.accountType},
+				#{item.integralBalance},
+				#{item.integralBalanceSalt},
+				#{item.createTime},
+				#{item.modifyTime},
+				#{item.orgCode},
+				#{item.saasTenantCode}
+			)
+		</foreach>
+	</insert>
+	
+	<select id="selectPage" parameterType="hashmap" resultMap="BaseResultMap">
+		select 
+		<include refid="Base_Column_List"/>
+		from integral_account
+		limit ${limitStart}, ${limitEnd}
+	</select>
+	
+	<select id="selectPageCount" resultType="java.lang.Integer">
+		select count(1) from integral_account
+	</select>
+	
+</mapper>

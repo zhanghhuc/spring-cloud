@@ -1,0 +1,93 @@
+package com.zssq.auth.controller;
+
+
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.constants.AuthConstants;
+import com.zssq.dao.pojo.SysOrgInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.pojo.Message;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.ISysOrgService;
+import com.zssq.utils.PropertiesUtil;
+import com.zssq.utils.StringTools;
+
+/**
+ * 提供对"组织机构信息"进行操作的接口，使用SpringMVC映射请求Url
+ * 
+ * @since  JDK 1.7
+ * @author 赵翊
+ */
+@Controller  
+@RequestMapping("/sysOrg")
+public class SysOrgController {
+
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private ISysOrgService sysOrgService;
+
+
+	/**
+	 * 
+	 * @Function getPrimaryOrgList
+	 * @Description 获取集团和省级组织机构列表
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/getPrimaryOrgList")
+	public ResultJSON getPrimaryOrgList() throws BusinessException{  
+        
+        Message m = null;
+        ResultJSON rj = new ResultJSON();
+        try {
+        	JSONArray jsonArray = new JSONArray();
+        	JSONObject body = new JSONObject();
+        	
+        	//查询集团的组织信息并封装入结果集
+        	SysOrgInfo record = new SysOrgInfo();
+        	record.setSysOrgType(AuthConstants.ORG_TYPE_A);
+        	List<SysOrgInfo> levelAOrgList = sysOrgService.selectByRecord(record);
+        	for (SysOrgInfo sysOrgInfo : levelAOrgList) {
+				JSONObject item = new JSONObject();
+				item.put("orgCode", StringTools.formatToString(sysOrgInfo.getSysOrgCode()));
+				item.put("orgName", StringTools.formatToString(sysOrgInfo.getSysOrgName()));
+				item.put("level", StringTools.formatToString(AuthConstants.ORG_TYPE_A));
+				jsonArray.add(item);
+			}
+        	
+        	//查询省级组织的信息并封装入结果集
+        	record.setSysOrgType(AuthConstants.ORG_TYPE_B);
+        	List<SysOrgInfo> levelBOrgList = sysOrgService.selectByRecord(record);
+        	for (SysOrgInfo sysOrgInfo : levelBOrgList) {
+				JSONObject item = new JSONObject();
+				item.put("orgCode", StringTools.formatToString(sysOrgInfo.getSysOrgCode()));
+				item.put("orgName", StringTools.formatToString(sysOrgInfo.getSysOrgName()));
+				item.put("level", StringTools.formatToString(AuthConstants.ORG_TYPE_B));
+				jsonArray.add(item);
+			}
+        	
+        	//出参
+        	body.put("primaryOrgList", jsonArray);
+            log.info("SysOrgController.getPrimaryOrgList:获取集团和省级组织机构列表");
+        	m = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_200);
+            rj.setReturnCode(m.getCode());
+            rj.setReturnTip(String.format(m.getTip(),"获取集团和省级组织机构列表"));
+            rj.setBody(body);
+		} catch (Exception e) {
+			m = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			throw new BusinessException(m.getCode(), String.format(m.getTip(),"获取集团和省级组织机构列表"));
+		}
+        return rj;
+	}
+}

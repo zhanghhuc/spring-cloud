@@ -1,0 +1,111 @@
+package com.zssq.service.impl;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.constants.RelationConstants;
+import com.zssq.dao.mapper.RelationDynamicMapper;
+import com.zssq.dao.mapper.RelationShareMapper;
+import com.zssq.dao.pojo.RelationDynamic;
+import com.zssq.dao.pojo.RelationShare;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.service.RelationShareService;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.vo.RelationSharevO;
+
+/**
+ * @ClassName RelationShareServiceImpl
+ * @Description 分享
+ * @author LXW
+ * @date 2017年6月12日 下午3:41:11
+ * @version 1.0
+ * @since JDK 1.7
+ */
+@Service("relationShareService")
+public class RelationShareServiceImpl implements RelationShareService {
+	private Logger log = Logger.getLogger(this.getClass());
+	@Autowired
+	private RelationShareMapper relationShareMapper;
+	@Autowired
+	private RelationDynamicMapper relationDynamicMapper;
+
+
+	/**
+	 *  获取用户分享列表
+	 */
+	@Override
+	public PageBean getUserSharePageBean(PageParam pageParam, RelationSharevO share) throws BusinessException{
+		
+		// 参数校验
+		if (pageParam == null || share == null) {
+			log.error("RelationShareServiceImpl.getUserSharePageBean：参数为空");
+			throw BusinessException.build("COMMON_402","参数");
+		}
+		if (StringUtils.isBlank(share.getQueryTime())) {
+			log.error("RelationShareServiceImpl.getUserSharePageBean :queryTime为空");
+			throw BusinessException.build("COMMON_402","queryTime");
+		}
+		if (StringUtils.isBlank(share.getUserCode())) {
+			log.error("RelationShareServiceImpl.getUserSharePageBean ：userCode为空");
+			throw BusinessException.build("COMMON_402","userCode");
+		}
+			
+		
+		// 拼接参数
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("limitStart", pageParam.getPageNo() * pageParam.getPageSize()); // 查询开始条数
+		paramMap.put("limitCount", pageParam.getPageSize()); // 查询结果条数
+		paramMap.put("queryTime", share.getQueryTime()); // 首次查询时间
+		paramMap.put("userCode", share.getUserCode()); 
+
+		//内容
+		List<Object> list =relationShareMapper.selectUserShareList(paramMap);
+		// 总数
+		Long count = relationShareMapper.selectUserShareCount(paramMap);
+		return new PageBean(pageParam.getPageNo(), pageParam.getPageSize(), count.intValue(), list);
+	}
+
+	/**
+	 *  删除分享
+	 */
+	@Override
+	public boolean delShare(RelationShare share, RelationDynamic dynamic)throws BusinessException {
+		
+		
+		// 参数校验
+		if (dynamic == null || share == null) {
+			log.error("RelationShareServiceImpl.delShare：参数为空");
+			throw BusinessException.build("COMMON_402","参数");
+		}
+		if (StringUtils.isBlank(share.getShareCode())) {
+			log.error("RelationShareServiceImpl.delShare :queryTime为空");
+			throw BusinessException.build("COMMON_402","queryTime");
+		}
+		if (StringUtils.isBlank(share.getUserCode())) {
+			log.error("RelationShareServiceImpl.delShare ：userCode为空");
+			throw BusinessException.build("COMMON_402","userCode");
+		}
+		if (StringUtils.isBlank(dynamic.getDynamicCode())) {
+			log.error("RelationShareServiceImpl.delShare ：dynamicCode为空");
+			throw BusinessException.build("COMMON_402","dynamicCode");
+		}
+			
+		
+		Map<String, Object> dynamicMap= new HashMap<String, Object>();
+		dynamicMap.put("modifyTime", new Date().getTime());
+		dynamicMap.put("dynamicIsDelete", RelationConstants.RELATION_YES);
+		dynamicMap.put("dynamicCode", dynamic.getDynamicCode());
+		return relationShareMapper.deleteByCode(share)==1&&
+				relationDynamicMapper.delete(dynamicMap)==1?true:false;
+	}
+
+
+}

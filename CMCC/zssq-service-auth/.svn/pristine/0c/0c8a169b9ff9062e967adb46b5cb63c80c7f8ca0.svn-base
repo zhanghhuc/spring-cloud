@@ -1,0 +1,89 @@
+package com.zssq.dao.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import com.zssq.dao.pojo.SysOrgInfo;
+
+public interface SysOrgInfoMapper {
+	
+	/**
+	 * 查询指定组织的详细信息
+	 * 
+	 * @param orgCode
+	 * 			组织编码
+	 * @return 组织详细信息
+	 */
+	SysOrgInfo selectByCode(String orgCode);
+	
+	/**
+	 * 根据 SMAP 同步组织编码查询组织信息
+	 * 
+	 * @param srcCode
+	 * 			SMAP 组织编码
+	 * @return 组织详细信息
+	 */	
+	SysOrgInfo selectBySrcCode(String srcCode);
+	
+	/**
+	 * 查询指定组织的下级行政组织
+	 * 
+	 * @param orgCode
+	 * 			组织编码
+	 * @return 指定组织的下级行政组织
+	 */
+	List<SysOrgInfo> selectSubManOrg(String orgCode);
+	
+    /**
+     * 根据指定条件查询组织信息
+     * 
+     * @param record
+     * 			封装查询条件
+     * @return 组织信息
+     */
+    List<SysOrgInfo> selectByRecord(SysOrgInfo record);
+
+    /**
+     * 新增组织信息
+     * 
+     * @param record
+     * 			组织详细信息
+     * @return 成功时返回新增记录数，失败时返回0
+     */
+    int insert(SysOrgInfo record);
+    
+    int updateByOrgCode(SysOrgInfo orgInfo);
+    
+    List<SysOrgInfo> selectPage(SysOrgInfo record);
+    
+    int selectPageCount(SysOrgInfo record);
+    
+    
+    List<String> selectCodesByRecord(SysOrgInfo record);
+    
+    /**
+     * 组织数据清洗：删除组织
+     * 
+     * @param orgCode
+     * 			组织编码
+     * @return 删除成功时返回删除记录数，失败时返回0
+     */
+    int deleteByCode(String orgCode);
+    
+    /**
+     * @Function selectManOrgCodeByOrgName
+     * @Description 根据orgName(模糊)查询行政code
+     * @param orgName
+     * @return
+     */
+    List<String> selectManOrgCodeByOrgName(Map<String,Object> map);
+    
+    /**
+     * @Function setIsEnable
+     * @Description 设置组织机构启禁用
+     * @param record
+     * @return
+     */
+    int setIsEnable(SysOrgInfo record);
+    
+}

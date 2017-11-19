@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.vote.dao.mapper.TransVoteCommentMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.vote.pojo.TransVoteComment" >
+    <id column="COMMENT_ID" property="commentId" jdbcType="VARCHAR" />
+    <result column="VOTE_ID" property="voteId" jdbcType="INTEGER" />
+    <result column="USER_ID" property="userId" jdbcType="INTEGER" />
+    <result column="TEAM_ID" property="teamId" jdbcType="INTEGER" />
+    <result column="USER_NAME" property="userName" jdbcType="VARCHAR" />
+    <result column="COMMENT_CONTENT" property="commentContent" jdbcType="VARCHAR" />
+    <result column="COMMENT_DATE" property="commentDate" jdbcType="TIMESTAMP" />
+    <result column="DEL_FLAG" property="delFlag" jdbcType="INTEGER" />
+    <result column="TEAM_NAME" property="teamName" jdbcType="VARCHAR" />
+    <result column="PARENTS_ID" property="parentsId" jdbcType="INTEGER" />
+    <result column="CITY_ID" property="cityId" jdbcType="INTEGER" />
+    <result column="PROVINCE_ID" property="provinceId" jdbcType="INTEGER" />
+    <result column="REPLY_NUM" property="replyNum" jdbcType="INTEGER" />
+    <result column="COMMENTUSER_ID" property="commentuserId" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    COMMENT_ID, VOTE_ID, USER_ID, TEAM_ID, USER_NAME, COMMENT_CONTENT, COMMENT_DATE, 
+    DEL_FLAG, TEAM_NAME, PARENTS_ID, CITY_ID, PROVINCE_ID, REPLY_NUM, COMMENTUSER_ID
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.zssq.vote.pojo.TransVoteCommentExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from trans_vote_comment
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+    <if test="limitStart != null and limitStart>=0" >
+      limit #{limitStart} , #{limitEnd}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from trans_vote_comment
+    where COMMENT_ID = #{commentId,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from trans_vote_comment
+    where COMMENT_ID = #{commentId,jdbcType=VARCHAR}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.zssq.vote.pojo.TransVoteCommentExample" >
+    delete from trans_vote_comment
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.zssq.vote.pojo.TransVoteComment" >
+    insert into trans_vote_comment (COMMENT_ID, VOTE_ID, USER_ID, 
+      TEAM_ID, USER_NAME, COMMENT_CONTENT, 
+      COMMENT_DATE, DEL_FLAG, TEAM_NAME, 
+      PARENTS_ID, CITY_ID, PROVINCE_ID, 
+      REPLY_NUM, COMMENTUSER_ID)
+    values (#{commentId,jdbcType=VARCHAR}, #{voteId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, 
+      #{teamId,jdbcType=INTEGER}, #{userName,jdbcType=VARCHAR}, #{commentContent,jdbcType=VARCHAR}, 
+      #{commentDate,jdbcType=TIMESTAMP}, #{delFlag,jdbcType=INTEGER}, #{teamName,jdbcType=VARCHAR}, 
+      #{parentsId,jdbcType=INTEGER}, #{cityId,jdbcType=INTEGER}, #{provinceId,jdbcType=INTEGER}, 
+      #{replyNum,jdbcType=INTEGER}, #{commentuserId,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.vote.pojo.TransVoteComment" >
+    insert into trans_vote_comment
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="commentId != null" >
+        COMMENT_ID,
+      </if>
+      <if test="voteId != null" >
+        VOTE_ID,
+      </if>
+      <if test="userId != null" >
+        USER_ID,
+      </if>
+      <if test="teamId != null" >
+        TEAM_ID,
+      </if>
+      <if test="userName != null" >
+        USER_NAME,
+      </if>
+      <if test="commentContent != null" >
+        COMMENT_CONTENT,
+      </if>
+      <if test="commentDate != null" >
+        COMMENT_DATE,
+      </if>
+      <if test="delFlag != null" >
+        DEL_FLAG,
+      </if>
+      <if test="teamName != null" >
+        TEAM_NAME,
+      </if>
+      <if test="parentsId != null" >
+        PARENTS_ID,
+      </if>
+      <if test="cityId != null" >
+        CITY_ID,
+      </if>
+      <if test="provinceId != null" >
+        PROVINCE_ID,
+      </if>
+      <if test="replyNum != null" >
+        REPLY_NUM,
+      </if>
+      <if test="commentuserId != null" >
+        COMMENTUSER_ID,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="commentId != null" >
+        #{commentId,jdbcType=VARCHAR},
+      </if>
+      <if test="voteId != null" >
+        #{voteId,jdbcType=INTEGER},
+      </if>
+      <if test="userId != null" >
+        #{userId,jdbcType=INTEGER},
+      </if>
+      <if test="teamId != null" >
+        #{teamId,jdbcType=INTEGER},
+      </if>
+      <if test="userName != null" >
+        #{userName,jdbcType=VARCHAR},
+      </if>
+      <if test="commentContent != null" >
+        #{commentContent,jdbcType=VARCHAR},
+      </if>
+      <if test="commentDate != null" >
+        #{commentDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="delFlag != null" >
+        #{delFlag,jdbcType=INTEGER},
+      </if>
+      <if test="teamName != null" >
+        #{teamName,jdbcType=VARCHAR},
+      </if>
+      <if test="parentsId != null" >
+        #{parentsId,jdbcType=INTEGER},
+      </if>
+      <if test="cityId != null" >
+        #{cityId,jdbcType=INTEGER},
+      </if>
+      <if test="provinceId != null" >
+        #{provinceId,jdbcType=INTEGER},
+      </if>
+      <if test="replyNum != null" >
+        #{replyNum,jdbcType=INTEGER},
+      </if>
+      <if test="commentuserId != null" >
+        #{commentuserId,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.zssq.vote.pojo.TransVoteCommentExample" resultType="java.lang.Integer" >
+    select count(*) from trans_vote_comment
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update trans_vote_comment
+    <set >
+      <if test="record.commentId != null" >
+        COMMENT_ID = #{record.commentId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.voteId != null" >
+        VOTE_ID = #{record.voteId,jdbcType=INTEGER},
+      </if>
+      <if test="record.userId != null" >
+        USER_ID = #{record.userId,jdbcType=INTEGER},
+      </if>
+      <if test="record.teamId != null" >
+        TEAM_ID = #{record.teamId,jdbcType=INTEGER},
+      </if>
+      <if test="record.userName != null" >
+        USER_NAME = #{record.userName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.commentContent != null" >
+        COMMENT_CONTENT = #{record.commentContent,jdbcType=VARCHAR},
+      </if>
+      <if test="record.commentDate != null" >
+        COMMENT_DATE = #{record.commentDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.delFlag != null" >
+        DEL_FLAG = #{record.delFlag,jdbcType=INTEGER},
+      </if>
+      <if test="record.teamName != null" >
+        TEAM_NAME = #{record.teamName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.parentsId != null" >
+        PARENTS_ID = #{record.parentsId,jdbcType=INTEGER},
+      </if>
+      <if test="record.cityId != null" >
+        CITY_ID = #{record.cityId,jdbcType=INTEGER},
+      </if>
+      <if test="record.provinceId != null" >
+        PROVINCE_ID = #{record.provinceId,jdbcType=INTEGER},
+      </if>
+      <if test="record.replyNum != null" >
+        REPLY_NUM = #{record.replyNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.commentuserId != null" >
+        COMMENTUSER_ID = #{record.commentuserId,jdbcType=INTEGER},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update trans_vote_comment
+    set COMMENT_ID = #{record.commentId,jdbcType=VARCHAR},
+      VOTE_ID = #{record.voteId,jdbcType=INTEGER},
+      USER_ID = #{record.userId,jdbcType=INTEGER},
+      TEAM_ID = #{record.teamId,jdbcType=INTEGER},
+      USER_NAME = #{record.userName,jdbcType=VARCHAR},
+      COMMENT_CONTENT = #{record.commentContent,jdbcType=VARCHAR},
+      COMMENT_DATE = #{record.commentDate,jdbcType=TIMESTAMP},
+      DEL_FLAG = #{record.delFlag,jdbcType=INTEGER},
+      TEAM_NAME = #{record.teamName,jdbcType=VARCHAR},
+      PARENTS_ID = #{record.parentsId,jdbcType=INTEGER},
+      CITY_ID = #{record.cityId,jdbcType=INTEGER},
+      PROVINCE_ID = #{record.provinceId,jdbcType=INTEGER},
+      REPLY_NUM = #{record.replyNum,jdbcType=INTEGER},
+      COMMENTUSER_ID = #{record.commentuserId,jdbcType=INTEGER}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.vote.pojo.TransVoteComment" >
+    update trans_vote_comment
+    <set >
+      <if test="voteId != null" >
+        VOTE_ID = #{voteId,jdbcType=INTEGER},
+      </if>
+      <if test="userId != null" >
+        USER_ID = #{userId,jdbcType=INTEGER},
+      </if>
+      <if test="teamId != null" >
+        TEAM_ID = #{teamId,jdbcType=INTEGER},
+      </if>
+      <if test="userName != null" >
+        USER_NAME = #{userName,jdbcType=VARCHAR},
+      </if>
+      <if test="commentContent != null" >
+        COMMENT_CONTENT = #{commentContent,jdbcType=VARCHAR},
+      </if>
+      <if test="commentDate != null" >
+        COMMENT_DATE = #{commentDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="delFlag != null" >
+        DEL_FLAG = #{delFlag,jdbcType=INTEGER},
+      </if>
+      <if test="teamName != null" >
+        TEAM_NAME = #{teamName,jdbcType=VARCHAR},
+      </if>
+      <if test="parentsId != null" >
+        PARENTS_ID = #{parentsId,jdbcType=INTEGER},
+      </if>
+      <if test="cityId != null" >
+        CITY_ID = #{cityId,jdbcType=INTEGER},
+      </if>
+      <if test="provinceId != null" >
+        PROVINCE_ID = #{provinceId,jdbcType=INTEGER},
+      </if>
+      <if test="replyNum != null" >
+        REPLY_NUM = #{replyNum,jdbcType=INTEGER},
+      </if>
+      <if test="commentuserId != null" >
+        COMMENTUSER_ID = #{commentuserId,jdbcType=INTEGER},
+      </if>
+    </set>
+    where COMMENT_ID = #{commentId,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.vote.pojo.TransVoteComment" >
+    update trans_vote_comment
+    set VOTE_ID = #{voteId,jdbcType=INTEGER},
+      USER_ID = #{userId,jdbcType=INTEGER},
+      TEAM_ID = #{teamId,jdbcType=INTEGER},
+      USER_NAME = #{userName,jdbcType=VARCHAR},
+      COMMENT_CONTENT = #{commentContent,jdbcType=VARCHAR},
+      COMMENT_DATE = #{commentDate,jdbcType=TIMESTAMP},
+      DEL_FLAG = #{delFlag,jdbcType=INTEGER},
+      TEAM_NAME = #{teamName,jdbcType=VARCHAR},
+      PARENTS_ID = #{parentsId,jdbcType=INTEGER},
+      CITY_ID = #{cityId,jdbcType=INTEGER},
+      PROVINCE_ID = #{provinceId,jdbcType=INTEGER},
+      REPLY_NUM = #{replyNum,jdbcType=INTEGER},
+      COMMENTUSER_ID = #{commentuserId,jdbcType=INTEGER}
+    where COMMENT_ID = #{commentId,jdbcType=VARCHAR}
+  </update>
+  <!-- 查询投票的评论  -->
+  <select id="selectComment" resultType="java.util.HashMap" parameterType="java.lang.Integer" >
+  	select vc.*,sui.saas_tenant_code as saasTenantCode,
+		  sui.user_code as userCode,
+		  soi.man_org_code as manOrgCode 
+	from trans_vote_comment vc
+	LEFT JOIN sys_user_info sui 
+		 ON vc.user_id = sui.user_id 
+	LEFT JOIN sys_org_info soi
+		 ON sui.org_code = soi.sys_org_code
+	where VOTE_ID = #{0} and DEL_FLAG = 0 and PARENTS_ID = 0 and vc.user_id is not null
+  </select>
+  <!-- 查询回复 -->
+  <select id="selectReply" resultType="java.util.HashMap" parameterType="java.lang.Integer" >
+  	select vc.*,sui.saas_tenant_code as saasTenantCode,
+		  sui.user_code as userCode,
+		  sui2.user_code as questCode,
+		  soi.man_org_code as manOrgCode 
+	from trans_vote_comment vc
+	LEFT JOIN sys_user_info sui 
+		 ON vc.user_id = sui.user_id 
+	LEFT JOIN sys_user_info sui2 
+		 ON vc.COMMENTUSER_ID = sui2.user_id 
+	LEFT JOIN sys_org_info soi
+		 ON sui.org_code = soi.sys_org_code
+	where PARENTS_ID = #{0} and DEL_FLAG = 0 and vc.user_id is not null
+  </select>
+  
+  
+</mapper>

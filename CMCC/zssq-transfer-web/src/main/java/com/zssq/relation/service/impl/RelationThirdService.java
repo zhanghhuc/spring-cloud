@@ -1,0 +1,98 @@
+package com.zssq.relation.service.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.zssq.relation.dao.mapper.RelationThirdMapper;
+import com.zssq.relation.pojo.RelationSubjectData;
+import com.zssq.relation.pojo.RelationSubjectInfo;
+import com.zssq.relation.service.IRelationThirdService;
+
+/**
+ * 
+ * @ClassName: RelationThirdService  
+ * @Description: 关系内容数据迁移Service（第三方调用）  
+ * @author ZKZ  
+ * @date 2017年5月22日  
+ *
+ */
+@Service("relationThirdService")
+public class RelationThirdService implements IRelationThirdService{
+	
+	@Autowired
+	private RelationThirdMapper relationThirdMapper;
+	
+	/**
+	 * 导入关系内容信息和关系内容数据
+	 */
+	@Transactional
+	@Override
+	public void insertSubjectAll(List<RelationSubjectInfo> subjectInfoList, List<RelationSubjectData> subjectDataList) {
+		// 导入内容信息
+		relationThirdMapper.insertSubjectInfoList(subjectInfoList);
+		
+		// 导入内容数据信息
+		relationThirdMapper.insertSubjectDataList(subjectDataList);
+	}
+	
+	/**
+	 * 导入关系内容信息
+	 */
+	@Transactional
+	@Override
+	public void insertSubjectInfo(List<RelationSubjectInfo> subjectInfoList) {
+		relationThirdMapper.insertSubjectInfoList(subjectInfoList);
+	}
+	
+	/**
+	 * 导入关系内容数据
+	 */
+	@Transactional
+	@Override
+	public void insertSubjectData(List<RelationSubjectData> subjectDataList) {
+		relationThirdMapper.insertSubjectDataList(subjectDataList);
+	}
+
+	/**
+	 * 将博客信息迁移到关系内容信息中
+	 */
+	@Transactional
+	@Override
+	public void insertRelationBlogData() {
+		// 迁移内容信息
+		relationThirdMapper.insertSubjectInfoBlog();
+		
+		// 迁移内容数据
+		relationThirdMapper.insertSubjectDataBlog();
+	}
+
+	/**
+	 * 将新闻信息迁移到关系内容信息中
+	 */
+	@Transactional
+	@Override
+	public void insertRelationNewsData() {
+		// 迁移内容信息
+		relationThirdMapper.insertSubjectInfoNews();
+		
+		// 迁移内容数据
+		relationThirdMapper.insertSubjectDataNews();
+	}
+
+	/**
+	 * 将网盘信息迁移到关系内容信息中
+	 */
+	@Transactional
+	@Override
+	public void insertRelationDiskData() {
+		// 迁移内容信息
+		relationThirdMapper.insertSubjectInfoDisk();
+		
+		// 迁移内容数据
+		relationThirdMapper.insertSubjectDataDisk();
+	}
+
+}

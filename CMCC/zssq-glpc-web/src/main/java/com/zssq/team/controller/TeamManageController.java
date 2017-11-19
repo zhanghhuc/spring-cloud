@@ -1,0 +1,551 @@
+package com.zssq.team.controller;
+
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.constants.AuthConstants;
+import com.zssq.constants.CreditConstants;
+import com.zssq.constants.RelationConstants;
+import com.zssq.constants.TeamConstants;
+import com.zssq.dao.pojo.IntegralAccount;
+import com.zssq.dao.pojo.SysOrgInfo;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.dao.pojo.TeamInfo;
+import com.zssq.dao.pojo.TeamMessage;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.pojo.Message;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.IForumManageService;
+import com.zssq.service.IIntegralAccountService;
+import com.zssq.service.ISysOrgService;
+import com.zssq.service.ISysUserService;
+import com.zssq.service.ITeamInfoService;
+import com.zssq.service.RelationThirdDynamicService;
+import com.zssq.team.vo.TeamAddVo;
+import com.zssq.team.vo.TeamEditVo;
+import com.zssq.team.vo.TeamInfoVo;
+import com.zssq.team.vo.TeamMessageVo;
+import com.zssq.team.vo.TeamNameVo;
+import com.zssq.team.vo.TeamRecordVo;
+import com.zssq.team.vo.TeamSearchVo;
+import com.zssq.utils.DateUtils;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.utils.PropertiesUtil;
+import com.zssq.utils.StringTools;
+import com.zssq.vo.RelationDynamicVO;
+
+/**
+ * @ClassName TeamManageController
+ * @Description 班组管理Controller
+ * @author JiPengChun
+ * @date 2017年3月16日 上午11:44:21
+ * @version 1.0
+ * @since JDK 1.7
+ */
+@Controller
+@RequestMapping("/team")
+public class TeamManageController {
+
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	/**
+	 * 班组基本信息service
+	 */
+	@Autowired
+	private ITeamInfoService teamInfoService;
+	
+	/**
+	 * 组织机构service
+	 */
+	@Autowired
+	private ISysOrgService sysOrgService;
+	
+	/**
+	 * 用户service
+	 */
+	@Autowired
+	private ISysUserService sysUserService;
+	
+	/**
+	 * 动态关系service
+	 */
+	@Autowired
+	private RelationThirdDynamicService relationThirdDynamicService;
+
+	/**
+	 * 论坛service
+	 */
+	@Autowired
+	private IForumManageService forumManageService;
+	
+	/**
+	 * 积分service
+	 */
+	@Autowired
+	private IIntegralAccountService integralAccountService;
+	
+	
+	/**
+	 * @Function addTeamInfo
+	 * @Description 新建班组
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/add") 
+	public ResultJSON addTeamInfo(@RequireValid TeamAddVo param) throws BusinessException{
+		Message m = null;
+	    ResultJSON rj = new ResultJSON();
+	    try {
+	    	TeamInfo record = new TeamInfo();
+	    	record.setOrgCode(param.getOrgCode());
+	    	record.setTeamName(param.getTeamName());
+	    	record.setTeamType(Byte.parseByte(param.getTeamType()));
+	    	record.setCreateTime(DateUtils.getFormatDateLong());
+	    	record.setIsDissolve(TeamConstants.BOOLEAN_FALSE);
+	    	record.setIsRecord(TeamConstants.BOOLEAN_FALSE);
+	    	record.setTeamCode(teamInfoService.getTeamCode());
+	    	
+	    	record.setTenantCode(AuthConstants.TENANT_CODE);
+	    	boolean isSuccess = teamInfoService.addTeam(record);
+	    	JSONObject body = new JSONObject();
+	    	if(isSuccess){
+	    		//创建积分账户
+	    		IntegralAccount integralAccount = new IntegralAccount();
+        		integralAccount.setAccountCode(record.getTeamCode());
+        		integralAccount.setAccountType(CreditConstants.TYPE_TEAM);
+        		integralAccount.setOrgCode(record.getOrgCode());
+        		integralAccount.setIntegralBalance(Integer.valueOf(0));
+        		integralAccount.setCreateTime(DateUtils.nowTimeMillis());
+        		integralAccount.setModifyTime(DateUtils.nowTimeMillis());
+        		integralAccount.setSaasTenantCode(AuthConstants.TENANT_CODE);        		
+        		integralAccountService.insert(integralAccount);
+	    		
+	    		//论坛服务调用
+	    		SysUserInfo userInfo = sysUserService.selectByCode(param.getUserCode());
+	    		forumManageService.insertForumForBelong(AuthConstants.TENANT_CODE,userInfo.getManageOrgInfo().getSysOrgCode() , record.getTeamCode(), record.getTeamName());
+	    		
+	    		body.put("teamCode", StringTools.formatToString(record.getTeamCode()));
+	    		log.info("TeamManageController.addTeamInfo:新增班组成功");
+	    		m = PropertiesUtil.getMessage(TeamConstants.RETURNCODE_TEAM_200);
+	    	}else{
+	    		log.info("TeamManageController.addTeamInfo:新增班组失败");
+	    		m = PropertiesUtil.getMessage(TeamConstants.RETURNCODE_TEAM_15002);
+	    	}
+	    	rj.setReturnCode(m.getCode());
+	    	rj.setReturnTip(String.format(m.getTip(),"新增班组"));
+	    	rj.setBody(body);
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("新增班组异常", e);
+			m = PropertiesUtil.getMessage(TeamConstants.RETURNCODE_TEAM_15002);
+			throw new BusinessException(m.getCode(), String.format(m.getTip(),"新增班组"));
+		}
+	    return rj;
+	}
+
+	
+	public static void main(String[] args) throws ParseException {
+		String s = "2017-07-01";
+		System.out.println(DateUtils.stringToLong(s, "yyyy-MM-dd"));
+	}
+
+	/**
+	 * @Function getTeamInfoList
+	 * @Description 查询班组列表
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping(value="/list")
+	public ResultJSON getTeamInfoList(@RequireValid TeamSearchVo param) throws BusinessException{  
+	    Message m = null;
+	    ResultJSON rj = new ResultJSON();
+	    try {
+	    	PageParam pageParam = new PageParam(Integer.parseInt(param.getPageNo()),Integer.parseInt(param.getPageSize()));
+	    	String orgCode = param.getOrgCode();
+	    	TeamInfo record = new TeamInfo();
+    		record.setOrgCode(orgCode);
+	    	if(!StringTools.isEmpty(param.getTeamName())){
+	    		record.setTeamName(param.getTeamName());
+	    	}
+	    	if(!StringTools.isEmpty(param.getTeamType())){
+	    		record.setTeamType(Byte.parseByte(param.getTeamType()));
+	    	}
+	    	if(!StringTools.isEmpty(param.getStartDate())){
+	    		Long startTime = DateUtils.stringToLong(param.getStartDate(), "yyyy-MM-dd");
+	    		record.setStartDate(startTime);
+	    	}
+	    	if(!StringTools.isEmpty(param.getEndDate())){
+	    		Long endTime = DateUtils.stringToLong(param.getEndDate(), "yyyy-MM-dd");
+	    		record.setEndDate(endTime + TeamConstants.DAY_TIME);
+	    	}
+	    	if(!StringTools.isEmpty(param.getLeaderName())){
+	    		SysUserInfo userInfo = new SysUserInfo();
+	    		userInfo.setUserName(param.getLeaderName());
+	    		List<SysUserInfo> userList = sysUserService.selectByRecord(userInfo);
+	    		List<String> userCodes = new ArrayList<String>();
+	    		for (int i = 0; i < userList.size(); i++) {
+	    			userCodes.add(userList.get(i).getUserCode());
+				}
+	    		if(userCodes.size() > 0){
+					record.setLeaders(userCodes);
+				}else{
+					m = PropertiesUtil.getMessage(TeamConstants.RETURNCODE_TEAM_200);
+					rj.setReturnCode(m.getCode());
+					rj.setReturnTip(String.format(m.getTip(),"班组查询"));
+					JSONObject body = new JSONObject();
+					body.put("totalCount", 0);
+					body.put("dataList", new JSONArray());
+					rj.setBody(body);
+					return rj;
+				}
+	    	}
+	    	PageBean pageBean = teamInfoService.getTeamInfoList(pageParam, record);
+	    	JSONArray jsonArray = new JSONArray();
+			List<TeamInfo> teamList = pageBean.getRecordList();
+	    	for (int i = 0; i < teamList.size(); i++) {
+	    		JSONObject teamInfoJson = new JSONObject();
+	    		teamInfoJson.put("teamCode", StringTools.formatToString(teamList.get(i).getTeamCode()));//班组code
+	    		teamInfoJson.put("teamName", StringTools.formatToString(teamList.get(i).getTeamName()));//班组名称
+	    		teamInfoJson.put("teamType", StringTools.formatToString(teamList.get(i).getTeamType()));//班组类型
+	    		teamInfoJson.put("orgCode", StringTools.formatToString(teamList.get(i).getOrgCode()));//组织机构code
+	    		SysOrgInfo org = sysOrgService.selectByCode(teamList.get(i).getOrgCode());
+	    		if(org != null){
+					teamInfoJson.put("orgName", StringTools.formatToString(org.getSysOrgFullname()));//组织机构名称
+				}else{
+					teamInfoJson.put("orgName", "");
+				}
+	    		List<String> leaderList = new ArrayList<String>();
+	    		//解析userCode字符串,获取班组长名称
+	    		if(StringTools.isNotEmpty(teamList.get(i).getLeaderCodes())){
+	    			leaderList = Arrays.asList(teamList.get(i).getLeaderCodes().split(","));//解析字符串  , 分隔
+	    			String leaders = "";
+	    			for (int j = 0; j < leaderList.size(); j++) {
+	    				SysUserInfo user = sysUserService.selectByCode(leaderList.get(j));
+	    				if(user != null){
+	    					leaders += user.getUserName() + ",";
+	    				}
+	    				if(j == leaderList.size() - 1 && leaders.length() > 1 ){
+	    					leaders = leaders.substring(0, leaders.length()-1);
+	    				}
+	    			}
+	    			teamInfoJson.put("leaders", StringTools.formatToString(leaders));//班组长  们
+	    		}else{
+	    			teamInfoJson.put("leaders","");
+	    		}
+    			teamInfoJson.put("sumCount", StringTools.formatToString(teamList.get(i).getSumCount()));//班组人数
+	    		teamInfoJson.put("createTime", StringTools.formatToString(teamList.get(i).getCreateTime()));
+	    		jsonArray.add(teamInfoJson);
+			}
+	    	JSONObject body = new JSONObject();
+	    	body.put("totalCount", pageBean.getTotalCount());
+	    	body.put("dataList", jsonArray);
+	        
+	    	m = PropertiesUtil.getMessage(TeamConstants.RETURNCODE_TEAM_200);
+	        rj.setReturnCode(m.getCode());
+	        rj.setReturnTip(String.format(m.getTip(),"查询班组列表"));
+	        rj.setBody(body);
+		} catch(BusinessException e){
+			throw e;
+		} catch (Exception e) {
+			m = PropertiesUtil.getMessage(TeamConstants.RETURNCODE_TEAM_15002);
+			log.error("查询班组列表异常", e);
+			throw new BusinessException(m.getCode(), String.format(m.getTip(),"查询班组列表"));
+		}
+	    return rj;
+	}
+	
+	
+	
+	/**
+	 * @Function teamRecordList
+	 * @Description 班组归档列表
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping(value="/record/list")
+	public ResultJSON teamRecordList(@RequireValid TeamRecordVo param) throws BusinessException{  
+	    Message m = null;
+	    ResultJSON rj = new ResultJSON();
+	    try {
+	    	PageParam pageParam = new PageParam(Integer.parseInt(param.getPageNo()),Integer.parseInt(param.getPageSize()));
+	    	String orgCode = param.getOrgCode();
+	    	TeamInfo record = new TeamInfo();
+    		record.setOrgCode(orgCode);
+	    	if(!StringTools.isEmpty(param.getTeamName())){
+	    		record.setTeamName(param.getTeamName());
+	    	}
+	    	if(!StringTools.isEmpty(param.getStartDate())){
+	    		Long startTime = DateUtils.stringToLong(param.getStartDate(), "yyyy-MM-dd");
+	    		record.setStartDate(startTime);
+	    	}
+	    	if(!StringTools.isEmpty(param.getEndDate())){
+	    		Long endTime = DateUtils.stringToLong(param.getEndDate(), "yyyy-MM-dd");
+	    		record.setEndDate(endTime + TeamConstants.DAY_TIME);
+	    	}
+	    	if(!StringTools.isEmpty(param.getTeamType())){
+	    		record.setTeamType(Byte.parseByte(param.getTeamType()));
+	    	}
+	    	if(!StringTools.isEmpty(param.getUserName())){
+	    		SysUserInfo userInfo = new SysUserInfo();
+	    		userInfo.setUserName(param.getUserName());
+	    		List<SysUserInfo> userList = sysUserService.selectByRecord(userInfo);
+	    		List<String> userCodes = new ArrayList<String>();
+	    		for (int i = 0; i < userList.size(); i++) {
+	    			userCodes.add(userList.get(i).getUserCode());
+				}
+	    		if(userCodes.size() > 0){
+					record.setLeaders(userCodes);//归档人
+				}else{
+					m = PropertiesUtil.getMessage(TeamConstants.RETURNCODE_TEAM_200);
+					rj.setReturnCode(m.getCode());
+					rj.setReturnTip(String.format(m.getTip(),"班组归档查询"));
+					JSONObject body = new JSONObject();
+					body.put("totalCount", 0);
+					body.put("dataList", new JSONArray());
+					rj.setBody(body);
+					return rj;
+				}
+	    	}
+	    	PageBean pageBean = teamInfoService.selectRecordTeam(pageParam, record);
+	    	JSONArray jsonArray = new JSONArray();
+			List<TeamInfo> teamList = pageBean.getRecordList();
+	    	for (int i = 0; i < teamList.size(); i++) {
+	    		JSONObject teamInfoJson = new JSONObject();
+	    		teamInfoJson.put("teamCode", StringTools.formatToString(teamList.get(i).getTeamCode()));//班组code
+	    		teamInfoJson.put("teamName", StringTools.formatToString(teamList.get(i).getTeamName()));//班组名称
+	    		teamInfoJson.put("teamType", StringTools.formatToString(teamList.get(i).getTeamType()));//班组类型
+//	    		teamInfoJson.put("orgCode", StringTools.formatToString(teamList.get(i).getOrgCode()));//组织机构code
+	    		SysOrgInfo org = sysOrgService.selectByCode(teamList.get(i).getOrgCode());
+	    		if(org != null){
+					teamInfoJson.put("orgName", StringTools.formatToString(org.getSysOrgFullname()));//组织机构名称
+				}else{
+					teamInfoJson.put("orgName", "");
+				}
+	    		teamInfoJson.put("recordTime", StringTools.formatToString(teamList.get(i).getDissolveTime()));//归档时间
+	    		SysUserInfo userInfo = sysUserService.selectByCode(teamList.get(i).getUserCode());
+	    		if(userInfo != null){
+	    			teamInfoJson.put("recordUser", StringTools.formatToString(userInfo.getUserName()));//归档人
+	    		}else{
+	    			teamInfoJson.put("recordUser", "");//归档人
+	    		}
+	    		teamInfoJson.put("recordFileUrl", StringTools.formatToString(teamList.get(i).getRecordFileUrl()));//归档地址
+	    		jsonArray.add(teamInfoJson);
+			}
+	    	JSONObject body = new JSONObject();
+	    	body.put("totalCount", pageBean.getTotalCount());
+	    	body.put("dataList", jsonArray);
+	        
+	    	m = PropertiesUtil.getMessage(TeamConstants.RETURNCODE_TEAM_200);
+	        rj.setReturnCode(m.getCode());
+	        rj.setReturnTip(String.format(m.getTip(),"查询班组归档列表"));
+	        rj.setBody(body);
+		} catch(BusinessException e){
+			throw e;
+		} catch (Exception e) {
+			m = PropertiesUtil.getMessage(TeamConstants.RETURNCODE_TEAM_15002);
+			log.error("班组归档列表", e);
+			throw new BusinessException(m.getCode(), String.format(m.getTip(),"查询班组归档列表"));
+		}
+	    return rj;
+	}
+
+
+	/**
+	 * @Function editTeamInfo
+	 * @Description 修改班组
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/edit") 
+	public ResultJSON editTeamInfo(@RequireValid TeamEditVo param) throws BusinessException{
+		Message m = null;
+	    ResultJSON rj = new ResultJSON();
+	    try {
+	    	boolean isSuccess = teamInfoService.updateTeamInfo(param.getTeamCode(),param.getTeamName(),Byte.parseByte(param.getTeamType()),param.getOrgCode());
+	    	if(isSuccess){
+	    		//调用关系服务
+	    		RelationDynamicVO relationDynamicVO = new RelationDynamicVO();
+	    		relationDynamicVO.setTeamCode(param.getTeamCode());
+	    		if(Byte.parseByte(param.getTeamType()) == TeamConstants.TEAM_TYPE_1){
+		    		relationDynamicVO.setActionClass(RelationConstants.RELATION_ACTION_YES);
+	    		}else{
+	    			relationDynamicVO.setActionClass(RelationConstants.RELATION_ACTION_NO);
+	    		}
+	    		relationDynamicVO.setModifyTime(DateUtils.getFormatDateLong());
+	    		relationThirdDynamicService.updateTeamNoOne(relationDynamicVO);
+	    		m = PropertiesUtil.getMessage(TeamConstants.RETURNCODE_TEAM_200);
+	    	}else{
+	    		m = PropertiesUtil.getMessage(TeamConstants.RETURNCODE_TEAM_15002);
+	    	}
+	    	rj.setReturnCode(m.getCode());
+	    	rj.setReturnTip(String.format(m.getTip(),"编辑班组"));
+	    	rj.setBody(new JSONObject());
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			m = PropertiesUtil.getMessage(TeamConstants.RETURNCODE_TEAM_15002);
+			log.error("编辑班组异常", e);
+			throw new BusinessException(m.getCode(), String.format(m.getTip(),"编辑班组"));
+		}
+	    return rj;
+	}
+	
+	
+	/**
+	 * @Function info
+	 * @Description 用户编辑班组获取信息
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/info") 
+	public ResultJSON info(@RequireValid TeamInfoVo param) throws BusinessException{
+		Message m = null;
+	    ResultJSON rj = new ResultJSON();
+	    try {
+	    	TeamInfo teamInfo = teamInfoService.selectByCode(param.getTeamCode());
+	    	JSONObject body = new JSONObject();
+	    	if(teamInfo != null){
+	    		body.put("teamCode", StringTools.formatToString(teamInfo.getTeamCode()));//班组code
+	    		body.put("teamName", StringTools.formatToString(teamInfo.getTeamName()));//班组名称
+	    		body.put("teamType", StringTools.formatToString(teamInfo.getTeamType()));//班组类型
+	    		body.put("orgCode", StringTools.formatToString(teamInfo.getOrgCode()));//班组所属组织机构code
+	    		m = PropertiesUtil.getMessage(TeamConstants.RETURNCODE_TEAM_200);
+	    	}else{
+	    		m = PropertiesUtil.getMessage(TeamConstants.RETURNCODE_TEAM_15002);
+	    	}
+	    	rj.setReturnCode(m.getCode());
+	    	rj.setReturnTip(String.format(m.getTip(),"获取班组信息"));
+	    	rj.setBody(body);
+		} catch (Exception e) {
+			m = PropertiesUtil.getMessage(TeamConstants.RETURNCODE_TEAM_15002);
+			log.error("获取班组信息异常", e);
+			throw new BusinessException(m.getCode(), String.format(m.getTip(),"获取班组信息"));
+		}
+	    return rj;
+	}
+	
+	
+	/**
+	 * @Function repeatName
+	 * @Description 班组名称重复校验
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/repeat/name") 
+	public ResultJSON repeatName(@RequireValid TeamNameVo param) throws BusinessException{
+		Message m = null;
+	    ResultJSON rj = new ResultJSON();
+	    try {
+	    	boolean isSuccess = teamInfoService.repeatName(param.getTeamName(),param.getTeamCode());
+	    	JSONObject body = new JSONObject();
+	    	if(isSuccess){
+	    		body.put("isRepeat", StringTools.formatToString(TeamConstants.BOOLEAN_1));
+	    	}else{
+	    		body.put("isRepeat", StringTools.formatToString(TeamConstants.BOOLEAN_0));
+	    	}
+	    	m = PropertiesUtil.getMessage(TeamConstants.RETURNCODE_TEAM_200);
+	    	rj.setReturnCode(m.getCode());
+	    	rj.setReturnTip(String.format(m.getTip(),"班组名称重复校验"));
+	    	rj.setBody(body);
+		} catch (Exception e) {
+			m = PropertiesUtil.getMessage(TeamConstants.RETURNCODE_TEAM_15002);
+			log.error("班组名称重复校验异常", e);
+			throw new BusinessException(m.getCode(), String.format(m.getTip(),"班组名称重复校验"));
+		}
+	    return rj;
+	}
+	
+	
+	/**
+	 * @Function messageList
+	 * @Description 班组留言(内容监控)
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/message/list") 
+	public ResultJSON messageList(@RequireValid TeamMessageVo param) throws BusinessException{
+		Message m = null;
+	    ResultJSON rj = new ResultJSON();
+	    try {
+	    	SysUserInfo userInfo = sysUserService.selectByCode(param.getUserCode());
+	    	SysOrgInfo manOrg = userInfo.getManageOrgInfo();
+	    	if(manOrg != null){
+	    		//该组织下所有所有班组
+	    		List<String> teamCodes = teamInfoService.selectByOrgCode(manOrg.getManOrgCode());
+	    		PageParam pageParam = new PageParam(Integer.parseInt(param.getPageNo()),Integer.parseInt(param.getPageSize()));
+	    		PageBean pageBean = teamInfoService.selectTeamMessage(teamCodes, pageParam);
+	    		JSONArray jsonArray = new JSONArray();
+	    		List<TeamMessage> messageList = pageBean.getRecordList();
+	    		for (int i = 0; i < messageList.size(); i++) {
+					JSONObject meesage = new JSONObject();
+					meesage.put("teamCode", StringTools.formatToString(messageList.get(i).getTeamCode()));
+					meesage.put("createTime", StringTools.formatToString(messageList.get(i).getCreateTime()));
+					meesage.put("userCode", StringTools.formatToString(messageList.get(i).getUserCode()));
+					SysUserInfo messager = sysUserService.selectByCode(messageList.get(i).getUserCode());
+					if(messager != null){
+						meesage.put("userName", StringTools.formatToString(messager.getUserName()));
+						if(messager.getManageOrgInfo() != null){
+							meesage.put("orgCode", StringTools.formatToString(messager.getManageOrgInfo().getManOrgCode()));
+							meesage.put("orgName", StringTools.formatToString(messager.getManageOrgInfo().getSysOrgFullname()));
+						}else{
+							meesage.put("orgCode", "");
+							meesage.put("orgName", "");
+						}
+					}else{
+						meesage.put("userName", "");
+						meesage.put("orgCode", "");
+						meesage.put("orgName", "");
+					}
+					meesage.put("messageCode", StringTools.formatToString(messageList.get(i).getTeamMessageCode()));
+					jsonArray.add(meesage);
+				}
+	    		JSONObject body = new JSONObject();
+	    		body.put("totalCount", pageBean.getTotalCount());
+		    	body.put("dataList", jsonArray);
+	    		m = PropertiesUtil.getMessage(TeamConstants.RETURNCODE_TEAM_200);
+	    		rj.setReturnCode(m.getCode());
+	    		rj.setReturnTip(String.format(m.getTip(),"获取班组留言"));
+	    		rj.setBody(body);
+	    	}else{
+	    		JSONObject body = new JSONObject();
+	    		m = PropertiesUtil.getMessage(TeamConstants.RETURNCODE_TEAM_15002);
+	    		rj.setReturnCode(m.getCode());
+	    		rj.setReturnTip(String.format(m.getTip(),"获取班组留言"));
+	    		rj.setBody(body);
+	    	}
+		} catch (Exception e) {
+			m = PropertiesUtil.getMessage(TeamConstants.RETURNCODE_TEAM_15002);
+			log.error("获取班组留言异常", e);
+			throw new BusinessException(m.getCode(), String.format(m.getTip(),"获取班组留言"));
+		}
+	    return rj;
+	}
+	
+}

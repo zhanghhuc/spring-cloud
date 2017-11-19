@@ -1,0 +1,385 @@
+package com.zssq.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.constants.BlogConstants;
+import com.zssq.dao.mapper.BlogCommentMapper;
+import com.zssq.dao.mapper.BlogInfoMapper;
+import com.zssq.dao.mapper.BlogReplyMapper;
+import com.zssq.dao.model.BlogModel;
+import com.zssq.dao.pojo.BlogInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.kafka.core.KafkaProducerTemplate;
+import com.zssq.pojo.RssReturnPo;
+import com.zssq.service.BlogThirdService;
+import com.zssq.vo.BlogThirdDataVO;
+import com.zssq.vo.BlogThirdVO;
+
+/**
+ * 
+ * @ClassName: BlogThirdServiceImpl  
+ * @Description: 博客  
+ * @author ZKZ  
+ * @date 2017年4月13日  
+ *
+ */
+@Service("blogThirdService")
+public class BlogThirdServiceImpl implements BlogThirdService {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private BlogInfoMapper blogInfoMapper;
+	@Autowired
+	private BlogCommentMapper blogCommentMapper;
+	@Autowired
+	private BlogReplyMapper blogReplyMapper;
+	
+	@SuppressWarnings("rawtypes")
+	@Autowired
+	protected KafkaProducerTemplate producerTeplate;
+
+	/**
+	 * 屏蔽/恢复博客
+	 */
+	@Override
+	public boolean updateShieldStatus(BlogThirdVO blogThirdVO) throws BusinessException {
+		// 返回值
+		boolean result = true;
+		
+		try {
+			// 参数校验
+			if (blogThirdVO == null) {
+				log.error("BlogThirdServiceImpl.updateShieldStatus：blogThirdVO为空");
+				throw BusinessException.build("COMMON_402", "blogDraftVO");
+			}
+			
+			// 获取参数
+			String subjectCode = blogThirdVO.getSubjectCode(); // 内容编号
+			Byte subjectType = blogThirdVO.getSubjectType(); // 内容类型
+			String upSubjectCode = blogThirdVO.getUpSubjectCode(); // 上级内容编号
+			Byte actionClass = blogThirdVO.getActionClass(); // 操作类型
+			Long modifyTime = blogThirdVO.getModifyTime(); // 修改时间
+			
+			// 参数校验
+			if (StringUtils.isBlank(subjectCode)) {
+				log.error("BlogThirdServiceImpl.updateShieldStatus：subjectCode为空");
+				throw BusinessException.build("COMMON_402", "subjectCode");
+			}
+			if (subjectType == null || subjectType == 0) {
+				log.error("BlogThirdServiceImpl.updateShieldStatus：userCode为空");
+				throw BusinessException.build("COMMON_402", "subjectType");
+			}
+			if (actionClass == null || actionClass == 0) {
+				log.error("BlogThirdServiceImpl.updateShieldStatus：actionClass为空");
+				throw BusinessException.build("COMMON_402", "actionClass");
+			}
+			if (modifyTime == null || modifyTime == 0) {
+				log.error("BlogThirdServiceImpl.updateShieldStatus：modifyTime为空");
+				throw BusinessException.build("COMMON_402", "modifyTime");
+			}
+			
+			// 判断操作类型调用对应的方法
+			if (BlogConstants.BLOG_SHIELD_BLOG.equals(subjectType)) {
+				// 博客
+				result = updateBlogShieldStatus(blogThirdVO);
+			} else if (BlogConstants.BLOG_SHIELD_COMMENT.equals(subjectType)) {
+				// 参数校验
+				if (StringUtils.isBlank(upSubjectCode)) {
+					log.error("BlogThirdServiceImpl.updateShieldStatus：upSubjectCode为空");
+					throw BusinessException.build("COMMON_402", "upSubjectCode");
+				}
+				
+				// 评论
+				result = updateCommentShieldStatus(blogThirdVO);
+			} else if (BlogConstants.BLOG_SHIELD_REPLY.equals(subjectType)) {
+				// 参数校验
+				if (StringUtils.isBlank(upSubjectCode)) {
+					log.error("BlogThirdServiceImpl.updateShieldStatus：upSubjectCode为空");
+					throw BusinessException.build("COMMON_402", "upSubjectCode");
+				}
+				
+				// 回复
+				result = updateReplyShieldStatus(blogThirdVO);
+			} else {
+				log.error("BlogThirdServiceImpl.updateShieldStatus：subjectType错误");
+				throw BusinessException.build("COMMON_402");
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @Title: updateBlogShieldStatus  
+	 * @Description: 屏蔽/恢复博客
+	 * @param blogThirdVO
+	 * @throws BusinessException    参数  
+	 * @return: boolean    返回类型
+	 */
+	@SuppressWarnings("unchecked")
+	public boolean updateBlogShieldStatus(BlogThirdVO blogThirdVO) throws BusinessException {
+		try {
+			// 获取参数
+			String blogCode = blogThirdVO.getSubjectCode(); // 博客编号
+			Long modifyTime = blogThirdVO.getModifyTime(); // 修改时间
+			Byte actionClass = blogThirdVO.getActionClass(); // 操作类型
+			int updateNumber = 0;
+			
+			// 查询博客信息
+			Map<String, Object> blogMap = new HashMap<String, Object>();
+			blogMap.put("blogCode", blogCode); // 博客编号
+			BlogInfo blogInfo = blogInfoMapper.selectMiniInfo(blogMap);
+			if (blogInfo == null) {
+				log.error("BlogThirdServiceImpl.updateBlogShieldStatus：获取不到博客信息blogCode=" + blogCode);
+				throw BusinessException.build("COMMON_400");
+			}
+			if (BlogConstants.BLOG_YES.equals(blogInfo.getBlogIsDelete())) {
+				return false;
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("blogCode", blogCode); // 博客编号
+			paramMap.put("modifyTime", modifyTime); // 修改时间
+			if (BlogConstants.BLOG_ACTION_NO.equals(actionClass)) {
+				// 恢复博客
+				paramMap.put("blogIsShield", BlogConstants.BLOG_NO); // 屏蔽状态
+				updateNumber = 1;
+			} else if (BlogConstants.BLOG_ACTION_YES.equals(actionClass)) {
+				// 屏蔽博客
+				paramMap.put("blogIsShield", BlogConstants.BLOG_YES); // 屏蔽状态
+				updateNumber = -1;
+			} else {
+				log.error("BlogThirdServiceImpl.updateBlogShieldStatus：actionClass错误");
+				throw BusinessException.build("COMMON_402", "actionClass");
+			}
+			
+			// 修改
+			int shieldNum = blogInfoMapper.shield(paramMap);
+			if (shieldNum != 1) {
+				log.error("BlogThirdServiceImpl.updateBlogShieldStatus：屏蔽/恢复" + shieldNum + "条博客信息 ");
+				return false;
+			}
+			
+			// 博客分类下博客数量操作
+			BlogThirdDataVO blogThirdDataVO = new BlogThirdDataVO();
+			blogThirdDataVO.setSubjectCode(blogInfo.getClassCode());
+			blogThirdDataVO.setUpdateNumber(updateNumber);
+			blogThirdDataVO.setUpdateClass(BlogConstants.BLOG_THIRD_CLASS_BLOG);
+			blogThirdDataVO.setModifyTime(modifyTime);
+			producerTeplate.send(BlogConstants.BLOG_TOPIC, JSONObject.toJSONString(blogThirdDataVO));
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * 
+	 * @Title: updateCommentShieldStatus  
+	 * @Description: 屏蔽/恢复评论
+	 * @param blogThirdVO
+	 * @throws BusinessException    参数  
+	 * @return: boolean    返回类型
+	 */
+	@SuppressWarnings("unchecked")
+	public boolean updateCommentShieldStatus(BlogThirdVO blogThirdVO) throws BusinessException {
+		try {
+			// 获取参数
+			String blogCode = blogThirdVO.getUpSubjectCode(); // 博客编号
+			String commentCode = blogThirdVO.getSubjectCode(); // 评论编号
+			Long modifyTime = blogThirdVO.getModifyTime(); // 修改时间
+			Byte actionClass = blogThirdVO.getActionClass(); // 操作类型
+			int updateNumber = 0;
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("commentCode", commentCode); // 评论编号
+			paramMap.put("modifyTime", modifyTime); // 修改时间
+			if (BlogConstants.BLOG_ACTION_NO.equals(actionClass)) {
+				// 恢复评论
+				paramMap.put("blogIsShield", BlogConstants.BLOG_NO); // 屏蔽状态
+				updateNumber = 1;
+			} else if (BlogConstants.BLOG_ACTION_YES.equals(actionClass)) {
+				// 屏蔽评论
+				paramMap.put("blogIsShield", BlogConstants.BLOG_YES); // 屏蔽状态
+				updateNumber = -1;
+			} else {
+				log.error("BlogThirdServiceImpl.updateCommentShieldStatus：actionClass错误");
+				throw BusinessException.build("COMMON_402", "actionClass");
+			}
+			
+			// 修改
+			int shieldNum = blogCommentMapper.shield(paramMap);
+			if (shieldNum != 1) {
+				log.error("BlogThirdServiceImpl.updateCommentShieldStatus：屏蔽/恢复" + shieldNum + "条评论信息");
+				return false;
+			}
+			
+			// 修改博客评论量
+			BlogThirdDataVO blogThirdDataVO = new BlogThirdDataVO();
+			blogThirdDataVO.setSubjectCode(blogCode);
+			blogThirdDataVO.setUpdateNumber(updateNumber);
+			blogThirdDataVO.setUpdateClass(BlogConstants.BLOG_THIRD_BLOG_COMMENT);
+			blogThirdDataVO.setModifyTime(modifyTime);
+			producerTeplate.send(BlogConstants.BLOG_TOPIC, JSONObject.toJSONString(blogThirdDataVO));
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * 
+	 * @Title: updateReplyShieldStatus  
+	 * @Description: 屏蔽/恢复回复
+	 * @param blogThirdVO
+	 * @throws BusinessException    参数  
+	 * @return: boolean    返回类型
+	 */
+	@SuppressWarnings("unchecked")
+	public boolean updateReplyShieldStatus(BlogThirdVO blogThirdVO) throws BusinessException {
+		try {
+			// 获取参数
+			String commentCode = blogThirdVO.getUpSubjectCode(); // 评论编号
+			String replyCode = blogThirdVO.getSubjectCode(); // 回复编号
+			Long modifyTime = blogThirdVO.getModifyTime(); // 修改时间
+			Byte actionClass = blogThirdVO.getActionClass(); // 操作类型
+			int updateNumber = 0;
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("replyCode", replyCode); // 回复编号
+			paramMap.put("modifyTime", modifyTime); // 修改时间
+			if (BlogConstants.BLOG_ACTION_NO.equals(actionClass)) {
+				// 恢复回复
+				paramMap.put("blogIsShield", BlogConstants.BLOG_NO); // 屏蔽状态
+				updateNumber = 1;
+			} else if (BlogConstants.BLOG_ACTION_YES.equals(actionClass)) {
+				// 屏蔽回复
+				paramMap.put("blogIsShield", BlogConstants.BLOG_YES); // 屏蔽状态
+				updateNumber = -1;
+			} else {
+				log.error("BlogThirdServiceImpl.updateCommentShieldStatus：actionClass错误");
+				throw BusinessException.build("COMMON_402", "actionClass");
+			}
+			
+			// 修改
+			int shieldNum = blogReplyMapper.shield(paramMap);
+			if (shieldNum != 1) {
+				log.error("BlogThirdServiceImpl.updateCommentShieldStatus：屏蔽/恢复" + shieldNum + "条回复信息");
+				return false;
+			}
+			
+			// 修改博客评论量
+			BlogThirdDataVO blogThirdDataVO = new BlogThirdDataVO();
+			blogThirdDataVO.setSubjectCode(commentCode);
+			blogThirdDataVO.setUpdateNumber(updateNumber);
+			blogThirdDataVO.setUpdateClass(BlogConstants.BLOG_THIRD_COMMENT_REPLY);
+			blogThirdDataVO.setModifyTime(modifyTime);
+			producerTeplate.send(BlogConstants.BLOG_TOPIC, JSONObject.toJSONString(blogThirdDataVO));
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+
+	/**
+	 * 获取订阅博客列表
+	 */
+	@Override
+	public List<RssReturnPo> getRssBlogList(BlogThirdVO blogThirdVO) throws BusinessException {
+		// 返回值
+		List<RssReturnPo> rssReturnPoList = null;
+		
+		try {
+			// 参数校验
+			if (blogThirdVO == null) {
+				log.error("BlogServiceImpl.getBlogList：blogThirdVO为空");
+				throw BusinessException.build("COMMON_402", "blogThirdVO");
+			}
+			
+			// 获取参数
+			Byte blogDepend = blogThirdVO.getBlogDepend(); // 订阅类型
+			String userCode = blogThirdVO.getUserCode(); // 订阅人员编号
+			String teamCode = blogThirdVO.getTeamCode(); // 订阅班组编号
+			Integer showSize = blogThirdVO.getShowSize(); // 查询条数
+			
+			
+			// 参数校验
+			if (showSize == null || showSize <= 0) {
+				log.error("BlogServiceImpl.getBlogList：showSize为空");
+				throw BusinessException.build("COMMON_402", "showSize");
+			}
+			if (BlogConstants.BLOG_DEPEND_USER.equals(blogDepend) && StringUtils.isBlank(userCode)) {
+				log.error("BlogServiceImpl.getBlogList：userCode为空");
+				throw BusinessException.build("COMMON_402", "userCode");
+			} else if (BlogConstants.BLOG_DEPEND_TEAM.equals(blogDepend) && StringUtils.isBlank(teamCode)) {
+				log.error("BlogServiceImpl.getBlogList：teamCode为空");
+				throw BusinessException.build("COMMON_402", "teamCode");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("blogDepend", blogDepend); // 从属关系
+			paramMap.put("userCode", userCode); // 人员编号
+			paramMap.put("teamCode", teamCode); // 班组编号
+			paramMap.put("showSize", showSize); // 查询条数
+			
+			// 查询列表
+			rssReturnPoList = blogInfoMapper.selectRssList(paramMap);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return rssReturnPoList;
+	}
+	
+	
+	/**
+	 * 根据博客编号列表获取博客基本信息和数据信息
+	 */
+	@Override
+	public List<BlogModel> getBlogTitleAndDataByCode(List<String> blogCodeList) throws BusinessException {
+		// 返回值
+		List<BlogModel> resultList = new ArrayList<BlogModel>();
+		
+		try {
+			// 参数校验
+			if (blogCodeList == null) {
+				log.error("BlogThirdServiceImpl.getBlogTitleAndDataByCode：blogCodeList为空");
+				throw BusinessException.build("COMMON_402", "blogCodeList");
+			}
+			
+			if (!blogCodeList.isEmpty()) {
+				// 拼接参数
+				Map<String, Object> paramMap = new HashMap<String, Object>();
+				paramMap.put("blogCodeList", blogCodeList); 
+				
+				// 查询
+				resultList = blogInfoMapper.getTitleDataByCode(paramMap);
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return resultList;
+	}
+
+}

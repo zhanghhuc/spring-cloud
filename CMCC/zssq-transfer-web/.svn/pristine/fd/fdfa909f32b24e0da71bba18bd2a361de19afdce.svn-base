@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.vote.dao.mapper.TransVoteOptionsMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.vote.pojo.TransVoteOptions" >
+    <id column="OPTIONS_ID" property="optionsId" jdbcType="INTEGER" />
+    <result column="VOTE_ID" property="voteId" jdbcType="INTEGER" />
+    <result column="OPTIONS_CONTENT" property="optionsContent" jdbcType="VARCHAR" />
+    <result column="POSITION" property="position" jdbcType="INTEGER" />
+    <result column="VOTE_NUM" property="voteNum" jdbcType="INTEGER" />
+    <result column="THUMBNAILS_PATH" property="thumbnailsPath" jdbcType="VARCHAR" />
+    <result column="IMG_PATH" property="imgPath" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    OPTIONS_ID, VOTE_ID, OPTIONS_CONTENT, POSITION, VOTE_NUM, THUMBNAILS_PATH, IMG_PATH
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.zssq.vote.pojo.TransVoteOptionsExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from trans_vote_options
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+    <if test="limitStart != null and limitStart>=0" >
+      limit #{limitStart} , #{limitEnd}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from trans_vote_options
+    where OPTIONS_ID = #{optionsId,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from trans_vote_options
+    where OPTIONS_ID = #{optionsId,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.zssq.vote.pojo.TransVoteOptionsExample" >
+    delete from trans_vote_options
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.zssq.vote.pojo.TransVoteOptions" >
+    insert into trans_vote_options (OPTIONS_ID, VOTE_ID, OPTIONS_CONTENT, 
+      POSITION, VOTE_NUM, THUMBNAILS_PATH, 
+      IMG_PATH)
+    values (#{optionsId,jdbcType=INTEGER}, #{voteId,jdbcType=INTEGER}, #{optionsContent,jdbcType=VARCHAR}, 
+      #{position,jdbcType=INTEGER}, #{voteNum,jdbcType=INTEGER}, #{thumbnailsPath,jdbcType=VARCHAR}, 
+      #{imgPath,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.vote.pojo.TransVoteOptions" >
+    insert into trans_vote_options
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="optionsId != null" >
+        OPTIONS_ID,
+      </if>
+      <if test="voteId != null" >
+        VOTE_ID,
+      </if>
+      <if test="optionsContent != null" >
+        OPTIONS_CONTENT,
+      </if>
+      <if test="position != null" >
+        POSITION,
+      </if>
+      <if test="voteNum != null" >
+        VOTE_NUM,
+      </if>
+      <if test="thumbnailsPath != null" >
+        THUMBNAILS_PATH,
+      </if>
+      <if test="imgPath != null" >
+        IMG_PATH,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="optionsId != null" >
+        #{optionsId,jdbcType=INTEGER},
+      </if>
+      <if test="voteId != null" >
+        #{voteId,jdbcType=INTEGER},
+      </if>
+      <if test="optionsContent != null" >
+        #{optionsContent,jdbcType=VARCHAR},
+      </if>
+      <if test="position != null" >
+        #{position,jdbcType=INTEGER},
+      </if>
+      <if test="voteNum != null" >
+        #{voteNum,jdbcType=INTEGER},
+      </if>
+      <if test="thumbnailsPath != null" >
+        #{thumbnailsPath,jdbcType=VARCHAR},
+      </if>
+      <if test="imgPath != null" >
+        #{imgPath,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.zssq.vote.pojo.TransVoteOptionsExample" resultType="java.lang.Integer" >
+    select count(*) from trans_vote_options
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update trans_vote_options
+    <set >
+      <if test="record.optionsId != null" >
+        OPTIONS_ID = #{record.optionsId,jdbcType=INTEGER},
+      </if>
+      <if test="record.voteId != null" >
+        VOTE_ID = #{record.voteId,jdbcType=INTEGER},
+      </if>
+      <if test="record.optionsContent != null" >
+        OPTIONS_CONTENT = #{record.optionsContent,jdbcType=VARCHAR},
+      </if>
+      <if test="record.position != null" >
+        POSITION = #{record.position,jdbcType=INTEGER},
+      </if>
+      <if test="record.voteNum != null" >
+        VOTE_NUM = #{record.voteNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.thumbnailsPath != null" >
+        THUMBNAILS_PATH = #{record.thumbnailsPath,jdbcType=VARCHAR},
+      </if>
+      <if test="record.imgPath != null" >
+        IMG_PATH = #{record.imgPath,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update trans_vote_options
+    set OPTIONS_ID = #{record.optionsId,jdbcType=INTEGER},
+      VOTE_ID = #{record.voteId,jdbcType=INTEGER},
+      OPTIONS_CONTENT = #{record.optionsContent,jdbcType=VARCHAR},
+      POSITION = #{record.position,jdbcType=INTEGER},
+      VOTE_NUM = #{record.voteNum,jdbcType=INTEGER},
+      THUMBNAILS_PATH = #{record.thumbnailsPath,jdbcType=VARCHAR},
+      IMG_PATH = #{record.imgPath,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.vote.pojo.TransVoteOptions" >
+    update trans_vote_options
+    <set >
+      <if test="voteId != null" >
+        VOTE_ID = #{voteId,jdbcType=INTEGER},
+      </if>
+      <if test="optionsContent != null" >
+        OPTIONS_CONTENT = #{optionsContent,jdbcType=VARCHAR},
+      </if>
+      <if test="position != null" >
+        POSITION = #{position,jdbcType=INTEGER},
+      </if>
+      <if test="voteNum != null" >
+        VOTE_NUM = #{voteNum,jdbcType=INTEGER},
+      </if>
+      <if test="thumbnailsPath != null" >
+        THUMBNAILS_PATH = #{thumbnailsPath,jdbcType=VARCHAR},
+      </if>
+      <if test="imgPath != null" >
+        IMG_PATH = #{imgPath,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where OPTIONS_ID = #{optionsId,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.vote.pojo.TransVoteOptions" >
+    update trans_vote_options
+    set VOTE_ID = #{voteId,jdbcType=INTEGER},
+      OPTIONS_CONTENT = #{optionsContent,jdbcType=VARCHAR},
+      POSITION = #{position,jdbcType=INTEGER},
+      VOTE_NUM = #{voteNum,jdbcType=INTEGER},
+      THUMBNAILS_PATH = #{thumbnailsPath,jdbcType=VARCHAR},
+      IMG_PATH = #{imgPath,jdbcType=VARCHAR}
+    where OPTIONS_ID = #{optionsId,jdbcType=INTEGER}
+  </update>
+</mapper>

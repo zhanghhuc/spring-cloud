@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.filing.dao.mapper.UserFriendMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.filing.pojo.UserFriend" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="user_friend_code" property="userFriendCode" jdbcType="VARCHAR" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="friend_user_code" property="friendUserCode" jdbcType="VARCHAR" />
+    <result column="friend_group_code" property="friendGroupCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="org_level" property="orgLevel" jdbcType="TINYINT" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, user_friend_code, user_code, friend_user_code, friend_group_code, create_time, 
+    modify_time, org_code, org_level
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from user_friend
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from user_friend
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.filing.pojo.UserFriend" >
+    insert into user_friend (id, user_friend_code, user_code, 
+      friend_user_code, friend_group_code, create_time, 
+      modify_time, org_code, org_level
+      )
+    values (#{id,jdbcType=BIGINT}, #{userFriendCode,jdbcType=VARCHAR}, #{userCode,jdbcType=VARCHAR}, 
+      #{friendUserCode,jdbcType=VARCHAR}, #{friendGroupCode,jdbcType=VARCHAR}, #{createTime,jdbcType=BIGINT}, 
+      #{modifyTime,jdbcType=BIGINT}, #{orgCode,jdbcType=VARCHAR}, #{orgLevel,jdbcType=TINYINT}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.filing.pojo.UserFriend" >
+    insert into user_friend
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="userFriendCode != null" >
+        user_friend_code,
+      </if>
+      <if test="userCode != null" >
+        user_code,
+      </if>
+      <if test="friendUserCode != null" >
+        friend_user_code,
+      </if>
+      <if test="friendGroupCode != null" >
+        friend_group_code,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="orgLevel != null" >
+        org_level,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="userFriendCode != null" >
+        #{userFriendCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="friendUserCode != null" >
+        #{friendUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="friendGroupCode != null" >
+        #{friendGroupCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        #{orgLevel,jdbcType=TINYINT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.filing.pojo.UserFriend" >
+    update user_friend
+    <set >
+      <if test="userFriendCode != null" >
+        user_friend_code = #{userFriendCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        user_code = #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="friendUserCode != null" >
+        friend_user_code = #{friendUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="friendGroupCode != null" >
+        friend_group_code = #{friendGroupCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        org_level = #{orgLevel,jdbcType=TINYINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.filing.pojo.UserFriend" >
+    update user_friend
+    set user_friend_code = #{userFriendCode,jdbcType=VARCHAR},
+      user_code = #{userCode,jdbcType=VARCHAR},
+      friend_user_code = #{friendUserCode,jdbcType=VARCHAR},
+      friend_group_code = #{friendGroupCode,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  <!-- 批量新增 -->
+  <insert id="bathInsert" parameterType="com.zssq.filing.pojo.UserFriend">
+  	INSERT INTO user_friend
+  		(
+  		user_friend_code, 
+  		user_code, 
+  		friend_user_code, 
+  		friend_group_code, 
+  		create_time, 
+    	modify_time, 
+    	org_code, 
+    	org_level
+  		)
+  	VALUES
+  		<foreach collection="list" index="index" item="item" separator=",">
+			(
+	  		#{item.userFriendCode,jdbcType=VARCHAR}, 
+	  		#{item.userCode,jdbcType=VARCHAR}, 
+	  		#{item.friendUserCode,jdbcType=VARCHAR}, 
+	  		#{item.friendGroupCode,jdbcType=VARCHAR}, 
+	  		#{item.createTime,jdbcType=VARCHAR}, 
+	  		#{item.modifyTime,jdbcType=VARCHAR}, 
+	  		#{item.orgCode,jdbcType=VARCHAR}, 
+	  		#{item.orgLevel,jdbcType=VARCHAR} 
+	  		)
+	  	</foreach>
+  </insert>
+</mapper>

@@ -1,0 +1,87 @@
+package com.zssq.service.impl;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.constants.RelationConstants;
+import com.zssq.dao.mapper.RelationDynamicMapper;
+import com.zssq.dao.mapper.RelationShareMapper;
+import com.zssq.dao.pojo.RelationDynamic;
+import com.zssq.dao.pojo.RelationShare;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.service.RelationShareService;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.vo.RelationSharevO;
+
+@Service("relationShareService")
+public class RelationShareServiceImpl implements RelationShareService {
+	private Logger log = Logger.getLogger(this.getClass());
+	@Autowired
+	private RelationShareMapper relationShareMapper;
+	@Autowired
+	private RelationDynamicMapper relationDynamicMapper;
+
+
+	/**
+	 *  获取用户分享列表
+	 */
+	@Override
+	public PageBean getUserSharePageBean(PageParam pageParam, RelationSharevO share) throws BusinessException{
+		// 拼接参数
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("limitStart", pageParam.getPageNo() * pageParam.getPageSize()); // 查询开始条数
+		paramMap.put("limitCount", pageParam.getPageSize()); // 查询结果条数
+		paramMap.put("queryTime", share.getQueryTime()); // 首次查询时间
+		paramMap.put("userCode", share.getUserCode()); 
+
+		//内容
+		List<Object> list =relationShareMapper.selectUserShareList(paramMap);
+		// 总数
+		Long count = relationShareMapper.selectUserShareCount(paramMap);
+		return new PageBean(pageParam.getPageNo(), pageParam.getPageSize(), count.intValue(), list);
+	}
+
+	/**
+	 *  删除分享
+	 */
+	@Override
+	public boolean delShare(RelationShare share, RelationDynamic dynamic)throws BusinessException {
+		
+		Map<String, Object> dynamicMap= new HashMap<String, Object>();
+		dynamicMap.put("modifyTime", new Date().getTime());
+		dynamicMap.put("dynamicIsDelete", RelationConstants.RELATION_YES);
+		dynamicMap.put("dynamicCode", dynamic.getDynamicCode());
+		return relationShareMapper.deleteByCode(share)==1&&
+				relationDynamicMapper.delete(dynamicMap)==1?true:false;
+	}
+
+	/**
+	 *  通过code获取分享信息
+	 */
+	@Override
+	public RelationShare getShareInfoByCode(RelationShare share)throws BusinessException {
+		try {
+			// 参数校验
+			if (share == null) {
+				log.error("RelationShareServiceImpl.getPortalRecList：参数为空");
+				throw BusinessException.build("COMMON_402", "参数");
+			}
+	
+			if (share.getShareCode()==null) {
+				log.error("RelationShareServiceImpl.getPortalRecList ：ShareCode");
+				throw BusinessException.build("COMMON_402","ShareCode");
+			}
+			return relationShareMapper.selectShareInfoByCode(share);
+		} catch (BusinessException e) {
+			throw e;
+		}
+	}
+
+}

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mappings>
+  <mapping>
+    <method name="getUserList">
+     <return-type componentType="com.mdcl.smap.bean.UserInfo"/>
+    </method>
+    <method name="getOrgList">
+     <return-type componentType="com.mdcl.smap.bean.OrgInfo"/>
+    </method>
+    <method name="getUserListByAttr">
+     <return-type componentType="com.mdcl.smap.bean.AttrResponse"/>
+    </method> 
+    <method name="getUserListByArea">
+     <return-type componentType="com.mdcl.smap.bean.AttrResponse"/>
+    </method> 
+    <method name="getUserListByUid">
+     <return-type componentType="com.mdcl.smap.bean.AttrResponse"/>
+    </method> 
+  </mapping>
+</mappings>

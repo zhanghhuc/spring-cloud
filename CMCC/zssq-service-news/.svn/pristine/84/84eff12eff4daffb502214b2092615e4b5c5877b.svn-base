@@ -1,0 +1,179 @@
+package com.zssq.biz;
+
+import com.zssq.constants.NewsNoticeConstants;
+import com.zssq.dao.mapper.NewsNoticeContentMapper;
+import com.zssq.news.dao.pojo.NewsNoticeContent;
+import com.zssq.news.model.NoticeModel;
+import com.zssq.news.model.NoticeQuery;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+/**
+ * Created by admin on 2017-04-05.
+ */
+@Service
+public class NewsNoticeContentBiz {
+
+    @Autowired
+    private NewsNoticeContentMapper newsNoticeContentMapper;
+
+    public int getNoticesCount(NoticeQuery noticeQuery) {
+        return newsNoticeContentMapper.selectCount(noticeQuery) ;
+    }
+
+    public List<NewsNoticeContent> getNotices(NoticeQuery noticeQuery) {
+        return newsNoticeContentMapper.selectByQuery(noticeQuery) ;
+    }
+
+    public NewsNoticeContent getNoticeDetail(NoticeQuery noticeQuery) {
+        return newsNoticeContentMapper.getNoticeDetail(noticeQuery) ;
+    }
+    public int addNoticeInfo(NoticeModel noticeModel) {
+        long time = System.currentTimeMillis() ;
+        NewsNoticeContent newsNoticeContent = generateNewsNoticeContent(noticeModel,time,time);
+        newsNoticeContent = addAttribute(newsNoticeContent);
+
+        Integer sortNumber = newsNoticeContentMapper.selectMinSort();
+        if(null == sortNumber){
+            sortNumber= 0 ;
+        }
+        newsNoticeContent.setNoticeSort(sortNumber);
+        return newsNoticeContentMapper.insert(newsNoticeContent) ;
+    }
+
+    public int updateNotice(NoticeModel noticeModel) {
+        long time = System.currentTimeMillis() ;
+        NewsNoticeContent newsNoticeContent = generateNewsNoticeContent(noticeModel,0,time);
+        return newsNoticeContentMapper.updateByCodeSelective(newsNoticeContent) ;
+    }
+
+
+    public int auditNotice(NoticeModel noticeModel) {
+        long time = System.currentTimeMillis();
+        NewsNoticeContent newsNoticeContent = newsNoticeContentMapper.selectByCode(noticeModel.getNoticeCode()) ;
+        newsNoticeContent.setNoticeStatus(noticeModel.getNoticeStatus());
+        newsNoticeContent.setModifyTime(time);
+        return newsNoticeContentMapper.updateByCode(newsNoticeContent) ;
+    }
+
+    public int deleteNotice(NoticeModel  noticeModel) {
+        return newsNoticeContentMapper.deleteByCode(noticeModel) ;
+    }
+
+    public int updateNewsNoticeUp(NoticeModel noticeModel) {
+        NewsNoticeContent newsNoticeContent = new NewsNoticeContent() ;
+        long currentTime = System.currentTimeMillis() ;
+        newsNoticeContent.setModifyTime(currentTime);
+        newsNoticeContent.setIsTop(noticeModel.getIsTop());
+        if(NewsNoticeConstants.NOTICE_IS_TOP == noticeModel.getIsTop()){
+            newsNoticeContent.setNoticeUpdateTime(currentTime);
+        }else{
+            newsNoticeContent.setNoticeUpdateTime(0l);
+        }
+        newsNoticeContent.setNoticeCode(noticeModel.getNoticeCode());
+        newsNoticeContent.setNoticeOperatorCode(noticeModel.getUserCode());
+        return newsNoticeContentMapper.updateByCodeSelective(newsNoticeContent) ;
+    }
+
+
+    public int updateNewsNoticeHidden(NoticeModel noticeModel) {
+        long time = System.currentTimeMillis();
+        NewsNoticeContent newsNoticeContent = generateNewsNoticeContent(noticeModel, 0, time);
+        return newsNoticeContentMapper.updateNewsNoticeHidden(newsNoticeContent);
+    }
+
+    public int updateNewsNoticeRepeal(NoticeModel noticeModel) {
+        NewsNoticeContent newsNoticeContent = new NewsNoticeContent() ;
+        newsNoticeContent.setModifyTime(System.currentTimeMillis());
+        newsNoticeContent.setNoticeStatus(noticeModel.getNoticeStatus());
+        newsNoticeContent.setNoticeCode(noticeModel.getNoticeCode());
+        newsNoticeContent.setNoticeOperatorCode(noticeModel.getUserCode());
+        return newsNoticeContentMapper.updateByCodeSelective(newsNoticeContent) ;
+    }
+
+    public int updateNoticeMove(NoticeModel noticeModel) {
+        long updateTime = System.currentTimeMillis();
+        NewsNoticeContent newsNoticeContent = newsNoticeContentMapper.selectByCode(noticeModel.getNoticeCode());
+        newsNoticeContent.setNoticeOperatorCode(noticeModel.getNoticeOperatorCode());
+        newsNoticeContent.setModifyTime(updateTime);
+        newsNoticeContent.setOrgLevel(Integer.valueOf(noticeModel.getNoticeOperatorLevel()));
+        newsNoticeContent.setOrgCode(noticeModel.getNoticeOperatorOrg());
+        int number = 0;
+        NewsNoticeContent besideNewsNoticeContent= null;
+        NoticeQuery noticeQuery = new NoticeQuery() ;
+        noticeQuery.setLimitStart(0);
+        noticeQuery.setPageSize(1);
+        noticeQuery.setIsDelete(0);
+        noticeQuery.setIsHidden(0);
+        if(null != noticeModel.getNoticeTitle()){
+            noticeQuery.setNoticeTitle(noticeModel.getNoticeTitle());
+        }
+        noticeQuery.setNoticeStatus(noticeModel.getNoticeStatus());
+        if(null != noticeModel.getStartTime() && noticeModel.getStartTime() > 0){
+            noticeQuery.setStartTime(noticeModel.getStartTime());
+        }
+        if(null != noticeModel.getEndTime()&& noticeModel.getEndTime() > 0){
+            noticeQuery.setEndTime(noticeModel.getEndTime());
+        }
+        Integer sortNumber = noticeModel.getNoticeSort() ;
+        System.out.println(sortNumber);
+        if (noticeModel.getMoveType() == 0) {//上移
+            noticeQuery.setSortEnd(sortNumber);//表示最大排序号之前的
+            noticeQuery.setOrderByClause("notice_sort desc");
+            besideNewsNoticeContent = newsNoticeContentMapper.selectByNoticeSort(noticeQuery);
+            newsNoticeContent.setNoticeSort(besideNewsNoticeContent.getNoticeSort());
+        } else {
+            noticeQuery.setSortStart(sortNumber);//表示最小排序号--之后的，大于这个排序号的第一个
+            noticeQuery.setOrderByClause("notice_sort asc");
+            besideNewsNoticeContent = newsNoticeContentMapper.selectByNoticeSort(noticeQuery);
+            newsNoticeContent.setNoticeSort(besideNewsNoticeContent.getNoticeSort());
+        }
+        number = newsNoticeContentMapper.updateByCodeSelective(newsNoticeContent);
+        if (null != besideNewsNoticeContent) {
+            besideNewsNoticeContent.setNoticeOperatorCode(noticeModel.getNoticeOperatorCode());
+            besideNewsNoticeContent.setNoticeSort(sortNumber);
+            besideNewsNoticeContent.setModifyTime(updateTime);
+            besideNewsNoticeContent.setOrgLevel(Integer.valueOf(noticeModel.getNoticeOperatorLevel()));
+            besideNewsNoticeContent.setOrgCode(noticeModel.getNoticeOperatorOrg());
+            number = newsNoticeContentMapper.updateByCodeSelective(besideNewsNoticeContent);
+        }
+        return number;
+    }
+
+    private NewsNoticeContent generateNewsNoticeContent(NoticeModel noticeModel, long createTime, long updateTime) {
+        NewsNoticeContent newsNoticeContent = new NewsNoticeContent();
+        newsNoticeContent.setNoticeOperatorCode(noticeModel.getNoticeOperatorCode());
+        newsNoticeContent.setNoticeCreatorCode(noticeModel.getNoticeCreatorCode());
+        newsNoticeContent.setOrgCode(noticeModel.getNoticeOperatorOrg());
+        newsNoticeContent.setOrgLevel(Integer.valueOf(noticeModel.getNoticeOperatorLevel()));
+        newsNoticeContent.setNoticeTitle(noticeModel.getNoticeTitle());
+        newsNoticeContent.setNoticeContentText(noticeModel.getNoticeContentText());
+        newsNoticeContent.setNoticeContentHtml(noticeModel.getNoticeContentHtml());
+        newsNoticeContent.setNoticeStatus(noticeModel.getNoticeStatus());
+        newsNoticeContent.setNoticeCode(noticeModel.getNoticeCode());
+        newsNoticeContent.setTenantCode(noticeModel.getTenantCode());
+
+        if (createTime > 0) {
+            newsNoticeContent.setCreateTime(createTime);
+        }
+        if (updateTime > 0) {
+            newsNoticeContent.setModifyTime(updateTime);
+        }
+        if(null != noticeModel.getNoticeRemark() && !"".equals(noticeModel.getNoticeRemark())){
+            newsNoticeContent.setNoticeRemark(noticeModel.getNoticeRemark());
+        }
+        return newsNoticeContent;
+    }
+
+
+    private NewsNoticeContent addAttribute(NewsNoticeContent newsNoticeContent) {
+        newsNoticeContent.setIsDelete(0);
+        newsNoticeContent.setIsHidden(0);
+        newsNoticeContent.setIsTop(0);
+        newsNoticeContent.setNoticeSort(0);
+        return newsNoticeContent ;
+    }
+
+}

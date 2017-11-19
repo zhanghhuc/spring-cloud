@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE generatorConfiguration  
+  PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"  
+  "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+		
+	<!-- 引入配置文件 -->
+	<properties resource="mybatis-generator.properties" />
+
+	<!-- 数据库驱动 -->
+	<classPathEntry location="E:\MyTool\Maven\.m2\repository\mysql\mysql-connector-java\5.1.32\mysql-connector-java-5.1.32.jar" />
+	<context id="mysql" targetRuntime="MyBatis3">
+	    <!-- 这里引入分页插件 -->
+   		<plugin type="mybatis.generator.PaginationPlugin" />
+   		
+		<commentGenerator>
+			<!-- 是否生成注释代时间戳 -->
+			<property name="suppressDate" value="true" />
+			<!-- 是否去除自动生成的注释 true：是 ： false:否 -->
+			<property name="suppressAllComments" value="true" />
+		</commentGenerator>
+
+		<!--数据库链接URL，用户名、密码 -->
+		<jdbcConnection driverClass="${datasource.driverClassName}"
+			connectionURL="${datasource.url}" userId="${datasource.username}"
+			password="${datasource.password}">
+		</jdbcConnection>
+
+		<!-- 类型转换 -->
+		<javaTypeResolver>
+			<!-- 是否使用bigDecimal， false可自动转化以下类型（Long, Integer, Short, etc.） -->
+			<property name="forceBigDecimals" value="false" />
+		</javaTypeResolver>
+
+		
+
+
+		<!-- 生成模型的包名和位置-->    
+        <javaModelGenerator targetPackage="com.powertorque.dao.pojo" targetProject="src/main/java">    
+            <property name="enableSubPackages" value="true"/>    
+            <property name="trimStrings" value="true"/>    
+        </javaModelGenerator>    
+        <!-- 生成映射文件的包名和位置-->    
+        <sqlMapGenerator targetPackage="com.powertorque.dao.mapping" targetProject="src/main/java">    
+            <property name="enableSubPackages" value="true"/>    
+        </sqlMapGenerator>    
+        <!-- 生成DAO的包名和位置-->    
+        <javaClientGenerator type="XMLMAPPER" targetPackage="com.powertorque.dao.mapper" targetProject="src/main/java">
+            <property name="enableSubPackages" value="true"/>    
+        </javaClientGenerator>  
+        
+        <!-- 带分页的，但需要两个实体类 -->
+    	<!-- <table tableName="user_t" domainObjectName="UserT"
+			enableCountByExample="true" enableUpdateByExample="true"
+			enableDeleteByExample="true" enableSelectByExample="true"
+			selectByExampleQueryId="true">
+			   <property name="useActualColumnNames" value="false" />
+    	</table> -->
+    	
+    	<!-- 要生成的表 tableName是数据库中的表名或视图名 domainObjectName是实体类名-->    
+<!--         <table tableName="user_disk_at" domainObjectName="UserdiskAt" 
+        enableCountByExample="false" enableUpdateByExample="false" 
+        enableDeleteByExample="false" enableSelectByExample="false" 
+        selectByExampleQueryId="false"></table>   -->
+   		<table tableName="disk_file" domainObjectName="DiskFile" 
+        enableCountByExample="false" enableUpdateByExample="false" 
+        enableDeleteByExample="false" enableSelectByExample="false" 
+        selectByExampleQueryId="false"></table>  
+        
+	</context>
+</generatorConfiguration>  

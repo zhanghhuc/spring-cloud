@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.auth.dao.mapper.KcOrgMapper">
+
+	<!-- "zssq-activity.kc_org"表字段与Java实体类映射关系 -->
+	<resultMap id="BaseResultMap" type="com.zssq.auth.pojo.KcOrg">
+		<result column="ORG_ID" property="orgId" jdbcType="INTEGER" />
+		<result column="ORG_CODE" property="orgCode" jdbcType="VARCHAR" />
+		<result column="ORG_NAME" property="orgName" jdbcType="VARCHAR" />
+		<result column="PARENT_CODE" property="parentCode" jdbcType="VARCHAR" />
+		<result column="ORG_LEVEL" property="orgLevel" jdbcType="INTEGER" />
+		<result column="ORG_ORDER" property="orgOrder" jdbcType="INTEGER" />
+		<result column="ORG_STATUS" property="orgStatus" jdbcType="INTEGER" />
+		<result column="ORG_FULL_NAME" property="orgFullName" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<select id="selectKcOrgCount" resultType="java.lang.Integer">
+		select count(0) from kc_org
+	</select>	
+
+	<select id="selectKcOrgBatch" resultMap="BaseResultMap" parameterType="java.util.Map">
+		select * from kc_org limit ${startRowNum}, ${executeSize}
+	</select>
+</mapper>

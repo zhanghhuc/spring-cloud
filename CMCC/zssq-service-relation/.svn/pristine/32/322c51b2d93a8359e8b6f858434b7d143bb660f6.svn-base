@@ -1,0 +1,1018 @@
+package com.zssq.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.constants.RelationConstants;
+import com.zssq.dao.mapper.RelationDynamicMapper;
+import com.zssq.dao.mapper.RelationDynamicTeamRelMapper;
+import com.zssq.dao.mapper.RelationQualityMapper;
+import com.zssq.dao.mapper.RelationRecommendMapper;
+import com.zssq.dao.pojo.RelationDynamic;
+import com.zssq.dao.pojo.RelationDynamicTeamRel;
+import com.zssq.dao.pojo.RelationQuality;
+import com.zssq.dao.pojo.RelationRecommend;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.model.RelationDynamicModel;
+import com.zssq.service.RelationDynamicService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.vo.RelationDynamicVO;
+
+/**
+ * 
+ * @ClassName: RelationDynamicServiceImpl  
+ * @Description: 动态  
+ * @author ZKZ  
+ * @date 2017年3月18日  
+ *
+ */
+@Service("relationDynamicService")
+public class RelationDynamicServiceImpl implements RelationDynamicService {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private RelationDynamicMapper relationDynamicMapper;
+	@Autowired
+	private RelationDynamicTeamRelMapper relationDynamicTeamRelMapper;
+	@Autowired
+	private RelationQualityMapper relationQualityMapper;
+	@Autowired
+	private RelationRecommendMapper relationRecommendMapper;
+
+	/**
+	 * 查询个人空间动态
+	 */
+	@Override
+	public PageBean getUserSpaceDynamicList(PageParam pageParam, RelationDynamicVO relationDynamicVO)
+			throws BusinessException {
+		// 返回值
+		PageBean pageBean = null;
+		
+		try {
+			// 参数校验
+			if (pageParam == null) {
+				log.error("RelationDynamicServiceImpl.getUserSpaceDynamicList：pageParam为空");
+				throw BusinessException.build("COMMON_402", "pageParam");
+			}
+			if (relationDynamicVO == null) {
+				log.error("RelationDynamicServiceImpl.getUserSpaceDynamicList：relationDynamicVO为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicVO");
+			}
+			
+			// 获取参数
+			Integer pageSize = pageParam.getPageSize(); // 每页记录数
+			Integer pageNo = pageParam.getPageNo(); // 当前页数
+			List<String> userCodeList = relationDynamicVO.getUserCodeList(); // 人员列表
+			List<String> teamCodeList = relationDynamicVO.getTeamCodeList(); // 班组列表
+			String userCode = relationDynamicVO.getUserCode(); // 人员编号
+			Long queryTime = relationDynamicVO.getQueryTime(); // 首次查询时间
+			
+			// 参数校验
+			if (pageSize == null || pageNo == null) {
+				log.error("RelationDynamicServiceImpl.getUserSpaceDynamicList：分页信息为空");
+				throw BusinessException.build("COMMON_402", "分页信息");
+			}
+			if (StringUtils.isBlank(userCode)) {
+				log.error("RelationDynamicServiceImpl.getUserSpaceDynamicList：userCode为空");
+				throw BusinessException.build("COMMON_402", "userCode");
+			}
+			if (queryTime == null) {
+				log.error("RelationDynamicServiceImpl.getUserSpaceDynamicList：queryTime为空");
+				throw BusinessException.build("COMMON_402", "queryTime");
+			}
+			
+			// 人员列表中增加自己
+			if (userCodeList == null) {
+				userCodeList = new ArrayList<String>();
+			}
+			userCodeList.add(userCode);
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("limitStart", pageNo*pageSize); // 查询开始条数
+			paramMap.put("limitCount", pageSize); // 查询结果条数
+			paramMap.put("queryTime", queryTime); // 首次查询时间
+			paramMap.put("userCode", userCode); // 人员编号
+			paramMap.put("userCodeList", userCodeList); // 人员编号列表
+			paramMap.put("teamCodeList", teamCodeList); // 班组编号列表
+			
+			// 查询列表总数
+			int count = relationDynamicMapper.selectUserSpaceDynamicCount(paramMap);
+			
+			// 查询列表内容
+			List<RelationDynamicModel> dynamicList = relationDynamicMapper.selectUserSpaceDynamicList(paramMap);
+			
+			// 返回值
+			pageBean = new PageBean(pageNo, pageSize, count, dynamicList);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return pageBean;
+	}
+
+	/**
+	 * 查询个人主页动态
+	 */
+	@Override
+	public PageBean getUserDynamicList(PageParam pageParam, RelationDynamicVO relationDynamicVO)
+			throws BusinessException {
+		// 返回值
+		PageBean pageBean = null;
+		
+		try {
+			// 参数校验
+			if (pageParam == null) {
+				log.error("RelationDynamicServiceImpl.getUserDynamicList：pageParam为空");
+				throw BusinessException.build("COMMON_402", "pageParam");
+			}
+			if (relationDynamicVO == null) {
+				log.error("RelationDynamicServiceImpl.getUserDynamicList：relationDynamicVO为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicVO");
+			}
+			
+			// 获取参数
+			Integer pageSize = pageParam.getPageSize(); // 每页记录数
+			Integer pageNo = pageParam.getPageNo(); // 当前页数
+			String userCode = relationDynamicVO.getUserCode(); // 人员编号
+			String dynamicUserCode = relationDynamicVO.getDynamicUserCode(); // 所属人员编号
+			Long queryTime = relationDynamicVO.getQueryTime(); // 首次查询时间
+			
+			// 参数校验
+			if (pageSize == null || pageNo == null) {
+				log.error("RelationDynamicServiceImpl.getUserDynamicList：分页信息为空");
+				throw BusinessException.build("COMMON_402", "分页信息");
+			}
+			if (StringUtils.isBlank(userCode)) {
+				log.error("RelationDynamicServiceImpl.getUserDynamicList：userCode为空");
+				throw BusinessException.build("COMMON_402", "userCode");
+			}
+			if (StringUtils.isBlank(dynamicUserCode)) {
+				log.error("RelationDynamicServiceImpl.getUserDynamicList：dynamicUserCode为空");
+				throw BusinessException.build("COMMON_402", "dynamicUserCode");
+			}
+			if (queryTime == null) {
+				log.error("RelationDynamicServiceImpl.getUserDynamicList：queryTime为空");
+				throw BusinessException.build("COMMON_402", "queryTime");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("limitStart", pageNo*pageSize); // 查询开始条数
+			paramMap.put("limitCount", pageSize); // 查询结果条数
+			paramMap.put("queryTime", queryTime); // 首次查询时间
+			paramMap.put("userCode", userCode); // 人员编号
+			paramMap.put("dynamicUserCode", dynamicUserCode); // 所属人员编号
+			
+			// 查询列表总数
+			int count = relationDynamicMapper.selectUserDynamicCount(paramMap);
+			
+			// 查询列表内容
+			List<RelationDynamicModel> dynamicList = relationDynamicMapper.selectUserDynamicList(paramMap);
+			
+			// 返回值
+			pageBean = new PageBean(pageNo, pageSize, count, dynamicList);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return pageBean;
+	}
+
+	/**
+	 * 查询班组动态
+	 */
+	@Override
+	public PageBean getTeamDynamicList(PageParam pageParam, RelationDynamicVO relationDynamicVO)
+			throws BusinessException {
+		// 返回值
+		PageBean pageBean = null;
+		
+		try {
+			// 参数校验
+			if (pageParam == null) {
+				log.error("RelationDynamicServiceImpl.getTeamDynamicList：pageParam为空");
+				throw BusinessException.build("COMMON_402", "pageParam");
+			}
+			if (relationDynamicVO == null) {
+				log.error("RelationDynamicServiceImpl.getTeamDynamicList：relationDynamicVO为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicVO");
+			}
+			
+			// 获取参数
+			Integer pageSize = pageParam.getPageSize(); // 每页记录数
+			Integer pageNo = pageParam.getPageNo(); // 当前页数
+			String userCode = relationDynamicVO.getUserCode(); // 人员编号
+			String teamCode = relationDynamicVO.getTeamCode(); // 班组编号
+			Long queryTime = relationDynamicVO.getQueryTime(); // 首次查询时间
+			
+			// 参数校验
+			if (pageSize == null || pageNo == null) {
+				log.error("RelationDynamicServiceImpl.getTeamDynamicList：分页信息为空");
+				throw BusinessException.build("COMMON_402", "分页信息");
+			}
+			if (StringUtils.isBlank(userCode)) {
+				log.error("RelationDynamicServiceImpl.getTeamDynamicList：userCode为空");
+				throw BusinessException.build("COMMON_402", "userCode");
+			}
+			if (StringUtils.isBlank(teamCode)) {
+				log.error("RelationDynamicServiceImpl.getTeamDynamicList：teamCode为空");
+				throw BusinessException.build("COMMON_402", "teamCode");
+			}
+			if (queryTime == null) {
+				log.error("RelationDynamicServiceImpl.getTeamDynamicList：queryTime为空");
+				throw BusinessException.build("COMMON_402", "queryTime");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("limitStart", pageNo*pageSize); // 查询开始条数
+			paramMap.put("limitCount", pageSize); // 查询结果条数
+			paramMap.put("queryTime", queryTime); // 首次查询时间
+			paramMap.put("userCode", userCode); // 人员编号
+			paramMap.put("teamCode", teamCode); // 班组编号
+			
+			// 查询列表总数
+			int count = relationDynamicMapper.selectTeamDynamicCount(paramMap);
+			
+			// 查询列表内容
+			List<RelationDynamicModel> dynamicList = relationDynamicMapper.selectTeamDynamicList(paramMap);
+			
+			// 返回值
+			pageBean = new PageBean(pageNo, pageSize, count, dynamicList);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return pageBean;
+	}
+
+	/**
+	 * 查询班组成员动态
+	 */
+	@Override
+	public PageBean getTeamUserDynamicList(PageParam pageParam, RelationDynamicVO relationDynamicVO)
+			throws BusinessException {
+		// 返回值
+		PageBean pageBean = null;
+		
+		try {
+			// 参数校验
+			if (pageParam == null) {
+				log.error("RelationDynamicServiceImpl.getTeamUserDynamicList：pageParam为空");
+				throw BusinessException.build("COMMON_402", "pageParam");
+			}
+			if (relationDynamicVO == null) {
+				log.error("RelationDynamicServiceImpl.getTeamUserDynamicList：relationDynamicVO为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicVO");
+			}
+			
+			// 获取参数
+			Integer pageSize = pageParam.getPageSize(); // 每页记录数
+			Integer pageNo = pageParam.getPageNo(); // 当前页数
+			String userCode = relationDynamicVO.getUserCode(); // 人员编号
+			List<String> userCodeList = relationDynamicVO.getUserCodeList(); // 班组成员列表
+			Long queryTime = relationDynamicVO.getQueryTime(); // 首次查询时间
+			String teamCode = relationDynamicVO.getTeamCode(); // 班组编号
+			
+			// 参数校验
+			if (pageSize == null || pageNo == null) {
+				log.error("RelationDynamicServiceImpl.getTeamUserDynamicList：分页信息为空");
+				throw BusinessException.build("COMMON_402", "分页信息");
+			}
+			if (StringUtils.isBlank(userCode)) {
+				log.error("RelationDynamicServiceImpl.getTeamUserDynamicList：userCode为空");
+				throw BusinessException.build("COMMON_402", "userCode");
+			}
+			if (queryTime == null) {
+				log.error("RelationDynamicServiceImpl.getTeamUserDynamicList：queryTime为空");
+				throw BusinessException.build("COMMON_402", "queryTime");
+			}
+			if (userCodeList == null || userCodeList.isEmpty()) {
+				log.error("RelationDynamicServiceImpl.getTeamUserDynamicList：userCodeList为空");
+				throw BusinessException.build("COMMON_402", "userCodeList");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("limitStart", pageNo*pageSize); // 查询开始条数
+			paramMap.put("limitCount", pageSize); // 查询结果条数
+			paramMap.put("queryTime", queryTime); // 首次查询时间
+			paramMap.put("userCode", userCode); // 人员编号
+			paramMap.put("teamCode", teamCode); // 班组编号
+			paramMap.put("userCodeList", userCodeList); // 人员列表
+			
+			// 查询列表总数
+			int count = relationDynamicMapper.selectTeamUserDynamicCount(paramMap);
+			
+			// 查询列表内容
+			List<RelationDynamicModel> dynamicList = relationDynamicMapper.selectTeamUserDynamicList(paramMap);
+			
+			// 返回值
+			pageBean = new PageBean(pageNo, pageSize, count, dynamicList);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return pageBean;
+	}
+
+	/**
+	 * 查询门户成员动态列表
+	 */
+	@Override
+	public PageBean getPortalUserDynamicList(PageParam pageParam, RelationDynamicVO relationDynamicVO)
+			throws BusinessException {
+		// 返回值
+		PageBean pageBean = null;
+		
+		try {
+			// 参数校验
+			if (pageParam == null) {
+				log.error("RelationDynamicServiceImpl.getPortalUserDynamicList：pageParam为空");
+				throw BusinessException.build("COMMON_402", "pageParam");
+			}
+			if (relationDynamicVO == null) {
+				log.error("RelationDynamicServiceImpl.getPortalUserDynamicList：relationDynamicVO为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicVO");
+			}
+			
+			// 获取参数
+			Integer pageSize = pageParam.getPageSize(); // 每页记录数
+			Integer pageNo = pageParam.getPageNo(); // 当前页数
+			String userCode = relationDynamicVO.getUserCode(); // 人员编号
+			String orgCode = relationDynamicVO.getOrgCode(); // 门户编号
+			Long queryTime = relationDynamicVO.getQueryTime(); // 首次查询时间
+			
+			// 参数校验
+			if (pageSize == null || pageNo == null) {
+				log.error("RelationDynamicServiceImpl.getPortalUserDynamicList：分页信息为空");
+				throw BusinessException.build("COMMON_402", "分页信息");
+			}
+			if (StringUtils.isBlank(userCode)) {
+				log.error("RelationDynamicServiceImpl.getPortalUserDynamicList：userCode为空");
+				throw BusinessException.build("COMMON_402", "userCode");
+			}
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("RelationDynamicServiceImpl.getPortalUserDynamicList：orgCode为空");
+				throw BusinessException.build("COMMON_402", "orgCode");
+			}
+			if (queryTime == null) {
+				log.error("RelationDynamicServiceImpl.getPortalUserDynamicList：queryTime为空");
+				throw BusinessException.build("COMMON_402", "queryTime");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("limitStart", pageNo*pageSize); // 查询开始条数
+			paramMap.put("limitCount", pageSize); // 查询结果条数
+			paramMap.put("queryTime", queryTime); // 首次查询时间
+			paramMap.put("userCode", userCode); // 人员编号
+			paramMap.put("orgCode", orgCode); // 门户编号
+			
+			// 查询列表总数
+			int count = relationDynamicMapper.selectPortalUserDynamicCount(paramMap);
+			
+			// 查询列表内容
+			List<RelationDynamicModel> dynamicList = relationDynamicMapper.selectPortalUserDynamicList(paramMap);
+			
+			// 返回值
+			pageBean = new PageBean(pageNo, pageSize, count, dynamicList);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return pageBean;
+	}
+
+	/**
+	 * 查询门户班组动态列表
+	 */
+	@Override
+	public PageBean getPortalTeamDynamicList(PageParam pageParam, RelationDynamicVO relationDynamicVO)
+			throws BusinessException {
+		// 返回值
+		PageBean pageBean = null;
+		
+		try {
+			// 参数校验
+			if (pageParam == null) {
+				log.error("RelationDynamicServiceImpl.getPortalTeamDynamicList：pageParam为空");
+				throw BusinessException.build("COMMON_402", "pageParam");
+			}
+			if (relationDynamicVO == null) {
+				log.error("RelationDynamicServiceImpl.getPortalTeamDynamicList：relationDynamicVO为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicVO");
+			}
+			
+			// 获取参数
+			Integer pageSize = pageParam.getPageSize(); // 每页记录数
+			Integer pageNo = pageParam.getPageNo(); // 当前页数
+			String userCode = relationDynamicVO.getUserCode(); // 人员编号
+			String orgCode = relationDynamicVO.getOrgCode(); // 门户编号
+			Long queryTime = relationDynamicVO.getQueryTime(); // 首次查询时间
+			
+			// 参数校验
+			if (pageSize == null || pageNo == null) {
+				log.error("RelationDynamicServiceImpl.getPortalTeamDynamicList：分页信息为空");
+				throw BusinessException.build("COMMON_402", "分页信息");
+			}
+			if (StringUtils.isBlank(userCode)) {
+				log.error("RelationDynamicServiceImpl.getPortalTeamDynamicList：userCode为空");
+				throw BusinessException.build("COMMON_402", "userCode");
+			}
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("RelationDynamicServiceImpl.getPortalTeamDynamicList：orgCode为空");
+				throw BusinessException.build("COMMON_402", "orgCode");
+			}
+			if (queryTime == null) {
+				log.error("RelationDynamicServiceImpl.getPortalTeamDynamicList：queryTime为空");
+				throw BusinessException.build("COMMON_402", "queryTime");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("limitStart", pageNo*pageSize); // 查询开始条数
+			paramMap.put("limitCount", pageSize); // 查询结果条数
+			paramMap.put("queryTime", queryTime); // 首次查询时间
+			paramMap.put("userCode", userCode); // 人员编号
+			paramMap.put("orgCode", orgCode); // 门户编号
+			
+			// 查询列表总数
+			int count = relationDynamicMapper.selectPortalTeamDynamicCount(paramMap);
+			
+			// 查询列表内容
+			List<RelationDynamicModel> dynamicList = relationDynamicMapper.selectPortalTeamDynamicList(paramMap);
+			
+			// 返回值
+			pageBean = new PageBean(pageNo, pageSize, count, dynamicList);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return pageBean;
+	}
+
+	/**
+	 * 查询门户1号班组动态列表
+	 */
+	@Override
+	public PageBean getPortalTopTeamDynamicList(PageParam pageParam, RelationDynamicVO relationDynamicVO)
+			throws BusinessException {
+		// 返回值
+		PageBean pageBean = null;
+		
+		try {
+			// 参数校验
+			if (pageParam == null) {
+				log.error("RelationDynamicServiceImpl.getPortalTopTeamDynamicList：pageParam为空");
+				throw BusinessException.build("COMMON_402", "pageParam");
+			}
+			if (relationDynamicVO == null) {
+				log.error("RelationDynamicServiceImpl.getPortalTopTeamDynamicList：relationDynamicVO为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicVO");
+			}
+			
+			// 获取参数
+			Integer pageSize = pageParam.getPageSize(); // 每页记录数
+			Integer pageNo = pageParam.getPageNo(); // 当前页数
+			String userCode = relationDynamicVO.getUserCode(); // 人员编号
+			String orgCode = relationDynamicVO.getOrgCode(); // 门户编号
+			Long queryTime = relationDynamicVO.getQueryTime(); // 首次查询时间
+			
+			// 参数校验
+			if (pageSize == null || pageNo == null) {
+				log.error("RelationDynamicServiceImpl.getPortalTopTeamDynamicList：分页信息为空");
+				throw BusinessException.build("COMMON_402", "分页信息");
+			}
+			if (StringUtils.isBlank(userCode)) {
+				log.error("RelationDynamicServiceImpl.getPortalTopTeamDynamicList：userCode为空");
+				throw BusinessException.build("COMMON_402", "userCode");
+			}
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("RelationDynamicServiceImpl.getPortalTopTeamDynamicList：orgCode为空");
+				throw BusinessException.build("COMMON_402", "orgCode");
+			}
+			if (queryTime == null) {
+				log.error("RelationDynamicServiceImpl.getPortalTopTeamDynamicList：queryTime为空");
+				throw BusinessException.build("COMMON_402", "queryTime");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("limitStart", pageNo*pageSize); // 查询开始条数
+			paramMap.put("limitCount", pageSize); // 查询结果条数
+			paramMap.put("queryTime", queryTime); // 首次查询时间
+			paramMap.put("userCode", userCode); // 人员编号
+			paramMap.put("orgCode", orgCode); // 门户编号
+			
+			// 查询列表总数
+			int count = relationDynamicMapper.selectPortalTopTeamDynamicCount(paramMap);
+			
+			// 查询列表内容
+			List<RelationDynamicModel> dynamicList = relationDynamicMapper.selectPortalTopTeamDynamicList(paramMap);
+			
+			// 返回值
+			pageBean = new PageBean(pageNo, pageSize, count, dynamicList);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return pageBean;
+	}
+
+	/**
+	 * 查询门户百强班组动态列表
+	 */
+	@Override
+	public PageBean getPortalExTeamDynamicList(PageParam pageParam, RelationDynamicVO relationDynamicVO)
+			throws BusinessException {
+		// 返回值
+		PageBean pageBean = null;
+		
+		try {
+			// 参数校验
+			if (pageParam == null) {
+				log.error("RelationDynamicServiceImpl.getPortalExTeamDynamicList：pageParam为空");
+				throw BusinessException.build("COMMON_402", "pageParam");
+			}
+			if (relationDynamicVO == null) {
+				log.error("RelationDynamicServiceImpl.getPortalExTeamDynamicList：relationDynamicVO为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicVO");
+			}
+			
+			// 获取参数
+			Integer pageSize = pageParam.getPageSize(); // 每页记录数
+			Integer pageNo = pageParam.getPageNo(); // 当前页数
+			String userCode = relationDynamicVO.getUserCode(); // 人员编号
+			String orgCode = relationDynamicVO.getOrgCode(); // 门户编号
+			Long queryTime = relationDynamicVO.getQueryTime(); // 首次查询时间
+			
+			// 参数校验
+			if (pageSize == null || pageNo == null) {
+				log.error("RelationDynamicServiceImpl.getPortalExTeamDynamicList：分页信息为空");
+				throw BusinessException.build("COMMON_402", "分页信息");
+			}
+			if (StringUtils.isBlank(userCode)) {
+				log.error("RelationDynamicServiceImpl.getPortalExTeamDynamicList：userCode为空");
+				throw BusinessException.build("COMMON_402", "userCode");
+			}
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("RelationDynamicServiceImpl.getPortalExTeamDynamicList：orgCode为空");
+				throw BusinessException.build("COMMON_402", "orgCode");
+			}
+			if (queryTime == null) {
+				log.error("RelationDynamicServiceImpl.getPortalExTeamDynamicList：queryTime为空");
+				throw BusinessException.build("COMMON_402", "queryTime");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("limitStart", pageNo*pageSize); // 查询开始条数
+			paramMap.put("limitCount", pageSize); // 查询结果条数
+			paramMap.put("queryTime", queryTime); // 首次查询时间
+			paramMap.put("userCode", userCode); // 人员编号
+			paramMap.put("orgCode", orgCode); // 门户编号
+			
+			// 查询列表总数
+			int count = relationDynamicMapper.selectPortalExTeamDynamicCount(paramMap);
+			
+			// 查询列表内容
+			List<RelationDynamicModel> dynamicList = relationDynamicMapper.selectPortalExTeamDynamicList(paramMap);
+			
+			// 返回值
+			pageBean = new PageBean(pageNo, pageSize, count, dynamicList);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return pageBean;
+	}
+	
+	/**
+	 * 查询动态班组关系信息
+	 */
+	@Override
+	public RelationDynamicTeamRel getDynamicTeamRel(RelationDynamicVO relationDynamicVO) throws BusinessException {
+		// 返回值
+		RelationDynamicTeamRel relationDynamicTeamRel = null;
+		
+		try {
+			// 参数校验
+			if (relationDynamicVO == null) {
+				log.error("RelationDynamicServiceImpl.getDynamicTeamRel：relationDynamicVO为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicVO");
+			}
+			
+			// 获取参数
+			String dynamicCode = relationDynamicVO.getDynamicCode(); // 动态编号
+			String teamCode = relationDynamicVO.getTeamCode(); // 班组编号
+			
+			// 参数校验
+			if (StringUtils.isBlank(dynamicCode)) {
+				log.error("RelationDynamicServiceImpl.getDynamicTeamRel：dynamicCode为空");
+				throw BusinessException.build("COMMON_402", "dynamicCode");
+			}
+			if (StringUtils.isBlank(teamCode)) {
+				log.error("RelationDynamicServiceImpl.getDynamicTeamRel：teamCode为空");
+				throw BusinessException.build("COMMON_402", "teamCode");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("dynamicCode", dynamicCode); // 动态编号
+			paramMap.put("teamCode", teamCode); // 班组编号
+			
+			// 查询
+			relationDynamicTeamRel = relationDynamicTeamRelMapper.getDynamicTeamRel(paramMap);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return relationDynamicTeamRel;
+	}
+	
+	/**
+	 * 班组首页展示动态
+	 */
+	@Override
+	public boolean saveTeamFrontDynamic(RelationDynamicTeamRel relationDynamicTeamRel) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationDynamicTeamRel == null) {
+				log.error("RelationDynamicServiceImpl.saveTeamFrontDynamic：relationDynamicTeamRel为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicTeamRel");
+			}
+			
+			// 获取参数
+			String relCode = relationDynamicTeamRel.getRelCode(); // 关系编号
+			
+			// 参数校验
+			if (StringUtils.isBlank(relCode)) {
+				// 插入
+				relationDynamicTeamRel.setRelCode(UUIDHelper.getUUID());
+				int insertNum = relationDynamicTeamRelMapper.insert(relationDynamicTeamRel);
+				if (insertNum != 1) {
+					log.error("RelationDynamicServiceImpl.saveTeamFrontDynamic：新增" + insertNum + "条动态班组关系信息 ");
+					return false;
+				}
+			} else {
+				// 获取参数
+				String dynamicCode = relationDynamicTeamRel.getDynamicCode(); // 动态编号
+				String teamCode = relationDynamicTeamRel.getTeamCode(); // 班组编号
+				Long modifyTime = relationDynamicTeamRel.getModifyTime(); // 修改时间
+				
+				// 参数校验
+				if (StringUtils.isBlank(dynamicCode)) {
+					log.error("RelationDynamicServiceImpl.saveTeamFrontDynamic：dynamicCode为空");
+					throw BusinessException.build("COMMON_402", "dynamicCode");
+				}
+				if (StringUtils.isBlank(teamCode)) {
+					log.error("RelationDynamicServiceImpl.saveTeamFrontDynamic：teamCode为空");
+					throw BusinessException.build("COMMON_402", "teamCode");
+				}
+				
+				// 拼接参数
+				Map<String, Object> paramMap = new HashMap<String, Object>();
+				paramMap.put("dynamicCode", dynamicCode); // 动态编号
+				paramMap.put("teamCode", teamCode); // 班组编号
+				paramMap.put("relIsHomeShow", RelationConstants.RELATION_YES); // 首页展示标识
+				paramMap.put("modifyTime", modifyTime); // 修改时间
+				
+				// 修改
+				int updateNum = relationDynamicTeamRelMapper.updateTeamFrontStatus(paramMap);
+				if (updateNum != 1) {
+					log.error("RelationDynamicServiceImpl.removeTeamFrontDynamic：修改" + updateNum + "条动态班组关系信息 ");
+					return false;
+				}
+			}
+			
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * 班组取消首页展示动态
+	 */
+	@Override
+	public boolean removeTeamFrontDynamic(RelationDynamicVO relationDynamicVO) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationDynamicVO == null) {
+				log.error("RelationDynamicServiceImpl.removeTeamFrontDynamic：relationDynamicVO为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicVO");
+			}
+			
+			// 获取参数
+			String dynamicCode = relationDynamicVO.getDynamicCode(); // 动态编号
+			String teamCode = relationDynamicVO.getTeamCode(); // 班组编号
+			Long modifyTime = relationDynamicVO.getModifyTime(); // 修改时间
+			
+			// 参数校验
+			if (StringUtils.isBlank(dynamicCode)) {
+				log.error("RelationDynamicServiceImpl.removeTeamFrontDynamic：dynamicCode为空");
+				throw BusinessException.build("COMMON_402", "dynamicCode");
+			}
+			if (StringUtils.isBlank(teamCode)) {
+				log.error("RelationDynamicServiceImpl.removeTeamFrontDynamic：teamCode为空");
+				throw BusinessException.build("COMMON_402", "teamCode");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("dynamicCode", dynamicCode); // 动态编号
+			paramMap.put("teamCode", teamCode); // 班组编号
+			paramMap.put("relIsHomeShow", RelationConstants.RELATION_NO); // 首页展示标识
+			paramMap.put("modifyTime", modifyTime); // 修改时间
+			
+			// 修改
+			int updateNum = relationDynamicTeamRelMapper.updateTeamFrontStatus(paramMap);
+			if (updateNum != 1) {
+				log.error("RelationDynamicServiceImpl.removeTeamFrontDynamic：修改" + updateNum + "条动态班组关系信息 ");
+				return false;
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * 班组置精
+	 */
+	@Override
+	public boolean saveTeamQulity(RelationDynamicTeamRel relationDynamicTeamRel, RelationQuality relationQuality, 
+			RelationDynamic relationDynamic) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationDynamicTeamRel == null) {
+				log.error("RelationDynamicServiceImpl.saveTeamQulity：relationDynamicTeamRel为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicTeamRel");
+			}
+			if (relationQuality == null) {
+				log.error("RelationDynamicServiceImpl.saveTeamQulity：relationQuality为空");
+				throw BusinessException.build("COMMON_402", "relationQuality");
+			}
+			
+			// 获取参数
+			String relCode = relationDynamicTeamRel.getRelCode(); // 关系编号
+			
+			// 参数校验
+			if (StringUtils.isBlank(relCode)) {
+				// 插入动态班组关系
+				relationDynamicTeamRel.setRelCode(UUIDHelper.getUUID());
+				int insertRelNum = relationDynamicTeamRelMapper.insert(relationDynamicTeamRel);
+				if (insertRelNum != 1) {
+					log.error("RelationDynamicServiceImpl.saveTeamQulity：新增" + insertRelNum + "条动态班组关系信息 ");
+					return false;
+				}
+			} else {
+				// 获取参数
+				String dynamicCode = relationDynamicTeamRel.getDynamicCode(); // 动态编号
+				String teamCode = relationDynamicTeamRel.getTeamCode(); // 班组编号
+				Long modifyTime = relationDynamicTeamRel.getModifyTime(); // 修改时间
+				
+				// 参数校验
+				if (StringUtils.isBlank(dynamicCode)) {
+					log.error("RelationDynamicServiceImpl.saveTeamQulity：dynamicCode为空");
+					throw BusinessException.build("COMMON_402", "dynamicCode");
+				}
+				if (StringUtils.isBlank(teamCode)) {
+					log.error("RelationDynamicServiceImpl.saveTeamQulity：teamCode为空");
+					throw BusinessException.build("COMMON_402", "teamCode");
+				}
+				
+				// 拼接参数
+				Map<String, Object> paramMap = new HashMap<String, Object>();
+				paramMap.put("dynamicCode", dynamicCode); // 动态编号
+				paramMap.put("teamCode", teamCode); // 班组编号
+				paramMap.put("relIsQuality", RelationConstants.RELATION_YES); // 置精标识
+				paramMap.put("modifyTime", modifyTime); // 修改时间
+				
+				// 修改
+				int updateNum = relationDynamicTeamRelMapper.updateTeamQulityStatus(paramMap);
+				if (updateNum != 1) {
+					log.error("RelationDynamicServiceImpl.saveTeamQulity：修改" + updateNum + "条动态班组关系信息 ");
+					return false;
+				}
+			}
+			
+			// 插入精华信息
+			int insertQualityNum = relationQualityMapper.insert(relationQuality);
+			if (insertQualityNum != 1) {
+				log.error("RelationDynamicServiceImpl.saveTeamQulity：插入" + insertQualityNum + "条精华信息 ");
+				throw BusinessException.build("BLOG_13002", "操作");
+			}
+			
+			// 插入动态信息
+			int insertDynamicNum = relationDynamicMapper.insert(relationDynamic);
+			if (insertDynamicNum != 1) {
+				log.error("RelationDynamicServiceImpl.saveTeamQulity：插入" + insertDynamicNum + "条动态信息 ");
+				throw BusinessException.build("BLOG_13002", "操作");
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * 班组取消置精
+	 */
+	@Override
+	public boolean removeTeamQulity(RelationDynamicVO relationDynamicVO) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationDynamicVO == null) {
+				log.error("RelationDynamicServiceImpl.removeTeamQulity：relationDynamicVO为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicVO");
+			}
+			
+			// 获取参数
+			String dynamicCode = relationDynamicVO.getDynamicCode(); // 动态编号
+			Byte subjectClass = relationDynamicVO.getSubjectClass(); // 内容类型
+			String subjectCode = relationDynamicVO.getSubjectCode(); // 内容编号
+			String teamCode = relationDynamicVO.getTeamCode(); // 班组编号
+			Long modifyTime = relationDynamicVO.getModifyTime(); // 修改时间
+			
+			// 参数校验
+			if (StringUtils.isBlank(dynamicCode)) {
+				log.error("RelationDynamicServiceImpl.removeTeamQulity：dynamicCode为空");
+				throw BusinessException.build("COMMON_402", "dynamicCode");
+			}
+			if (subjectClass == 0 || (!RelationConstants.RELATION_QUALITY_SUBJECT_MBLOG.equals(subjectClass)
+					&& !RelationConstants.RELATION_QUALITY_SUBJECT_BLOG.equals(subjectClass))) {
+				log.error("RelationDynamicServiceImpl.removeTeamQulity：subjectClass为空");
+				throw BusinessException.build("COMMON_402", "subjectClass");
+			}
+			if (StringUtils.isBlank(subjectCode)) {
+				log.error("RelationDynamicServiceImpl.removeTeamQulity：subjectCode为空");
+				throw BusinessException.build("COMMON_402", "subjectCode");
+			}
+			if (StringUtils.isBlank(teamCode)) {
+				log.error("RelationDynamicServiceImpl.removeTeamQulity：teamCode为空");
+				throw BusinessException.build("COMMON_402", "teamCode");
+			}
+			
+			// 修改动态班组关系
+			Map<String, Object> relMap = new HashMap<String, Object>();
+			relMap.put("dynamicCode", dynamicCode); // 动态编号
+			relMap.put("teamCode", teamCode); // 班组编号
+			relMap.put("relIsQuality", RelationConstants.RELATION_NO); // 置精标识
+			relMap.put("modifyTime", modifyTime); // 修改时间
+			int updateNum = relationDynamicTeamRelMapper.updateTeamQulityStatus(relMap);
+			if (updateNum != 1) {
+				log.error("RelationDynamicServiceImpl.removeTeamQulity：修改" + updateNum + "条动态班组关系信息 ");
+				return false;
+			}
+			
+			// 删除精华表中数据
+			Map<String, Object> qualityMap = new HashMap<String, Object>();
+			qualityMap.put("subjectClass", subjectClass); // 内容类型
+			qualityMap.put("subjectCode", subjectCode); // 内容编号
+			qualityMap.put("teamCode", teamCode); // 班组编号
+			int deleteNum = relationQualityMapper.deleteTeamQuality(qualityMap);
+			if (deleteNum != 1) {
+				log.error("RelationDynamicServiceImpl.removeTeamQulity：删除" + deleteNum + "条精华信息 ");
+				throw BusinessException.build("BLOG_13002", "操作");
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+
+	/**
+	 * 班组推荐
+	 */
+	@Override
+	public boolean saveTeamRec(RelationDynamicVO relationDynamicVO, RelationRecommend relationRecommend,
+			RelationDynamic relationDynamic) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationDynamicVO == null) {
+				log.error("RelationDynamicServiceImpl.saveTeamRec：relationDynamicVO为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicVO");
+			}
+			if (relationRecommend == null) {
+				log.error("RelationDynamicServiceImpl.saveTeamRec：relationRecommend为空");
+				throw BusinessException.build("COMMON_402", "relationRecommend");
+			}
+			
+			// 获取参数
+			String dynamicCode = relationDynamicVO.getDynamicCode(); // 动态编号
+			String teamCode = relationDynamicVO.getTeamCode(); // 班组编号
+			Long modifyTime = relationDynamicVO.getModifyTime(); // 修改时间
+			
+			// 参数校验
+			if (StringUtils.isBlank(dynamicCode)) {
+				log.error("RelationDynamicServiceImpl.saveTeamRec：dynamicCode为空");
+				throw BusinessException.build("COMMON_402", "dynamicCode");
+			}
+			if (StringUtils.isBlank(teamCode)) {
+				log.error("RelationDynamicServiceImpl.saveTeamRec：teamCode为空");
+				throw BusinessException.build("COMMON_402", "teamCode");
+			}
+			
+			// 获取已被推荐到相同门户的相同内容信息
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("subjectCode", relationRecommend.getSubjectCode());
+			paramMap.put("recToOrgCode", relationRecommend.getRecToOrgCode());
+			RelationRecommend otherRelationRecommend = relationRecommendMapper.getSameRec(paramMap);
+			if (otherRelationRecommend != null) {
+				relationRecommend.setModifyTime(otherRelationRecommend.getModifyTime());
+				relationRecommend.setRecStatus(otherRelationRecommend.getRecStatus());
+				relationRecommend.setRecQualityTime(otherRelationRecommend.getRecQualityTime());
+				relationRecommend.setQualityCode(otherRelationRecommend.getQualityCode());
+			}
+			
+			// 拼接参数
+			Map<String, Object> updateParamMap = new HashMap<String, Object>();
+			updateParamMap.put("dynamicCode", dynamicCode); // 动态编号
+			updateParamMap.put("teamCode", teamCode); // 班组编号
+			updateParamMap.put("relIsRecommend", RelationConstants.RELATION_YES); // 推荐标识
+			updateParamMap.put("modifyTime", modifyTime); // 修改时间
+			
+			// 修改
+			int updateNum = relationDynamicTeamRelMapper.updateTeamRecStatus(updateParamMap);
+			if (updateNum != 1) {
+				log.error("RelationDynamicServiceImpl.saveTeamRec：修改" + updateNum + "条动态班组关系信息 ");
+				return false;
+			}
+			
+			// 插入推荐信息
+			int insertRecNum = relationRecommendMapper.insert(relationRecommend);
+			if (insertRecNum != 1) {
+				log.error("RelationDynamicServiceImpl.saveTeamRec：插入" + insertRecNum + "条推荐信息 ");
+				throw BusinessException.build("BLOG_13002", "操作");
+			}
+			
+			// 插入动态信息
+			int insertDynamicNum = relationDynamicMapper.insert(relationDynamic);
+			if (insertDynamicNum != 1) {
+				log.error("RelationDynamicServiceImpl.saveTeamRec：插入" + insertDynamicNum + "条动态信息 ");
+				throw BusinessException.build("BLOG_13002", "操作");
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+
+	/**
+	 * 查询动态被哪些关注的班组首页展示
+	 */
+	@Override
+	public List<String> getDynamicTeamCodes(RelationDynamicVO relationDynamicVO) throws BusinessException {
+		// 返回值
+		List<String> teamCodes = null;
+		
+		try {
+			// 参数校验
+			if (relationDynamicVO == null) {
+				log.error("RelationDynamicServiceImpl.getDynamicTeamCodes：relationDynamicVO为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicVO");
+			}
+			
+			// 获取参数
+			String dynamicCode = relationDynamicVO.getDynamicCode(); // 动态编号
+			List<String> teamCodeList = relationDynamicVO.getTeamCodeList(); // 班组列表
+			
+			// 参数校验
+			if (StringUtils.isBlank(dynamicCode)) {
+				log.error("RelationDynamicServiceImpl.getDynamicTeamCodes：dynamicCode为空");
+				throw BusinessException.build("COMMON_402", "dynamicCode");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("dynamicCode", dynamicCode); // 动态编号
+			paramMap.put("teamCodeList", teamCodeList); // 班组编号列表
+			
+			// 查询
+			teamCodes = relationDynamicMapper.getDynamicTeamCodes(paramMap);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return teamCodes;
+	}
+
+}

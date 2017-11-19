@@ -1,0 +1,29 @@
+package com.zssq.fastdfs.config;
+
+import com.baidu.disconf.client.common.annotations.DisconfFile;
+import com.baidu.disconf.client.common.annotations.DisconfFileItem;
+import com.baidu.disconf.client.common.annotations.DisconfUpdateService;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
+
+/**
+ *
+ */
+@Service
+@Scope("singleton")
+@DisconfFile(filename = "fastdfs-config.properties")
+@DisconfUpdateService(classes = {FastDfsConf.class})
+public class FastDfsConf {
+
+    // 代表连接地址
+    private String fastUrl;
+
+    @DisconfFileItem(name = "fastdfs.url", associateField = "fastUrl")
+    public String getFastUrl() {
+        return fastUrl;
+    }
+
+    public void setFastUrl(String fastUrl) {
+        this.fastUrl = fastUrl;
+    }
+}

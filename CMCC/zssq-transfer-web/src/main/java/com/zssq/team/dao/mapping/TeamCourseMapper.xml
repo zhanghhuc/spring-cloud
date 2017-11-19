@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.team.dao.mapper.TeamCourseMapper">
+	
+	<resultMap id="BaseResultMap" type="com.zssq.team.pojo.TeamCourse">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="team_course_code" property="teamCourseCode" jdbcType="VARCHAR" />
+		<result column="team_elect_code" property="teamElectCode" jdbcType="VARCHAR" />
+		<result column="team_code" property="teamCode" jdbcType="VARCHAR" />
+		<result column="current_recommend_reason" property="currentRecommendReason" jdbcType="VARCHAR" />
+		<result column="current_org_code" property="currentOrgCode" jdbcType="VARCHAR" />
+		<result column="current_org_type" property="currentOrgType" jdbcType="VARCHAR" />
+		<result column="is_recommend" property="isRecommend" jdbcType="TINYINT" />
+		<result column="user_code" property="userCode" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+	</resultMap>
+	
+	<delete id="deleteByElectCode" parameterType="java.lang.String">
+		delete from team_course where team_elect_code = #{value,jdbcType=VARCHAR}
+	</delete>
+	
+	<insert id="batchInsert" useGeneratedKeys="true" parameterType="java.util.List">
+		insert into team_course (
+				team_course_code,
+				team_elect_code,
+				team_code,
+				current_recommend_reason,
+				current_org_code,
+				current_org_type,
+				super_org_code,
+				is_recommend,
+				user_code,
+				create_time) values
+		<foreach collection="list" item="item" index="index" separator="," >
+			(
+				#{item.teamCourseCode,jdbcType=VARCHAR},
+				#{item.teamElectCode,jdbcType=VARCHAR},
+				#{item.teamCode,jdbcType=VARCHAR},
+				#{item.currentRecommendReason,jdbcType=VARCHAR},
+				#{item.currentOrgCode,jdbcType=VARCHAR},
+				#{item.currentOrgType,jdbcType=TINYINT},
+				#{item.superOrgCode,jdbcType=VARCHAR},
+				#{item.isRecommend,jdbcType=TINYINT},
+				#{item.userCode,jdbcType=VARCHAR},
+				#{item.createTime,jdbcType=BIGINT}
+			)
+		</foreach>	
+	</insert>
+	
+</mapper>

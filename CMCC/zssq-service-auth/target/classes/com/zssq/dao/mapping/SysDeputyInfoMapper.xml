@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.SysDeputyInfoMapper">
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.SysDeputyInfo">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="deputy_code" property="deputyCode" jdbcType="VARCHAR" />
+		<result column="deputy_app_code" property="deputyAppCode" jdbcType="VARCHAR" />
+		<result column="deputy_user_code" property="deputyUserCode" jdbcType="VARCHAR" />
+		<result column="deputy_leader_code" property="deputyLeaderCode" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+		<result column="is_enable" property="isEnable" jdbcType="TINYINT" />
+		<result column="create_user" property="createUser" jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, deputy_code, deputy_app_code, deputy_user_code, deputy_leader_code,
+		create_time,
+		modify_time, is_enable, create_user
+	</sql>
+	
+	<select id="selectByCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+		SELECT 
+		  <include refid="Base_Column_List"/> 
+		FROM
+		  sys_deputy_info 
+		WHERE deputy_code = #{deputyCode,jdbcType=VARCHAR} 
+	</select>
+	
+	<!-- 查询有没有领导/代发人员CP -->
+	<select id="selectByRecord" parameterType="com.zssq.dao.pojo.SysDeputyInfo" resultMap="BaseResultMap">
+		SELECT 
+		  <include refid = "Base_Column_List" /> 
+		FROM
+		  sys_deputy_info 
+		WHERE 1 = 1  
+		<if test="deputyUserCode != null">
+			and deputy_user_code = #{deputyUserCode,jdbcType=VARCHAR}
+		</if>
+		<if test="deputyLeaderCode != null">
+			and deputy_leader_code = #{deputyLeaderCode,jdbcType=VARCHAR}
+		</if>
+		<if test="deputyAppCode != null">
+			and deputy_app_code like concat('%',#{deputyAppCode,jdbcType=VARCHAR},'%')
+		</if>
+	</select>
+	
+	<!-- 根据领导与代发人更新代发APP -->
+	<update id="updateDeputyApps" parameterType="com.zssq.dao.pojo.SysDeputyInfo">
+		UPDATE 
+		  sys_deputy_info 
+		SET
+		  deputy_app_code = #{deputyAppCode,jdbcType=VARCHAR},
+		  modify_time = #{modifyTime,jdbcType=BIGINT}
+		WHERE deputy_code = #{deputyCode,jdbcType=VARCHAR} 
+	</update>
+	
+	<delete id="deleteByCode" parameterType="java.lang.String">
+		DELETE 
+		FROM
+		  sys_deputy_info 
+		WHERE deputy_code = #{deputyCode,jdbcType=VARCHAR} 
+	</delete>
+	
+	<!-- 配置列表 -->
+	<select id="selectPage" parameterType="java.util.Map" resultMap="BaseResultMap">
+		SELECT 
+		  t.deputy_code,
+		  t.deputy_app_code,
+		  t.deputy_user_code,
+		  u1.user_name staffName,
+		  u1.user_office_phone staffPhone,
+		  o1.sys_org_fullname staffOrgName,
+		  o2.sys_org_fullname leaderOrgName,
+		  t.deputy_leader_code,
+		  u2.user_name leaderName,
+		  t.modify_time,
+		  t.create_time,
+		  t.is_enable,
+		  t.create_user 
+		FROM
+		  sys_deputy_info t 
+		  LEFT JOIN sys_user_info u1 
+		    ON t.deputy_user_code = u1.user_code 
+		  LEFT JOIN sys_org_info o1 
+		    ON u1.org_code=o1.sys_org_code
+		  LEFT JOIN sys_user_info u2 
+		    ON t.deputy_leader_code = u2.user_code 
+		  LEFT JOIN sys_org_info o2 
+		    ON u2.org_code=o2.sys_org_code
+		WHERE 1 = 1 
+		<if test="staffName != null">
+			and u1.user_name like concat('%',#{staffName,jdbcType=VARCHAR},'%')
+		</if>
+		<if test="leaderName != null">
+			and u2.user_name like concat('%',#{leaderName,jdbcType=VARCHAR},'%')
+		</if>
+		order by t.`modify_time` desc
+		<if test="limitStart != null and limitStart>=0" >
+	    	limit #{limitStart} , #{limitEnd}
+	    </if>
+	</select>
+	
+	<select id="selectPageCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+		SELECT 
+		  COUNT(1) 
+		FROM
+		  sys_deputy_info t 
+		  LEFT JOIN sys_user_info u1 
+		    ON t.deputy_user_code = u1.user_code 
+		  LEFT JOIN sys_user_info u2 
+		    ON t.deputy_leader_code = u2.user_code 
+		WHERE 1 = 1 
+		<if test="staffName != null">
+			and u1.user_name like concat('%',#{staffName,jdbcType=VARCHAR},'%')
+		</if>
+		<if test="leaderName != null">
+			and u2.user_name like concat('%',#{leaderName,jdbcType=VARCHAR},'%')
+		</if>
+	</select>
+	
+	
+	<insert id="insertSelective" parameterType="com.zssq.dao.pojo.SysDeputyInfo">
+		insert into sys_deputy_info
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="deputyCode != null">
+				deputy_code,
+			</if>
+			<if test="deputyAppCode != null">
+				deputy_app_code,
+			</if>
+			<if test="deputyUserCode != null">
+				deputy_user_code,
+			</if>
+			<if test="deputyLeaderCode != null">
+				deputy_leader_code,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+			<if test="modifyTime != null">
+				modify_time,
+			</if>
+			<if test="isEnable != null">
+				is_enable,
+			</if>
+			<if test="createUser != null">
+				create_user,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=BIGINT},
+			</if>
+			<if test="deputyCode != null">
+				#{deputyCode,jdbcType=VARCHAR},
+			</if>
+			<if test="deputyAppCode != null">
+				#{deputyAppCode,jdbcType=VARCHAR},
+			</if>
+			<if test="deputyUserCode != null">
+				#{deputyUserCode,jdbcType=VARCHAR},
+			</if>
+			<if test="deputyLeaderCode != null">
+				#{deputyLeaderCode,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=BIGINT},
+			</if>
+			<if test="modifyTime != null">
+				#{modifyTime,jdbcType=BIGINT},
+			</if>
+			<if test="isEnable != null">
+				#{isEnable,jdbcType=TINYINT},
+			</if>
+			<if test="createUser != null">
+				#{createUser,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+	
+	
+</mapper>

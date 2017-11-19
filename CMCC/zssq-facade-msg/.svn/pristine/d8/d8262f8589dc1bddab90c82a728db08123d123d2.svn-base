@@ -1,0 +1,125 @@
+package com.zssq.dao.pojo;
+
+import java.io.Serializable;
+
+public class UserBoardRemind implements Serializable {
+    private Long id;
+
+    private String msgCode;
+
+    private String originalContent;
+
+    private String msgContent;
+
+    private Integer isDelete;
+
+    private String userCode;
+
+    private String sendUserCode;
+
+    private String orgCode;
+
+    private String tenantCode;
+
+    private Integer msgType;
+
+    private Long createTime;
+
+    private String teamCode;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getMsgCode() {
+        return msgCode;
+    }
+
+    public void setMsgCode(String msgCode) {
+        this.msgCode = msgCode == null ? null : msgCode.trim();
+    }
+
+    public String getOriginalContent() {
+        return originalContent;
+    }
+
+    public void setOriginalContent(String originalContent) {
+        this.originalContent = originalContent == null ? null : originalContent.trim();
+    }
+
+    public String getMsgContent() {
+        return msgContent;
+    }
+
+    public void setMsgContent(String msgContent) {
+        this.msgContent = msgContent == null ? null : msgContent.trim();
+    }
+
+    public Integer getIsDelete() {
+        return isDelete;
+    }
+
+    public void setIsDelete(Integer isDelete) {
+        this.isDelete = isDelete;
+    }
+
+    public String getUserCode() {
+        return userCode;
+    }
+
+    public void setUserCode(String userCode) {
+        this.userCode = userCode == null ? null : userCode.trim();
+    }
+
+    public String getSendUserCode() {
+        return sendUserCode;
+    }
+
+    public void setSendUserCode(String sendUserCode) {
+        this.sendUserCode = sendUserCode == null ? null : sendUserCode.trim();
+    }
+
+    public String getOrgCode() {
+        return orgCode;
+    }
+
+    public void setOrgCode(String orgCode) {
+        this.orgCode = orgCode == null ? null : orgCode.trim();
+    }
+
+    public String getTenantCode() {
+        return tenantCode;
+    }
+
+    public void setTenantCode(String tenantCode) {
+        this.tenantCode = tenantCode == null ? null : tenantCode.trim();
+    }
+
+    public Integer getMsgType() {
+        return msgType;
+    }
+
+    public void setMsgType(Integer msgType) {
+        this.msgType = msgType;
+    }
+
+    public Long getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Long createTime) {
+        this.createTime = createTime;
+    }
+
+    public String getTeamCode() {
+        return teamCode;
+    }
+
+    public void setTeamCode(String teamCode) {
+        this.teamCode = teamCode == null ? null : teamCode.trim();
+    }
+}

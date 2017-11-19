@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+<fullyQualifiedTypeName name="java.lang.Runnable"/>
+<fullyQualifiedTypeName name="com.zssq.vote.dao.mapper.TransVoteCommentMapper"/>
+<fullyQualifiedTypeName name="com.zssq.vote.pojo.VoteComment"/>
+<fullyQualifiedTypeName name="java.util.Date"/>
+<fullyQualifiedTypeName name="com.zssq.vote.pojo.VoteCommentReply"/>
+<fullyQualifiedTypeName name="com.zssq.vote.dao.mapper.VoteCommentReplyMapper"/>
+<fullyQualifiedTypeName name="com.zssq.vote.dao.mapper.VoteCommentMapper"/>
+<fullyQualifiedTypeName name="test.java.com.powertorque.test.Obj"/>
+<fullyQualifiedTypeName name="com.alibaba.fastjson.JSON"/>
+<fullyQualifiedTypeName name="com.alibaba.fastjson.JSONObject"/>
+<fullyQualifiedTypeName name="com.zssq.constants.ComplaintConstants"/>
+<fullyQualifiedTypeName name="com.zssq.utils.StringTools"/>
+<fullyQualifiedTypeName name="java.io.Serializable"/>
+<fullyQualifiedTypeName name="com.zssq.forum.vo.GetTopicDetailLocationVo"/>
+<fullyQualifiedTypeName name="com.zssq.dao.mapper.ForumPlatesMapper"/>
+<fullyQualifiedTypeName name="com.zssq.dao.pojo.VoteInfo"/>
+<fullyQualifiedTypeName name="com.zssq.dao.pojo.VoteInfoExample"/>
+<fullyQualifiedTypeName name="org.apache.commons.collections.buffer.CircularFifoBuffer"/>
+<fullyQualifiedTypeName name="com.zssq.dao.mapper.VoteOptionsMapper"/>
+<fullyQualifiedTypeName name="com.zssq.dao.pojo.VoteOptions"/>
+<fullyQualifiedTypeName name="com.zssq.dao.pojo.VoteComment"/>
+<fullyQualifiedTypeName name="java.util.List"/>
+<fullyQualifiedTypeName name="com.zssq.dao.pojo.VoteCommentReply"/>
+<fullyQualifiedTypeName name="org.springframework.test.context.ContextConfiguration"/>
+<fullyQualifiedTypeName name="org.springframework.test.context.junit4.SpringJUnit4ClassRunner"/>
+<fullyQualifiedTypeName name="org.junit.runner.RunWith"/>
+<fullyQualifiedTypeName name="org.springframework.beans.factory.annotation.Autowired"/>
+<fullyQualifiedTypeName name="org.junit.Test"/>
+<fullyQualifiedTypeName name="java.util.ArrayList"/>
+<fullyQualifiedTypeName name="com.zssq.utils.DateUtils"/>
+<fullyQualifiedTypeName name="com.zssq.constants.VoteConstants"/>
+<fullyQualifiedTypeName name="com.zssq.dao.pojo.ForumCommentReplyExample"/>
+</qualifiedTypeNameHistroy>

@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.NewsNoticeContentMapper">
+    <resultMap id="BaseResultMap" type="com.zssq.news.dao.pojo.NewsNoticeContent">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="notice_code" property="noticeCode" jdbcType="VARCHAR"/>
+        <result column="notice_title" property="noticeTitle" jdbcType="VARCHAR"/>
+        <result column="notice_content_text" property="noticeContentText" jdbcType="VARCHAR"/>
+        <result column="notice_content_html" property="noticeContentHtml" jdbcType="VARCHAR"/>
+        <result column="notice_file_url" property="noticeFileUrl" jdbcType="VARCHAR"/>
+        <result column="notice_status" property="noticeStatus" jdbcType="TINYINT"/>
+        <result column="notice_operator_code" property="noticeOperatorCode" jdbcType="VARCHAR"/>
+        <result column="notice_creator_code" property="noticeCreatorCode" jdbcType="VARCHAR"/>
+        <result column="org_level" property="orgLevel" jdbcType="TINYINT"/>
+        <result column="org_code" property="orgCode" jdbcType="VARCHAR"/>
+        <result column="notice_remark" property="noticeRemark" jdbcType="VARCHAR"/>
+        <result column="is_top" property="isTop" jdbcType="TINYINT"/>
+        <result column="notice_sort" property="noticeSort" jdbcType="INTEGER"/>
+        <result column="is_delete" property="isDelete" jdbcType="TINYINT"/>
+        <result column="is_hidden" property="isHidden" jdbcType="TINYINT"/>
+        <result column="notice_update_time" property="noticeUpdateTime" jdbcType="BIGINT"/>
+        <result column="create_time" property="createTime" jdbcType="BIGINT"/>
+        <result column="modify_time" property="modifyTime" jdbcType="BIGINT"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+    id, notice_code, notice_title, notice_content_text, notice_content_html,notice_file_url, notice_status,
+    notice_operator_code, notice_creator_code,org_level, org_code, notice_remark, is_top, notice_sort, is_delete, is_hidden,
+    notice_update_time,create_time, modify_time, remark, tenant_code
+  </sql>
+
+    <sql id="notice-where-condition">
+        <where>
+            <if test="noticeTitle != null">
+                AND notice_title  LIKE CONCAT('%',#{noticeTitle},'%')
+            </if>
+            <if test="orgCode != null">
+                AND org_code = #{orgCode}
+            </if>
+            <if test="noticeCode != null">
+                AND notice_code = #{noticeCode}
+            </if>
+            <if test="noticeStatus != null ">
+                AND notice_status = #{noticeStatus}
+            </if>
+            <if test="isTop != null ">
+                AND is_top = #{isTop}
+            </if>
+            <if test="isDelete != null ">
+                AND is_delete = #{isDelete}
+            </if>
+            <if test="sortStart != null">
+                AND notice_sort  &gt;   ${sortStart}
+            </if>
+            <if test="sortEnd != null">
+               AND  notice_sort &lt;  ${sortEnd}
+            </if>
+            <if test="startTime != null and startTime >0 ">
+                AND ${startTime} &lt;= modify_time
+            </if>
+            <if test="endTime != null and endTime >0 ">
+                AND  modify_time &lt;= ${endTime}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from news_notice_content
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+
+    <select id="selectCount" parameterType="com.zssq.news.model.NoticeQuery" resultType="java.lang.Integer">
+        select count(*) from news_notice_content
+        <if test="_parameter != null">
+            <include refid="notice-where-condition"/>
+        </if>
+    </select>
+
+    <select id="selectByQuery" parameterType="com.zssq.news.model.NoticeQuery" resultMap="BaseResultMap">
+        select
+        DISTINCT
+        <include refid="Base_Column_List"/>
+        from news_notice_content
+        <if test="_parameter != null">
+            <include refid="notice-where-condition"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+        <if test="limitStart != null ">
+            limit #{limitStart} , #{pageSize}
+        </if>
+    </select>
+
+    <select id="getNoticeDetail" parameterType="com.zssq.news.model.NoticeQuery" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from news_notice_content
+        <if test="_parameter != null">
+            <include refid="notice-where-condition"/>
+        </if>
+    </select>
+
+    <select id="selectByCode" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from news_notice_content
+        WHERE notice_code = #{_parameter}
+    </select>
+    <select id="selectMinSort"  resultType="java.lang.Integer">
+        select
+        MIN(notice_sort) -1
+        from news_notice_content
+    </select>
+    <select id="selectByNoticeSort" resultMap="BaseResultMap" parameterType="com.zssq.news.model.NoticeQuery">
+        select
+        <include refid="Base_Column_List"/>
+        from news_notice_content
+        <if test="_parameter != null">
+            <include refid="notice-where-condition"/>
+        </if>
+
+        <if test="orderByClause != null ">
+            order by  ${orderByClause }
+        </if>
+        <if test="limitStart != null ">
+            limit #{limitStart} , #{pageSize}
+        </if>
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from news_notice_content
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+    <delete id="deleteByCode" parameterType="com.zssq.news.model.NoticeModel">
+     update news_notice_content
+    set
+       is_delete = #{isDelete,jdbcType=INTEGER}
+    where notice_code = #{noticeCode,jdbcType=VARCHAR}
+  </delete>
+    <insert id="insert" parameterType="com.zssq.news.dao.pojo.NewsNoticeContent">
+    insert into news_notice_content (id, notice_code, notice_title, 
+      notice_content_text, notice_content_html,notice_file_url, notice_status,
+      notice_operator_code,notice_creator_code, org_level, org_code,
+      notice_remark, is_top, notice_sort, is_delete,is_hidden,
+      notice_update_time, create_time, modify_time, remark,
+      tenant_code)
+    values (#{id,jdbcType=BIGINT}, #{noticeCode,jdbcType=VARCHAR}, #{noticeTitle,jdbcType=VARCHAR}, 
+      #{noticeContentText,jdbcType=VARCHAR}, #{noticeContentHtml,jdbcType=VARCHAR},#{noticeFileUrl,jdbcType=VARCHAR}, #{noticeStatus,jdbcType=TINYINT},
+      #{noticeOperatorCode,jdbcType=VARCHAR},#{noticeCreatorCode,jdbcType=VARCHAR}, #{orgLevel,jdbcType=TINYINT}, #{orgCode,jdbcType=VARCHAR},
+      #{noticeRemark,jdbcType=VARCHAR}, #{isTop,jdbcType=TINYINT}, #{noticeSort,jdbcType=INTEGER},
+       #{isDelete,jdbcType=INTEGER},#{isHidden,jdbcType=INTEGER},
+      #{noticeUpdateTime,jdbcType=BIGINT}, #{createTime,jdbcType=BIGINT}, #{modifyTime,jdbcType=BIGINT}, #{remark,jdbcType=VARCHAR},
+      #{tenantCode,jdbcType=VARCHAR})
+  </insert>
+    <insert id="insertSelective" parameterType="com.zssq.news.dao.pojo.NewsNoticeContent">
+        insert into news_notice_content
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="noticeCode != null">
+                notice_code,
+            </if>
+            <if test="noticeTitle != null">
+                notice_title,
+            </if>
+            <if test="noticeContentText != null">
+                notice_content_text,
+            </if>
+            <if test="noticeContentHtml != null">
+                notice_content_html,
+            </if>
+            <if test="noticeFileUrl != null">
+                notice_file_url,
+            </if>
+            <if test="noticeStatus != null">
+                notice_status,
+            </if>
+            <if test="noticeOperatorCode != null">
+                notice_operator_code,
+            </if>
+            <if test="noticeCreatorCode != null">
+                notice_creator_code,
+            </if>
+            <if test="orgLevel != null">
+                org_level,
+            </if>
+            <if test="orgCode != null">
+                org_code,
+            </if>
+            <if test="noticeRemark != null">
+                notice_remark,
+            </if>
+            <if test="isTop != null">
+                is_top,
+            </if>
+            <if test="noticeSort != null">
+                notice_sort,
+            </if>
+            <if test="isDelete != null">
+                is_delete,
+            </if>
+            <if test="isHidden != null">
+                is_hidden,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="noticeUpdateTime != null">
+                notice_update_time,
+            </if>
+            <if test="modifyTime != null">
+                modify_time,
+            </if>
+            <if test="remark != null">
+                remark,
+            </if>
+            <if test="tenantCode != null">
+                tenant_code,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="noticeCode != null">
+                #{noticeCode,jdbcType=VARCHAR},
+            </if>
+            <if test="noticeTitle != null">
+                #{noticeTitle,jdbcType=VARCHAR},
+            </if>
+            <if test="noticeContentText != null">
+                #{noticeContentText,jdbcType=VARCHAR},
+            </if>
+            <if test="noticeContentHtml != null">
+                #{noticeContentHtml,jdbcType=VARCHAR},
+            </if>
+            <if test="noticeFileUrl != null">
+                #{noticeFileUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="noticeStatus != null">
+                #{noticeStatus,jdbcType=TINYINT},
+            </if>
+            <if test="noticeOperatorCode != null">
+                #{noticeOperatorCode,jdbcType=VARCHAR},
+            </if>
+            <if test="noticeCreatorCode != null">
+                #{noticeCreatorCode,jdbcType=VARCHAR},
+            </if>
+            <if test="orgLevel != null">
+                #{orgLevel,jdbcType=TINYINT},
+            </if>
+            <if test="orgCode != null">
+                #{orgCode,jdbcType=VARCHAR},
+            </if>
+            <if test="noticeRemark != null">
+                #{noticeRemark,jdbcType=BIGINT},
+            </if>
+            <if test="isTop != null">
+                #{isTop,jdbcType=TINYINT},
+            </if>
+            <if test="noticeSort != null">
+                #{noticeSort,jdbcType=INTEGER},
+            </if>
+            <if test="noticeUpdateTime != null">
+                #{noticeUpdateTime,jdbcType=BIGINT},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=BIGINT},
+            </if>
+            <if test="modifyTime != null">
+                #{modifyTime,jdbcType=BIGINT},
+            </if>
+            <if test="remark != null">
+                #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="tenantCode != null">
+                #{tenantCode,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByCodeSelective" parameterType="com.zssq.news.dao.pojo.NewsNoticeContent">
+        update news_notice_content
+        <set>
+            <if test="noticeTitle != null">
+                notice_title = #{noticeTitle,jdbcType=VARCHAR},
+            </if>
+            <if test="noticeContentText != null">
+                notice_content_text = #{noticeContentText,jdbcType=VARCHAR},
+            </if>
+            <if test="noticeContentHtml != null">
+                notice_content_html = #{noticeContentHtml,jdbcType=VARCHAR},
+            </if>
+            <if test="noticeFileUrl != null">
+                notice_file_url = #{noticeFileUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="noticeStatus != null">
+                notice_status = #{noticeStatus,jdbcType=TINYINT},
+            </if>
+            <if test="noticeOperatorCode != null">
+                notice_operator_code = #{noticeOperatorCode,jdbcType=VARCHAR},
+            </if>
+            <if test="noticeCreatorCode != null">
+                notice_creator_code = #{noticeCreatorCode,jdbcType=VARCHAR},
+            </if>
+            <if test="orgLevel != null">
+                org_level = #{orgLevel,jdbcType=TINYINT},
+            </if>
+            <if test="orgCode != null">
+                org_code = #{orgCode,jdbcType=VARCHAR},
+            </if>
+            <if test="noticeRemark != null">
+                notice_remark = #{noticeRemark,jdbcType=VARCHAR},
+            </if>
+            <if test="isTop != null">
+                is_top = #{isTop,jdbcType=TINYINT},
+            </if>
+            <if test="noticeSort != null">
+                notice_sort = #{noticeSort,jdbcType=INTEGER},
+            </if>
+            <if test="isDelete != null">
+                is_delete = #{isDelete,jdbcType=INTEGER},
+            </if>
+            <if test="isHidden != null">
+                is_hidden = #{isHidden,jdbcType=INTEGER},
+            </if>
+            <if test="noticeUpdateTime != null">
+                notice_update_time = #{noticeUpdateTime,jdbcType=BIGINT},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=BIGINT},
+            </if>
+            <if test="modifyTime != null">
+                modify_time = #{modifyTime,jdbcType=BIGINT},
+            </if>
+            <if test="remark != null">
+                remark = #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="tenantCode != null">
+                tenant_code = #{tenantCode,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where notice_code = #{noticeCode,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByCode" parameterType="com.zssq.news.dao.pojo.NewsNoticeContent">
+    update news_notice_content
+    set
+      notice_title = #{noticeTitle,jdbcType=VARCHAR},
+      notice_content_text = #{noticeContentText,jdbcType=VARCHAR},
+      notice_content_html = #{noticeContentHtml,jdbcType=VARCHAR},
+      notice_file_url = #{noticeFileUrl,jdbcType=VARCHAR},
+      notice_status = #{noticeStatus,jdbcType=TINYINT},
+      notice_operator_code = #{noticeOperatorCode,jdbcType=VARCHAR},
+      notice_creator_code = #{noticeCreatorCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      notice_remark = #{noticeRemark,jdbcType=BIGINT},
+      is_top = #{isTop,jdbcType=TINYINT},
+      notice_sort = #{noticeSort,jdbcType=INTEGER},
+      is_delete = #{isDelete,jdbcType=INTEGER},
+      is_hidden = #{isHidden,jdbcType=INTEGER},
+      notice_update_time = #{noticeUpdateTime,jdbcType=BIGINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR}
+    where  notice_code = #{noticeCode,jdbcType=VARCHAR}
+  </update>
+
+    <update id="updateNewsNoticeHidden" parameterType="com.zssq.news.dao.pojo.NewsNoticeContent">
+    update news_notice_content
+    set
+    is_hidden = #{isHidden,jdbcType=INTEGER},
+    notice_status =  #{noticeStatus,jdbcType=INTEGER}
+    where  notice_code = #{noticeCode,jdbcType=VARCHAR}
+  </update>
+</mapper>

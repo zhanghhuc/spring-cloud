@@ -1,0 +1,167 @@
+package com.zssq.model;
+
+import java.io.Serializable;
+
+public class EtRelationRecommendModel  implements Serializable {
+	private static final long serialVersionUID = 1L;
+
+	private String userCode;//内容发布人
+	
+	private Long subjectPublishTime;//内容发布时间
+	private Integer qualityIsTop;//是否置顶：0.否；1.是
+	private String subjectTitle;//内容标题
+	
+	
+	private Long id ;
+    private String recCode ;
+    private String tenantCode ;
+    private Long createTime ;
+    private Long modifyTime ;
+    private String remark ;
+    private String subjectCode ;
+    private Byte subjectClass ;
+    private Byte recSource ;
+    private String teamCode ;
+    private String recUserCode ;
+    private String recOrgCode ;
+    private String recToOrgCode ;
+    private Byte recStatus;
+    private Long recQualityTime ;
+    private String qualityCode ="";
+    private Long qualitySeqNum=0L;
+	
+	
+	public Long getQualitySeqNum() {
+		return qualitySeqNum;
+	}
+	public void setQualitySeqNum(Long qualitySeqNum) {
+		this.qualitySeqNum = qualitySeqNum;
+	}
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
+	}
+	public String getRecCode() {
+		return recCode;
+	}
+	public void setRecCode(String recCode) {
+		this.recCode = recCode;
+	}
+	public String getTenantCode() {
+		return tenantCode;
+	}
+	public void setTenantCode(String tenantCode) {
+		this.tenantCode = tenantCode;
+	}
+	public Long getCreateTime() {
+		return createTime;
+	}
+	public void setCreateTime(Long createTime) {
+		this.createTime = createTime;
+	}
+	public Long getModifyTime() {
+		return modifyTime;
+	}
+	public void setModifyTime(Long modifyTime) {
+		this.modifyTime = modifyTime;
+	}
+	public String getRemark() {
+		return remark;
+	}
+	public void setRemark(String remark) {
+		this.remark = remark;
+	}
+	public String getSubjectCode() {
+		return subjectCode;
+	}
+	public void setSubjectCode(String subjectCode) {
+		this.subjectCode = subjectCode;
+	}
+	public Byte getSubjectClass() {
+		return subjectClass;
+	}
+	public void setSubjectClass(Byte subjectClass) {
+		this.subjectClass = subjectClass;
+	}
+	public Byte getRecSource() {
+		return recSource;
+	}
+	public void setRecSource(Byte recSource) {
+		this.recSource = recSource;
+	}
+	public String getTeamCode() {
+		return teamCode;
+	}
+	public void setTeamCode(String teamCode) {
+		this.teamCode = teamCode;
+	}
+	public String getRecUserCode() {
+		return recUserCode;
+	}
+	public void setRecUserCode(String recUserCode) {
+		this.recUserCode = recUserCode;
+	}
+	public String getRecOrgCode() {
+		return recOrgCode;
+	}
+	public void setRecOrgCode(String recOrgCode) {
+		this.recOrgCode = recOrgCode;
+	}
+	public String getRecToOrgCode() {
+		return recToOrgCode;
+	}
+	public void setRecToOrgCode(String recToOrgCode) {
+		this.recToOrgCode = recToOrgCode;
+	}
+	public Byte getRecStatus() {
+		return recStatus;
+	}
+	public void setRecStatus(Byte recStatus) {
+		this.recStatus = recStatus;
+	}
+	public Long getRecQualityTime() {
+		return recQualityTime;
+	}
+	public void setRecQualityTime(Long recQualityTime) {
+		this.recQualityTime = recQualityTime;
+	}
+	public String getQualityCode() {
+		return qualityCode;
+	}
+	public void setQualityCode(String qualityCode) {
+		this.qualityCode = qualityCode;
+	}
+	public static long getSerialversionuid() {
+		return serialVersionUID;
+	}
+	public String getSubjectTitle() {
+		return subjectTitle;
+	}
+	public void setSubjectTitle(String subjectTitle) {
+		this.subjectTitle = subjectTitle;
+	}
+	public String getUserCode() {
+		return userCode;
+	}
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
+	}
+	
+	public Long getSubjectPublishTime() {
+		return subjectPublishTime;
+	}
+	public void setSubjectPublishTime(Long subjectPublishTime) {
+		this.subjectPublishTime = subjectPublishTime;
+	}
+	public Integer getQualityIsTop() {
+		return qualityIsTop;
+	}
+	public void setQualityIsTop(Integer qualityIsTop) {
+		this.qualityIsTop = qualityIsTop;
+	}
+	
+	
+	
+}

@@ -1,0 +1,550 @@
+package com.zssq.blog.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+
+import com.zssq.blog.vo.DB2Blog;
+import com.zssq.blog.vo.MySQLBlogContent;
+import com.zssq.blog.vo.MySQLBlogData;
+import com.zssq.blog.vo.MySQLBlogInfo;
+import com.zssq.datasource.DataSource;
+import com.zssq.datasource.DataSourceConstants;
+
+/**
+ * 
+ * @ClassName: BlogService  
+ * @Description: 博客数据迁移Service  
+ * @author ZKZ  
+ * @date 2017年5月22日  
+ *
+ */
+@Service("blogService")
+public class BlogService {
+
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+	
+	/**
+	 * 
+	 * @Title: getDB2BlogCount  
+	 * @Description: 查询DB2库中博客数据总个数
+	 * @return: int    返回类型
+	 */
+	@DataSource(DataSourceConstants.DB2_BLOG)
+	public int getDB2BlogCount() {
+		// 拼接SQL
+		StringBuffer sql = new StringBuffer();
+		sql.append("SELECT ");
+		sql.append("COUNT(*) ");
+		sql.append("FROM ");
+		sql.append("blog ");
+		sql.append("WHERE ");
+		sql.append("blog_state = 0 ");
+			
+		// 查询
+		return jdbcTemplate.queryForObject(sql.toString(), Integer.class);
+	}
+	
+	/**
+	 * 
+	 * @Title: getDB2BlogList  
+	 * @Description: 查询DB2库中博客数据
+	 * @param pageNo
+	 * @param pageSize
+	 * @return: List<DB2Blog>    返回类型
+	 */
+	@DataSource(DataSourceConstants.DB2_BLOG)
+	public List<DB2Blog> getDB2BlogList(int pageNo, int pageSize) {
+		// 拼接SQL
+		StringBuffer sql = new StringBuffer();
+		sql.append("SELECT ");
+		sql.append("bl.blog_id AS blogId, ");
+		sql.append("bl.title AS title, ");
+		sql.append("bl.user_id AS userId, ");
+		sql.append("bl.view_num AS viewNum, ");
+		sql.append("bl.cata_level_two_id AS cataLevelTwoId, ");
+		sql.append("bl.blog_type AS blogType, ");
+		sql.append("bl.create_time AS createTime, ");
+		sql.append("bl.updatetime AS updatetime, ");
+		sql.append("bl.digest AS digest, ");
+		sql.append("bl.content AS content, ");
+		sql.append("bl.blog_logo AS blogLogo, ");
+		sql.append("bl.instead_flag AS insteadFlag, ");
+		sql.append("bl.instead_user AS insteadUser, ");
+		sql.append("bi.team_id AS teamId, ");
+		sql.append("bi.city_id AS cityId, ");
+		sql.append("bi.province_id AS provinceId ");
+		sql.append("FROM ");
+		sql.append("( ");
+		sql.append("SELECT ");
+		sql.append("b.blog_id, ");
+		sql.append("b.title, ");
+		sql.append("b.user_id, ");
+		sql.append("b.view_num, ");
+		sql.append("b.cata_level_two_id, ");
+		sql.append("b.blog_type, ");
+		sql.append("b.create_time, ");
+		sql.append("b.updatetime, ");
+		sql.append("b.digest, ");
+		sql.append("b.content, ");
+		sql.append("b.blog_logo, ");
+		sql.append("b.instead_flag, ");
+		sql.append("b.instead_user ");
+		sql.append("FROM ");
+		sql.append("( ");
+		sql.append("SELECT ");
+		sql.append("blog_id, ");
+		sql.append("title, ");
+		sql.append("user_id, ");
+		sql.append("view_num, ");
+		sql.append("cata_level_two_id, ");
+		sql.append("blog_type, ");
+		sql.append("create_time, ");
+		sql.append("updatetime, ");
+		sql.append("digest, ");
+		sql.append("content, ");
+		sql.append("blog_logo, ");
+		sql.append("instead_flag, ");
+		sql.append("instead_user, ");
+		sql.append("rownumber() over () AS rn ");
+		sql.append("FROM blog ");
+		sql.append("WHERE ");
+		sql.append("blog_state = 0 ");
+		sql.append("ORDER BY blog_id ASC ");
+		sql.append(") b ");
+		sql.append("WHERE ");
+		sql.append("b.rn BETWEEN ? AND ? ");
+		sql.append(") bl ");
+		sql.append("LEFT JOIN ");
+		sql.append("blog_index bi ");
+		sql.append("ON bl.blog_id = bi.blog_id ");
+
+		// 拼接参数
+		Object[] params = new Object[2];
+		params[0] = pageNo * pageSize + 1;
+		params[1] = pageNo * pageSize + pageSize;
+		
+		// 查询
+		return jdbcTemplate.query(sql.toString(), params, new BeanPropertyRowMapper<DB2Blog>(DB2Blog.class));
+	}
+	
+	/**
+	 * 
+	 * @Title: insertMySQLBlogList  
+	 * @Description: 批量向MySQL库中插入博客数据
+	 * @param mySQLBlogList
+	 * @param mySQLBlogContentList
+	 * @param mySQLBlogDataList
+	 * @throws Exception    参数  
+	 * @return: boolean    返回类型
+	 */
+	@DataSource(DataSourceConstants.MYSQL_BLOG)
+	public boolean insertMySQLBlogList(List<MySQLBlogInfo> mySQLBlogList, List<MySQLBlogContent> mySQLBlogContentList,
+			List<MySQLBlogData> mySQLBlogDataList) throws Exception {
+		// 参数校验
+		if (mySQLBlogList == null || mySQLBlogList.isEmpty()) {
+			return false;
+		}
+		if (mySQLBlogContentList == null || mySQLBlogContentList.isEmpty()) {
+			return false;
+		}
+		if (mySQLBlogDataList == null || mySQLBlogDataList.isEmpty()) {
+			return false;
+		}
+		
+		// 获取总量
+		int size = mySQLBlogList.size();
+		
+		// 拼接博客SQL
+		StringBuffer blogSql = new StringBuffer();
+		blogSql.append("INSERT INTO blog_info ");
+		blogSql.append("(blog_code, ");
+		blogSql.append("tenant_code, ");
+		blogSql.append("org_code, ");
+		blogSql.append("create_time, ");
+		blogSql.append("modify_time, ");
+		blogSql.append("remark, ");
+		blogSql.append("dynamic_code, ");
+		blogSql.append("user_code, ");
+		blogSql.append("blog_agent_flag, ");
+		blogSql.append("agent_user_code, ");
+		blogSql.append("blog_source, ");
+		blogSql.append("source_blog_code, ");
+		blogSql.append("source_user_code, ");
+		blogSql.append("source_blog_depend, ");
+		blogSql.append("source_team_code, ");
+		blogSql.append("blog_tips, ");
+		blogSql.append("blog_depend, ");
+		blogSql.append("team_code, ");
+		blogSql.append("blog_title, ");
+		blogSql.append("blog_digest, ");
+		blogSql.append("class_code, ");
+		blogSql.append("blog_tags, ");
+		blogSql.append("blog_plan_publish_time, ");
+		blogSql.append("blog_publish_time, ");
+		blogSql.append("blog_logo, ");
+		blogSql.append("blog_is_delete, ");
+		blogSql.append("blog_is_shield) ");
+		blogSql.append("VALUES ");
+		
+		// 博客参数
+		Object[] blogParams = new Object[27 * size];
+		
+		// 拼接博客临时表SQL
+		StringBuffer blogTempSql = new StringBuffer();
+		blogTempSql.append("INSERT INTO blog_temp ");
+		blogTempSql.append("(old_id, ");
+		blogTempSql.append("blog_code) ");
+		blogTempSql.append("VALUES ");
+		
+		// 博客临时表参数
+		Object[] blogTempParams = new Object[2 * size];
+		
+		for (int i = 0; i < size; i++) {
+			MySQLBlogInfo mySQLBlogInfo = mySQLBlogList.get(i);
+			
+			// 博客表
+			if (i != 0) {
+				blogSql.append("), ");
+			}
+			blogSql.append("(? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getBlogCode() + "\"");
+			blogParams[i * 27] = mySQLBlogInfo.getBlogCode();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getTenantCode() + "\"");
+			blogParams[i * 27 + 1] = mySQLBlogInfo.getTenantCode();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getOrgCode() + "\"");
+			blogParams[i * 27 + 2] = mySQLBlogInfo.getOrgCode();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getCreateTime() + "\"");
+			blogParams[i * 27 + 3] = mySQLBlogInfo.getCreateTime();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getModifyTime() + "\"");
+			blogParams[i * 27 + 4] = mySQLBlogInfo.getModifyTime();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getRemark() + "\"");
+			blogParams[i * 27 + 5] = mySQLBlogInfo.getRemark();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getDynamicCode() + "\"");
+			blogParams[i * 27 + 6] = mySQLBlogInfo.getDynamicCode();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getUserCode() + "\"");
+			blogParams[i * 27 + 7] = mySQLBlogInfo.getUserCode();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getBlogAgentFlag() + "\"");
+			blogParams[i * 27 + 8] = mySQLBlogInfo.getBlogAgentFlag();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getAgentUserCode() + "\"");
+			blogParams[i * 27 + 9] = mySQLBlogInfo.getAgentUserCode();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getBlogSource() + "\"");
+			blogParams[i * 27 + 10] = mySQLBlogInfo.getBlogSource();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getSourceBlogCode() + "\"");
+			blogParams[i * 27 + 11] = mySQLBlogInfo.getSourceBlogCode();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getSourceUserCode() + "\"");
+			blogParams[i * 27 + 12] = mySQLBlogInfo.getSourceUserCode();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getSourceBlogDepend() + "\"");
+			blogParams[i * 27 + 13] = mySQLBlogInfo.getSourceBlogDepend();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getSourceTeamCode() + "\"");
+			blogParams[i * 27 + 14] = mySQLBlogInfo.getSourceTeamCode();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getBlogTips() + "\"");
+			blogParams[i * 27 + 15] = mySQLBlogInfo.getBlogTips();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getBlogDepend() + "\"");
+			blogParams[i * 27 + 16] = mySQLBlogInfo.getBlogDepend();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getTeamCode() + "\"");
+			blogParams[i * 27 + 17] = mySQLBlogInfo.getTeamCode();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getBlogTitle() + "\"");
+			blogParams[i * 27 + 18] = mySQLBlogInfo.getBlogTitle();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getBlogDigest() + "\"");
+			blogParams[i * 27 + 19] = mySQLBlogInfo.getBlogDigest();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getClassCode() + "\"");
+			blogParams[i * 27 + 20] = mySQLBlogInfo.getClassCode();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getBlogTags() + "\"");
+			blogParams[i * 27 + 21] = mySQLBlogInfo.getBlogTags();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getBlogPlanPublishTime() + "\"");
+			blogParams[i * 27 + 22] = mySQLBlogInfo.getBlogPlanPublishTime();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getBlogPublishTime() + "\"");
+			blogParams[i * 27 + 23] = mySQLBlogInfo.getBlogPublishTime();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getBlogLogo() + "\"");
+			blogParams[i * 27 + 24] = mySQLBlogInfo.getBlogLogo();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getBlogIsDelete() + "\"");
+			blogParams[i * 27 + 25] = mySQLBlogInfo.getBlogIsDelete();
+			blogSql.append(",? ");
+//			blogSql.append("\"" + mySQLBlogInfo.getBlogIsShield() + "\"");
+			blogParams[i * 27 + 26] = mySQLBlogInfo.getBlogIsShield();
+			
+			// 临时表
+			if (i != 0) {
+				blogTempSql.append("), ");
+			}
+			blogTempSql.append("(? ");
+//			blogTempSql.append("\"" + mySQLBlogInfo.getOldId() + "\"");
+			blogTempParams[i * 2] = mySQLBlogInfo.getOldId();
+			blogTempSql.append(",? ");
+//			blogTempSql.append("\"" + mySQLBlogInfo.getBlogCode() + "\"");
+			blogTempParams[i * 2 + 1] = mySQLBlogInfo.getBlogCode();
+		}
+		blogSql.append(") ");
+		blogTempSql.append(") ");
+		
+		// 插入博客
+		int updateBlogNum = jdbcTemplate.update(blogSql.toString(), blogParams);
+		if (updateBlogNum <= 0) {
+			throw new Exception();
+		} 
+		
+		// 插入临时表
+		int updateBlogTempNum = jdbcTemplate.update(blogTempSql.toString(), blogTempParams);
+		if (updateBlogTempNum <= 0) {
+			throw new Exception();
+		} 
+		
+		// 拼接博客内容SQL
+		StringBuffer blogContentSql = new StringBuffer();
+		blogContentSql.append("INSERT INTO blog_content ");
+		blogContentSql.append("(content_code, ");
+		blogContentSql.append("tenant_code, ");
+		blogContentSql.append("org_code, ");
+		blogContentSql.append("create_time, ");
+		blogContentSql.append("modify_time, ");
+		blogContentSql.append("remark, ");
+		blogContentSql.append("blog_code, ");
+		blogContentSql.append("content_info) ");
+		blogContentSql.append("VALUES ");
+		
+		// 博客内容参数
+		Object[] blogContentParams = new Object[8 * size];
+		
+		for (int i = 0; i < size; i++) {
+			MySQLBlogContent mySQLBlogContent = mySQLBlogContentList.get(i);
+			if (i != 0) {
+				blogContentSql.append("), ");
+			}
+			blogContentSql.append("(? ");
+//			blogContentSql.append("\"" + mySQLBlogContent.getContentCode() + "\"");
+			blogContentParams[i * 8] = mySQLBlogContent.getContentCode();
+			blogContentSql.append(",? ");
+//			blogContentSql.append("\"" + mySQLBlogContent.getTenantCode() + "\"");
+			blogContentParams[i * 8 + 1] = mySQLBlogContent.getTenantCode();
+			blogContentSql.append(",? ");
+//			blogContentSql.append("\"" + mySQLBlogContent.getOrgCode() + "\"");
+			blogContentParams[i * 8 + 2] = mySQLBlogContent.getOrgCode();
+			blogContentSql.append(",? ");
+//			blogContentSql.append("\"" + mySQLBlogContent.getCreateTime() + "\"");
+			blogContentParams[i * 8 + 3] = mySQLBlogContent.getCreateTime();
+			blogContentSql.append(",? ");
+//			blogContentSql.append("\"" + mySQLBlogContent.getModifyTime() + "\"");
+			blogContentParams[i * 8 + 4] = mySQLBlogContent.getModifyTime();
+			blogContentSql.append(",? ");
+//			blogContentSql.append("\"" + mySQLBlogContent.getRemark() + "\"");
+			blogContentParams[i * 8 + 5] = mySQLBlogContent.getRemark();
+			blogContentSql.append(",? ");
+//			blogContentSql.append("\"" + mySQLBlogContent.getBlogCode() + "\"");
+			blogContentParams[i * 8 + 6] = mySQLBlogContent.getBlogCode();
+			blogContentSql.append(",? ");
+//			blogContentSql.append("\"" + mySQLBlogContent.getContentInfo() + "\"");
+			blogContentParams[i * 8 + 7] = mySQLBlogContent.getContentInfo();
+		}
+		blogContentSql.append(") ");
+		
+		// 插入博客内容
+		int updateBlogContentNum = jdbcTemplate.update(blogContentSql.toString(), blogContentParams);
+		if (updateBlogContentNum <= 0) {
+			throw new Exception();
+		} 
+		
+		// 拼接博客数据SQL
+		StringBuffer blogDataSql = new StringBuffer();
+		blogDataSql.append("INSERT INTO blog_data ");
+		blogDataSql.append("(data_code, ");
+		blogDataSql.append("tenant_code, ");
+		blogDataSql.append("org_code, ");
+		blogDataSql.append("create_time, ");
+		blogDataSql.append("modify_time, ");
+		blogDataSql.append("remark, ");
+		blogDataSql.append("blog_code, ");
+		blogDataSql.append("team_quality_num, ");
+		blogDataSql.append("group_quality_num, ");
+		blogDataSql.append("province_quality_num, ");
+		blogDataSql.append("city_quality_num, ");
+		blogDataSql.append("read_num, ");
+		blogDataSql.append("like_num, ");
+		blogDataSql.append("collect_num, ");
+		blogDataSql.append("forward_num, ");
+		blogDataSql.append("comment_num, ");
+		blogDataSql.append("share_num) ");
+		blogDataSql.append("VALUES ");
+		
+		// 博客内容参数
+		Object[] blogDataParams = new Object[17 * size];
+		
+		for (int i = 0; i < size; i++) {
+			MySQLBlogData mySQLBlogData = mySQLBlogDataList.get(i);
+			if (i != 0) {
+				blogDataSql.append("), ");
+			}
+			blogDataSql.append("(? ");
+//			blogDataSql.append("\"" + mySQLBlogData.getDataCode() + "\"");
+			blogDataParams[i * 17] = mySQLBlogData.getDataCode();
+			blogDataSql.append(",? ");
+//			blogDataSql.append("\"" + mySQLBlogData.getTenantCode() + "\"");
+			blogDataParams[i * 17 + 1] = mySQLBlogData.getTenantCode();
+			blogDataSql.append(",? ");
+//			blogDataSql.append("\"" + mySQLBlogData.getOrgCode() + "\"");
+			blogDataParams[i * 17 + 2] = mySQLBlogData.getOrgCode();
+			blogDataSql.append(",? ");
+//			blogDataSql.append("\"" + mySQLBlogData.getCreateTime() + "\"");
+			blogDataParams[i * 17 + 3] = mySQLBlogData.getCreateTime();
+			blogDataSql.append(",? ");
+//			blogDataSql.append("\"" + mySQLBlogData.getModifyTime() + "\"");
+			blogDataParams[i * 17 + 4] = mySQLBlogData.getModifyTime();
+			blogDataSql.append(",? ");
+//			blogDataSql.append("\"" + mySQLBlogData.getRemark() + "\"");
+			blogDataParams[i * 17 + 5] = mySQLBlogData.getRemark();
+			blogDataSql.append(",? ");
+//			blogDataSql.append("\"" + mySQLBlogData.getBlogCode() + "\"");
+			blogDataParams[i * 17 + 6] = mySQLBlogData.getBlogCode();
+			blogDataSql.append(",? ");
+//			blogDataSql.append("\"" + mySQLBlogData.getTeamQualityNum() + "\"");
+			blogDataParams[i * 17 + 7] = mySQLBlogData.getTeamQualityNum();
+			blogDataSql.append(",? ");
+//			blogDataSql.append("\"" + mySQLBlogData.getGroupQualityNum() + "\"");
+			blogDataParams[i * 17 + 8] = mySQLBlogData.getGroupQualityNum();
+			blogDataSql.append(",? ");
+//			blogDataSql.append("\"" + mySQLBlogData.getProvinceQualityNum() + "\"");
+			blogDataParams[i * 17 + 9] = mySQLBlogData.getProvinceQualityNum();
+			blogDataSql.append(",? ");
+//			blogDataSql.append("\"" + mySQLBlogData.getCityQualityNum() + "\"");
+			blogDataParams[i * 17 + 10] = mySQLBlogData.getCityQualityNum();
+			blogDataSql.append(",? ");
+//			blogDataSql.append("\"" + mySQLBlogData.getReadNum() + "\"");
+			blogDataParams[i * 17 + 11] = mySQLBlogData.getReadNum();
+			blogDataSql.append(",? ");
+//			blogDataSql.append("\"" + mySQLBlogData.getLikeNum() + "\"");
+			blogDataParams[i * 17 + 12] = mySQLBlogData.getLikeNum();
+			blogDataSql.append(",? ");
+//			blogDataSql.append("\"" + mySQLBlogData.getCollectNum() + "\"");
+			blogDataParams[i * 17 + 13] = mySQLBlogData.getCollectNum();
+			blogDataSql.append(",? ");
+//			blogDataSql.append("\"" + mySQLBlogData.getForwardNum() + "\"");
+			blogDataParams[i * 17 + 14] = mySQLBlogData.getForwardNum();
+			blogDataSql.append(",? ");
+//			blogDataSql.append("\"" + mySQLBlogData.getCommentNum() + "\"");
+			blogDataParams[i * 17 + 15] = mySQLBlogData.getCommentNum();
+			blogDataSql.append(",? ");
+//			blogDataSql.append("\"" + mySQLBlogData.getShareNum() + "\"");
+			blogDataParams[i * 17 + 16] = mySQLBlogData.getShareNum();
+		}
+		blogDataSql.append(") ");
+		
+		// 插入博客数据
+		int updateBlogDataNum = jdbcTemplate.update(blogDataSql.toString(), blogDataParams);
+		if (updateBlogDataNum <= 0) {
+			throw new Exception();
+		} 
+		
+		return true;
+	}
+	
+	/**
+	 * 
+	 * @Title: createMySQLBlogTemp  
+	 * @Description: 创建博客临时表
+	 * @return: void    返回类型
+	 */
+	@DataSource(DataSourceConstants.MYSQL_BLOG)
+	public void createMySQLBlogTemp() {
+		// 查询是否存在该表
+		StringBuffer selectSql = new StringBuffer();
+		selectSql.append("SELECT ");
+		selectSql.append("table_name ");
+		selectSql.append("FROM ");
+		selectSql.append("information_schema. TABLES ");
+		selectSql.append("WHERE ");
+		selectSql.append("table_name = 'blog_temp' ");
+		List<String> tableNameList = jdbcTemplate.queryForList(selectSql.toString(), String.class);
+		if (tableNameList != null && !tableNameList.isEmpty()) {
+			return;
+		}
+		
+		// 拼接SQL
+		StringBuffer sql = new StringBuffer();
+		sql.append("CREATE TABLE blog_temp ( ");
+		sql.append("old_id  INTEGER NOT NULL, ");
+		sql.append("blog_code  varchar(32) NOT NULL, ");
+		sql.append("PRIMARY KEY (old_id) ");
+		sql.append(") ");
+		sql.append("ENGINE=InnoDB ");
+		sql.append("DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci ");
+		sql.append("ROW_FORMAT=COMPACT ");
+		
+		// 创建表
+		jdbcTemplate.execute(sql.toString());
+	}
+	
+	/**
+	 * 
+	 * @Title: dropMySQLBlogTemp  
+	 * @Description: 删除博客临时表
+	 * @return: void    返回类型
+	 */
+	@DataSource(DataSourceConstants.MYSQL_BLOG)
+	public void dropMySQLBlogTemp() {
+		StringBuffer sql = new StringBuffer();
+		sql.append("DROP TABLE IF EXISTS blog_temp ");
+		
+		// 删除表
+		jdbcTemplate.execute(sql.toString());
+	}
+
+	/**
+	 * 
+	 * @Title: getBlogCode  
+	 * @Description: 获取博客编号
+	 * @param blogId
+	 * @return: String    返回类型
+	 */
+	@DataSource(DataSourceConstants.MYSQL_BLOG)
+	public String getBlogCode(Integer blogId) {
+		StringBuffer sql = new StringBuffer();
+		sql.append("SELECT ");
+		sql.append("blog_code ");
+		sql.append("FROM ");
+		sql.append("blog_temp ");
+		sql.append("WHERE ");
+		sql.append("old_id = ? ");
+		
+		// 参数
+		Object[] params = new Object[1];
+		params[0] = blogId;
+		
+		// 查询
+		List<String> blogCodeList = jdbcTemplate.queryForList(sql.toString(), params, String.class);
+		if (blogCodeList == null || blogCodeList.isEmpty()) {
+			return "";
+		} else {
+			return blogCodeList.get(0);
+		}
+	}
+	
+}

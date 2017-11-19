@@ -1,0 +1,48 @@
+package com.zssq.vote.service.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.zssq.vote.dao.mapper.VoteCommentMapper;
+import com.zssq.vote.dao.mapper.VoteInfoMapper;
+import com.zssq.vote.dao.mapper.VoteJoinMapper;
+import com.zssq.vote.pojo.CountResult;
+import com.zssq.vote.service.IVoteCountService;
+
+@Transactional
+@Service("voteCountService")
+public class VoteCountServiceImpl implements IVoteCountService{
+
+	@Autowired
+	private VoteCommentMapper voteCommentMapper;
+	@Autowired
+	private VoteJoinMapper voteJoinMapper;
+	@Autowired
+	private VoteInfoMapper voteInfoMapper;
+	
+	
+	@Override
+	@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = false, rollbackFor = Throwable.class)
+	public void countJoinAndComment() {
+		try {
+			List<CountResult> commentList = voteCommentMapper.countComment();
+			
+			List<CountResult> joinList = voteJoinMapper.countJoin();
+			
+			if (commentList.size() > 0) {
+				voteInfoMapper.batchUpdateCommentCount(commentList);
+			}
+			if (joinList.size() > 0) {
+				voteInfoMapper.batchUpdateJoinCount(joinList);
+			}
+			
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+
+}

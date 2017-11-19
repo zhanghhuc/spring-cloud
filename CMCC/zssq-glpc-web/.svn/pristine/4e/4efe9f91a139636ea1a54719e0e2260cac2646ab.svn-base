@@ -1,0 +1,3 @@
+function renderFile(path){
+	return "http://172.16.0.110/"+path;
+}

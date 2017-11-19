@@ -1,0 +1,607 @@
+package com.zssq.vote.service.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.util.SpringContextUtil;
+import com.zssq.utils.StringTools;
+import com.zssq.vote.VoteTrConstants;
+import com.zssq.vote.dao.mapper.BaseSysOrgInfoMapper;
+import com.zssq.vote.dao.mapper.BaseTeamInfoMapper;
+import com.zssq.vote.dao.mapper.TransVoteCommentMapper;
+import com.zssq.vote.dao.mapper.TransVoteMapper;
+import com.zssq.vote.dao.mapper.TransVoteOptionsMapper;
+import com.zssq.vote.dao.mapper.TransVoteUserMapper;
+import com.zssq.vote.dao.mapper.VoteCommentMapper;
+import com.zssq.vote.dao.mapper.VoteCommentReplyMapper;
+import com.zssq.vote.dao.mapper.VoteInfoMapper;
+import com.zssq.vote.dao.mapper.VoteJoinMapper;
+import com.zssq.vote.dao.mapper.VoteOptionsMapper;
+import com.zssq.vote.pojo.BaseSysOrgInfo;
+import com.zssq.vote.pojo.BaseTeamInfo;
+import com.zssq.vote.pojo.TransVoteOptions;
+import com.zssq.vote.pojo.TransVoteOptionsExample;
+import com.zssq.vote.pojo.VoteComment;
+import com.zssq.vote.pojo.VoteCommentReply;
+import com.zssq.vote.pojo.VoteInfo;
+import com.zssq.vote.pojo.VoteJoin;
+import com.zssq.vote.pojo.VoteOptions;
+import com.zssq.vote.service.ITransferVoteService;
+
+//@Transactional
+@Service("transferVoteService")
+public class TransferVoteServiceImpl implements ITransferVoteService {
+
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private TransVoteMapper transVoteMapper;
+	@Autowired
+	private TransVoteOptionsMapper transVoteOptionsMapper;
+	@Autowired
+	private TransVoteUserMapper transVoteUserMapper;
+	@Autowired
+	private VoteInfoMapper voteInfoMapper;
+	@Autowired
+	private TransVoteCommentMapper transVoteCommentMapper;
+	@Autowired
+	private VoteCommentMapper voteCommentMapper;
+	@Autowired
+	private VoteCommentReplyMapper voteCommentReplyMapper;
+	@Autowired
+	private VoteOptionsMapper voteOptionsMapper;
+	@Autowired
+	private VoteJoinMapper voteJoinMapper;
+	
+	@Autowired
+	private BaseSysOrgInfoMapper baseSysOrgInfoMapper;
+	@Autowired
+	private BaseTeamInfoMapper baseTeamInfoMapper;
+	
+	public ConcurrentHashMap<Integer, Integer> options = new ConcurrentHashMap<Integer, Integer>();
+	
+	@Override
+	public int count() throws Exception {
+		return transVoteMapper.queryOriginalVoteOfCount();
+	}
+	
+	@Override
+	public void transfer(int voteId) throws Exception {
+		try {
+			log.debug("***###TransferVoteServiceImpl.transfer开始###***voteId=" + voteId);
+			Map<String, Object> voteMap = transVoteMapper.queryOriginalVoteOfOne(voteId);
+			if (!voteMap.isEmpty() && StringTools.isNotEmpty(voteMap.get("voteId").toString())) {
+				first(voteMap);
+			}
+			log.debug("***###TransferVoteServiceImpl.transfer结束###***");
+		} catch (Exception e) {
+			log.error("***###TransferVoteServiceImpl.transfer出错###***", e);
+			throw e;
+		}
+	}
+
+	//@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = false, rollbackFor = Throwable.class)
+	//@Transactional
+	@Override
+	public void transferBatch(boolean pageFlag, int startNum, int endNum) throws Exception {
+		int voteId = 0;
+		try {
+			log.debug("***###Thread:" + Thread.currentThread().getName() + ",transferBatch开始###***pageFlag=" + pageFlag
+					+ ",startNum=" + startNum + ",endNum=" + endNum);
+			// 组装查询参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			if (pageFlag) {
+				paramMap.put("limitStart", startNum);
+				paramMap.put("limitEnd", endNum);
+			}
+			// 创建一个计时器
+			//StopWatch watch = new StopWatch();
+			// 计时器开始
+	        //watch.start();
+	        
+			List<Map<String, Object>> voteList = transVoteMapper.queryOriginalVote(paramMap);
+			if (voteList != null && voteList.size() > 0) {
+				log.debug("本次程序待处理源数据的vote数量：" + voteList.size());
+				
+				for (int i = 0; i < voteList.size(); i++) {
+					log.debug("执行第" + (i + 1) + "次循环程序");
+					
+					// 源数据投票ID
+					voteId = Integer.parseInt(voteList.get(i).get("voteId").toString());
+					first(voteList.get(i));
+				}
+				
+				// 调用第四步
+				//fourth(transactionManager, ts);
+			} else {
+				log.debug("Thread:" + Thread.currentThread().getName() + ",没有需要待迁移的源投票数据^-^。。。。");
+			}
+			// 计时器停止
+			//watch.stop();
+			// 获取计时器计时时间
+			//Long time = watch.getTime();
+			log.debug("***###Thread:" + Thread.currentThread().getName() + ",transferBatch结束###***");
+
+		} catch (Exception e) {
+			log.error("***###Thread:" + Thread.currentThread().getName() + ",transferBatch出错###***voteId="+voteId, e);
+			throw e;
+		}
+	}
+	/**
+	 * 处理投票主表信息
+	 * @Function transferFirst
+	 * @Description 
+	 * @param voteMap
+	 * @throws Exception
+	 */
+	//@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = false, rollbackFor = Throwable.class)
+	public void first(Map<String, Object> voteMap) throws Exception {
+		// 开启事物
+		DataSourceTransactionManager tm = SpringContextUtil.getBean("transactionManagerVote",
+				DataSourceTransactionManager.class);
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setIsolationLevel(TransactionDefinition.ISOLATION_DEFAULT);
+		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+		TransactionStatus ts = tm.getTransaction(def);
+		StringBuffer debugInfo = new StringBuffer();
+		VoteInfo voteInfo = new VoteInfo();
+		// 源数据投票ID
+		Integer voteId = Integer.parseInt(voteMap.get("voteId").toString());
+		debugInfo.append("源数据投票ID：voteId=").append(voteId).append(",");
+		
+		// 生成投票code
+		String voteInfoCode = UUIDHelper.getUUID();
+		voteInfo.setCode(voteInfoCode);
+		debugInfo.append("voteInfoCode=").append(voteInfoCode).append(",");
+		
+		log.debug(debugInfo);
+		try {
+			// 租户标识
+			String tenantCode = (String) voteMap.get("saasTenantCode");
+			if (StringTools.isEmpty(tenantCode)) {
+				tenantCode = VoteTrConstants.TENANT_CODE;
+			}
+			voteInfo.setTenantCode(tenantCode);
+			// 组织机构编码
+			String orgCode = (String) voteMap.get("manOrgCode");
+			if (StringTools.isEmpty(orgCode)) {
+				orgCode = VoteTrConstants.NO_DATA + voteId;
+			}
+			voteInfo.setOrgCode(orgCode);
+			// 创建时间
+			Date cTime = (Date) voteMap.get("createTime");
+			long createTime = cTime.getTime();
+			voteInfo.setCreateTime(createTime);
+			// 修改时间
+			Date uTime = (Date) voteMap.get("updateTime");
+			long modifyTime = uTime.getTime();
+			voteInfo.setModifyTime(modifyTime);
+			// 发起人
+			String sponsorCode = (String) voteMap.get("userCode");
+			if (StringTools.isEmpty(sponsorCode)) {
+				sponsorCode = VoteTrConstants.NO_DATA + voteId;
+			}
+			voteInfo.setSponsorCode(sponsorCode);
+			debugInfo.append("sponsorCode=").append(sponsorCode).append(",");
+			
+			// 发起人类型(1-个人 2-班组 3-门户管理员)
+			// 1-个人投票;2-班组投票;3-地区投票;4-省投票;5-集团投票;
+			String voteType = String.valueOf(voteMap.get("voteType") == null ? "" : voteMap.get("voteType"));
+			String sponsorType = voteType;
+			if ("3".equals(voteType) || "4".equals(voteType) || "5".equals(voteType)) {
+				sponsorType = "3";
+			}
+			voteInfo.setSponsorType(sponsorType);
+			debugInfo.append("sponsorType=").append(sponsorType).append(",");
+			
+			// 发起机构CODE
+			String sponsorOrgCode = "";
+			if ("2".equals(voteType)) {
+				// 传入teamId返回teamCode
+				String teamId = String.valueOf(voteMap.get("teamId") == null ? "" : voteMap.get("teamId"));
+				debugInfo.append("源数据teamId=").append(teamId).append(",");
+				BaseTeamInfo baseTeamInfo = baseTeamInfoMapper.queryTeamInfoByTeamId(Integer.parseInt(teamId));
+				if(baseTeamInfo == null){
+					sponsorOrgCode = VoteTrConstants.NO_DATA + voteId;
+				} else {
+					sponsorOrgCode = baseTeamInfo.getTeamCode();
+				}
+				debugInfo.append("sponsorOrgCode=teamCode").append(sponsorOrgCode).append(",");
+			} else if ("3".equals(voteType)) {
+				String cityId = String.valueOf(voteMap.get("cityId") == null ? "" : voteMap.get("cityId"));
+				debugInfo.append("源数据cityId=").append(cityId).append(",");
+				BaseSysOrgInfo sysOrgInfo = baseSysOrgInfoMapper.queryOrgInfoByOrgId(Integer.valueOf(cityId));
+				if (sysOrgInfo == null) {
+					sponsorOrgCode = VoteTrConstants.NO_DATA + voteId;
+				} else {
+					sponsorOrgCode = sysOrgInfo.getManOrgCode();
+				}
+				debugInfo.append("sponsorOrgCode=manOrgCode").append(sponsorOrgCode).append(",");
+			} else if ("4".equals(voteType)) {
+				String provinceId = String.valueOf(voteMap.get("provinceId") == null ? "" : voteMap.get("provinceId"));
+				debugInfo.append("源数据provinceId=").append(provinceId).append(",");
+				BaseSysOrgInfo sysOrgInfo = baseSysOrgInfoMapper.queryOrgInfoByOrgId(Integer.valueOf(provinceId));
+				if (sysOrgInfo == null) {
+					sponsorOrgCode = VoteTrConstants.NO_DATA + voteId;
+				} else {
+					sponsorOrgCode = sysOrgInfo.getManOrgCode();
+				}
+				debugInfo.append("sponsorOrgCode=manOrgCode").append(sponsorOrgCode).append(",");
+			} else if ("5".equals(voteType)) {
+				sponsorOrgCode = VoteTrConstants.GROUP_CODE;
+				debugInfo.append("发起机构：集团sponsorOrgCode=manOrgCode").append(sponsorOrgCode).append(",");
+			}
+			if (StringTools.isNotEmpty(sponsorOrgCode)) {
+				voteInfo.setSponsorOrgCode(sponsorOrgCode);
+			}
+			// 状态:5-结束
+			voteInfo.setVoteStatus((byte) 5);
+			// 投票主题
+			String title = (String) voteMap.get("voteTitle");
+			if (StringTools.isEmpty(title)) {
+				title = VoteTrConstants.NO_DATA + voteId;
+			}
+			voteInfo.setTitle(title);
+			// 说明
+			String voteExplain = (String) voteMap.get("voteDeclare");
+			if (StringTools.isNotEmpty(voteExplain)) {
+				voteInfo.setVoteExplain(voteExplain);
+			}
+			// 是否可多选
+			Integer optionsType = Integer.valueOf(String.valueOf(voteMap.get("optionsType")));
+			byte isMultiOption = 0;
+			if (optionsType > 1) {
+				isMultiOption = 1;
+			}
+			voteInfo.setIsMultiOption(isMultiOption);
+			debugInfo.append("isMultiOption").append(isMultiOption).append(",");
+			
+			// 是否启用评论
+			voteInfo.setIsEnableComment((byte) 1);
+			// 开始时间
+			Date voteStartTime = (Date) voteMap.get("voteStartTime");
+			voteInfo.setStartTime(voteStartTime.getTime());
+			// 结束时间
+			Date voteEndTime = (Date) voteMap.get("voteEndTime");
+			voteInfo.setEndTime(voteEndTime.getTime());
+			
+			log.debug(debugInfo);
+			int result = voteInfoMapper.insertSelective(voteInfo);
+			if (result > 0) {
+				log.debug("&&&&源投票ID="+voteId+",迁移后投票CODE="+voteInfoCode+",vote_info表迁移成功,进行第二步迁移操作");
+				// 进行第二步
+				second(voteId, voteInfoCode, tenantCode, orgCode, createTime, modifyTime);
+			}
+			log.debug("&&&&源投票ID="+voteId+",迁移后投票CODE="+voteInfoCode+"数据整理成功，进行下一条投票数据迁移整理操作");
+			// 提交事务
+			if (!ts.isCompleted()) {
+				tm.commit(ts);
+			}
+		} catch (Exception e) {
+			//回滚事务
+			if (!ts.isCompleted()) {
+				tm.rollback(ts);
+			}
+			log.error("%%%%%%%TransferVoteServiceImpl.first()出错啦！,voteId=" + voteId + ",voteInfoCode=" + voteInfoCode);
+			throw e;
+		}
+		
+	}
+
+	// 迁移投票选项数据，用户参与投票数据
+	//@Transactional(propagation = Propagation.REQUIRED, readOnly = false, rollbackFor = Throwable.class)
+	public void second(final int voteId, final String voteInfoCode, String tenantCode, String orgCode, long createTime,
+			long modifyTime) throws Exception {
+		try {
+			Thread tt = new Thread(new Runnable() {
+
+				@Override
+				public void run() {
+					try {
+						third(voteId, voteInfoCode);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			});
+			tt.start();
+			// 1.查询此投票的所有选项
+			TransVoteOptionsExample example = new TransVoteOptionsExample();
+			TransVoteOptionsExample.Criteria criteria = example.createCriteria();
+			
+			criteria.andVoteIdEqualTo(voteId);
+			example.setOrderByClause("POSITION asc");
+			
+			List<TransVoteOptions> optionsList = transVoteOptionsMapper.selectByExample(example);
+			if (optionsList != null && optionsList.size() > 0) {
+				log.debug("voteId="+voteId+",voteInfoCode="+voteInfoCode+",选项数据迁移开始。。");
+				for (TransVoteOptions trOptions : optionsList) {
+					VoteOptions vo = new VoteOptions();
+					vo.setCode(UUIDHelper.getUUID());
+					// 租户标识
+					vo.setTenantCode(tenantCode);
+					// 组织机构code
+					vo.setOrgCode(orgCode);
+					// 创建时间&修改时间
+					vo.setCreateTime(createTime);
+					vo.setModifyTime(modifyTime);
+					// 投票主表CODE
+					vo.setVoteInfoCode(voteInfoCode);
+					// 选项序号
+					vo.setOrderNumber(trOptions.getPosition());
+					// 选项内容
+					vo.setContent(trOptions.getOptionsContent());
+					// 选择人数
+					vo.setSelectedNum(trOptions.getVoteNum());
+					
+					// 选项id与选项序号集合，现有的设计是存的选项序号
+					options.put(trOptions.getOptionsId(), trOptions.getPosition());
+					
+					voteOptionsMapper.insertSelective(vo);
+				}
+				log.debug("voteId="+voteId+",voteInfoCode="+voteInfoCode+",选项数据迁移结束。。");
+			} else {
+				log.debug("voteId="+voteId+",voteInfoCode="+voteInfoCode+",没有需要待迁移的选项数据！");
+			}
+			
+			// 2.查询此投票的所有参与记录
+			List<Map<String, Object>> joinList = transVoteUserMapper.queryVoteUserByUnion(voteId);
+			if (joinList != null && joinList.size() > 0) {
+				log.debug("voteId="+voteId+",voteInfoCode="+voteInfoCode+",参与记录数据迁移开始。。");
+				
+				VoteJoin vj = new VoteJoin();
+				for (int i = 0; i < joinList.size(); i++) {
+					StringBuffer debugInfo = new StringBuffer();
+					
+					Map<String, Object> joinRecord = joinList.get(i);
+					
+					Integer voteUserId = (Integer) joinRecord.get("voteUserId");
+					
+					debugInfo.append("源数据参与记录ID(voteUserId)=").append(voteUserId).append(",");
+					
+					// 租户标识
+					String joinTenantCode = (String) joinRecord.get("saasTenantCode");
+					if (StringTools.isEmpty(joinTenantCode)) {
+						joinTenantCode = VoteTrConstants.TENANT_CODE;
+					}
+					// 组织机构编码
+					String joinOrgCode = (String) joinRecord.get("manOrgCode");
+					if (StringTools.isEmpty(joinOrgCode)) {
+						joinOrgCode = VoteTrConstants.NO_DATA + voteId;
+					}
+					// 创建时间(参与时间)&修改时间
+					Date cTime = (Date) joinRecord.get("voteDate");
+					long joinTime = cTime.getTime();
+					// 参与用户CODE
+					String joinUserCode = (String) joinRecord.get("userCode");
+					if (StringTools.isEmpty(joinUserCode)) {
+						joinUserCode = VoteTrConstants.NO_DATA + voteId;
+					}
+					// 选项序号
+					Integer voteOptions = Integer.parseInt(joinRecord.get("voteOptions").toString());
+					
+					String selectedNum = String.valueOf(options.get(voteOptions));
+					
+					if (i == 0) {
+						vj.setCode(UUIDHelper.getUUID());
+						vj.setTenantCode(joinTenantCode);
+						vj.setOrgCode(joinOrgCode);
+						vj.setCreateTime(joinTime);
+						vj.setModifyTime(joinTime);
+						vj.setJoinUserCode(joinUserCode);
+						vj.setVoteInfoCode(voteInfoCode);
+						vj.setSelectedNumber(selectedNum);
+						
+					} else if (i > 0 && vj.getJoinUserCode().equals(joinUserCode)) {
+						boolean flag = true;
+						String[] strs = vj.getSelectedNumber().split("\\|");
+						for (String s : strs) {
+							if (s.equals(selectedNum)) {
+								flag = false;
+								break;
+							}
+						}
+						if (flag) {
+							vj.setSelectedNumber(new StringBuffer(vj.getSelectedNumber()).append("|").append(selectedNum).toString());
+						}
+					} else {
+						debugInfo.append("selectedNumber=").append(vj.getSelectedNumber()).append(",");
+						log.debug(debugInfo);
+						voteJoinMapper.insertSelective(vj);
+						
+						vj = new VoteJoin();
+						vj.setCode(UUIDHelper.getUUID());
+						vj.setTenantCode(joinTenantCode);
+						vj.setOrgCode(joinOrgCode);
+						vj.setCreateTime(joinTime);
+						vj.setModifyTime(joinTime);
+						vj.setJoinUserCode(joinUserCode);
+						vj.setVoteInfoCode(voteInfoCode);
+						vj.setSelectedNumber(selectedNum);
+					}
+					if (i == joinList.size() - 1) {
+						debugInfo.append("selectedNumber=").append(vj.getSelectedNumber()).append(",");
+						log.debug(debugInfo);
+						voteJoinMapper.insertSelective(vj);
+					}
+				}
+			} else {
+				log.debug("voteId="+voteId+",voteInfoCode="+voteInfoCode+",没有需要待迁移的参与记录数据！");
+			}
+			tt.join();
+			
+			// 调用第三步
+//			third(voteId, voteInfoCode);
+		} catch (Exception e) {
+			throw e;
+		}
+		
+	}
+	
+	// 迁移投票评论回复数据
+	//@Transactional(propagation = Propagation.REQUIRED, readOnly = false, rollbackFor = Throwable.class)
+	public void third(int voteId, String voteInfoCode) throws Exception {
+		ArrayList<VoteComment> commentList = new ArrayList<>();
+		ArrayList<VoteCommentReply> replyList = new ArrayList<>();
+
+		// 查询投票的评论
+		List<Map<String, Object>> cs = transVoteCommentMapper.selectComment(voteId);
+		for (Map<String, Object> c : cs) {
+			VoteComment comment = new VoteComment();
+			// 评论code
+			String commentCode = UUIDHelper.getUUID();
+			comment.setCode(commentCode);
+			String tenantCode = (String) c.get("saasTenantCode");
+			if (tenantCode == null) {
+				comment.setTenantCode("");
+			} else {
+				comment.setTenantCode(tenantCode);
+			}
+
+			String manOrgCode = (String) c.get("manOrgCode");
+			if (manOrgCode == null) {
+				comment.setOrgCode("");
+			} else {
+				comment.setOrgCode(manOrgCode);
+			}
+
+			Date cDate = (Date) c.get("COMMENT_DATE");
+			comment.setCreateTime(cDate.getTime());
+			comment.setModifyTime(cDate.getTime());
+			comment.setVoteInfoCode(voteInfoCode);
+
+			String userCode = (String) c.get("userCode");
+			if (userCode == null) {
+				comment.setCommenterCode("");
+			} else {
+				comment.setCommenterCode(userCode);
+			}
+			String cont = (String) c.get("COMMENT_CONTENT");
+			if(StringTools.isNotEmpty(cont)){
+				comment.setContent(cont);
+			}else{
+				comment.setContent("和谐");
+			}
+			
+
+			int cid = Integer.parseInt((String) c.get("COMMENT_ID"));
+			// 查询评论的回复
+			List<Map<String, Object>> rs = transVoteCommentMapper.selectReply(cid);
+			for (Map<String, Object> r : rs) {
+				VoteCommentReply reply = new VoteCommentReply();
+				// 回复code
+				String replyCode = UUIDHelper.getUUID();
+				reply.setCode(replyCode);
+
+				String rTenantCode = (String) r.get("saasTenantCode");
+				if (rTenantCode == null) {
+					reply.setTenantCode("");
+				} else {
+					reply.setTenantCode(rTenantCode);
+				}
+
+				String rManOrgCode = (String) r.get("manOrgCode");
+				if (rManOrgCode == null) {
+					reply.setOrgCode("");
+				} else {
+					reply.setOrgCode(rManOrgCode);
+				}
+
+				Date rDate = (Date) r.get("COMMENT_DATE");
+				reply.setCreateTime(rDate.getTime());
+				reply.setModifyTime(rDate.getTime());
+				reply.setVoteInfoCode(voteInfoCode);
+				reply.setCommentCode(commentCode);
+
+				String rUserCode = (String) r.get("userCode");
+				if (rUserCode == null) {
+					reply.setReplierCode("");
+				} else {
+					reply.setReplierCode(rUserCode);
+				}
+				String questCode = (String) r.get("questCode");
+				if (questCode == null) {
+					reply.setQuestionerCode("");
+				} else {
+					reply.setQuestionerCode(questCode);
+				}
+				String rCon = (String) r.get("COMMENT_CONTENT");
+				if(StringTools.isNotEmpty(rCon)){
+					reply.setContent(rCon);
+				}else{
+					reply.setContent("和谐");
+				}
+				
+
+				replyList.add(reply);
+			}
+
+			// 批量插入评论的回复
+			if (replyList.size() > 0) {
+				comment.setReplyCount(replyList.size());
+				
+				//批量操作
+				//voteCommentReplyMapper.batchInsert(replyList);
+				
+				
+				for (VoteCommentReply record : replyList) {
+					voteCommentReplyMapper.insertSelective(record);
+				}
+				
+				replyList.clear();
+			}
+
+			commentList.add(comment);
+		}
+
+		// 批量插入评论
+		if(commentList.size()>0){
+			
+			//voteCommentMapper.batchInsert(commentList);
+			
+			for (VoteComment record : commentList) {
+				voteCommentMapper.insertSelective(record);
+			}
+			commentList.clear();
+		}
+	}
+
+	/*
+	 * 统计投票的评论数和参与数
+	 */
+	//@Transactional(propagation = Propagation.REQUIRED, readOnly = false, rollbackFor = Throwable.class)
+	/*public void fourth(DataSourceTransactionManager dtm, TransactionStatus ts) throws Exception {
+		try {
+			List<CountResult> commentList = voteCommentMapper.countComment();
+			
+			List<CountResult> joinList = voteJoinMapper.countJoin();
+			
+			if (commentList.size() > 0) {
+				voteInfoMapper.batchUpdateCommentCount(commentList);
+			}
+			if (joinList.size() > 0) {
+				voteInfoMapper.batchUpdateJoinCount(joinList);
+			}
+			
+			// 提交事务
+			dtm.commit(ts);
+		} catch (Exception e) {
+			// 回滚事务
+			dtm.rollback(ts);
+			throw e;
+		}
+	}*/
+}

@@ -1,0 +1,238 @@
+package com.zssq.service;
+
+import java.util.List;
+
+import com.zssq.dao.pojo.MblogInfo;
+import com.zssq.dao.pojo.MblogModel;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.qo.AgentMblogQO;
+import com.zssq.qo.ForwardWeiboQO;
+import com.zssq.qo.MblogInfoQO;
+import com.zssq.qo.PublishWeiboQO;
+import com.zssq.utils.PageBean;
+
+/**
+ * 
+    * @ClassName: MblogInfoService  
+    * @Description: 微博信息操作  
+    * @author Mr.B  
+    * @date 2017年3月15日  
+    *
+ */
+public interface MblogInfoService {
+
+	/**
+	 * 
+	    * @Title: addMblogInfo  
+	    * @Description: 添加微博信息/班组长发布
+	    * @param qo
+	    * @throws BusinessException
+		* @return boolean    返回类型
+	 */
+	public boolean addMblogInfo(PublishWeiboQO qo) throws BusinessException;
+	
+	/**
+	 * 
+	    * @Title: addForwardMblogInfo  
+	    * @Description: 转发微博
+	    * @param qo
+	    * @throws BusinessException
+		* @return boolean    返回类型
+	 */
+	public boolean addForwardMblogInfo(ForwardWeiboQO qo) throws BusinessException;
+	
+	/**
+	 * 
+	    * @Title: addAgentMblogInfo  
+	    * @Description: 代发微博
+	    * @param qo
+	    * @throws BusinessException
+		* @return boolean    返回类型
+	 */
+	public boolean addAgentMblogInfo(AgentMblogQO qo) throws BusinessException;
+	
+	/**
+	 * 
+	    * @Title: queryMblogInfoList  
+	    * @Description: 获取微博信息列表
+	    * @param qo
+		* @return PageBean    返回类型
+	 */
+	public PageBean queryMblogInfoList(MblogInfoQO qo) throws BusinessException;
+	
+	/**
+	 * 
+	 * @Title: queryMyMblogList  
+	 * @Description: 获取我以及我关注的微博列表
+	 * @param qo
+	 * @return PageBean    返回类型
+	 */
+	public PageBean queryMyMblogList(MblogInfoQO qo) throws BusinessException;
+	
+	/**
+	 * 
+	 * @Title: queryOtherMblogList  
+	 * @Description: 获取其他人的微博列表
+	 * @param qo
+	 * @return PageBean    返回类型
+	 */
+	public PageBean queryOtherMblogList(MblogInfoQO qo) throws BusinessException;
+	
+	/**
+	 * 
+	 * @Title: queryTeamMblogList  
+	 * @Description: 获取班组的微博列表
+	 * @param qo
+	 * @return PageBean    返回类型
+	 */
+	public PageBean queryTeamMblogList(MblogInfoQO qo) throws BusinessException;
+
+	/**
+	 * 
+	    * @Title: queryAgentInfoList  
+	    * @Description: 获取代发微博信息列表
+	    * @param qo
+	    * @throws BusinessException
+		* @return PageBean    返回类型
+	 */
+	public PageBean queryAgentInfoList(MblogInfoQO qo) throws BusinessException ;
+
+	/**
+	 * 
+	    * @Title: getMblogInfo  
+	    * @Description: 微博详情
+	    * @param qo
+		* @return MblogModel    返回类型
+	 */
+	public MblogModel getMblogInfo(MblogInfoQO qo) throws BusinessException ;
+	
+	/**
+	 * 
+	    * @Title: getMblogInfo  
+	    * @Description: 获取微博信息
+	    * @param mblogCode	微博CODE
+	    * @throws BusinessException
+		* @return MblogInfo    返回类型
+	 */
+	public MblogInfo getMblogInfo(String mblogCode) throws BusinessException ;
+	
+	/**
+	 * 
+	    * @Title: deleteMblogInfo  
+	    * @Description: 删除微博
+	    * @param qo
+		* @return boolean    返回类型
+	 */
+	public boolean deleteMblogInfo(MblogInfoQO qo) throws BusinessException ;
+	
+	/**
+	 * 
+	    * @Title: deleteMblogInfoGroup  
+	    * @Description: 班组长删除微博
+	    * @param qo
+	    * @throws BusinessException
+		* @return boolean    返回类型
+	 */
+	public boolean deleteMblogInfoGroup(MblogInfoQO qo)  throws BusinessException;
+	
+	/**
+	 * 
+	    * @Title: addOrDelMblogPraise  
+	    * @Description: 添加/删除微博点赞
+	    * @param qo
+		* @return boolean    返回类型
+	 */
+	public boolean addOrDelMblogPraise(MblogInfoQO qo) throws BusinessException ;
+	
+	/**
+	 * 
+	    * @Title: addOrDelMblogCollect  
+	    * @Description: 添加/删除微博收藏
+	    * @param qo
+		* @return boolean    返回类型
+	 */
+	public boolean addOrDelMblogCollect(MblogInfoQO qo) throws BusinessException ;
+	
+	/**
+	 * 
+	    * @Title: addOrDelMblogSubscribe  
+	    * @Description: 添加/删除微博订阅信息
+	    * @param qo
+		* @return boolean    返回类型
+	 */
+	public boolean addOrDelMblogSubscribe(MblogInfoQO qo) throws BusinessException ;
+	
+	/**
+	 * 
+	    * @Title: queryMyCollectList  
+	    * @Description: 查询我收藏的微博列表
+	    * @param qo
+	    * @throws BusinessException
+		* @return PageBean    返回类型
+	 */
+	public PageBean queryMyCollectList(MblogInfoQO qo) throws BusinessException;
+	
+	/**
+	 * 
+	    * @Title: queryMySubscribeList  
+	    * @Description: 查询我订阅的微博列表
+	    * @param qo
+	    * @throws BusinessException
+		* @return PageBean    返回类型
+	 */
+	public PageBean queryMySubscribeList(MblogInfoQO qo) throws BusinessException;
+
+	/**
+	 * 
+	    * @Title: getForwardProcess  
+	    * @Description: 获取微博的历程
+	    * @param mblogCode 微博CODE
+	    * @throws BusinessException
+		* @return List<String>    返回类型
+	 */
+	public List<String> getForwardProcess(String mblogCode) throws BusinessException;
+	
+	
+	/**
+	 * 
+	    * @Title: getMonitoredList  
+	    * @Description: 获取监控的列表 
+	    * @param qo
+	    * @throws BusinessException
+		* @return PageBean    返回类型
+	 */
+	public PageBean getMonitoredList(MblogInfoQO qo) throws BusinessException;
+	
+	/**
+	 * 
+	    * @Title: modifyShield  
+	    * @Description: 修改屏蔽信息
+	    * @param qo
+	    * @throws BusinessException
+		* @return boolean    返回类型
+	 */
+	public boolean modifyShield(MblogInfoQO qo) throws BusinessException;
+
+	/**
+	 * 
+	    * @Title: checkIsFor  
+	    * @Description: 校验是否已经对此微博做了首次转发
+	    * @param mblogCode	微博CODE
+	    * @param userCode	用户CODE
+	    * @throws BusinessException
+		* @return boolean    返回类型
+	 */
+	public boolean checkIsFor(String mblogCode,String userCode) throws BusinessException;
+	
+	/**
+	 * 
+	    * @Title: checkIsSubscribe  
+	    * @Description: 校验是否订阅了 对象
+	    * @param userCode		用户CODE
+	    * @param subjectCode	校验对象
+	    * @param subType		订阅类型：1：个人，2：班组
+	    * @throws BusinessException
+		* @return boolean    返回类型
+	 */
+	public boolean checkIsSubscribe(String userCode,String subjectCode,Byte subType)throws BusinessException;
+}

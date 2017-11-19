@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.TeamFansMapper">
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.TeamFans">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="team_fans_code" property="teamFansCode" jdbcType="VARCHAR" />
+		<result column="team_code" property="teamCode" jdbcType="VARCHAR" />
+		<result column="user_code" property="userCode" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, team_fans_code, team_code, user_code
+	</sql>
+	<!-- 按唯一标识查询 -->
+	<select id="selectByCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+			<include refid="Base_Column_List" />
+		from 
+			team_fans
+		where team_fans_code = #{teamFansCode,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectConcernsTeam" resultType="java.lang.String" parameterType="java.lang.String">
+		select
+			team_code
+		from
+			team_fans
+		where user_code = #{userCode,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 查询班组粉丝 -->
+	<select id="selectPage" parameterType="com.zssq.dao.pojo.TeamFans" resultMap="BaseResultMap">
+		select 
+			<include refid="Base_Column_List" />
+		from 
+			team_fans
+		where 1=1
+		<if test="teamCode != null">
+			and team_code = #{teamCode,jdbcType=VARCHAR}
+		</if>
+		<if test="userCode != null">
+			and user_code = #{userCode,jdbcType=VARCHAR}
+		</if>
+		order by create_time desc
+		<if test="limitStart != null">
+			limit #{limitStart,jdbcType=VARCHAR},#{limitEnd,jdbcType=VARCHAR}
+		</if>
+	</select>
+	<!-- 查询班组粉丝(数量) -->
+	<select id="selectCount" parameterType="com.zssq.dao.pojo.TeamFans" resultType="java.lang.Integer">
+		select 
+			count(1)
+		from 
+			team_fans
+		where 1=1
+		<if test="teamCode != null">
+			and team_code = #{teamCode,jdbcType=VARCHAR}
+		</if>
+		<if test="userCode != null">
+			and user_code = #{userCode,jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<!-- 查询我关注的班组 -->
+	<select id="selectConcersTeamPage" parameterType="com.zssq.dao.pojo.TeamFans" resultType="com.zssq.dao.pojo.TeamFans">
+		select 
+		  tf.team_code teamCode,
+		  tf.team_fans_code teamFansCode,
+		  ti.team_name teamName,
+		  ti.team_icon teamIcon,
+		  ti.team_intro teamIntro,
+		  ti.org_code teamOrgCode
+		from
+		  team_fans tf 
+		  left join team_info ti 
+		    on tf.team_code = ti.team_code 
+		  where tf.user_code=#{userCode,jdbcType=VARCHAR}
+		<if test="limitStart != null">
+			limit #{limitStart,jdbcType=VARCHAR},#{limitEnd,jdbcType=VARCHAR}
+		</if>
+	</select>
+	<!-- 查询我关注的班组(数量) -->
+	<select id="selectConcersTeamCount" parameterType="com.zssq.dao.pojo.TeamFans" resultType="java.lang.Integer">
+		select 
+			count(1)
+		from 
+			team_fans
+		where user_code = #{userCode,jdbcType=VARCHAR}
+	</select>
+
+	<!-- 按唯一标识删除 -->	
+	<delete id="deleteByCode" parameterType="java.lang.String" >
+		delete from team_fans where team_fans_code = #{value,jdbcType=VARCHAR}
+	</delete>
+	
+	<!-- 动态插入 -->
+	<insert id="insertSelective" parameterType="com.zssq.dao.pojo.TeamFans">
+		insert into team_fans
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="teamFansCode != null">
+				team_fans_code,
+			</if>
+			<if test="teamCode != null">
+				team_code,
+			</if>
+			<if test="userCode != null">
+				user_code,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=BIGINT},
+			</if>
+			<if test="teamFansCode != null">
+				#{teamFansCode,jdbcType=VARCHAR},
+			</if>
+			<if test="teamCode != null">
+				#{teamCode,jdbcType=VARCHAR},
+			</if>
+			<if test="userCode != null">
+				#{userCode,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=BIGINT},
+			</if>
+		</trim>
+	</insert>
+	
+	<delete id="unfollow" parameterType="com.zssq.dao.pojo.TeamFans">
+		DELETE 
+		FROM
+		  team_fans 
+		WHERE user_code = #{userCode,jdbcType=VARCHAR}
+		  AND team_code = #{teamCode,jdbcType=VARCHAR} 
+	</delete>
+	
+</mapper>

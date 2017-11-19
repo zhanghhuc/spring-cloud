@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.relation.dao.mapper.RelationSubjectDataMapper">
+	
+	<!-- new import 插入博客 数量 -->
+	<!-- 插入 -->
+	<insert id="insertBlog" >
+		INSERT IGNORE INTO relation_subject_data (
+			subject_data_code, 
+			tenant_code,
+			org_code,
+			create_time,
+			modify_time, 
+			remark, 
+			subject_code,
+			team_quality_num, 
+			group_quality_num, 
+			province_quality_num,
+			city_quality_num, 
+			join_num, 
+			read_num,
+			like_num, 
+			collect_num, 
+			forward_num,
+			comment_num, 
+			share_num
+		) select 
+			REPLACE (UUID(), '-', '') AS rec_code,
+			bi.tenant_code as tenant_code,
+			bi.org_code as org_code, 
+			bi.create_time AS create_time,
+			bi.modify_time AS modify_time,
+			bi.remark as remark, 
+			bi.blog_code as subject_code,
+			bd.team_quality_num as team_quality_num, 
+			bd.group_quality_num as group_quality_num, 
+			bd.province_quality_num as province_quality_num,
+			bd.city_quality_num as city_quality_num, 
+			0 as join_num, 
+			bd.read_num as read_num,
+			bd.like_num as like_num, 
+			bd.collect_num as collect_num, 
+			bd.forward_num as forward_num,
+			bd.comment_num as comment_num, 
+			bd.share_num as share_num
+		 from relation_recommend rr 
+			left join blog_info bi on rr.subject_code = bi.blog_code
+			left join blog_data bd on bd.blog_code = bi.blog_code
+			where rr.subject_class = 2 and bi.blog_code is not null
+	</insert>
+	
+	<!-- new import 插入微博 数量 -->
+	<!-- 插入 -->
+	<insert id="insertMBlog" >
+		INSERT IGNORE INTO relation_subject_data (
+			subject_data_code, 
+			tenant_code,
+			org_code,
+			create_time,
+			modify_time, 
+			remark, 
+			subject_code,
+			team_quality_num, 
+			group_quality_num, 
+			province_quality_num,
+			city_quality_num, 
+			join_num, 
+			read_num,
+			like_num, 
+			collect_num, 
+			forward_num,
+			comment_num, 
+			share_num
+		) select 
+			REPLACE (UUID(), '-', '') AS rec_code,
+			bi.tenant_code as tenant_code,
+			bi.org_code as org_code, 
+			bi.create_time AS create_time,
+			bi.modify_time AS modify_time,
+			bi.remark as remark, 
+			bi.mblog_code as subject_code,
+			bd.team_essence_num as team_quality_num, 
+			bd.group_essence_num as group_quality_num, 
+			bd.province_essence_num as province_quality_num,
+			bd.city_essence_num as city_quality_num, 
+			0 as join_num, 
+			0 as read_num,
+			bd.praise_num as like_num, 
+			bd.collect_num as collect_num, 
+			bd.forward_num as forward_num,
+			bd.comment_num as comment_num, 
+			0 as share_num
+		 from relation_recommend rr 
+			left join mblog_info bi on rr.subject_code = bi.mblog_code
+			left join mblog_num bd on bd.subject_code = bi.mblog_code and bd.num_source = 1
+			where rr.subject_class = 1 and bi.mblog_code is not null and bd.subject_code is not null 
+	</insert>
+</mapper>

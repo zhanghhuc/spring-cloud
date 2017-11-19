@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.auth.dao.mapper.SysUserInfoMapper">		
+	
+	<!-- 批量新增用户信息 -->
+	<insert id="insertBatch" parameterType="java.util.List">
+		insert into sys_user_info
+		(
+			user_code,
+			user_name,
+			user_sex,
+			user_office_phone,
+			org_code,
+			user_status,
+			saas_tenant_code,
+			user_id
+		)
+		values 
+		<foreach collection="list" item="item" index="index" separator=",">  
+	        (
+	        #{item.userCode,jdbcType=VARCHAR},
+			#{item.userName,jdbcType=VARCHAR},
+			#{item.userSex,jdbcType=TINYINT},
+			#{item.userOfficePhone,jdbcType=VARCHAR},
+			#{item.orgCode,jdbcType=VARCHAR},
+			#{item.userStatus,jdbcType=TINYINT},
+			#{item.tenantCode,jdbcType=VARCHAR},
+			#{item.userid,jdbcType=INTEGER}
+			)
+	    </foreach>				
+	</insert>
+</mapper>

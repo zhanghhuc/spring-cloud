@@ -1,0 +1,99 @@
+package com.zssq.vote.junit.test;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+
+import org.apache.commons.lang.time.StopWatch;
+import org.apache.log4j.Logger;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.zssq.vote.service.ITransferVoteService;
+import com.zssq.vote.service.IVoteCountService;
+import com.zssq.vote.thread.ExecuteThread;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations={"classpath:spring/spring.xml"})
+//@TransactionConfiguration(transactionManager = "transactionManagerVote", defaultRollback = true)
+public class VoteBatchJunitTest {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private ITransferVoteService transferVoteService;
+	@Autowired
+	private IVoteCountService voteCountService;
+	
+	@Test
+	//@Transactional //标明此方法需使用事务
+	//@Rollback(true) //标明使用完此方法后事务回滚
+	public void test() {
+		//int startNum = 1;
+		//int endNum = 2;
+		try {
+			// 创建一个计时器
+			StopWatch watch = new StopWatch();
+			// 计时器开始
+			watch.start();
+			// 10558条数据
+			ExecutorService exe = Executors.newFixedThreadPool(50);
+			// 待迁移投票表总数据量
+			int total = transferVoteService.count();
+			log.debug("@@@@@@@@@@待迁移投票总数量为：" + total);
+			
+			// 创建的线程数量
+			int threadCount = 30;
+			// 每个线程处理的数据量
+			int endNum = 355;
+			for (int i = 0; i < threadCount; i++) {
+				int startNum = 0;
+				if (i > 0) {
+					startNum = i * endNum;
+				}
+				exe.execute(new ExecuteThread(startNum, endNum));
+			}
+			exe.shutdown();
+			ThreadPoolExecutor tpe = ((ThreadPoolExecutor) exe);
+			while (true) {
+				log.debug("~~~~~~~~~~~~~线程池中活动的线程数为：" + tpe.getActiveCount());
+				if (exe.isTerminated()) {
+					System.out.println("结束了！");
+					
+					// 批量添加参与范围数据
+					voteCountService.addJoinAuth();
+					
+					// 统计评论数和参与数，更新值vote_info表中
+					voteCountService.countJoinAndComment();
+					break;
+				}
+				Thread.sleep(2000);
+			}
+			
+			//transferVoteService.transfer(false, startNum, endNum);
+			
+			// 批量添加参与范围数据
+			//voteCountService.addJoinAuth();
+			
+			// 统计评论数和参与数，更新值vote_info表中
+			//voteCountService.countJoinAndComment();
+			
+			// 计时器停止
+			watch.stop();
+			// 获取计时器计时时间
+			Long time = watch.getTime();
+			log.debug("----------总共耗时：" + time + "毫秒");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void main(String[] args) {
+//		System.out.println(System.nanoTime());
+		System.out.println(Runtime.getRuntime().availableProcessors());
+	}
+	
+}

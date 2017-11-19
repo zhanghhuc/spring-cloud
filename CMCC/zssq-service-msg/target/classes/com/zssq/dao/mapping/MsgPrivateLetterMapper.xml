@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.MsgPrivateLetterMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.MsgPrivateLetter" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="private_letter_code" property="privateLetterCode" jdbcType="VARCHAR" />
+    <result column="module_code" property="moduleCode" jdbcType="VARCHAR" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="private_letter_user_code" property="privateLetterUserCode" jdbcType="VARCHAR" />
+    <result column="content_type" property="contentType" jdbcType="TINYINT" />
+    <result column="send_user_code" property="sendUserCode" jdbcType="VARCHAR" />
+    <result column="is_read" property="isRead" jdbcType="TINYINT" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="look_time" property="lookTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+        <result column="letter_content" property="letterContent" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.zssq.dao.pojo.MsgPrivateLetter" extends="BaseResultMap" >
+    <result column="letter_content" property="letterContent" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, private_letter_code, module_code, user_code, private_letter_user_code, content_type, 
+    send_user_code, is_read, create_time, look_time, modify_time, is_delete, org_code, 
+    tenant_code
+  </sql>
+  <sql id="Blob_Column_List" >
+    letter_content
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from msg_private_letter
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from msg_private_letter
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.MsgPrivateLetter" >
+    insert into msg_private_letter (id, private_letter_code, module_code, 
+      user_code, private_letter_user_code, content_type, 
+      send_user_code, is_read, create_time, 
+      look_time, modify_time, is_delete, 
+      org_code, tenant_code, letter_content
+      )
+    values (#{id,jdbcType=BIGINT}, #{privateLetterCode,jdbcType=VARCHAR}, #{moduleCode,jdbcType=VARCHAR}, 
+      #{userCode,jdbcType=VARCHAR}, #{privateLetterUserCode,jdbcType=VARCHAR}, #{contentType,jdbcType=TINYINT}, 
+      #{sendUserCode,jdbcType=VARCHAR}, #{isRead,jdbcType=TINYINT}, #{createTime,jdbcType=BIGINT}, 
+      #{lookTime,jdbcType=BIGINT}, #{modifyTime,jdbcType=BIGINT}, #{isDelete,jdbcType=TINYINT}, 
+      #{orgCode,jdbcType=VARCHAR}, #{tenantCode,jdbcType=VARCHAR}, #{letterContent,jdbcType=LONGVARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.MsgPrivateLetter" >
+    insert into msg_private_letter
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="privateLetterCode != null" >
+        private_letter_code,
+      </if>
+      <if test="moduleCode != null" >
+        module_code,
+      </if>
+      <if test="userCode != null" >
+        user_code,
+      </if>
+      <if test="privateLetterUserCode != null" >
+        private_letter_user_code,
+      </if>
+      <if test="contentType != null" >
+        content_type,
+      </if>
+      <if test="sendUserCode != null" >
+        send_user_code,
+      </if>
+      <if test="isRead != null" >
+        is_read,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="lookTime != null" >
+        look_time,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="letterContent != null" >
+        letter_content,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="privateLetterCode != null" >
+        #{privateLetterCode,jdbcType=VARCHAR},
+      </if>
+      <if test="moduleCode != null" >
+        #{moduleCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="privateLetterUserCode != null" >
+        #{privateLetterUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="contentType != null" >
+        #{contentType,jdbcType=TINYINT},
+      </if>
+      <if test="sendUserCode != null" >
+        #{sendUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isRead != null" >
+        #{isRead,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="lookTime != null" >
+        #{lookTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="letterContent != null" >
+        #{letterContent,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.MsgPrivateLetter" >
+    update msg_private_letter
+    <set >
+      <if test="privateLetterCode != null" >
+        private_letter_code = #{privateLetterCode,jdbcType=VARCHAR},
+      </if>
+      <if test="moduleCode != null" >
+        module_code = #{moduleCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        user_code = #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="privateLetterUserCode != null" >
+        private_letter_user_code = #{privateLetterUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="contentType != null" >
+        content_type = #{contentType,jdbcType=TINYINT},
+      </if>
+      <if test="sendUserCode != null" >
+        send_user_code = #{sendUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isRead != null" >
+        is_read = #{isRead,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="lookTime != null" >
+        look_time = #{lookTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="letterContent != null" >
+        letter_content = #{letterContent,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.zssq.dao.pojo.MsgPrivateLetter" >
+    update msg_private_letter
+    set private_letter_code = #{privateLetterCode,jdbcType=VARCHAR},
+      module_code = #{moduleCode,jdbcType=VARCHAR},
+      user_code = #{userCode,jdbcType=VARCHAR},
+      private_letter_user_code = #{privateLetterUserCode,jdbcType=VARCHAR},
+      content_type = #{contentType,jdbcType=TINYINT},
+      send_user_code = #{sendUserCode,jdbcType=VARCHAR},
+      is_read = #{isRead,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      look_time = #{lookTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      letter_content = #{letterContent,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.MsgPrivateLetter" >
+    update msg_private_letter
+    set private_letter_code = #{privateLetterCode,jdbcType=VARCHAR},
+      module_code = #{moduleCode,jdbcType=VARCHAR},
+      user_code = #{userCode,jdbcType=VARCHAR},
+      private_letter_user_code = #{privateLetterUserCode,jdbcType=VARCHAR},
+      content_type = #{contentType,jdbcType=TINYINT},
+      send_user_code = #{sendUserCode,jdbcType=VARCHAR},
+      is_read = #{isRead,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      look_time = #{lookTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+    <!-- 主列表分页查询  -->
+   <select id="selectPageMain" resultMap="ResultMapWithBLOBs" parameterType="com.zssq.model.MessagePrivateLetterModel" >
+    SELECT 
+    <include refid="Base_Column_List" />,letter_content from
+   (SELECT <include refid="Base_Column_List" /> ,letter_content  from 
+  	 msg_private_letter where 1=1  
+     <if test="userCode != null">
+      and  user_code = #{userCode,jdbcType=VARCHAR}
+      
+      and  send_user_code !=#{userCode,jdbcType=VARCHAR}
+     
+   	</if>
+    and  is_delete=0   
+   ORDER BY create_time DESC )a 
+   GROUP BY a.send_user_code 
+    <if test="pageNo != null and pageSize>=0" >
+      limit #{pageNo} , #{pageSize}
+    </if>
+  </select>
+  
+  <!-- 主列表总条数 -->
+   <select id="selectCountMain" resultType="int" parameterType="com.zssq.model.MessagePrivateLetterModel" >
+        
+	SELECT count(1) from (
+ 		 select COUNT(1)
+  		 from msg_private_letter
+  		 where 1 = 1 
+	  
+	  	 <if test="userCode != null">
+	       and  user_code = #{userCode,jdbcType=VARCHAR}
+      
+      	and  send_user_code !=#{userCode,jdbcType=VARCHAR}
+	  	 </if>
+   
+  		 and  is_delete=0  GROUP BY send_user_code ) a
+  </select>
+  
+  
+  
+  
+     <!-- 详细信息列表分页查询  -->
+   <select id="selectPageInfo" resultMap="ResultMapWithBLOBs" parameterType="com.zssq.model.MessagePrivateInfoModel" >
+
+   SELECT <include refid="Base_Column_List" />,letter_content  from 
+  	 msg_private_letter where 1=1  
+     <if test="userCode != null">
+      and  user_code =#{userCode,jdbcType=VARCHAR}
+   	</if>
+   	<!-- and private_letter_user_code=#{letterUserCode} -->
+   	and  is_delete=0 
+   	
+   	and (send_user_code= #{userCode,jdbcType=VARCHAR} or send_user_code=#{letterUserCode})
+      
+   	 ORDER BY  create_time DESC
+   	 
+ 	 limit #{pageNo} , #{pageSize}
+ 	 
+  </select>
+  
+  <!-- 详细信息总条数  （暂时取消） -->
+   <select id="selectCountInfo" resultType="int" parameterType="com.zssq.model.MessagePrivateInfoModel" >
+ 		 select COUNT(1)
+  		 from msg_private_letter
+  		 where 1 = 1 
+	  
+	  	 <if test="userCode != null">
+	       and  user_code = #{userCode,jdbcType=VARCHAR}
+	  	 </if>
+   		and private_letter_user_code=#{letterUserCode}
+  	 and  is_delete=0  
+  		 
+  </select>
+  
+  
+  
+  	<!-- 删除私信 -->
+    <update id="delPrivateLetter" parameterType="com.zssq.model.DelPrivateLetterVO" >
+    update msg_private_letter set
+        is_delete = 1
+    where  
+     (send_user_code= #{userCode,jdbcType=VARCHAR} or send_user_code=#{letterUserCode})
+        and user_code=#{userCode}
+  </update>
+  
+  
+</mapper>

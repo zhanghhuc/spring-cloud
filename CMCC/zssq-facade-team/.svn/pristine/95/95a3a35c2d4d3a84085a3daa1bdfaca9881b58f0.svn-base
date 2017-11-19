@@ -1,0 +1,405 @@
+package com.zssq.service;
+
+import java.util.List;
+
+import com.zssq.dao.pojo.MyManageTeam;
+import com.zssq.dao.pojo.TeamCourse;
+import com.zssq.dao.pojo.TeamInfo;
+import com.zssq.dao.pojo.TeamMessage;
+import com.zssq.dao.pojo.TeamMessageReply;
+import com.zssq.dao.pojo.UserTeamState;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+
+/**
+ * @ClassName ITeamInfoService
+ * @Description 班组信息服务
+ * @author JiPengChun
+ * @date 2017年3月15日 上午11:04:04
+ * @version 1.0
+ * @since JDK 1.7
+ */
+public interface ITeamInfoService {
+
+	/**
+	 * @Function getTeamInfoList
+	 * @Description 获取班组列表(按组织CODE)
+	 * @param pageParam
+	 * @param record
+	 * @param type
+	 * @return
+	 */
+	public PageBean getTeamInfoList(PageParam pageParam,TeamInfo record) throws BusinessException;
+	
+	/**
+	 * @Function addTeam
+	 * @Description 新建班组
+	 * @param record
+	 * @return
+	 */
+	public boolean addTeam(TeamInfo record) throws BusinessException;
+	
+	
+	/**
+	 * @Function updateTeamInfo
+	 * @Description 修改班组信息
+	 * @param teamCode 班组编码
+	 * @param teamName 班组名称
+	 * @param teamType 班组类型
+	 * @param orgCode 班组所属org
+	 * @return
+	 * @throws BusinessException
+	 */
+	public boolean updateTeamInfo(String teamCode,String teamName,Byte teamType,String orgCode) throws BusinessException;
+	
+	
+	/**
+	 * @Function getMyTeamList
+	 * @Description 含有自己的班组
+	 * @param userCode 当前人code
+	 * @return
+	 * @throws BusinessException
+	 */
+	public List<TeamInfo> getMyTeamList(String userCode) throws BusinessException;
+	
+	
+	/**
+	 * @Function getMyManageTeam
+	 * @Description 我管理的班组
+	 * @param pageParam
+	 * @param record
+	 * @return
+	 * @throws BusinessException
+	 */
+	public PageBean getMyManageTeam(PageParam pageParam,MyManageTeam record) throws BusinessException;
+	
+	
+	/**
+	 * @Function getMyRecommondList
+	 * @Description 我推荐的班组
+	 * @param leaderCode
+	 * @return
+	 * @throws BusinessException
+	 */
+	public PageBean getMyRecommondList(PageParam pageParam,TeamCourse record) throws BusinessException;
+
+	
+	/**
+	 * @Function selectByCode
+	 * @Description 根据班组CODE获取班组信息
+	 * @param teamCode
+	 * @return
+	 * @throws BusinessException
+	 */
+	public TeamInfo selectByCode(String teamCode) throws BusinessException;
+	
+	
+	/**
+	 * @Function selectHeadInfo
+	 * @Description 获取班组头信息
+	 * @param userCode 当前登录人
+	 * @param teamCode 班组编码
+	 * @return
+	 * @throws BusinessException
+	 */
+	public TeamInfo selectHeadInfo(String userCode,String teamCode) throws BusinessException;
+	
+	/**
+	 * @Function updateTeamIntro
+	 * @Description 更新班组简介
+	 * @param teamCode 班组编码
+	 * @param intro 简介内容
+	 * @return
+	 * @throws BusinessException
+	 */
+	public boolean updateTeamIntro(String teamCode,String intro) throws BusinessException;
+	
+	
+	/**
+	 * @Function updateTeamHead
+	 * @Description 更新班组头像
+	 * @param teamCode 班组编码
+	 * @param head 班组头像
+	 * @return
+	 * @throws BusinessException
+	 */
+	public boolean updateTeamHead(String teamCode,String head) throws BusinessException;
+	
+	
+	/**
+	 * @Function addFans
+	 * @Description 新增粉丝
+	 * @param teamCode 班组编码
+	 * @param userCode 粉丝编码
+	 * @return
+	 * @throws BusinessException
+	 */
+	public boolean addFans(String teamCode,String userCode) throws BusinessException;
+	
+	
+	/**
+	 * @Function isFans
+	 * @Description 是否为组粉丝
+	 * @param teamCode 班组编码
+	 * @param userCode 粉丝编码
+	 * @return
+	 * @throws BusinessException
+	 */
+	public boolean isFans(String teamCode,String userCode) throws BusinessException;
+	
+	/**
+	 * @Function delFans
+	 * @Description 移除粉丝
+	 * @param code 班组粉丝唯一标识
+	 * @return 返回班组code
+	 * @throws BusinessException
+	 */
+	public String delFans(String code) throws BusinessException;
+	
+	/**
+	 * @Function selectFans
+	 * @Description 查询班组粉丝
+	 * @param pageParam
+	 * @param teamCode
+	 * @return
+	 * @throws BusinessException
+	 */
+	public PageBean selectFans(PageParam pageParam,String teamCode) throws BusinessException;
+	
+	
+	/**
+	 * @Function selectConcernsTeam
+	 * @Description 我关注的班组列表
+	 * @param pageParam
+	 * @param userCode 当前人
+	 * @return
+	 * @throws BusinessException
+	 */
+	public PageBean selectConcernsTeam(PageParam pageParam,String userCode) throws BusinessException;
+	
+	
+	/**
+	 * @Function selectConcernsTeam
+	 * @Description 我关注的班组
+	 * @param userCode 当前人
+	 * @return
+	 * @throws BusinessException
+	 */
+	public List<String> selectConcernsTeam(String userCode) throws BusinessException;
+	
+	/**
+	 * @Function addFriendTeam
+	 * @Description 添加友好班组
+	 * @param userCode 当前人
+	 * @param teamCode 班组编码
+	 * @return
+	 * @throws BusinessException
+	 */
+	public boolean addFriendTeam(String userCode,String teamCode) throws BusinessException;
+	
+	
+	/**
+	 * @Function userState
+	 * @Description 进入班组空间  显示  我是否关注这个班组 这个班组是否是我的班组的友好班组
+	 * @param userCode 用户
+	 * @param teamCode 班组
+	 * @return
+	 * @throws BusinessException
+	 */
+	public UserTeamState userState(String userCode,String teamCode) throws BusinessException;
+	
+	/**
+	 * @Function delFriendTeam
+	 * @Description 移除友好班组
+	 * @param code 友好班组唯一标识
+	 * @return
+	 * @throws BusinessException
+	 */
+	public boolean delFriendTeam(String code) throws BusinessException;
+	
+	/**
+	 * @Function isFriendTeam
+	 * @Description A班组是否是B班组的友好班组
+	 * @param myTeam B班组
+	 * @param yourTeam A班组
+	 * @return
+	 * @throws BusinessException
+	 */
+	public boolean isFriendTeam(String myTeam,String yourTeam) throws BusinessException;
+	
+	/**
+	 * @Function selectFriendTeam
+	 * @Description 查询友好班组列表
+	 * @param pageParam
+	 * @param record
+	 * @return
+	 * @throws BusinessException
+	 */
+	public PageBean selectFriendTeam(PageParam pageParam, String teamCode) throws BusinessException;
+	
+	
+	/**
+	 * @Function addTeamMessage
+	 * @Description 班组留言
+	 * @param teamCode 班组编码
+	 * @param userCode 留言人
+	 * @param message 留言内容
+	 * @return
+	 * @throws BusinessException
+	 */
+	public TeamMessage addTeamMessage(String teamCode,String userCode,String message) throws BusinessException;
+	
+	
+	/**
+	 * @Function delTeamMessage
+	 * @Description 移除班组留言
+	 * @param messageCode 班组留言唯一标识
+	 * @return
+	 * @throws BusinessException
+	 */
+	public TeamMessage delTeamMessage(String messageCode) throws BusinessException;
+	
+	
+	/**
+	 * @Function complaintTeamMessage
+	 * @Description 班组留言举报/取消举报
+	 * @param code 唯一标识
+	 * @param type 1.评论 2.回复
+	 * @param action 1-屏蔽 0-恢复
+	 * @throws BusinessException
+	 */
+	public void complaintTeamMessage(String code,Byte type,Byte action) throws BusinessException;
+	
+	/**
+	 * @Function selectTeamMeassage
+	 * @Description 班组留言列表
+	 * @param pageParam
+	 * @param teamCode 班组编码
+	 * @return
+	 * @throws BusinessException
+	 */
+	public PageBean selectTeamMeassage(PageParam pageParam, String teamCode) throws BusinessException;
+	
+	
+	/**
+	 * @Function selectTeamMeassage
+	 * @Description 查询单条班组留言
+	 * @param teamMessageCode 班组留言唯一标识
+	 * @return
+	 * @throws BusinessException
+	 */
+	public TeamMessage selectTeamMeassage(String teamMessageCode) throws BusinessException;
+	
+	/**
+	 * @Function addMesReply
+	 * @Description 班组长回复留言
+	 * @param mesCode 留言唯一标识
+	 * @param userCode 班组长
+	 * @param reply 回复内容
+	 * @return
+	 * @throws BusinessException
+	 */
+	public TeamMessageReply addMesReply(String mesCode,String userCode,String reply) throws BusinessException;
+	
+	/**
+	 * @Function delMesReply
+	 * @Description 删除班组长回复
+	 * @param replyCode 回复唯一标识
+	 * @return
+	 * @throws BusinessException
+	 */
+	public boolean delMesReply(String replyCode) throws BusinessException;
+	
+	
+	/**
+	 * @Function selectHonorTeam
+	 * @Description 查询百强班组(颁发荣誉)
+	 * @param pageParam
+	 * @param electCode 评选编码
+	 * @return
+	 * @throws BusinessException
+	 */
+	public PageBean selectHonorTeam(PageParam pageParam,String electCode) throws BusinessException;
+	
+	
+	/**
+	 * @Function selectCodeByName
+	 * @Description 根据name查询code
+	 * @param name 班组名称(模糊)
+	 * @return
+	 * @throws BusinessException
+	 */
+	public List<String> selectCodeByName(String name) throws BusinessException;
+	
+	
+	/**
+	 * @Function selectByTeamCodes
+	 * @Description 根据teamCodes返回多个对象(人数/班组orgCode/班组名称)
+	 * @param teamCodes 班组编码集合
+	 * @return
+	 * @throws BusinessException
+	 */
+	public List<TeamInfo> selectByTeamCodes(List<String> teamCodes) throws BusinessException;
+	
+	
+	/**
+	 * @Function selectByOrgCode
+	 * @Description 根据orgCode返回多个班组信息
+	 * @param pageParam
+	 * @param orgCode 组织机构编码
+	 * @return
+	 * @throws BusinessException
+	 */
+	public PageBean selectByOrgCode(PageParam pageParam,String orgCode) throws BusinessException;
+	
+	/**
+	 * @Function repeatName
+	 * @Description 校验班组名称重复(排除该班组)
+	 * @param teamName 班组名称
+	 * @param teamCode 班组编码
+	 * @return
+	 * @throws BusinessException
+	 */
+	public boolean repeatName(String teamName,String teamCode) throws BusinessException;
+	
+	
+	/**
+	 * @Function getTeamCode
+	 * @Description 获取班组主键
+	 * @return
+	 * @throws BusinessException
+	 */
+	public String getTeamCode() throws BusinessException;
+	
+	/**
+	 * @Function selectByName
+	 * @Description 根据班组名称查询
+	 * @param pageParam
+	 * @param teamName 班组名称
+	 * @return
+	 * @throws BusinessException
+	 */
+	public PageBean selectByName(PageParam pageParam,String teamName) throws BusinessException; 
+	
+	
+	/**
+	 * @Function addTeamZone
+	 * @Description 添加班组访问记录
+	 * @param userCode
+	 * @param teamCode
+	 * @return
+	 * @throws BusinessException
+	 */
+	public void addTeamZone(String userCode,String teamCode) throws BusinessException; 
+	
+	/**
+	 * @Function getTeamZone
+	 * @Description 拿到记录的访问班组
+	 * @param userCode
+	 * @return
+	 * @throws BusinessException
+	 */
+	public String getTeamZone(String userCode) throws BusinessException; 
+	
+}

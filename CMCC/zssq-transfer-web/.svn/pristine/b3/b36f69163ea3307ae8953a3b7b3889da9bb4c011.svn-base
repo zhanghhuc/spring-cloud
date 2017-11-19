@@ -1,0 +1,14 @@
+package com.zssq.vote.service;
+
+/**
+ * 投票统计评论数和参与数service接口
+ * @author POWER
+ *
+ */
+public interface IVoteCountService {
+
+	/**
+	 * 投票统计评论数和参与数
+	 */
+	void countJoinAndComment();
+}

@@ -1,0 +1,53 @@
+package com.zssq.dao.mapper;
+
+import java.util.List;
+
+import com.zssq.dao.pojo.TeamMember;
+
+public interface TeamMemberMapper {
+	
+    int deleteByCode(String code);
+
+    int insertSelective(TeamMember record);
+
+    TeamMember selectByCode(String code);
+
+    /**
+     * @Function updateByCodeSelective
+     * @Description 批量变更为班组长
+     * @param record
+     * @return
+     */
+    int updateByCodeSelective(TeamMember record);
+
+    int batchInsert(List<TeamMember> memList);
+    
+    List<TeamMember> selectPage(TeamMember record);
+    
+    int selectPageCount(TeamMember record);
+    
+    /**
+     * @Function selectByTeamCode
+     * @Description 根据班组code返回成员集合
+     * @param teamCode
+     * @return
+     */
+    List<TeamMember> selectByTeamCode(String teamCode);
+    
+    /**
+     * @Function selectLeaderByTeamCode
+     * @Description 根据班组code返回班组长code
+     * @param teamCode
+     * @return
+     */
+    List<String> selectLeaderByTeamCode(String teamCode);
+    
+    
+    /**
+     * @Function selectUserCodeByTeamCode
+     * @Description 根据班组code,查询班组成员code
+     * @param teamCode
+     * @return
+     */
+    List<String> selectUserCodeByTeamCode(String teamCode);
+}

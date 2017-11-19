@@ -1,0 +1,29 @@
+package com.zssq.dao.pojo;
+
+import java.io.Serializable;
+
+public class TeamMemberVo implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
+	private String userCode;
+	
+	private Byte isLeader;
+
+	public String getUserCode() {
+		return userCode;
+	}
+
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
+	}
+
+	public Byte getIsLeader() {
+		return isLeader;
+	}
+
+	public void setIsLeader(Byte isLeader) {
+		this.isLeader = isLeader;
+	}
+	
+}

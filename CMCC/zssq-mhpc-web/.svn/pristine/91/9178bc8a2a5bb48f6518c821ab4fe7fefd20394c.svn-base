@@ -1,0 +1,44 @@
+package com.zssq.team.vo;
+
+import org.hibernate.validator.constraints.NotBlank;
+
+public class ReplyAddVo {
+
+	/** 留言唯一标识 */
+	@NotBlank(message = "{empty.message}")
+	private String mesCode;
+	
+	/** 回复内容 */
+	@NotBlank(message = "{empty.message}")
+	private String reply;
+	
+	/** 回复人 */
+	@NotBlank(message = "{empty.message}")
+	private String userCode;
+
+	public String getMesCode() {
+		return mesCode;
+	}
+
+	public void setMesCode(String mesCode) {
+		this.mesCode = mesCode;
+	}
+
+	public String getReply() {
+		return reply;
+	}
+
+	public void setReply(String reply) {
+		this.reply = reply;
+	}
+
+	public String getUserCode() {
+		return userCode;
+	}
+
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
+	}
+	
+	
+}

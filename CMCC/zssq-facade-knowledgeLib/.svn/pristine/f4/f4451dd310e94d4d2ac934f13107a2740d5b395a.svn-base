@@ -1,0 +1,36 @@
+package com.zssq.service;
+
+import java.util.List;
+
+import com.zssq.exceptions.BusinessException;
+import com.zssq.model.GetKnowledgeLibListForGLModel;
+import com.zssq.model.RepositoryInfoMH;
+import com.zssq.vo.CheckLibTitleForGLForSerVO;
+import com.zssq.vo.DeleteLibForGLForSerVO;
+import com.zssq.vo.GetKnowledgeLibListForGLForSerVo;
+import com.zssq.vo.RepositoryInfoVo;
+/**
+ * 
+ * @ClassName: RepositoryInfoService  
+ * @Description: 知识库信息  
+ * @author sry  
+ * @date 2017年4月28日  
+ *
+ */
+public interface RepositoryInfoService {
+	/**
+	 * 
+	 * @Title: getRepositoryListForMH  
+	 * @Description: 门户查询公司下知识库列表
+	 * @param infoVo
+	 * @return    参数  
+	 * @return: List<RepositoryInfoMH>    返回类型
+	 */
+	List<RepositoryInfoMH> getRepositoryListForMH(RepositoryInfoVo infoVo) throws BusinessException; ;
+	
+	public List<GetKnowledgeLibListForGLModel> getKnowledgeLibListForGL(GetKnowledgeLibListForGLForSerVo getKnowledgeLibListForGLForSerVo) throws BusinessException ;
+
+	public Integer deleteLibForGL(DeleteLibForGLForSerVO deleteLibForGLForSerVO) throws BusinessException ;
+
+	public boolean checkLibTitleForGL(CheckLibTitleForGLForSerVO checkLibTitleForGLForSerVO) throws BusinessException ;
+}

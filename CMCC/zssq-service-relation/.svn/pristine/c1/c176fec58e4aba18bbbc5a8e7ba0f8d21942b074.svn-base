@@ -1,0 +1,147 @@
+package com.zssq.dao.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import com.zssq.dao.pojo.RelationQuality;
+import com.zssq.vo.RelationQualityVO;
+
+public interface RelationQualityMapper {
+
+    int insert(RelationQuality record);
+
+
+	/**
+	 * @Function selectByCond
+	 * @Description 根据内容类型和内容编号查询精华数量
+	 * @param recommend
+	 * @return
+	 */
+	long selectByCond(RelationQuality recommend);
+
+	/**
+	 * @Function deleteByCond
+	 * @Description 班组取消加精 
+	 * @param recommend
+	 * @return
+	 */
+	int deleteByCond(RelationQuality recommend);
+
+	/**
+	 * @Function deleteByQualityCood
+	 * @Description 门户取消加精 
+	 * @param qualityCode
+	 * @return
+	 */
+	int deleteByQualityCood(String qualityCode);
+
+	/**
+	 * @Function updateQualityTop
+	 * @Description 精华置顶/取消置顶
+	 * @param qualityCode
+	 * @return
+	 */
+	int updateQualityTop(Map<String, Object> paramMap);
+
+	/**
+	 * @Function selectPortalQualityByCond
+	 * @Description 查询门户精华信息
+	 * @param relationQualityVO
+	 * @return
+	 */
+	RelationQuality selectPortalQualityByCond(RelationQualityVO relationQualityVO);
+
+	/**
+	 * @Function selectSubjectByCond
+	 * @Description 判断原文是否被删除
+	 * @param quality
+	 * @return
+	 */
+	long selectSubjectByCond(RelationQuality quality);
+
+	/**
+	 * @param paramMap 
+	 * @Function selectTeamQualityList
+	 * @Description 查询班组精华列表
+	 * @return
+	 */
+	List<Object> selectTeamQualityList(Map<String, Object> paramMap);
+	long selectTeamQualityListCount(Map<String, Object> paramMap);
+
+	/**
+	 * @param paramMap 
+	 * @Function selectUserQualityList
+	 * @Description 查询个人精华列表
+	 * @return
+	 */
+	List<Object> selectUserQualityList(Map<String, Object> paramMap);
+	long selectUserQualityListCount(Map<String, Object> paramMap);
+
+	/**
+	 * @param paramMap 
+	 * @Function selectPortalQualityList
+	 * @Description 查询门户精华列表
+	 * @return
+	 */
+	List<Object> selectPortalQualityList(Map<String, Object> paramMap);
+	Long selectPortalQualityListCount(Map<String, Object> paramMap);
+
+	/**
+	 * @Function updateSortNum
+	 * @Description 排序字段初始值
+	 * @return
+	 */
+	int updateSortNum(Map<String, Object> map);
+
+
+	/**
+	 * @Function updateMyUpSortNum
+	 * @Description 更新当前字段
+	 * @param upMap
+	 */
+	Long updateMyUpSortNum(Map<String, Object> upMap);
+
+	/**
+	 * @Function updateOtherSortNum
+	 * @Description 更新被影响字段值
+	 * @param upMap1
+	 * @return
+	 */
+	Long updateOtherSortNum(Map<String, Object> upMap1);
+
+	/**
+	 * @Function selectPortalFrontQualityList
+	 * @Description 查询首页展示精华
+	 * @param paramMap
+	 * @return
+	 */
+	List<Object> selectPortalFrontQualityList(Map<String, Object> paramMap);
+
+
+	/**
+	 * @Function selectPortalRecListSeq
+	 * @Description 精华排序查询
+	 * @param paramMap
+	 * @return
+	 */
+	List<Object> selectPortalRecListSeq(Map<String, Object> paramMap);
+
+	/**
+	 * @Function selectByOrgCode
+	 * @Description 根据orgCode判断是否是精华 
+	 * @param quality
+	 * @return
+	 */
+	long selectByOrgCode(RelationQuality quality);
+
+
+	/**
+	 * @Function selectQualityByCode
+	 * @Description 通过精华编号查询精华信息
+	 * @param quality
+	 * @return
+	 */
+	RelationQuality selectQualityByCode(RelationQuality quality);
+
+
+}

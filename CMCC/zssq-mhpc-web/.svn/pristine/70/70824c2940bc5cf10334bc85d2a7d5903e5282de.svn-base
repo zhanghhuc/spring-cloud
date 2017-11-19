@@ -1,0 +1,221 @@
+package com.zssq.relation.controller;
+
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.constants.CreditConstants;
+import com.zssq.dao.pojo.MessageIntegral;
+import com.zssq.dao.pojo.RelationDynamic;
+import com.zssq.dao.pojo.RelationShare;
+import com.zssq.dao.pojo.SysOrgInfo;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.dao.pojo.TeamInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.kafka.core.KafkaProducerTemplate;
+import com.zssq.model.EtRelationShareModel;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.relation.vo.DelShareVO;
+import com.zssq.relation.vo.GetUserShareListVO;
+import com.zssq.service.ISysOrgService;
+import com.zssq.service.ISysUserService;
+import com.zssq.service.ITeamInfoService;
+import com.zssq.service.RelationShareService;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.utils.StringTools;
+import com.zssq.vo.RelationSharevO;
+
+/**
+ * @ClassName RelationShareController
+ * @Description 分享管理
+ * @author LXW
+ * @date 2017年6月12日 上午11:12:34
+ * @version 1.0
+ * @since JDK 1.7
+ */
+@Controller
+@RequestMapping("relation")
+public class RelationShareController {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private RelationShareService relationShareService;
+	@Autowired
+	private ISysUserService sysUserService;
+	@Autowired
+	private ITeamInfoService teamInfoService;
+	@Autowired
+	private ISysOrgService sysOrgService;
+	@SuppressWarnings("rawtypes")
+	@Autowired
+	private KafkaProducerTemplate producerTemplate;
+	
+	
+	/**
+	 * @Function removeTeamQuality
+	 * @Description 查询个人分享列表
+	 * @param inVO
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value="getUserShareList",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getUserShareList(@RequireValid GetUserShareListVO inVO) throws BusinessException {
+		// 返回值
+		ResultJSON result = null;
+		try {
+			log.info("RelationShareController.getUserShareList：获取个人分享列表");
+			
+			// 获取参数
+			String queryTime = inVO.getQueryTime();//首次查询时间
+			String userCode = inVO.getUserCode();//当前用户
+			
+			//查询个人精华列表
+			PageParam pageParam = new PageParam(Integer.valueOf(inVO.getPageNo()), Integer.valueOf(inVO.getPageSize()));
+			RelationSharevO relationShare =new RelationSharevO();
+			relationShare.setUserCode(userCode);
+			relationShare.setQueryTime(queryTime);
+			//查询
+			PageBean bean = relationShareService.getUserSharePageBean(pageParam, relationShare);
+			JSONArray jsonArray = new JSONArray();
+			List<Object> recordList = bean.getRecordList();
+			if (null != recordList && !recordList.isEmpty()) {
+				for (Object object : recordList) {
+					EtRelationShareModel share = (EtRelationShareModel) object;
+					if(share!=null){
+							JSONObject item = new JSONObject();
+							item.put("shareCode", StringTools.formatToString(share.getShareCode()));//分享编号
+							item.put("shareClass", StringTools.formatToString(share.getShareClass()));//分享类型：1.博客；2.投票；3.活动；4.新闻公告；
+							item.put("subjectCode", StringTools.formatToString(share.getSubjectCode()));//内容编号
+							item.put("dynamicCode", StringTools.formatToString(share.getDynamicCode()));//动态编号
+							
+							item.put("subjectUserCode", StringTools.formatToString(share.getUserCode()));//内容发布人编号
+							//获取人员信息
+						    SysUserInfo selectByCode = sysUserService.selectByCode(share.getUserCode());
+							SysUserInfo sysUserInfo = selectByCode!=null?selectByCode:new SysUserInfo();
+							item.put("subjectUserName", StringTools.formatToString(sysUserInfo.getUserName()));//内容发布人名称
+							item.put("subjectUserPhotoUrl", StringTools.formatToString(sysUserInfo.getHeadPortrait()));//内容发布人头像链接
+							
+							item.put("subjectDepend", StringTools.formatToString(share.getSourceDepend()));//从属关系：1.个人；2.班组
+							if(share.getSourceDepend()==2){
+								item.put("subjectTeamCode", StringTools.formatToString(share.getTeamCode()));//班组编号
+								TeamInfo selectByCode2 = teamInfoService.selectByCode(share.getTeamCode());
+								TeamInfo teamInfo = selectByCode2!=null?selectByCode2:new TeamInfo();
+								item.put("subjectTeamName", StringTools.formatToString(teamInfo.getTeamName()));//班组名称
+								item.put("subjectOrgCode", "");
+								item.put("subjectOrgName", "");
+							}else{
+								item.put("subjectTeamCode", "");//班组编号
+								item.put("subjectTeamName", "");//班组名称
+								item.put("subjectOrgCode", StringTools.formatToString(sysUserInfo.getManOrgCode()));//内容所属组织编号
+								SysOrgInfo selectByCode2 = sysOrgService.selectByCode(sysUserInfo.getManOrgCode());
+								SysOrgInfo sysOrgInfo = selectByCode2!=null?selectByCode2:new SysOrgInfo();
+								item.put("subjectOrgName", StringTools.formatToString(sysOrgInfo.getSysOrgName()));//内容所属组织名称
+								
+							}
+
+							item.put("subjectTitle", StringTools.formatToString(share.getSubjectTitle()));//内容标题
+							item.put("subjectDigest", StringTools.formatToString(share.getSubjectDigest()));//内容摘要
+							item.put("subjectSource", StringTools.formatToString(share.getSubjectSource()));//内容来源：1.原创；2.转发
+							jsonArray.add(item);
+					}
+				}
+			}
+			//出参
+			result = new ResultJSON("COMMON_200");
+			JSONObject body = new JSONObject();
+			
+			// 调用接口查个人
+			body.put("userCode",inVO.getUserCode()); //内容发布人编号
+			SysUserInfo sysUserInfo = sysUserService.selectByCode(inVO.getUserCode())!=null?sysUserService.selectByCode(inVO.getUserCode()):new SysUserInfo();
+		    SysOrgInfo orgInfo = sysUserInfo.getOrgInfo()!=null?sysUserInfo.getOrgInfo():new SysOrgInfo();
+			body.put("userName",sysUserInfo.getUserName()); //内容发布人名称
+			body.put("userPhotoUrl", sysUserInfo.getHeadPortrait());//内容发布人头像链接
+			body.put("orgCode", orgInfo.getSysOrgCode());//内容发布人所属组织编号
+			body.put("orgName", orgInfo.getSysOrgName());//内容发布人所属组织名称
+			body.put("total", bean.getTotalCount());
+			body.put("shareList", jsonArray);
+			log.info("RelationShareController.getUserShareList：获取个人分享列表成功");
+			result.setBody(body);
+		} catch (Exception e) {
+			log.error("RelationShareController.getUserShareList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		return result;
+		
+	}
+	
+	
+	
+	/**
+	 * @Function delShare
+	 * @Description 取消分享
+	 * @param inVo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value="delShare",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON delShare(@RequireValid DelShareVO inVo) throws BusinessException {
+		// 返回值
+		ResultJSON result = null;
+		try {
+			log.info("RelationShareController.delShare：取消分享");
+			
+			// 获取参数
+			String dynamicCode = inVo.getDynamicCode();
+			String shareCode = inVo.getShareCode();
+			String userCode = inVo.getUserCode();
+			
+			//删除分享参数
+			RelationShare share = new RelationShare();
+			share.setShareCode(shareCode);
+			share.setUserCode(userCode);
+			//删除动态参数
+			RelationDynamic dynamic =new RelationDynamic();
+			dynamic.setDynamicCode(dynamicCode);
+
+			//执行删除
+			if(relationShareService.delShare(share,dynamic)){
+				// 返回值赋值
+				result = new ResultJSON("COMMON_200");
+				JSONObject body = new JSONObject();
+				result.setBody(body);
+				log.info("RelationShareController.delShare：取消分享");
+				
+				//消息队列减积分
+				MessageIntegral msg = new MessageIntegral();
+				msg.setAccountCode(userCode);
+				msg.setAccountType(CreditConstants.TYPE_INDIVIDUAL);
+				msg.setActionCode(CreditConstants.COMMAND_CONTENT_SHAREDEL);
+				SysUserInfo sysUserInfo = sysUserService.selectByCode(userCode);
+				sysUserInfo = sysUserInfo!=null?sysUserInfo:new SysUserInfo();
+				msg.setManageOrgCode(sysUserInfo.getManageOrgInfo().getSysOrgCode());
+				producerTemplate.send(CreditConstants.CREDIT_INCREMENT, JSONObject.toJSONString(msg));
+
+			}
+			else{
+				log.error("RelationShareController.delShare：取消分享失败");
+				throw BusinessException.build("RELATION_19002", "取消分享");
+			}
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("RelationShareController.delShare", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		return result;
+		
+	}
+}

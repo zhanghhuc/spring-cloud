@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.RepositoryKnowledgeAppendBySryMapper" >
+  <resultMap id="RepositoryKnowledgeAppendMHMap" type="com.zssq.model.RepositoryKnowledgeAppendMH" >
+    <result column="append_code" property="appendCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="append_content" property="appendContent" jdbcType="VARCHAR" />
+    <result column="append_digest" property="appendDigest" jdbcType="VARCHAR" />
+    <result column="is_self_append" property="isSelfAppend" jdbcType="TINYINT" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="praise_num" property="praiseNum" jdbcType="INTEGER" />
+    <result column="isPraised" property="isPraised" jdbcType="INTEGER" />
+  </resultMap>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.RepositoryKnowledgeAppend" >
+    insert into repository_knowledge_append 
+    	(	append_code, 
+    		tenant_code, 
+      		org_code, 
+      		create_time, 
+      		modify_time, 
+      		remark, 
+      		knowledge_code, 
+      		user_code, 
+      		is_self_append, 
+      		praise_num, 
+      		append_content,
+      		append_digest
+      	)
+    values (
+    		#{appendCode,jdbcType=VARCHAR}, 
+    		#{tenantCode,jdbcType=VARCHAR}, 
+      		#{orgCode,jdbcType=VARCHAR}, 
+      		#{createTime,jdbcType=BIGINT}, 
+      		#{modifyTime,jdbcType=BIGINT}, 
+      		#{remark,jdbcType=VARCHAR}, 
+      		#{knowledgeCode,jdbcType=VARCHAR}, 
+      		#{userCode,jdbcType=VARCHAR}, 
+      		#{isSelfAppend,jdbcType=TINYINT}, 
+      		#{praiseNum,jdbcType=INTEGER}, 
+      		#{appendContent,jdbcType=LONGVARCHAR},
+      		#{appendDigest,jdbcType=VARCHAR}
+      )
+  </insert>
+  <select id="selectCount" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+			FROM repository_knowledge_append
+		where knowledge_code = #{knowledgeCode,jdbcType=VARCHAR}
+			<if test="isSelfAppend != null">
+  				and is_self_append = #{isSelfAppend}
+  			</if>
+  </select>
+  <select id="list" parameterType="map" resultMap="RepositoryKnowledgeAppendMHMap">
+  		select  ra.append_code,
+  				ra.create_time,
+  				ra.append_content,
+  				ra.append_digest,
+  				ra.is_self_append,
+  				ra.user_code,
+  				ra.praise_num,
+  				(
+					CASE 
+					WHEN rp.id IS NULL
+					THEN 0
+					ELSE 1
+					END
+				) AS isPraised
+  			from repository_knowledge_append ra
+  			LEFT JOIN repository_praise rp ON ra.append_code = rp.object_code AND rp.user_code = #{userCode,jdbcType=VARCHAR} and rp.praise_type=2
+  			where ra.knowledge_code = #{knowledgeCode,jdbcType=VARCHAR}
+  			<if test="isSelfAppend != null">
+  				and ra.is_self_append = #{isSelfAppend}
+  			</if>
+  			order by ra.create_time desc
+  			limit #{limitStart} , #{limitCount} 
+  </select>
+  <update id="updateNumTime" parameterType="map">
+    update repository_knowledge_append
+    <set>
+      <if test="praiseNum != null" >
+        praise_num = praise_num+#{praiseNum,jdbcType=INTEGER},
+      </if>
+      <if test="modifyTime !=null">
+      	modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+    </set>
+    where append_code = #{appendCode,jdbcType=VARCHAR}
+  </update>
+</mapper>

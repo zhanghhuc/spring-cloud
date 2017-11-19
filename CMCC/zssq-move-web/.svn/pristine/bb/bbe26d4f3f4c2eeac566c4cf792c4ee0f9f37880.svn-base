@@ -1,0 +1,294 @@
+package com.zssq.mblog.vo;
+
+import java.io.Serializable;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
+
+import org.springframework.jdbc.core.RowMapper;
+
+/**
+ * 
+    * @ClassName: Db2CommentVo  
+    * @Description: 评论VO  
+    * @author Mr.B  
+    * @date 2017年5月19日  
+    *
+ */
+public class Db2CommentVo implements RowMapper<Db2CommentVo>, Serializable{
+
+    /**  
+    * @Fields serialVersionUID : TODO
+    */  
+	private static final long serialVersionUID = 1L;
+	
+	/** ID **/
+	private Integer id;
+	/** REPLY_TIME **/
+	private Date replyTime;
+	/** USER_ID **/
+	private Integer userId;
+	/** MBLOG_ID **/
+	private Integer mblogId;
+	/** REPLY_CONTENTEXT **/
+	private String replyContentext;
+	/** DEL_FLAG **/
+	private Byte delFlag;
+	
+	private String orgCode = "";
+	private String mblogCode = "";
+	private String userCode = "";
+	private String tenantCode = "";
+	private String commentCode = "";
+	
+	
+	public String getCommentCode() {
+		return commentCode;
+	}
+
+
+	public void setCommentCode(String commentCode) {
+		this.commentCode = commentCode;
+	}
+
+
+	public String getOrgCode() {
+		return orgCode;
+	}
+
+
+	public void setOrgCode(String orgCode) {
+		this.orgCode = orgCode;
+	}
+
+
+	public String getMblogCode() {
+		return mblogCode;
+	}
+
+
+	public void setMblogCode(String mblogCode) {
+		this.mblogCode = mblogCode;
+	}
+
+
+	public String getUserCode() {
+		return userCode;
+	}
+
+
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
+	}
+
+
+	public String getTenantCode() {
+		return tenantCode;
+	}
+
+
+	public void setTenantCode(String tenantCode) {
+		this.tenantCode = tenantCode;
+	}
+
+
+	public Integer getId() {
+		return id;
+	}
+
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+
+	public Date getReplyTime() {
+		return replyTime;
+	}
+
+
+	public void setReplyTime(Date replyTime) {
+		this.replyTime = replyTime;
+	}
+
+
+	public Integer getUserId() {
+		return userId;
+	}
+
+
+	public void setUserId(Integer userId) {
+		this.userId = userId;
+	}
+
+
+	public Integer getMblogId() {
+		return mblogId;
+	}
+
+
+	public void setMblogId(Integer mblogId) {
+		this.mblogId = mblogId;
+	}
+
+
+	public String getReplyContentext() {
+		return replyContentext;
+	}
+
+
+	public void setReplyContentext(String replyContentext) {
+		this.replyContentext = replyContentext;
+	}
+
+
+	public Byte getDelFlag() {
+		return delFlag;
+	}
+
+
+	public void setDelFlag(Byte delFlag) {
+		this.delFlag = delFlag;
+	}
+
+
+	@Override
+	public Db2CommentVo mapRow(ResultSet rs, int rowNum) throws SQLException {
+		Db2CommentVo vo = new Db2CommentVo();
+		vo.setId(rs.getInt("ID"));
+		vo.setReplyTime(rs.getDate("REPLY_TIME"));
+		vo.setUserId(rs.getInt("USER_ID"));
+		vo.setMblogId(rs.getInt("MBLOG_ID"));
+		vo.setReplyContentext(rs.getString("REPLY_CONTENTEXT"));
+		vo.setDelFlag(rs.getByte("DEL_FLAG"));
+		return vo;
+	}
+	
+	
+	
+	/**
+	 * 
+	    * @Title: getSelectStatement  
+	    * @Description: 获取查询语句
+	    * @return
+		* @return String    返回类型
+	 */
+	public static String getSelectStatement(){
+		StringBuilder sb = new StringBuilder();
+		sb.append("SELECT ")
+		  .append("ID,REPLY_TIME,USER_ID,MBLOG_ID,REPLY_CONTENTEXT,DEL_FLAG ")
+		  .append("FROM ")
+		  .append("mblog.MBLOG_REPLYS ")
+		  .append("WHERE ")
+		  .append("DEL_FLAG = 0");
+		return sb.toString();
+		  
+	}
+	
+	/**
+	 * 
+	    * @Title: getPageStatement  
+	    * @Description: 获取分页数据
+	    * @param endNum	结束
+	    * @param pageSize	每页条数
+		* @return String    返回类型
+	 */
+	public static String getPageStatement(int endNum,int pageSize){
+		StringBuilder sb = new StringBuilder();
+		sb.append("SELECT ")
+		  .append("ID,REPLY_TIME,USER_ID,MBLOG_ID,REPLY_CONTENTEXT,DEL_FLAG ")
+		  .append("FROM ")
+		  .append(" ( ")
+		  .append("SELECT ")
+		  .append(" * ")
+		  .append("FROM ")
+		  .append("mblog.MBLOG_REPLYS ")
+		  .append("WHERE ")
+		  .append("DEL_FLAG = 0 ")
+		  .append("ORDER BY ID ")
+		  .append("FETCH FIRST ")
+		  .append(" "+endNum+" ")
+		  .append("ROWS ONLY")
+		  .append(" ) ")
+		  .append("ORDER BY ID DESC")
+		  .append("FETCH FIRST ")
+		  .append(" "+pageSize+" ")
+		  .append("ROWS ONLY");
+		return sb.toString();
+	}
+
+	/**
+	 * 
+	    * @Title: getRowPageStatement  
+	    * @Description: rownum实现
+		* @return String    返回类型
+	 */
+	public static String getRowPageStatement(){
+		StringBuilder sb = new StringBuilder();
+		sb.append(" SELECT ")
+		  .append(" a.ID,a.REPLY_TIME,a.USER_ID,a.MBLOG_ID,a.REPLY_CONTENTEXT,a.DEL_FLAG ")
+		  .append(" FROM ")
+		  .append(" ( ")
+		  .append(" SELECT ")
+		  .append(" ID,REPLY_TIME,USER_ID,MBLOG_ID,REPLY_CONTENTEXT,DEL_FLAG, ")
+		  .append(" rownumber() over(ORDER BY ID) as rn ")
+		  .append(" FROM ")
+		  .append(" mblog.MBLOG_REPLYS ")
+		  .append(" WHERE ")
+		  .append(" DEL_FLAG = 0 ")
+		  .append(" ) AS a ")
+		  .append(" WHERE ")
+		  .append(" a.rn BETWEEN ? AND ? ");
+		return sb.toString();
+	}
+	
+	
+	/**
+	 * 
+	    * @Title: getCountStatement  
+	    * @Description: 获取查询语句
+	    * @return
+		* @return String    返回类型
+	 */
+	public static String getCountStatement(){
+		StringBuilder sb = new StringBuilder();
+		sb.append(" SELECT ")
+		  .append(" COUNT(mblog_replys.ID) ")
+		  .append(" FROM ")
+		  .append(" mblog_replys ")
+		  .append(" LEFT JOIN ")
+		  .append(" ( ")
+		  .append(" SELECT ID ")
+		  .append(" FROM ")
+		  .append(" mblog ")
+		  .append(" WHERE ")
+		  .append(" DEL_FLAG = 0  ")
+		  .append(" and (BUSI_TYPE is null or BUSI_TYPE = 2 or BUSI_TYPE = 4 or BUSI_TYPE = 5) ")
+		  .append(" ) AS mb ")
+		  .append(" ON mblog_replys.MBLOG_ID = mb.ID ")
+		  .append(" WHERE ")
+		  .append(" DEL_FLAG = 0");
+		return sb.toString();
+		  
+	}
+	
+	/**
+	 * 
+	    * @Title: getMySqlStatement  
+	    * @Description: mysql查询语句
+		* @return String    返回类型
+	 */
+	public static String getMySqlStatement(){
+		StringBuilder sb = new StringBuilder();
+		sb.append(" SELECT ")
+		  .append(" ID,REPLY_TIME,USER_ID,MBLOG_ID,REPLY_CONTENTEXT,DEL_FLAG ")
+		  .append(" FROM ")
+		  .append(" mblog_replys ")
+		  .append(" WHERE ")
+		  .append(" DEL_FLAG = 0 ")
+		  .append(" ORDER BY ID ")
+		  .append(" LIMIT ?,? ");
+		return sb.toString();
+	}
+	
+}

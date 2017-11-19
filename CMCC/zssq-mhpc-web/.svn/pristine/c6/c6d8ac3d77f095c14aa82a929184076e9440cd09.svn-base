@@ -1,0 +1,476 @@
+package com.zssq.blog.controller;
+
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.blog.vo.CreateTeamBlogClassVO;
+import com.zssq.blog.vo.CreateUserBlogClassVO;
+import com.zssq.blog.vo.DelTeamBlogClassVO;
+import com.zssq.blog.vo.DelUserBlogClassVO;
+import com.zssq.blog.vo.GetBlogClassListVO;
+import com.zssq.constants.AuthConstants;
+import com.zssq.constants.BlogConstants;
+import com.zssq.dao.pojo.BlogClass;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.dao.pojo.TeamInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.BlogClassService;
+import com.zssq.service.ISysDeputyService;
+import com.zssq.service.ISysUserService;
+import com.zssq.service.ITeamInfoService;
+import com.zssq.service.ITeamMemberService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.StringTools;
+import com.zssq.vo.BlogClassVO;
+
+/**
+ * 
+ * @ClassName: BlogClassController  
+ * @Description: 博客分类  
+ * @author ZKZ  
+ * @date 2017年3月21日  
+ *
+ */
+@RequestMapping("blog")
+@Controller
+public class BlogClassController {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private BlogClassService blogClassService;
+	@Autowired
+	private ISysUserService iSysUserService;
+	@Autowired
+	private ITeamInfoService iTeamInfoService;
+	@Autowired
+	private ITeamMemberService iTeamMemberService;
+	@Autowired
+	private ISysDeputyService iSysDeputyService;
+	
+	/**
+	 * 
+	 * @Title: getBlogClassList  
+	 * @Description: 查询分类列表
+	 * @throws BusinessException    参数  
+	 * @return: String    返回类型
+	 */
+	@RequestMapping(value="getBlogClassList",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getBlogClassList(@RequireValid GetBlogClassListVO getBlogClassListVO) throws BusinessException {
+		// 返回值
+		ResultJSON result = null;
+		
+		try {
+			log.info("BlogClassController.getBlogClassList：查询分类列表");
+			
+			// 获取参数
+			Byte classDepend = Byte.valueOf(getBlogClassListVO.getClassDepend()); // 从属关系
+			String classUserCode = getBlogClassListVO.getClassUserCode(); // 分类创建人编号
+			String teamCode = getBlogClassListVO.getTeamCode(); // 班组编号
+			
+			// 查询参数
+			BlogClassVO blogClassVO = new BlogClassVO();
+			blogClassVO.setClassDepend(classDepend);
+			
+			// 查询参数赋值
+			if (BlogConstants.BLOG_CLASS_DEPEND_USER.equals(classDepend) && !StringUtils.isBlank(classUserCode)) {
+				blogClassVO.setUserCode(classUserCode); // 创建人编号
+			} else if (BlogConstants.BLOG_CLASS_DEPEND_TEAM.equals(classDepend) && !StringUtils.isBlank(teamCode)) {
+				blogClassVO.setTeamCode(teamCode); // 班组编号
+			} else {
+				log.error("BlogClassController.getBlogClassList：查询参数错误");
+				throw BusinessException.build("COMMON_402", "classDepend");
+			}
+			
+			// 查询分类列表
+			List<BlogClass> blogClassList = blogClassService.getBlogClassList(blogClassVO);
+			
+			// 获取数据
+			JSONArray ja = new JSONArray();
+			
+			// 如果分类为空，则新建默认分类
+			if (blogClassList == null || blogClassList.isEmpty()) {
+				// 获取公共信息
+				String classCode = UUIDHelper.getUUID(); // 分类编号
+				long time = new Date().getTime(); // 当前时间
+				String tenantCode = null; // 租户编号
+				String orgCode = null; // 组织机构编号
+				
+				if (BlogConstants.BLOG_CLASS_DEPEND_USER.equals(classDepend)) {
+					// 获取人员信息
+					SysUserInfo sysUserInfo = iSysUserService.selectByCode(classUserCode);
+					if (sysUserInfo == null) {
+						log.error("BlogClassController.getBlogClassList：获取不到人员信息userCode=" + classUserCode);
+						throw BusinessException.build("COMMON_400");
+					}
+					
+					// 赋值
+					tenantCode = sysUserInfo.getTenantCode();
+					orgCode = sysUserInfo.getManageOrgInfo().getSysOrgCode();
+				} else if (BlogConstants.BLOG_CLASS_DEPEND_TEAM.equals(classDepend)) {
+					// 获取班组信息
+					TeamInfo teamInfo = iTeamInfoService.selectByCode(teamCode);
+					if (teamInfo == null) {
+						log.error("BlogClassController.getBlogClassList：获取不到班组信息teamCode=" + teamCode);
+						throw BusinessException.build("COMMON_400");
+					}
+					
+					// 赋值
+					tenantCode = teamInfo.getTenantCode();
+					orgCode = teamInfo.getOrgCode();
+				}
+				
+				// 分类信息
+				BlogClass blogClass = new BlogClass();
+				blogClass.setClassCode(classCode);
+				blogClass.setTenantCode(tenantCode);
+				blogClass.setOrgCode(orgCode);
+				blogClass.setCreateTime(time);
+				blogClass.setModifyTime(time);
+				blogClass.setRemark(BlogConstants.BLOG_CLASS_DEFAULT_FLAG); // 默认标识
+				blogClass.setClassName(BlogConstants.BLOG_CLASS_DEFAULT);
+				blogClass.setUserCode(classUserCode);
+				blogClass.setClassDepend(classDepend);
+				blogClass.setTeamCode(teamCode == null ? "" : teamCode);
+				blogClass.setClassBlogNum(0);
+				
+				// 插入
+				boolean saveFlag = blogClassService.saveBlogClass(blogClass);
+				if (!saveFlag) {
+					log.error("BlogClassController.getBlogClassList：查询失败");
+					throw BusinessException.build("BLOG_13002", "查询");
+				}
+				
+				// 拼接返回数据
+				JSONObject jo = new JSONObject();
+				jo.put("classCode", StringTools.formatToString(classCode));
+				jo.put("className", StringTools.formatToString(BlogConstants.BLOG_CLASS_DEFAULT));
+				jo.put("classBlogNum", "0");
+				jo.put("default", StringTools.formatToString(BlogConstants.BLOG_YES));
+				ja.add(jo);
+			} else {
+				// 拼接返回数据
+				for (BlogClass blogClass : blogClassList) {
+					JSONObject jo = new JSONObject();
+					jo.put("classCode", StringTools.formatToString(blogClass.getClassCode()));
+					jo.put("className", StringTools.formatToString(blogClass.getClassName()));
+					jo.put("classBlogNum", StringTools.formatToString(blogClass.getClassBlogNum()));
+					if (!StringUtils.isBlank(blogClass.getRemark())) {
+						jo.put("default", StringTools.formatToString(BlogConstants.BLOG_YES));
+					} else {
+						jo.put("default", StringTools.formatToString(BlogConstants.BLOG_NO));
+					}
+					ja.add(jo);
+				}
+			}
+			
+			// 返回值赋值
+			result = new ResultJSON("COMMON_200");
+			JSONObject body = new JSONObject();
+			body.put("classList", ja);
+			result.setBody(body);
+			
+			log.info("BlogClassController.getBlogClassList：查询分类列表成功");
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("BlogClassController.getBlogClassList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @Title: createUserBlogClass  
+	 * @Description: 新建个人分类
+	 * @param createUserBlogClassVO
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping(value="createUserBlogClass",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON createUserBlogClass(@RequireValid CreateUserBlogClassVO createUserBlogClassVO) throws BusinessException {
+		// 返回值
+		ResultJSON result = null;
+		
+		try {
+			log.info("BlogClassController.createUserBlogClass：新建个人分类");
+			
+			// 获取参数
+			String classUserCode = createUserBlogClassVO.getClassUserCode(); // 分类创建人编号
+			String userCode = createUserBlogClassVO.getUserCode(); // 当前登录用户编号
+			
+			// 判断是否为代发
+			if (!classUserCode.equals(userCode)) {
+				// 判断代发权限
+				boolean isDeputy = iSysDeputyService.isDeputy(userCode, classUserCode, AuthConstants.DEPUTY_BK);
+				if (!isDeputy) {
+					log.error("BlogClassController.createUserBlogClass：操作权限不足");
+					throw BusinessException.build("COMMON_403");
+				}
+			}
+			
+			// 查询分类个数
+			BlogClassVO blogClassVO = new BlogClassVO();
+			blogClassVO.setClassDepend(BlogConstants.BLOG_CLASS_DEPEND_USER); // 从属关系
+			blogClassVO.setUserCode(classUserCode); // 分类创建人编号
+			int classNum = blogClassService.getClassNum(blogClassVO);
+			if (classNum > BlogConstants.BLOG_CLASS_MAX_NUM) {
+				log.error("BlogClassController.createUserBlogClass：最多只能创建5个分类");
+				throw BusinessException.build("BLOG_13010");
+			}
+			
+			// 获取分类创建人信息
+			SysUserInfo sysUserInfo = iSysUserService.selectByCode(classUserCode);
+			if (sysUserInfo == null) {
+				log.error("BlogClassController.createUserBlogClass：获取不到人员信息userCode=" + classUserCode);
+				throw BusinessException.build("COMMON_400");
+			}
+			
+			// 分类信息
+			BlogClass blogClass = new BlogClass();
+			String classCode = UUIDHelper.getUUID(); // 分类编号
+			long time = new Date().getTime(); // 当前时间
+			
+			blogClass.setClassCode(classCode); // 分类编号
+			blogClass.setTenantCode(sysUserInfo.getTenantCode()); // 租户编号
+			blogClass.setOrgCode(sysUserInfo.getManageOrgInfo().getSysOrgCode()); // 组织机构编号
+			blogClass.setCreateTime(time); // 创建时间
+			blogClass.setModifyTime(time); // 修改时间
+			blogClass.setClassName(createUserBlogClassVO.getClassName()); // 分类名称
+			blogClass.setUserCode(classUserCode); // 创建人编号
+			blogClass.setClassDepend(BlogConstants.BLOG_CLASS_DEPEND_USER); // 从属关系
+			blogClass.setClassBlogNum(0); // 博文数量
+			
+			// 保存
+			boolean saveFlag = blogClassService.saveBlogClass(blogClass);
+			if (!saveFlag) {
+				log.error("BlogClassController.createUserBlogClass：保存失败");
+				throw BusinessException.build("BLOG_13002", "保存");
+			}
+			
+			// 返回值赋值
+			result = new ResultJSON("COMMON_200");
+			JSONObject body = new JSONObject();
+			body.put("classCode", StringTools.formatToString(classCode));
+			result.setBody(body);
+			
+			log.info("BlogClassController.createUserBlogClass：新建个人分类成功");
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("BlogClassController.createUserBlogClass", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @Title: createTeamBlogClass  
+	 * @Description: 新建班组分类
+	 * @param createTeamBlogClassVO
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping(value="createTeamBlogClass",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON createTeamBlogClass(@RequireValid CreateTeamBlogClassVO createTeamBlogClassVO) throws BusinessException {
+		// 返回值
+		ResultJSON result = null;
+		
+		try {
+			log.info("BlogClassController.createTeamBlogClass：新建班组分类");
+			
+			// 获取参数
+			String teamCode = createTeamBlogClassVO.getTeamCode(); // 班组编号
+			String userCode = createTeamBlogClassVO.getUserCode(); // 当前登录用户编号
+			
+			// 判断权限
+			boolean isTeamLeader = iTeamMemberService.isTeamLeader(teamCode, userCode);
+			if (!isTeamLeader) {
+				log.error("BlogClassController.createTeamBlogClass：操作权限不足");
+				throw BusinessException.build("COMMON_403");
+			}
+			
+			// 查询分类个数
+			BlogClassVO blogClassVO = new BlogClassVO();
+			blogClassVO.setClassDepend(BlogConstants.BLOG_CLASS_DEPEND_TEAM); // 从属关系
+			blogClassVO.setTeamCode(teamCode); // 班组编号
+			int classNum = blogClassService.getClassNum(blogClassVO);
+			if (classNum > BlogConstants.BLOG_CLASS_MAX_NUM) {
+				log.error("BlogClassController.createTeamBlogClass：最多只能创建5个分类");
+				throw BusinessException.build("BLOG_13010");
+			}
+			
+			// 获取班组信息
+			TeamInfo teamInfo = iTeamInfoService.selectByCode(teamCode);
+			if (teamInfo == null) {
+				log.error("BlogClassController.createTeamBlogClass：获取不到班组信息teamCode=" + teamCode);
+				throw BusinessException.build("COMMON_400");
+			}
+			
+			// 分类信息
+			BlogClass blogClass = new BlogClass();
+			String classCode = UUIDHelper.getUUID();
+			long time = new Date().getTime();
+			
+			blogClass.setClassCode(classCode); // 分类编号
+			blogClass.setTenantCode(teamInfo.getTenantCode()); // 租户编号
+			blogClass.setOrgCode(teamInfo.getOrgCode()); // 组织机构编号
+			blogClass.setCreateTime(time); // 创建时间
+			blogClass.setModifyTime(time); // 修改时间
+			blogClass.setClassName(createTeamBlogClassVO.getClassName()); // 分类名称
+			blogClass.setUserCode(userCode); // 创建人编号
+			blogClass.setClassDepend(BlogConstants.BLOG_CLASS_DEPEND_TEAM); // 从属关系
+			blogClass.setTeamCode(teamCode); // 班组编号
+			blogClass.setClassBlogNum(0); // 博文数量
+			
+			// 保存
+			boolean saveFlag = blogClassService.saveBlogClass(blogClass);
+			if (!saveFlag) {
+				log.error("BlogClassController.createTeamBlogClass：保存失败");
+				throw BusinessException.build("BLOG_13002", "保存");
+			}
+			
+			// 返回值赋值
+			result = new ResultJSON("COMMON_200");
+			JSONObject body = new JSONObject();
+			body.put("classCode", StringTools.formatToString(classCode));
+			result.setBody(body);
+			
+			log.info("BlogClassController.createTeamBlogClass：新建班组分类成功");
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("BlogClassController.createTeamBlogClass", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @Title: delUserBlogClass  
+	 * @Description: 删除个人分类
+	 * @param delUserBlogClassVO
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping(value="delUserBlogClass",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON delUserBlogClass(@RequireValid DelUserBlogClassVO delUserBlogClassVO) throws BusinessException {
+		// 返回值
+		ResultJSON result = null;
+		
+		try {
+			log.info("BlogClassController.delUserBlogClass：删除个人分类");
+			
+			// 获取参数
+			String classCode = delUserBlogClassVO.getClassCode(); // 分类编号
+			
+			// 查询参数
+			BlogClassVO blogClassVO = new BlogClassVO();
+			blogClassVO.setClassCode(classCode); // 分类编号
+			blogClassVO.setUserCode(delUserBlogClassVO.getUserCode()); // 人员编号
+			blogClassVO.setClassDepend(BlogConstants.BLOG_CLASS_DEPEND_USER); // 从属关系
+			
+			// 删除
+			boolean delFlag = blogClassService.deleteBlogClass(blogClassVO);
+			if (!delFlag) {
+				log.error("BlogClassController.delUserBlogClass：删除失败");
+				throw BusinessException.build("BLOG_13002", "删除");
+			}
+			
+			// 返回值赋值
+			result = new ResultJSON("COMMON_200");
+			JSONObject body = new JSONObject();
+			result.setBody(body);
+			
+			log.info("BlogClassController.delUserBlogClass：删除个人分类成功");
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("BlogClassController.delUserBlogClass", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @Title: delTeamBlogClass  
+	 * @Description: 删除班组分类
+	 * @param delTeamBlogClassVO
+	 * @throws BusinessException    参数  
+	 * @return: ResultJSON    返回类型
+	 */
+	@RequestMapping(value="delTeamBlogClass",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON delTeamBlogClass(@RequireValid DelTeamBlogClassVO delTeamBlogClassVO) throws BusinessException {
+		// 返回值
+		ResultJSON result = null;
+		
+		try {
+			log.info("BlogClassController.delTeamBlogClass：删除班组分类");
+			
+			// 获取参数
+			String classCode = delTeamBlogClassVO.getClassCode(); // 分类编号
+			String teamCode = delTeamBlogClassVO.getTeamCode(); // 班组编号
+			String userCode = delTeamBlogClassVO.getUserCode(); // 当前登录用户编号
+			
+			// 判断权限
+			boolean isTeamLeader = iTeamMemberService.isTeamLeader(teamCode, userCode);
+			if (!isTeamLeader) {
+				log.error("BlogClassController.delTeamBlogClass：操作权限不足");
+				throw BusinessException.build("COMMON_403");
+			}
+			
+			// 查询参数
+			BlogClassVO blogClassVO = new BlogClassVO();
+			blogClassVO.setClassCode(classCode); // 分类编号
+			blogClassVO.setTeamCode(teamCode); // 班组编号
+			blogClassVO.setClassDepend(BlogConstants.BLOG_CLASS_DEPEND_TEAM); // 从属关系
+			
+			// 删除
+			boolean delFlag = blogClassService.deleteBlogClass(blogClassVO);
+			if (!delFlag) {
+				log.error("BlogClassController.delTeamBlogClass：删除失败");
+				throw BusinessException.build("BLOG_13002", "删除");
+			}
+			
+			// 返回值赋值
+			result = new ResultJSON("COMMON_200");
+			JSONObject body = new JSONObject();
+			result.setBody(body);
+			
+			log.info("BlogClassController.delTeamBlogClass：删除班组分类成功");
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("BlogClassController.delTeamBlogClass", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+		return result;
+	}
+
+}

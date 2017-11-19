@@ -1,0 +1,422 @@
+package com.zssq.service.impl;
+
+import java.net.MalformedURLException;
+
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.codehaus.xfire.XFireFactory;
+import org.codehaus.xfire.client.XFireProxyFactory;
+import org.codehaus.xfire.service.binding.ObjectServiceFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.mdcl.smap.bean.OrgInfo;
+import com.mdcl.smap.bean.SyncRequest;
+import com.mdcl.smap.bean.UserInfo;
+import com.mdcl.smap.service.ISyncService;
+import com.zssq.constants.AuthConstants;
+import com.zssq.dao.mapper.SmapOrgMapper;
+import com.zssq.dao.mapper.SmapUserMapper;
+import com.zssq.dao.mapper.SyncResultMapper;
+import com.zssq.dao.mapper.SysOrgInfoMapper;
+import com.zssq.dao.mapper.SysUserInfoMapper;
+import com.zssq.dao.pojo.SyncResult;
+import com.zssq.dao.pojo.SysOrgInfo;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.service.ISmapService;
+
+@Service("smapService")
+public class SmapServiceImpl implements ISmapService {
+	
+	/** 日志记录操作 */
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	/** SMAP 同步组织持久化接口 */
+	@Autowired
+	private SmapOrgMapper smapOrgMapper;
+	
+	/** SMAP 同步用户持久化接口 */
+	@Autowired	
+	private SmapUserMapper smapUserMapper;
+	
+	/** SMAP 同步处理结果持久化接口 */
+	@Autowired
+	private SyncResultMapper syncResultMapper;
+	
+	/** 组织信息持久化接口 */
+	@Autowired	
+	private SysOrgInfoMapper sysOrgInfoMapper;
+	
+	/** 组织信息持久化接口 */
+	@Autowired	
+	private SysUserInfoMapper sysUserInfoMapper;
+	
+	@SuppressWarnings("rawtypes")
+	@Override
+	public void syncOrgs() throws BusinessException {
+		
+		StringBuffer succBuffer = new StringBuffer();//用于记录同步成功的syncId
+		StringBuffer failBuffer = new StringBuffer();//用于记录同步失败的syncId	
+		
+		// 创建WS远程调用实例
+		org.codehaus.xfire.service.Service srvcModel = new ObjectServiceFactory().create(ISyncService.class);   
+		XFireProxyFactory factory = new XFireProxyFactory(XFireFactory.newInstance().getXFire());
+		String serviceURL="http://10.1.57.108:9080/cmcc_wsnapp/services/SyncService";		
+		ISyncService srvc = null;
+		try {
+			srvc = (ISyncService) factory.create(srvcModel, serviceURL);
+		} catch (MalformedURLException e1) {
+			log.error("SmapServiceImpl.syncOrgs 创建WS远程调用实例出错", e1);
+		}
+		
+		SyncRequest syncRequest = new SyncRequest();
+		// 应用注册ID,应用注册后产生
+		syncRequest.setAppid("ZSSQ");
+		// 应用注册密码,应用注册后产生
+		syncRequest.setPassword("cmcc1234");	
+		
+		//循环执行同步，每次最多6000条记录，直到没有需要同步的数据
+		while(true){
+			// 获取上次同步成功与失败的syncId，在进行同步接口调用时回传给对方
+			SyncResult syncResult = syncResultMapper.selectLastSyncResult("2");
+			if(syncResult != null) {
+				syncRequest.setOrgsucceed(syncResult.getSuccSyncId());
+				syncRequest.setOrgfailed(syncResult.getFailSyncId());
+			}	
+			List syncOrgs = srvc.getOrgList(syncRequest);
+			log.info("SMAP 同步机构数量：" + syncOrgs.size());
+			//处理同步到的数据
+			for(int i=0; i<syncOrgs.size(); i++) {
+				OrgInfo syncOrg = (OrgInfo) syncOrgs.get(i);
+				try {				
+					// 如果同步到的“组织名称”为空，则使用"/"分割“显示名称”，以最后一段做为“组织名称”
+					if(StringUtils.isBlank(syncOrg.getInitials())) {
+						String[] displayNameArry = StringUtils.split(syncOrg.getDisplayName(), "\\\\");
+						syncOrg.setInitials(displayNameArry[displayNameArry.length - 1]);
+					}
+					
+					// 向静态表中保存同步到组织信息，该表记录同步到的每一条数据，不做任何处理 smap_org_static
+					smapOrgMapper.insertStatic(syncOrg);
+					
+					// TODO 如果同步类型为“更新”，考虑同步更新清洗后的组织数据（文档中显示组织信息目前都为新增）
+					// 保存同步到的组织信息
+					smapOrgMapper.insert(syncOrg);
+					succBuffer.append(syncOrg.getSynId()).append(",");
+				} catch (Exception e) {
+					log.error("同步组织机构信息出错", e);
+					failBuffer.append(syncOrg.getSynId()).append(",");
+				}
+			}
+			
+			//将同步结果存储，下次同步使用
+			String succStr = succBuffer.toString();
+			if(StringUtils.isNotBlank(succStr)){
+				succStr = StringUtils.removeEnd(succStr, ",");
+			}
+			
+			String failStr = failBuffer.toString();
+			if(StringUtils.isNotBlank(failStr)) {
+				failStr = StringUtils.removeEnd(failStr, ",");
+			}
+			
+			SyncResult newSyncResult = new SyncResult();
+			newSyncResult.setSuccSyncId(succStr);
+			newSyncResult.setFailSyncId(failStr);
+			newSyncResult.setSyncType("2");
+			syncResultMapper.insert(newSyncResult);
+			
+			if(null != succStr && !"".equals(succStr)){
+				String[] str1 = succStr.split(",");
+				log.info("SMAP 同步机构成功数量："+str1.length);
+			}
+			if(null != failStr && !"".equals(failStr)){
+				String[] str2 = failStr.split(",");
+				log.info("SMAP 同步机构失败数量："+str2.length);
+			}
+			
+			if(syncOrgs.size() < 6000){//结束循环条件
+				break;
+			}
+		}
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public void syncUsers() throws BusinessException {
+		
+		// 存放同步成功与失败的 syncId
+		StringBuffer succBuffer = new StringBuffer();
+		StringBuffer failBuffer = new StringBuffer();		
+
+		// 创建 WebService 远程调用实例
+		org.codehaus.xfire.service.Service srvcModel = new ObjectServiceFactory().create(ISyncService.class);   
+		XFireProxyFactory factory = new XFireProxyFactory(XFireFactory.newInstance().getXFire());
+		String serviceURL="http://10.1.57.108:9080/cmcc_wsnapp/services/SyncService";		
+		ISyncService srvc = null;
+		try {
+			srvc = (ISyncService) factory.create(srvcModel, serviceURL);
+		} catch (MalformedURLException e1) {
+			log.error("SmapServiceImpl.syncOrgs 创建 WebService 远程调用实例出错", e1);
+		}
+		
+		SyncRequest syncRequest = new SyncRequest();
+		// SMAP 同步应用注册信息：应用ID/密码
+		syncRequest.setAppid("ZSSQ");
+		syncRequest.setPassword("cmcc1234");		
+		
+		
+		// 员工数据同步，最大获取6000条记录，循环进行同步，直到没有新的数据同步过来结束循环
+		while(true) {
+			// 获取上次同步成功与失败的syncId，在进行同步接口调用时回传给对方
+			SyncResult syncResult = syncResultMapper.selectLastSyncResult("1");
+			if(syncResult != null) {
+				syncRequest.setOrgsucceed(syncResult.getSuccSyncId());
+				syncRequest.setOrgfailed(syncResult.getFailSyncId());
+			}
+			//拿到同步数据
+			List syncUsers = srvc.getUserList(syncRequest);
+			log.info("SMAP 同步员工数量：" + syncUsers.size());
+			
+			// 逐条处理同步到的员工数据
+			for(int i=0; i<syncUsers.size(); i++) {			
+				UserInfo syncUser = (UserInfo) syncUsers.get(i);
+				try {
+					// 向静态表中保存同步到组织信息，该表记录同步到的每一条数据，不做任何处理 smap_org_static
+					smapUserMapper.insertStatic(syncUser);
+					
+					//根据同步类型做处理：新增 or 修改
+					if(StringUtils.equals("0", syncUser.getChangeType())) { //同步类型为新增 changeType=0
+						// 向 smap_org 表中保存数据，该表用于“数据清洗”的数据来源
+						smapUserMapper.insert(syncUser);
+						
+						// 判断用户所属的组织是否已经过清洗，是，则在 sys_user_info 表中添加该用户，否则等待所属组织清洗时带过来
+						SysOrgInfo orgInfo = sysOrgInfoMapper.selectBySrcCode(syncUser.getO());
+						if(orgInfo != null) {
+							SysUserInfo sysUserInfo = new SysUserInfo();
+							sysUserInfo.setUserCode(syncUser.getUid());						// 用户Code
+							sysUserInfo.setUserName(syncUser.getCn());						// 用户名称
+							sysUserInfo.setUserSex(Byte.valueOf(syncUser.getGender()));		// 用户性别
+							sysUserInfo.setUserOfficePhone(syncUser.getPreferredMobile());	// 用户手机号
+							sysUserInfo.setOrgCode(orgInfo.getSysOrgCode());				// 所属组织
+							sysUserInfo.setUserStatus(Byte.valueOf(syncUser.getStatus()));	// 用户状态
+							sysUserInfo.setTenantCode(AuthConstants.TENANT_CODE);	
+							// 新增用户信息
+							sysUserInfoMapper.insert(sysUserInfo);
+							
+							//TODO 为新用户新建积分、金币、经验值账户
+							
+						}
+						
+					}else if(StringUtils.equals("1", syncUser.getChangeType())) { //同步类型为修改 changeType=1
+						// 更新 smap_org 表中数据，该表用于“数据清洗”的数据来源
+						smapUserMapper.updateByPrimaryKey(syncUser);					
+					}
+					
+					// 存储同步成功的 syncId
+					succBuffer.append(syncUser.getSynId()).append(",");
+				} catch (Exception e) {
+					log.error("同步员工信息出错", e);
+					failBuffer.append(syncUser.getSynId()).append(",");
+				}
+			}
+			
+			//将同步结果存储，为下一次同步使用
+			String succStr = succBuffer.toString();
+			if(StringUtils.isNotBlank(succStr)){
+				succStr = StringUtils.removeEnd(succStr, ",");
+			}
+			
+			String failStr = failBuffer.toString();
+			if(StringUtils.isNotBlank(failStr)) {
+				failStr = StringUtils.removeEnd(failStr, ",");
+			}		
+			
+			SyncResult newSyncResult = new SyncResult();
+			newSyncResult.setSuccSyncId(succStr);
+			newSyncResult.setFailSyncId(failStr);
+			newSyncResult.setSyncType("1");
+			syncResultMapper.insert(newSyncResult);
+			
+			if(null != succStr && !"".equals(succStr)){
+				String[] str1 = succStr.split(",");
+				log.info("SMAP 同步员工成功数量："+str1.length);
+			}
+			if(null != failStr && !"".equals(failStr)){
+				String[] str2 = failStr.split(",");
+				log.info("SMAP 同步员工失败数量："+str2.length);
+			}
+			
+			if(syncUsers.size() < 6000){//结束循环
+				break;
+			}
+		}
+	}
+	
+	
+//自测使用	
+//	@SuppressWarnings("rawtypes")
+//	@Override
+//	public void syncOrgs() throws BusinessException {
+//		
+//		StringBuffer succBuffer = new StringBuffer();//用于记录同步成功的syncId
+//		StringBuffer failBuffer = new StringBuffer();//用于记录同步失败的syncId	
+//
+//		//循环执行同步，直到没有需要同步的数据
+//		while(true){
+//			SyncResult syncResult = syncResultMapper.selectLastSyncResult("2");
+//			//测试时从原表中读取数据作为同步数据
+//			List<OrgInfo> syncOrgs = smapOrgMapper.selectStaticAll();
+//			log.info("SMAP 同步机构数量：" + syncOrgs.size());			
+//			for(int i=0; i<syncOrgs.size(); i++) {
+//				OrgInfo syncOrg = (OrgInfo) syncOrgs.get(i);
+//				try {				
+//					// 如果同步到的“组织名称”为空，则使用"/"分割“显示名称”，以最后一段做为“组织名称”
+//					if(StringUtils.isBlank(syncOrg.getInitials())) {
+//						String[] displayNameArry = StringUtils.split(syncOrg.getDisplayName(), "\\\\");
+//						syncOrg.setInitials(displayNameArry[displayNameArry.length - 1]);
+//					}
+//					
+//					// 向静态表中保存同步到组织信息，该表记录同步到的每一条数据，不做任何处理 smap_org_static
+//					smapOrgMapper.insertStatic(syncOrg);
+//					
+//					// TODO 如果同步类型为“更新”，考虑同步更新清洗后的组织数据（文档中显示组织信息目前都为新增）
+//					// 保存同步到的组织信息
+//					smapOrgMapper.insert(syncOrg);
+//					succBuffer.append(syncOrg.getSynId()).append(",");
+//				} catch (Exception e) {
+//					log.error("同步组织机构信息出错", e);
+//					failBuffer.append(syncOrg.getSynId()).append(",");
+//				}
+//			}
+//			
+//			//将同步结果存储，下次同步使用
+//			String succStr = succBuffer.toString();
+//			if(StringUtils.isNotBlank(succStr)){
+//				succStr = StringUtils.removeEnd(succStr, ",");
+//			}
+//			
+//			String failStr = failBuffer.toString();
+//			if(StringUtils.isNotBlank(failStr)) {
+//				failStr = StringUtils.removeEnd(failStr, ",");
+//			}
+//			
+//			SyncResult newSyncResult = new SyncResult();
+//			newSyncResult.setSuccSyncId(succStr);
+//			newSyncResult.setFailSyncId(failStr);
+//			newSyncResult.setSyncType("2");
+//			syncResultMapper.insert(newSyncResult);
+//			
+//			if(null != succStr && !"".equals(succStr)){
+//				String[] str1 = succStr.split(",");
+//				log.info("SMAP 同步机构成功数量："+str1.length);
+//			}
+//			if(null != failStr && !"".equals(failStr)){
+//				String[] str2 = failStr.split(",");
+//				log.info("SMAP 同步机构失败数量："+str2.length);
+//			}
+//			
+//			if(syncOrgs.size() < 6000){//结束循环条件
+//				break;
+//			}
+//		}
+//	}
+//	
+//	@SuppressWarnings("rawtypes")
+//	@Override
+//	public void syncUsers() throws BusinessException {
+//		
+//		// 存放同步成功与失败的 syncId
+//		StringBuffer succBuffer = new StringBuffer();
+//		StringBuffer failBuffer = new StringBuffer();		
+//		
+//		// 员工数据同步，最大获取6000条记录，循环进行同步，直到没有新的数据同步过来结束循环
+//		while(true) {
+//			// 获取上次同步成功与失败的syncId，在进行同步接口调用时回传给对方
+//			SyncResult syncResult = syncResultMapper.selectLastSyncResult("1");
+//			
+//			//测试时从原表中读取数据作为同步数据
+//			List<UserInfo> syncUsers = smapUserMapper.selectStaticAll();
+//			log.info("SMAP 同步员工数量：" + syncUsers.size());
+//			
+//			// 逐条处理同步到的员工数据
+//			for(int i=0; i<syncUsers.size(); i++) {			
+//				UserInfo syncUser = (UserInfo) syncUsers.get(i);
+//				try {
+//					// 向静态表中保存同步到组织信息，该表记录同步到的每一条数据，不做任何处理 smap_org_static
+//					smapUserMapper.insertStatic(syncUser);
+//					
+//					//根据同步类型做处理：新增 or 修改
+//					if(StringUtils.equals("0", syncUser.getChangeType())) { //同步类型为新增 changeType=0
+//						// 向 smap_org 表中保存数据，该表用于“数据清洗”的数据来源
+//						smapUserMapper.insert(syncUser);
+//						
+//						// 判断用户所属的组织是否已经过清洗，是，则在 sys_user_info 表中添加该用户，否则等待所属组织清洗时带过来
+//						SysOrgInfo orgInfo = sysOrgInfoMapper.selectBySrcCode(syncUser.getO());
+//						if(orgInfo != null) {
+//							SysUserInfo sysUserInfo = new SysUserInfo();
+//							sysUserInfo.setUserCode(syncUser.getUid());						// 用户Code
+//							sysUserInfo.setUserName(syncUser.getCn());						// 用户名称
+//							sysUserInfo.setUserSex(Byte.valueOf(syncUser.getGender()));		// 用户性别
+//							sysUserInfo.setUserOfficePhone(syncUser.getPreferredMobile());	// 用户手机号
+//							sysUserInfo.setOrgCode(orgInfo.getSysOrgCode());				// 所属组织
+//							sysUserInfo.setUserStatus(Byte.valueOf(syncUser.getStatus()));	// 用户状态
+//							sysUserInfo.setTenantCode(AuthConstants.TENANT_CODE);	
+//							// 新增用户信息
+//							sysUserInfoMapper.insert(sysUserInfo);
+//							
+//							//TODO 为新用户新建积分、金币、经验值账户
+//							
+//						}
+//						
+//					}else if(StringUtils.equals("1", syncUser.getChangeType())) { //同步类型为修改 changeType=1
+//						// 更新 smap_org 表中数据，该表用于“数据清洗”的数据来源
+//						smapUserMapper.updateByPrimaryKey(syncUser);					
+//					}
+//					
+//					// 存储同步成功的 syncId
+//					succBuffer.append(syncUser.getSynId()).append(",");
+//				} catch (Exception e) {
+//					log.error("同步员工信息出错", e);
+//					failBuffer.append(syncUser.getSynId()).append(",");
+//				}
+//			}
+//			
+//			//将同步结果存储，为下一次同步使用
+//			String succStr = succBuffer.toString();
+//			if(StringUtils.isNotBlank(succStr)){
+//				succStr = StringUtils.removeEnd(succStr, ",");
+//			}
+//			
+//			String failStr = failBuffer.toString();
+//			if(StringUtils.isNotBlank(failStr)) {
+//				failStr = StringUtils.removeEnd(failStr, ",");
+//			}		
+//			
+//			SyncResult newSyncResult = new SyncResult();
+//			newSyncResult.setSuccSyncId(succStr);
+//			newSyncResult.setFailSyncId(failStr);
+//			newSyncResult.setSyncType("1");
+//			syncResultMapper.insert(newSyncResult);
+//	
+//			if(null != succStr && !"".equals(succStr)){
+//				String[] str1 = succStr.split(",");
+//				log.info("SMAP 同步员工成功数量："+str1.length);
+//			}
+//			if(null != failStr && !"".equals(failStr)){
+//				String[] str2 = failStr.split(",");
+//				log.info("SMAP 同步员工失败数量："+str2.length);
+//			}
+//			if(syncUsers.size() < 6000){//结束循环
+//				break;
+//			}
+//		}
+//	}
+	
+	
+	
+	
+}
+

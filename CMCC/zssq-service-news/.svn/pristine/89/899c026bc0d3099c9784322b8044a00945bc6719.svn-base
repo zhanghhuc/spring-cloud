@@ -1,0 +1,99 @@
+package com.zssq.service.impl;
+
+import com.zssq.biz.NewsCommentBiz;
+import com.zssq.biz.NewsCommentPraiseBiz;
+import com.zssq.biz.NewsInfoContentBiz;
+import com.zssq.biz.NewsPraiseBiz;
+import com.zssq.constants.NewsConstants;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.news.dao.pojo.NewsInfoComment;
+import com.zssq.news.model.NewsCommentModel;
+import com.zssq.news.model.NewsCommentPraiseModel;
+import com.zssq.news.model.NewsCommentQuery;
+import com.zssq.news.model.NewsPraiseModel;
+import com.zssq.news.service.NewsCommentService;
+import com.zssq.utils.PageBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class NewsCommentServiceImpl implements NewsCommentService {
+
+    @Autowired
+    private NewsInfoContentBiz newsInfoContentBiz;//新闻评论逻辑层
+    @Autowired
+    private NewsCommentBiz newsCommentBiz;//新闻评论逻辑层
+
+    @Autowired
+    private NewsPraiseBiz newsPraiseBiz;//新闻点赞逻辑层
+
+    @Autowired
+    private NewsCommentPraiseBiz newsCommentPraiseBiz;//新闻评论点赞逻辑层
+
+
+    @Override
+    public NewsInfoComment addNewsComment(NewsCommentModel newsCommentModel) throws BusinessException {
+        NewsInfoComment newsInfoComment = newsCommentBiz.addNewsComment(newsCommentModel) ;
+        newsInfoContentBiz.updateCommentCount(newsCommentModel,NewsConstants.NEWS_ADD_COMMENT);
+        return newsInfoComment;
+    }
+
+    @Override
+    public PageBean getNewsIComments(NewsCommentQuery newsCommentQuery) throws BusinessException {
+        PageBean pageBean = new PageBean() ;
+        int count = newsCommentBiz.selectCount(newsCommentQuery);
+        List<NewsInfoComment> newsInfoComments = newsCommentBiz.selectList(newsCommentQuery);
+        pageBean.setTotalCount(count);
+        pageBean.setRecordList(newsInfoComments);
+        return pageBean;
+    }
+
+    @Override
+    public PageBean getNewsComments(NewsCommentQuery newsCommentQuery) throws BusinessException {
+        PageBean pageBean = new PageBean() ;
+        Integer count = newsCommentBiz.selectCount(newsCommentQuery);
+        newsCommentQuery.setOrderByClause(" modify_time desc");
+        List<NewsCommentModel> newsInfoComments = newsCommentBiz.selectComments(newsCommentQuery);
+
+        pageBean.setTotalCount(count);
+        pageBean.setRecordList(newsInfoComments);
+        return pageBean;
+    }
+
+    @Override
+    public boolean updateNewsInfoGood(NewsPraiseModel newsPraiseModel) throws BusinessException {
+        int flag = 0 ;
+        if(newsPraiseModel.getActionType()== NewsConstants.NEWS_CANCEL_PRAISE_FLAG){//表示取消点赞
+            flag = newsPraiseBiz.deleteNewsInfoGood(newsPraiseModel) ;
+            flag = newsInfoContentBiz.updateNewsInfoGoodNum(newsPraiseModel);
+        }else{
+            newsPraiseBiz.addNewsInfoGood(newsPraiseModel);
+            flag = newsInfoContentBiz.updateNewsInfoGoodNum(newsPraiseModel);
+        }
+        return flag >0 ;
+    }
+
+    @Override
+    public boolean updateNewsInfoCommentGood(NewsCommentPraiseModel newsCommentPraiseModel) throws BusinessException {
+        int flag = 0 ;
+        if(newsCommentPraiseModel.getActionType()== NewsConstants.NEWS_COMMENT_CANCEL_PRAISE_FLAG){//表示取消点赞
+            flag = newsCommentPraiseBiz.deleteNewsCommentGood(newsCommentPraiseModel) ;
+            flag = newsCommentBiz.updateNewsCommentGoodNum(newsCommentPraiseModel);
+        }else{
+            newsCommentPraiseBiz.addNewsInfoCommentGood(newsCommentPraiseModel);
+            flag = newsCommentBiz.updateNewsCommentGoodNum(newsCommentPraiseModel);
+        }
+        return flag >0 ;
+    }
+
+    @Override
+    public boolean deleteNewsComment(NewsCommentModel newsCommentModel)  throws BusinessException {
+        newsInfoContentBiz.updateCommentCount(newsCommentModel,NewsConstants.NEWS_DEL_COMMENT);
+        return newsCommentBiz.deleteNewsComment(newsCommentModel);
+    }
+
+}

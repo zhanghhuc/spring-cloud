@@ -1,0 +1,29 @@
+package com.zssq.dao.mapper;
+
+import java.util.List;
+
+import com.zssq.dao.pojo.TeamMessageReply;
+
+public interface TeamMessageReplyMapper {
+
+	int deleteByCode(String code);
+	
+	int deleteByMesCode(String mesCode);
+
+    int insertSelective(TeamMessageReply record);
+
+    TeamMessageReply selectByCode(String code);
+    
+    List<TeamMessageReply> selectByMesCode(String mesCode);
+    
+    List<TeamMessageReply> selectByMesCodes(List<String> mesCodes);
+    
+    /**
+     * @Function complaintMessageReply
+     * @Description 举报/取消举报
+     * @param record
+     * @return
+     */
+    int complaintMessageReply(TeamMessageReply record);
+
+}

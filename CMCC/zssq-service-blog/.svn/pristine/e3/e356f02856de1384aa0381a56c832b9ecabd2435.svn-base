@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.BlogDraftAttachMapper">
+
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.BlogDraftAttach">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="draft_attach_code" property="draftAttachCode" jdbcType="VARCHAR" />
+		<result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+		<result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+		<result column="remark" property="remark" jdbcType="VARCHAR" />
+		<result column="draft_code" property="draftCode" jdbcType="VARCHAR" />
+		<result column="draft_attach_url" property="draftAttachUrl" jdbcType="VARCHAR" />
+		<result column="draft_attach_old_name" property="draftAttachOldName" jdbcType="VARCHAR" />
+		<result column="draft_attach_old_ext" property="draftAttachOldExt" jdbcType="VARCHAR" />
+		<result column="draft_attach_new_name" property="draftAttachNewName" jdbcType="VARCHAR" />
+		<result column="draft_attach_new_ext" property="draftAttachNewExt" jdbcType="VARCHAR" />
+		<result column="draft_attach_class" property="draftAttachClass" jdbcType="TINYINT" />
+	</resultMap>
+	
+	<!-- 列列表 -->
+	<sql id="Base_Column_List">
+		id, draft_attach_code, tenant_code, org_code, create_time, modify_time, 
+		remark, draft_code, draft_attach_url, draft_attach_old_name, draft_attach_old_ext,
+		draft_attach_new_name, draft_attach_new_ext, draft_attach_class
+	</sql>
+	
+	<!-- 批量插入 -->
+	<insert id="batchInsert" useGeneratedKeys="true" keyProperty="id" parameterType="list">
+		INSERT INTO blog_draft_attach (
+			draft_attach_code, 
+			tenant_code,
+			org_code, 
+			create_time,
+			modify_time, 
+			remark, 
+			draft_code,
+			draft_attach_url, 
+			draft_attach_old_name, 
+			draft_attach_old_ext,
+			draft_attach_new_name, 
+			draft_attach_new_ext,
+			draft_attach_class
+		) VALUES 
+		<foreach collection="list" item="item" index="index" separator=",">
+			(
+				#{item.draftAttachCode,jdbcType=VARCHAR},
+				#{item.tenantCode,jdbcType=VARCHAR},
+				#{item.orgCode,jdbcType=VARCHAR}, 
+				#{item.createTime,jdbcType=BIGINT},
+				#{item.modifyTime,jdbcType=BIGINT}, 
+				#{item.remark,jdbcType=VARCHAR},
+				#{item.draftCode,jdbcType=VARCHAR},
+				#{item.draftAttachUrl,jdbcType=VARCHAR}, 
+				#{item.draftAttachOldName,jdbcType=VARCHAR},
+				#{item.draftAttachOldExt,jdbcType=VARCHAR},
+				#{item.draftAttachNewName,jdbcType=VARCHAR},
+				#{item.draftAttachNewExt,jdbcType=VARCHAR},
+				#{item.draftAttachClass,jdbcType=TINYINT}
+			)
+		</foreach>
+	</insert>
+
+	<!-- 删除 -->
+	<delete id="delete" parameterType="string">
+		DELETE FROM blog_draft_attach
+		WHERE draft_code = #{draftCode,jdbcType=VARCHAR}
+	</delete>
+	
+</mapper>

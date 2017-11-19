@@ -1,0 +1,98 @@
+package com.zssq.blog.service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.zssq.blog.dao.mapper.BlogClassMapper;
+import com.zssq.blog.pojo.SourceClassModel;
+import com.zssq.constants.BlogConstants;
+
+/**
+ * 
+ * @ClassName: BlogClassService  
+ * @Description: 博客分类数据迁移Service  
+ * @author ZKZ  
+ * @date 2017年5月19日  
+ *
+ */
+@Service("blogClassService")
+public class BlogClassService {
+	
+	@Autowired
+	private BlogClassMapper blogClassMapper;
+	
+	/**
+	 * 
+	 * @Title: createClassTempTable  
+	 * @Description: 创建分类临时表
+	 * @return: void    返回类型
+	 */
+	@Transactional
+	public void createClassTempTable() {
+		// 删除
+		blogClassMapper.dropTempTable();
+		
+		// 新建临时表
+		blogClassMapper.createTempTable();
+	}
+	
+	/**
+	 * 
+	 * @Title: insertDefaultClass  
+	 * @Description: 创建默认分类
+	 * @param paramMap
+	 * @return: void    返回类型
+	 */
+	@Transactional
+	public void insertDefaultClass(Map<String, Object> paramMap) {
+		// 查看默认分类是否已创建成功
+		int count = blogClassMapper.getBlogClassCount();
+		if (count > 0) {
+			return;
+		}
+		
+		// 插入人员分类数据
+		blogClassMapper.insertUserClass(paramMap);
+		
+		// 插入班组分类数据
+		blogClassMapper.insertTeamClass(paramMap);
+	}
+
+	/**
+	 * 
+	 * @Title: insertSourceClass  
+	 * @Description: 导入原数据
+	 * @return: void    返回类型
+	 */
+	@Transactional
+	public void insertSourceClass() {
+		// 查询原表中分类数据
+		List<SourceClassModel> sourceClassModelList = blogClassMapper.getSourceClassList();
+		if (sourceClassModelList == null || sourceClassModelList.isEmpty()) {
+			return;
+		}
+		
+		// 循环插入数据
+		for (SourceClassModel sourceClassModel : sourceClassModelList) {
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("remark", ""); // 默认分类标识
+			paramMap.put("className", sourceClassModel.getCataName()); // 分类名称
+			paramMap.put("createTime", sourceClassModel.getCreateTime().getTime()); // 创建时间
+			paramMap.put("oldId", sourceClassModel.getCataId()); // 原id
+			paramMap.put("insertTempData", BlogConstants.BLOG_YES); // 是否插入临时表数据
+			
+			// 插入人员分类数据
+			blogClassMapper.insertUserClass(paramMap);
+			
+			// 插入班组分类数据
+			blogClassMapper.insertTeamClass(paramMap);
+		}
+	}
+
+}

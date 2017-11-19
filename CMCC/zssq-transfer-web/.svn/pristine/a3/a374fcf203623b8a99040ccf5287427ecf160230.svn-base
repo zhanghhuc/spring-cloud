@@ -1,0 +1,197 @@
+package com.zssq.filing.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.filing.dao.mapper.KcFriendGroupMapper;
+import com.zssq.filing.dao.mapper.KcFriendGrpUsrRelMapper;
+import com.zssq.filing.dao.mapper.UserConcernsMapper;
+import com.zssq.filing.dao.mapper.UserFriendGroupMapper;
+import com.zssq.filing.dao.mapper.UserFriendMapper;
+import com.zssq.filing.pojo.KcFriendGroup;
+import com.zssq.filing.pojo.KcFriendGrpUsrRel;
+import com.zssq.filing.pojo.UserConcerns;
+import com.zssq.filing.pojo.UserFriend;
+import com.zssq.filing.pojo.UserFriendGroup;
+import com.zssq.filing.service.UserRelationService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.DateUtils;
+
+@Service("userRelationService")
+public class UserRelationServiceImpl implements UserRelationService {
+
+	@Autowired
+	private KcFriendGroupMapper kcFriendGroupMapper;
+	@Autowired
+	private UserFriendGroupMapper userFriendGroupMapper;
+	@Autowired
+	private KcFriendGrpUsrRelMapper kcFriendGrpUsrRelMapper;
+	@Autowired
+	private UserFriendMapper userFriendMapper;
+	@Autowired
+	private UserConcernsMapper userConcernsMapper;
+	
+	private Logger logger = Logger.getLogger(this.getClass());
+	
+	/**
+	 * 
+	 * 迁移好友分组.
+	 * @see com.zssq.filing.service.UserRelationService#transferUserFriendGroup()
+	 */
+	@Override
+	public boolean transferUserFriendGroup() {
+		
+		// 每次处理记录数
+		Integer executeSize = 500;
+		// 记录起始行号
+		Integer startRowNum = 0;
+		try{
+			// 获取源表记录数		
+			Integer dataSize = kcFriendGroupMapper.selectCount();	
+			logger.info("----------好友分组迁移记录总数:"+dataSize+"----------");
+			logger.info("----------好友分组迁移开始----------");
+			while(startRowNum <= dataSize) {
+				Map<String, Integer> param = new HashMap<String, Integer>();
+				param.put("startRowNum", startRowNum);
+				param.put("executeSize", executeSize);
+				List<KcFriendGroup> kcFriendGroups = kcFriendGroupMapper.selectPage(param);			
+				
+				List<UserFriendGroup> userFriendGroups = new ArrayList<UserFriendGroup>();
+				for(KcFriendGroup kcFriendGroup : kcFriendGroups) {
+					UserFriendGroup userFriendGroup = new UserFriendGroup();
+					userFriendGroup.setFriendGroupCode(UUIDHelper.getUUID());
+					userFriendGroup.setGroupName(kcFriendGroup.getGroupName());
+					userFriendGroup.setIsDefault(new Byte("0"));
+					userFriendGroup.setCreateTime(DateUtils.dateToLong(kcFriendGroup.getCreateDate()));
+					userFriendGroup.setUserCode(kcFriendGroup.getUserCode());
+					userFriendGroup.setGroupId(kcFriendGroup.getId());
+					//放入集合
+					userFriendGroups.add(userFriendGroup);
+				}
+				//批量新增
+				userFriendGroupMapper.bathInsert(userFriendGroups);
+				// 执行一次批量迁移后，更新记录的起始行号
+				startRowNum += executeSize;		
+			}
+			logger.info("----------好友分组迁移结束----------");
+			return true;
+		}catch(Exception e){
+			logger.error("----------好友迁移异常----------", e);
+			return false;
+		}
+		
+	}
+
+	/**
+	 * 
+	 * 迁移用户好友.
+	 * @see com.zssq.filing.service.UserRelationService#transferUserFriends()
+	 */
+	@Override
+	public boolean transferUserFriends() {
+		
+		// 每次处理记录数
+		Integer executeSize = 500;
+		// 记录起始行号
+		Integer startRowNum = 0;
+		try{
+			// 获取源表记录数		
+			Integer dataSize = kcFriendGrpUsrRelMapper.selectCount(new Byte("1"));	
+			logger.info("----------好友迁移记录总数:"+dataSize+"----------");
+			logger.info("----------好友迁移开始----------");
+			while(startRowNum <= dataSize) {
+				Map<String, Object> param = new HashMap<String, Object>();
+				param.put("startRowNum", startRowNum);
+				param.put("executeSize", executeSize);
+				param.put("status", new Byte("1"));
+				List<KcFriendGrpUsrRel> kcFriends = kcFriendGrpUsrRelMapper.selectPage(param);			
+				
+				List<UserFriend> userFriends = new ArrayList<UserFriend>();
+				for(KcFriendGrpUsrRel kcFriend : kcFriends) {
+					UserFriend userFriend = new UserFriend();
+					userFriend.setUserFriendCode(UUIDHelper.getUUID());
+					userFriend.setUserCode(kcFriend.getUserCode());
+					userFriend.setFriendUserCode(kcFriend.getFriendUserCode());
+					userFriend.setFriendGroupCode("1".equals(kcFriend.getIsDefault())?"000":kcFriend.getGroupCode());
+					userFriend.setCreateTime(DateUtils.dateToLong(kcFriend.getCreateDate()));
+					if(null == userFriend.getUserCode() || null == userFriend.getFriendUserCode() || 
+							null == userFriend.getFriendGroupCode()){
+						continue;
+					}
+					//放入集合
+					userFriends.add(userFriend);
+				}
+				//批量新增
+				userFriendMapper.bathInsert(userFriends);
+				
+				// 执行一次批量迁移后，更新记录的起始行号
+				startRowNum += executeSize;		
+			}
+			logger.info("----------好友迁移结束----------");
+			return true;
+		}catch(Exception e){
+			logger.error("----------好友迁移异常----------", e);
+			return false;
+		}
+	}
+	
+	
+	/**
+	 * 
+	 * 迁移用户关注.
+	 * @see com.zssq.filing.service.UserRelationService#transferUserConcerns()
+	 */
+	@Override
+	public boolean transferUserConcerns() {
+		
+		// 每次处理记录数
+		Integer executeSize = 500;
+		// 记录起始行号
+		Integer startRowNum = 0;
+		try{
+			// 获取源表记录数		
+			Integer dataSize = kcFriendGrpUsrRelMapper.selectCount(new Byte("0"));	
+			logger.info("----------关注迁移记录总数:"+dataSize+"----------");
+			logger.info("----------关注迁移开始----------");
+			while(startRowNum <= dataSize) {
+				Map<String, Object> param = new HashMap<String, Object>();
+				param.put("startRowNum", startRowNum);
+				param.put("executeSize", executeSize);
+				param.put("status", new Byte("0"));
+				List<KcFriendGrpUsrRel> kcConcerns = kcFriendGrpUsrRelMapper.selectPage(param);			
+				
+				List<UserConcerns> userConcernsList = new ArrayList<UserConcerns>();
+				for(KcFriendGrpUsrRel kcConcern : kcConcerns) {
+					
+					UserConcerns userConcerns = new UserConcerns();
+					userConcerns.setConcernsCode(UUIDHelper.getUUID());
+					userConcerns.setConcernsUserCode(kcConcern.getUserCode());
+					userConcerns.setIsConcernsUserCode(kcConcern.getFriendUserCode());
+					userConcerns.setCreateTime(DateUtils.dateToLong(kcConcern.getCreateDate()));
+					if(null == userConcerns.getConcernsUserCode() || null == userConcerns.getIsConcernsUserCode() ){
+						continue;
+					}
+					//放入集合
+					userConcernsList.add(userConcerns);
+				}
+				//批量新增
+				userConcernsMapper.bathInsert(userConcernsList);
+				
+				// 执行一次批量迁移后，更新记录的起始行号
+				startRowNum += executeSize;		
+			}
+			logger.info("----------关注迁移结束----------");
+			return true;
+		}catch(Exception e){
+			logger.error("----------关注迁移异常----------", e);
+			return false;
+		}
+	}
+	
+}

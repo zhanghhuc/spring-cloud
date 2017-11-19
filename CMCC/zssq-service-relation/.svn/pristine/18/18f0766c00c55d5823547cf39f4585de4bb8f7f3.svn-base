@@ -1,0 +1,52 @@
+package com.zssq.dao.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import com.zssq.dao.pojo.RelationShare;
+
+/**
+ * @ClassName RelationShareMapper
+ * @Description 分享
+ * @author LXW
+ * @date 2017年6月12日 下午3:26:44
+ * @version 1.0
+ * @since JDK 1.7
+ */
+public interface RelationShareMapper {
+    int deleteByPrimaryKey(Long id);
+    /**
+     * 
+     * @Title: insert  
+     * @Description: 分享
+     * @param record
+     * @return    参数  
+     * @return: int    返回类型
+     */
+    int insert(RelationShare record);
+
+    int insertSelective(RelationShare record);
+
+    RelationShare selectByPrimaryKey(Long id);
+
+    int updateByPrimaryKeySelective(RelationShare record);
+
+    int updateByPrimaryKey(RelationShare record);
+
+	/**
+	 * @Function selectUserShareList
+	 * @Description 查询个人分享列表
+	 * @param paramMap
+	 * @return
+	 */
+	List<Object> selectUserShareList(Map<String, Object> paramMap);
+	long selectUserShareCount(Map<String, Object> paramMap);
+	
+	/**
+	 * @Function deleteByCode
+	 * @Description 删除分享
+	 * @param share
+	 * @return
+	 */
+	int deleteByCode(RelationShare share);
+}

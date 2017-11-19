@@ -1,0 +1,322 @@
+package com.zssq.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.constants.ActivityConstants;
+import com.zssq.constants.VoteConstants;
+import com.zssq.dao.mapper.ActivityCommentMapper;
+import com.zssq.dao.mapper.ActivityCommentReplyMapper;
+import com.zssq.dao.mapper.ActivityJoinMapper;
+import com.zssq.dao.mapper.ActivityPrizeMapper;
+import com.zssq.dao.mapper.ActivityWinningRecordMapper;
+import com.zssq.dao.pojo.ActivityComment;
+import com.zssq.dao.pojo.ActivityCommentReply;
+import com.zssq.dao.pojo.ActivityInfo;
+import com.zssq.dao.pojo.ActivityJoin;
+import com.zssq.dao.pojo.ActivityJoinExample;
+import com.zssq.dao.pojo.ActivityPrize;
+import com.zssq.dao.pojo.ActivityPrizeExample;
+import com.zssq.dao.pojo.ActivityWinningRecord;
+import com.zssq.dao.pojo.ActivityWinningRecordExample;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.service.CommonService;
+import com.zssq.service.IActivityModelThreeService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.DateUtils;
+import com.zssq.utils.PageInfo;
+
+@Service("activityModelThreeServiceImpl")
+public class ActivityModelThreeServiceImpl extends CommonService implements IActivityModelThreeService {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private ActivityJoinMapper activityJoinMapper;
+	
+	@Autowired
+	private ActivityWinningRecordMapper activityWinningRecordMapper;
+	
+	@Autowired
+	private ActivityPrizeMapper activityPrizeMapper;
+	
+	@Autowired
+	private ActivityCommentMapper activityCommentMapper;
+	
+	@Autowired
+	private ActivityCommentReplyMapper activityCommentReplyMapper;
+	
+
+	@Override
+	public void updateIsWinning(ActivityJoin activityJoin) throws BusinessException {
+		
+		try{
+			ActivityJoinExample example = new ActivityJoinExample();
+			ActivityJoinExample.Criteria criteria = example.createCriteria();
+			// 查询条件
+			criteria.andActivityCodeEqualTo(activityJoin.getActivityCode());
+			criteria.andCodeEqualTo(activityJoin.getCode());
+			criteria.andTenantCodeEqualTo(activityJoin.getTenantCode());
+			activityJoin.setModifyTime(DateUtils.getFormatDateLong());
+			// 更新获奖状态
+			Integer count = activityJoinMapper.updateByExampleSelective(activityJoin, example);
+			
+			if(count > 0){
+				// 若撤销评奖
+				if(ActivityConstants.NO.equals(activityJoin.getIsWinning())){
+					/** 查询是否设置过奖项 **/
+					ActivityWinningRecordExample awrExample = new ActivityWinningRecordExample();
+					ActivityWinningRecordExample.Criteria awrCriteria = awrExample.createCriteria();
+					awrCriteria.andTenantCodeEqualTo(activityJoin.getTenantCode());
+					awrCriteria.andIsDeleteEqualTo(ActivityConstants.NO);
+					awrCriteria.andIsDisableEqualTo(ActivityConstants.NO);
+					awrCriteria.andActivityCodeEqualTo(activityJoin.getActivityCode());
+					awrCriteria.andActivityJoinCodeEqualTo(activityJoin.getCode());
+					// 非参与奖
+					awrCriteria.andIsJoinPrizeEqualTo(ActivityConstants.NO);
+					List<ActivityWinningRecord> list = activityWinningRecordMapper.selectByExample(awrExample);
+					ActivityJoin aj = new ActivityJoin();
+					aj.setModifyTime(DateUtils.getFormatDateLong());
+					aj.setIsWinning(ActivityConstants.NO);
+					
+					// 分数设置为原数据  更改为未获奖状态
+					int num = activityJoinMapper.updateByExampleSelective(aj, example);
+					if(null != list && list.size() > 0){
+						// 若设置过奖项  删除活动获奖记录
+						if(num > 0){
+							activityWinningRecordMapper.deleteByPrimaryKey(list.get(0).getId());
+						}
+					}
+					
+					
+				}
+			}
+				
+		}catch(Exception e){
+			log.error("ActivityModelThreeServiceImpl.updateIsWinning", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+
+	@Override
+	public List<ActivityPrize> getPrizeList(ActivityPrize activityPrize) throws BusinessException {
+		try {
+			ActivityPrizeExample example = new ActivityPrizeExample();
+			ActivityPrizeExample.Criteria criteria = example.createCriteria();
+			// 查询条件
+			criteria.andActivityCodeEqualTo(activityPrize.getActivityCode());
+			criteria.andTenantCodeEqualTo(activityPrize.getTenantCode());
+			criteria.andIsDeleteEqualTo(ActivityConstants.NO);
+			criteria.andIsDisableEqualTo(ActivityConstants.NO);
+			// 是否为参与奖查询条件
+			if (activityPrize.getIsJoinPrize() != null) {
+				criteria.andIsJoinPrizeEqualTo(activityPrize.getIsJoinPrize());
+			}
+			
+			example.setOrderByClause("sequence_no asc");
+			
+			return activityPrizeMapper.selectByExample(example);
+		} catch (Exception e) {
+			log.error("ActivityModelThreeServiceImpl.getPrizeList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+
+	@Override
+	public void addPrizeForWorks(ActivityWinningRecord activityWinningRecord) throws BusinessException {
+		try {
+			
+			/** 1、 根据prizeCode查询 prizeName */
+			ActivityPrizeExample example = new ActivityPrizeExample();
+			ActivityPrizeExample.Criteria criteria = example.createCriteria();
+			//查询条件
+			criteria.andActivityCodeEqualTo(activityWinningRecord.getActivityCode());
+			criteria.andTenantCodeEqualTo(activityWinningRecord.getTenantCode());
+			criteria.andIsDeleteEqualTo(ActivityConstants.NO);
+			criteria.andIsDisableEqualTo(ActivityConstants.NO);
+			// 奖品CODE
+			criteria.andCodeEqualTo(activityWinningRecord.getActivityPrizeCode());
+			List<ActivityPrize> prizeList = activityPrizeMapper.selectByExample(example);
+			ActivityPrize prize = null; 
+			if (prizeList.size() > 0) {
+				prize = prizeList.get(0);
+			}
+			
+			if (null != prize) {
+				ActivityWinningRecordExample awrExample = new ActivityWinningRecordExample();
+				ActivityWinningRecordExample.Criteria awrCriteria = awrExample.createCriteria();
+				
+				awrCriteria.andTenantCodeEqualTo(activityWinningRecord.getTenantCode());
+				awrCriteria.andIsDeleteEqualTo(ActivityConstants.NO);
+				awrCriteria.andIsDisableEqualTo(ActivityConstants.NO);
+				awrCriteria.andActivityCodeEqualTo(activityWinningRecord.getActivityCode());
+				awrCriteria.andJoinUserCodeEqualTo(activityWinningRecord.getJoinUserCode());
+				awrCriteria.andActivityJoinCodeEqualTo(activityWinningRecord.getActivityJoinCode());
+				// 非参与奖
+				awrCriteria.andIsJoinPrizeEqualTo(ActivityConstants.NO);
+				// 修改时间
+				activityWinningRecord.setActivityPrizeCode(prize.getCode());
+				activityWinningRecord.setPrizeName(prize.getPrizeName());
+				activityWinningRecord.setModifyTime(DateUtils.getFormatDateLong());
+				// 重复设置奖项时 更改为未颁发
+				activityWinningRecord.setAwardStatus(ActivityConstants.NO);
+				// 参与奖标识
+				activityWinningRecord.setIsJoinPrize(prize.getIsJoinPrize());
+				/** 2、执行更新操作  **/
+				int updateCount = activityWinningRecordMapper.updateByExampleSelective(activityWinningRecord, awrExample);
+				if(updateCount == 0){
+					/** 3、 insert获奖记录数据 */
+					String code = UUIDHelper.getUUID();
+					Long time = DateUtils.getFormatDateLong();
+					activityWinningRecord.setCode(code);
+					activityWinningRecord.setCreateTime(time);
+					activityWinningRecordMapper.insertSelective(activityWinningRecord);
+				}
+				
+			} else {
+				// 此活动的该奖项信息不存在
+				throw BusinessException.build("ACTIVITY_23002", "此活动的该奖项信息");
+			}
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelThreeServiceImpl.addPrizeForWorks", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+
+	@Override
+	public PageInfo getActivityCommentFixedList(ActivityComment activityComment) throws BusinessException {
+		
+		PageInfo pageInfo = new PageInfo();
+		try{
+			/** 1、查询活动 是否能被评论 */
+			ActivityInfo activityInfo = getActivityInfoByCode(activityComment.getActivityCode(), activityComment.getTenantCode());
+			if(null != activityInfo){
+				Byte isEnableComment = activityInfo.getEnableComment();
+				if(isEnableComment.equals(VoteConstants.NO)){
+					// 该活动不允许评论
+					throw BusinessException.build("ACTIVITY_23007"); 
+				}
+				/** 2、查询总评论数 */
+				pageInfo.setTotalItem(activityInfo.getCommentNum());
+				/** 3、查询列表集合 */
+				Map<String,Object> paramMap = new HashMap<>();
+				paramMap.put("activityCode", activityComment.getActivityCode());
+				paramMap.put("code", activityComment.getCode());
+				paramMap.put("infoType", ActivityConstants.INFO_TYPE_2);
+				paramMap.put("tenantCode", activityComment.getTenantCode());
+				paramMap.put("admirerCode", activityComment.getAdmirerCode());
+				paramMap.put("id", activityComment.getId());
+				paramMap.put("limitStart", 0);
+				paramMap.put("limitEnd", activityComment.getPageSize());
+				List<ActivityComment> commentList = activityCommentMapper.getCommentListForLocation(paramMap);
+				pageInfo.setList(commentList);
+			}else{
+				// 活动信息不存在
+				throw BusinessException.build("ACTIVITY_23002", "活动信息");
+			}
+			return pageInfo;
+		} catch(BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelThreeServiceImpl.getActivityCommentFixedList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+
+	@Override
+	public PageInfo getActivityeReplyFixedList(ActivityCommentReply activityCommentReply) throws BusinessException {
+		PageInfo pageInfo = new PageInfo();
+		int surplusCount = 0;
+		try{
+			Map<String,Object> paramMap = new HashMap<>();
+			paramMap.put("voteInfoCode", activityCommentReply.getActivityCode());
+			paramMap.put("commentCode", activityCommentReply.getCommentCode());
+			paramMap.put("code", activityCommentReply.getCode());
+			paramMap.put("infoType", ActivityConstants.INFO_TYPE_3);
+			paramMap.put("tenantCode", activityCommentReply.getTenantCode());
+			paramMap.put("admirerCode", activityCommentReply.getAdmirerCode());
+			paramMap.put("id", activityCommentReply.getId());
+			paramMap.put("limitStart", 0);
+			paramMap.put("limitEnd", Integer.valueOf(activityCommentReply.getPageSize()));
+			/** 1、查询评论回复列表 */
+			List<ActivityCommentReply> commentList = activityCommentReplyMapper.getCommentReplyListForLocation(paramMap);
+			if(commentList.size() > 0){
+				paramMap.put("id", commentList.get(commentList.size() - 1).getId());
+				/** 2、查询评论回复 剩余记录数 */
+				surplusCount = activityCommentReplyMapper.getCommentReplySurplusCountForLocation(paramMap);
+			}
+			pageInfo.setList(commentList);
+			pageInfo.setTotalItem(surplusCount);
+			return pageInfo;
+		}catch(Exception e){
+			log.error("ActivityModelThreeServiceImpl.getActivityeReplyFixedList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+
+	@Override
+	public void updateAwardStatusWithBatch(String tenantCode, String activityCode, List<String> joinCodes)
+			throws BusinessException {
+		try {
+			ActivityWinningRecordExample example = new ActivityWinningRecordExample();
+			ActivityWinningRecordExample.Criteria criteria = example.createCriteria();
+			
+			criteria.andTenantCodeEqualTo(tenantCode);
+			criteria.andIsDisableEqualTo(ActivityConstants.NO);
+			criteria.andIsDeleteEqualTo(ActivityConstants.NO);
+			criteria.andActivityCodeEqualTo(activityCode);
+			criteria.andAwardStatusEqualTo(ActivityConstants.NO);// 奖品是否发放：0-否；1-是
+			criteria.andActivityJoinCodeIn(joinCodes);
+			criteria.andIsJoinPrizeEqualTo(ActivityConstants.NO);// 是否为参与奖   0:否(默认) 1:是
+			
+			ActivityWinningRecord record = new ActivityWinningRecord();
+			record.setAwardStatus(ActivityConstants.YES);
+			record.setModifyTime(DateUtils.getFormatDateLong());
+			
+			int batchCnt = activityWinningRecordMapper.updateByExampleSelective(record, example);
+			if (batchCnt != joinCodes.size()) {
+				// 有部分获奖作品已发放奖励，请重新选择
+				throw BusinessException.build("ACTIVITY_23008");
+			}
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelThreeServiceImpl.updateAwardStatusWithBatch", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+
+	@Override
+	public List<ActivityWinningRecord> getWinningRecordList(String tenantCode, String activityCode,
+			List<String> joinCodes) throws BusinessException {
+		try {
+			ActivityWinningRecordExample example = new ActivityWinningRecordExample();
+			ActivityWinningRecordExample.Criteria criteria = example.createCriteria();
+			
+			criteria.andTenantCodeEqualTo(tenantCode);
+			criteria.andIsDisableEqualTo(ActivityConstants.NO);
+			criteria.andIsDeleteEqualTo(ActivityConstants.NO);
+			criteria.andActivityCodeEqualTo(activityCode);
+			criteria.andActivityJoinCodeIn(joinCodes);
+			
+			return activityWinningRecordMapper.selectByExample(example);
+		} catch (Exception e) {
+			log.error("ActivityModelThreeServiceImpl.getWinningRecordList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+}

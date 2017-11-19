@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.IntegralActionMapper">
+
+	<!-- integral_action 表字段实体映射 -->
+	<resultMap type="com.zssq.dao.pojo.IntegralAction" id="BaseResultMap">
+		<id column="id" property="id" jdbcType="BIGINT"/>
+		<result column="action_code" property="actionCode" jdbcType="VARCHAR"/>
+		<result column="action_remark" property="actionRemark" jdbcType="VARCHAR"/>
+		<result column="action_type" property="actionType" jdbcType="TINYINT"/>
+		<result column="action_cycle" property="actionCycle" jdbcType="TINYINT"/>
+		<result column="action_cycle_count" property="actionCycleCount" jdbcType="TINYINT"/>
+		<result column="exp_value" property="expValue" jdbcType="TINYINT"/>
+		<result column="integral_value" property="integralValue" jdbcType="TINYINT"/>
+		<result column="coin_value" property="coinValue" jdbcType="TINYINT"/>
+		<result column="create_time" property="createTime" jdbcType="BIGINT"/>
+		<result column="modify_time" property="modifyTime" jdbcType="BIGINT"/>
+	</resultMap>
+	
+	<!-- integral_action 表字段列表 -->
+	<sql id="Base_Column_List">
+		id, action_code, action_remark, action_type, action_cycle,
+		action_cycle_count, exp_value, integral_value, coin_value,
+		create_time, modify_time
+	</sql>
+	
+	<!-- 根据积分行为编号查询积分行为信息 -->
+	<select id="selectByActionCode" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select 
+		<include refid="Base_Column_List"/>
+		from integral_action
+		where action_code=#{actionCode,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 分页查询积分行为列表 -->
+	<select id="selectPage" parameterType="com.zssq.dao.pojo.IntegralAction" resultMap="BaseResultMap">
+		select 
+		<include refid="Base_Column_List"/>
+		from integral_action
+		where action_type=#{actionType,jdbcType=TINYINT}
+		<if test="limitStart!=null and limitStart>=0">
+			limit ${limitStart},${limitEnd} 
+		</if>
+	</select>
+	
+	<!-- 查询积分行为列表的总记录数 -->
+	<select id="selectPageCount" parameterType="com.zssq.dao.pojo.IntegralAction" resultType="java.lang.Integer">
+		select count(1) from integral_action where action_type=#{actionType,jdbcType=TINYINT}
+	</select>
+	
+	<!-- 修改积分行为 -->
+	<update id="updateByActionCode" parameterType="com.zssq.dao.pojo.IntegralAction">
+		update integral_action
+		<set>
+			<if test="expValue!=null">
+				exp_value=#{expValue,jdbcType=TINYINT},
+			</if>
+			<if test="integralValue!=null">
+				integral_value=#{integralValue,jdbcType=TINYINT},
+			</if>
+			<if test="coinValue!=null">
+				coin_value=#{coinValue,jdbcType=TINYINT},
+			</if>
+			<if test="modifyTime!=null">
+				modify_time=#{modifyTime,jdbcType=BIGINT},
+			</if>
+			<if test="actionCycleCount!=null">
+				action_cycle_count=#{actionCycleCount,jdbcType=TINYINT},
+			</if>
+		</set>
+		where action_code=#{actionCode,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 根据积分行为类型查询积分行为列表 -->
+	<select id="selectAll" parameterType="java.lang.Byte" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List"/>
+		from integral_action
+		where action_type=#{actionType,jdbcType=TINYINT}
+	</select>
+	
+	<!-- 根据积分行为类型，查询积分值为正值的积分行为列表 -->
+	<select id="selectByIntegralPlus" parameterType="java.lang.Byte" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List"/>
+		from integral_action
+		where action_type=#{actionType,jdbcType=TINYINT}
+		and integral_value &gt; 0
+	</select>
+	
+	<!-- 根据积分行为类型，查询积分值为负值和零的积分行为列表 -->
+	<select id="selectByIntegralMinus" parameterType="java.lang.Byte" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List"/>
+		from integral_action
+		where action_type=#{actionType,jdbcType=TINYINT}
+		<![CDATA[
+			and integral_value <= 0
+		]]>
+	</select>
+	
+</mapper>

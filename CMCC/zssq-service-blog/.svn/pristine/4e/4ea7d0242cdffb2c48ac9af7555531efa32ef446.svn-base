@@ -1,0 +1,1067 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.BlogInfoMapper">
+
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.BlogInfo">
+		<id column="id" jdbcType="BIGINT" property="id" />
+		<result column="blog_code" jdbcType="VARCHAR" property="blogCode" />
+		<result column="tenant_code" jdbcType="VARCHAR" property="tenantCode" />
+		<result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+		<result column="create_time" jdbcType="BIGINT" property="createTime" />
+		<result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+		<result column="remark" jdbcType="VARCHAR" property="remark" />
+		<result column="dynamic_code" jdbcType="VARCHAR" property="dynamicCode" />
+		<result column="user_code" jdbcType="VARCHAR" property="userCode" />
+		<result column="blog_agent_flag" jdbcType="TINYINT" property="blogAgentFlag" />
+		<result column="agent_user_code" jdbcType="VARCHAR" property="agentUserCode" />
+		<result column="blog_source" jdbcType="TINYINT" property="blogSource" />
+		<result column="source_blog_code" jdbcType="VARCHAR" property="sourceBlogCode" />
+		<result column="source_user_code" jdbcType="VARCHAR" property="sourceUserCode" />
+		<result column="source_blog_depend" jdbcType="TINYINT" property="sourceBlogDepend" />
+		<result column="source_team_code" jdbcType="VARCHAR" property="sourceTeamCode" />
+		<result column="blog_depend" jdbcType="TINYINT" property="blogDepend" />
+		<result column="team_code" jdbcType="VARCHAR" property="teamCode" />
+		<result column="blog_title" jdbcType="VARCHAR" property="blogTitle" />
+		<result column="blog_digest" jdbcType="VARCHAR" property="blogDigest" />
+		<result column="class_code" jdbcType="VARCHAR" property="classCode" />
+		<result column="blog_tags" jdbcType="VARCHAR" property="blogTags" />
+		<result column="blog_plan_publish_time" jdbcType="BIGINT" property="blogPlanPublishTime" />
+		<result column="blog_publish_time" jdbcType="BIGINT" property="blogPublishTime" />
+		<result column="blog_logo" jdbcType="VARCHAR" property="blogLogo" />
+		<result column="blog_is_delete" jdbcType="TINYINT" property="blogIsDelete" />
+		<result column="blog_is_shield" jdbcType="TINYINT" property="blogIsShield" />
+		<result column="blog_tips" jdbcType="LONGVARCHAR" property="blogTips" />
+	</resultMap>
+	
+	<!-- 博客详情返回集合 -->
+	<resultMap id="BlogResultMap" type="com.zssq.dao.model.BlogModel">
+		<result column="blog_code" jdbcType="VARCHAR" property="blogCode" />
+		<result column="dynamic_code" jdbcType="VARCHAR" property="dynamicCode" />
+		<result column="user_code" jdbcType="VARCHAR" property="userCode" />
+		<result column="operate_time" jdbcType="BIGINT" property="operateTime" />
+		<result column="blog_source" jdbcType="TINYINT" property="blogSource" />
+		<result column="source_blog_code" jdbcType="VARCHAR" property="sourceBlogCode" />
+		<result column="source_user_code" jdbcType="VARCHAR" property="sourceUserCode" />
+		<result column="source_blog_depend" jdbcType="TINYINT" property="sourceBlogDepend" />
+		<result column="source_team_code" jdbcType="VARCHAR" property="sourceTeamCode" />
+		<result column="blog_depend" jdbcType="TINYINT" property="blogDepend" />
+		<result column="team_code" jdbcType="VARCHAR" property="teamCode" />
+		<result column="blog_title" jdbcType="VARCHAR" property="blogTitle" />
+		<result column="blog_digest" jdbcType="VARCHAR" property="blogDigest" />
+		<result column="class_code" jdbcType="VARCHAR" property="classCode" />
+		<result column="class_name" jdbcType="VARCHAR" property="className" />
+		<result column="blog_tags" jdbcType="VARCHAR" property="blogTags" />
+		<result column="blog_logo" jdbcType="VARCHAR" property="blogLogo" />
+		<result column="blog_plan_publish_time" jdbcType="BIGINT" property="blogPlanPublishTime" />
+		<result column="blog_publish_time" jdbcType="BIGINT" property="blogPublishTime" />
+		<result column="content_info" jdbcType="VARCHAR" property="contentInfo" />
+		<result column="team_quality_num" property="teamQualityNum" jdbcType="INTEGER" />
+		<result column="group_quality_num" property="groupQualityNum" jdbcType="INTEGER" />
+		<result column="province_quality_num" property="provinceQualityNum" jdbcType="INTEGER" />
+		<result column="city_quality_num" property="cityQualityNum" jdbcType="INTEGER" />
+		<result column="read_num" property="readNum" jdbcType="INTEGER" />
+		<result column="like_num" property="likeNum" jdbcType="INTEGER" />
+		<result column="collect_num" property="collectNum" jdbcType="INTEGER" />
+		<result column="forward_num" property="forwardNum" jdbcType="INTEGER" />
+		<result column="comment_num" property="commentNum" jdbcType="INTEGER" />
+		<result column="share_num" property="shareNum" jdbcType="INTEGER" />
+		<result column="is_like" property="isLike" jdbcType="INTEGER" />
+		<result column="is_collect" property="isCollect" jdbcType="INTEGER" />
+	</resultMap>
+	
+	<!-- 班组归档博客详情返回集合 -->
+	<resultMap id="TeamBlogResultMap" type="com.zssq.dao.model.TeamBlogModel">
+		<result column="blog_code" jdbcType="VARCHAR" property="blogCode" />
+		<result column="user_code" jdbcType="VARCHAR" property="userCode" />
+		<result column="blog_depend" jdbcType="TINYINT" property="blogDepend" />
+		<result column="team_code" jdbcType="VARCHAR" property="teamCode" />
+		<result column="blog_title" jdbcType="VARCHAR" property="blogTitle" />
+		<result column="class_name" jdbcType="VARCHAR" property="className" />
+		<result column="blog_tags" jdbcType="VARCHAR" property="blogTags" />
+		<result column="blog_publish_time" jdbcType="BIGINT" property="blogPublishTime" />
+		<result column="content_info" jdbcType="VARCHAR" property="contentInfo" />
+		<result column="team_quality_num" property="teamQualityNum" jdbcType="INTEGER" />
+		<result column="group_quality_num" property="groupQualityNum" jdbcType="INTEGER" />
+		<result column="province_quality_num" property="provinceQualityNum" jdbcType="INTEGER" />
+		<result column="city_quality_num" property="cityQualityNum" jdbcType="INTEGER" />
+		<result column="read_num" property="readNum" jdbcType="INTEGER" />
+		<result column="like_num" property="likeNum" jdbcType="INTEGER" />
+		<result column="collect_num" property="collectNum" jdbcType="INTEGER" />
+		<result column="forward_num" property="forwardNum" jdbcType="INTEGER" />
+		<result column="comment_num" property="commentNum" jdbcType="INTEGER" />
+		<result column="share_num" property="shareNum" jdbcType="INTEGER" />
+		<collection property="commentList" resultMap="TeamCommentResultMap" ofType="com.zssq.dao.model.TeamCommentModel"/>
+	</resultMap>
+	<resultMap id="TeamCommentResultMap" type="com.zssq.dao.model.TeamCommentModel">
+		<result column="comment_code" property="commentCode" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="user_code" property="userCode" jdbcType="VARCHAR" />
+		<result column="comment_like_num" property="commentLikeNum" jdbcType="INTEGER" />
+		<result column="comment_reply_num" property="commentReplyNum" jdbcType="INTEGER" />
+		<result column="comment_content" property="commentContent" jdbcType="LONGVARCHAR" />
+		<collection property="replyList" resultMap="TeamReplyResultMap" ofType="com.zssq.dao.model.TeamReplyModel"/>
+	</resultMap>
+	<resultMap id="TeamReplyResultMap" type="com.zssq.dao.model.TeamReplyModel">
+		<result column="reply_code" jdbcType="VARCHAR" property="replyCode" />
+		<result column="create_time" jdbcType="BIGINT" property="createTime" />
+		<result column="user_code" jdbcType="VARCHAR" property="userCode" />
+		<result column="to_reply_user_code" jdbcType="VARCHAR" property="toReplyUserCode" />
+		<result column="reply_like_num" jdbcType="INTEGER" property="replyLikeNum" />
+		<result column="reply_content" jdbcType="LONGVARCHAR" property="replyContent" />
+	</resultMap>
+	
+	<!-- 列列表 -->
+	<sql id="Base_Column_List">
+		id, blog_code, tenant_code, org_code, create_time, modify_time, remark, dynamic_code, 
+		user_code, blog_agent_flag, agent_user_code, blog_source, source_blog_code, source_user_code, 
+		source_blog_depend, source_team_code, blog_depend, team_code, blog_title, blog_digest, 
+		class_code, blog_tags, blog_plan_publish_time, blog_publish_time, blog_logo, blog_is_delete, 
+		blog_is_shield, blog_tips
+	</sql>
+	
+	<!-- 查询博客列表公共SQL -->
+	<sql id="select_list_sql">
+		FROM blog_info bi
+		WHERE blog_is_delete = 0
+		AND	blog_is_shield = 0
+		AND blog_depend = #{blogDepend,jdbcType=TINYINT}
+		<if test="blogDepend == 1">
+			AND team_code = ''
+			AND user_code = #{userCode,jdbcType=VARCHAR}
+		</if>
+		<if test="blogDepend == 2">
+			AND team_code = #{teamCode,jdbcType=VARCHAR}
+		</if>
+		<if test="blogAgentFlag == 1">
+			AND blog_agent_flag = #{blogAgentFlag,jdbcType=TINYINT}
+			AND agent_user_code = #{agentUserCode,jdbcType=VARCHAR}
+		</if>
+		<if test="classCode != null and classCode != '' ">
+			AND class_code = #{classCode,jdbcType=VARCHAR}
+		</if>
+		AND blog_publish_time &gt; 0
+		AND blog_publish_time &lt; #{queryTime,jdbcType=BIGINT}
+	</sql>
+	
+	<!-- 查询博客列表个数 -->
+	<select id="selectCount" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+		<include refid="select_list_sql" />
+	</select>
+	
+	<!-- 查询博客列表 -->
+	<select id="list" parameterType="map" resultMap="BlogResultMap">
+		SELECT 
+			bi.blog_code,
+			bi.dynamic_code,
+			bi.user_code,
+			bi.blog_source,
+			bi.source_blog_code,
+			bi.source_user_code,
+			bi.source_blog_depend,
+			bi.source_team_code,
+			bi.class_code,
+			bi.blog_title,
+			bi.blog_digest,
+			bi.blog_logo,
+			bi.blog_publish_time,
+			bd.team_quality_num,
+			bd.group_quality_num,
+			bd.province_quality_num,
+			bd.city_quality_num,
+			bd.read_num,
+			bd.like_num,
+			bd.collect_num,
+			bd.forward_num,
+			bd.comment_num,
+			bd.share_num,
+			(
+				CASE 
+				WHEN bl.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_like,
+			(
+				CASE 
+				WHEN bc.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_collect
+		FROM 
+		(
+			SELECT 
+				blog_code,
+				dynamic_code,
+				user_code,
+				blog_source,
+				source_blog_code,
+				source_user_code,
+				source_blog_depend,
+				source_team_code,
+				class_code,
+				blog_title,
+				blog_digest,
+				blog_logo,
+				blog_publish_time
+			<include refid="select_list_sql" />
+			ORDER BY blog_publish_time DESC
+			LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+		) bi
+		LEFT JOIN blog_data bd
+		ON bi.blog_code = bd.blog_code
+		LEFT JOIN blog_like bl
+		ON bl.subject_class = 1
+		AND bi.blog_code = bl.subject_code
+		AND bl.user_code = #{loginUserCode,jdbcType=VARCHAR}
+		LEFT JOIN blog_collect bc
+		ON bi.blog_code = bc.blog_code
+		AND bc.user_code = #{loginUserCode,jdbcType=VARCHAR}
+		ORDER BY bi.blog_publish_time DESC
+	</select>
+	
+	<!-- 查询精品博客列表公共SQL -->
+	<sql id="select_quality_list_sql">
+		FROM blog_info bi
+		LEFT JOIN blog_data bd
+		ON bi.blog_code = bd.blog_code
+		WHERE blog_is_delete = 0
+		AND	blog_is_shield = 0
+		AND blog_depend = 1
+		AND team_code = ''
+		AND user_code = #{userCode,jdbcType=VARCHAR}
+		AND blog_publish_time &gt; 0
+		AND blog_publish_time &lt; #{queryTime,jdbcType=BIGINT}
+		AND (
+				bd.team_quality_num &gt; 0
+			OR bd.group_quality_num &gt; 0
+			OR bd.province_quality_num &gt; 0
+			OR bd.city_quality_num &gt; 0
+		)
+	</sql>
+	
+	<!-- 查询精品博客列表个数 -->
+	<select id="selectQualityCount" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+		<include refid="select_quality_list_sql" />
+	</select>
+	
+	<!-- 查询精品博客列表 -->
+	<select id="qualityList" parameterType="map" resultMap="BlogResultMap">
+		SELECT 
+			bid.blog_code,
+			bid.dynamic_code,
+			bid.blog_title,
+			bid.blog_digest,
+			bid.blog_logo,
+			bid.blog_publish_time,
+			bid.team_quality_num,
+			bid.group_quality_num,
+			bid.province_quality_num,
+			bid.city_quality_num,
+			bid.read_num,
+			bid.like_num,
+			bid.collect_num,
+			bid.forward_num,
+			bid.comment_num,
+			bid.share_num,
+			(
+				CASE 
+				WHEN bl.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_like,
+			(
+				CASE 
+				WHEN bc.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_collect
+		FROM 
+		(
+			SELECT 
+				bi.blog_code,
+				bi.dynamic_code,
+				bi.blog_title,
+				bi.blog_digest,
+				bi.blog_logo,
+				bi.blog_publish_time,
+				bd.team_quality_num,
+				bd.group_quality_num,
+				bd.province_quality_num,
+				bd.city_quality_num,
+				bd.read_num,
+				bd.like_num,
+				bd.collect_num,
+				bd.forward_num,
+				bd.comment_num,
+				bd.share_num
+			<include refid="select_quality_list_sql" />
+			ORDER BY bi.blog_publish_time DESC
+			LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+		) bid
+		LEFT JOIN blog_like bl
+		ON bl.subject_class = 1
+		AND bid.blog_code = bl.subject_code
+		AND bl.user_code = #{loginUserCode,jdbcType=VARCHAR}
+		LEFT JOIN blog_collect bc
+		ON bid.blog_code = bc.blog_code
+		AND bc.user_code = #{loginUserCode,jdbcType=VARCHAR}
+		ORDER BY bid.blog_publish_time DESC
+	</select>
+	
+	<!-- 查询博客收藏列表公共SQL -->
+	<sql id="select_collect_list_sql">
+		FROM 
+		(
+			SELECT 
+				blog_code,
+				create_time
+			FROM blog_collect
+			WHERE user_code = #{userCode,jdbcType=VARCHAR}
+			AND create_time &lt; #{queryTime,jdbcType=BIGINT}
+		) bc
+		LEFT JOIN blog_info bi
+		ON bc.blog_code = bi.blog_code
+		WHERE bi.blog_is_delete = 0
+		AND	bi.blog_is_shield = 0
+		AND bi.id IS NOT NULL
+	</sql>
+	
+	<!-- 查询博客收藏列表个数 -->
+	<select id="selectCollectCount" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+		<include refid="select_collect_list_sql" />
+	</select>
+	
+	<!-- 查询博客收藏列表 -->
+	<select id="collectList" parameterType="map" resultMap="BlogResultMap">
+		SELECT 
+			bci.blog_code,
+			bci.dynamic_code,
+			bci.user_code,
+			bci.blog_depend,
+			bci.team_code,
+			bci.blog_source,
+			bci.source_blog_code,
+			bci.source_user_code,
+			bci.source_blog_depend,
+			bci.source_team_code,
+			bci.blog_title,
+			bci.blog_digest,
+			bci.blog_logo,
+			bci.blog_publish_time,
+			bci.create_time AS operate_time,
+			bd.team_quality_num,
+			bd.group_quality_num,
+			bd.province_quality_num,
+			bd.city_quality_num,
+			bd.read_num,
+			bd.like_num,
+			bd.collect_num,
+			bd.forward_num,
+			bd.comment_num,
+			bd.share_num,
+			(
+				CASE 
+				WHEN bl.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_like,
+			(
+				CASE 
+				WHEN bcl.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_collect
+		FROM 
+		(
+			SELECT 
+				bi.blog_code,
+				bi.dynamic_code,
+				bi.user_code,
+				bi.blog_depend,
+				bi.team_code,
+				bi.blog_source,
+				bi.source_blog_code,
+				bi.source_user_code,
+				bi.source_blog_depend,
+				bi.source_team_code,
+				bi.blog_title,
+				bi.blog_digest,
+				bi.blog_logo,
+				bi.blog_publish_time,
+				bc.create_time
+			<include refid="select_collect_list_sql" />
+			ORDER BY bc.create_time DESC
+			LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+		) bci
+		LEFT JOIN blog_data bd
+		ON bci.blog_code = bd.blog_code
+		LEFT JOIN blog_like bl
+		ON bl.subject_class = 1
+		AND bci.blog_code = bl.subject_code
+		AND bl.user_code = #{loginUserCode,jdbcType=VARCHAR}
+		LEFT JOIN blog_collect bcl
+		ON bci.blog_code = bcl.blog_code
+		AND bcl.user_code = #{loginUserCode,jdbcType=VARCHAR}
+		ORDER BY bci.create_time DESC
+	</select>
+	
+	<!-- 查询订阅博客列表公共SQL -->
+	<sql id="select_sub_list_sql">
+		FROM
+		(
+			SELECT
+				user_code,
+				sub_class,
+				team_code,
+				sub_user_code,
+				create_time
+			FROM blog_subscribe
+			WHERE user_code = #{userCode,jdbcType=VARCHAR}
+			AND create_time &lt; #{queryTime,jdbcType=BIGINT}
+		) bs
+		LEFT JOIN blog_info bi
+		ON bi.blog_publish_time &gt; bs.create_time
+		AND 
+		(
+			(
+					bs.sub_class = 1
+				AND bi.blog_depend = 1
+				AND bs.sub_user_code = bi.user_code
+			)
+			OR 
+			(
+					bs.sub_class = 2
+				AND bi.blog_depend = 2
+				AND bs.team_code = bi.team_code
+			)
+		)
+		WHERE bi.blog_is_delete = 0
+		AND	bi.blog_is_shield = 0
+		AND bi.id IS NOT NULL
+		AND bi.blog_publish_time &gt; 0
+		AND bi.blog_publish_time &lt; #{queryTime,jdbcType=BIGINT}
+	</sql>
+	
+	<!-- 查询订阅博客列表个数 -->
+	<select id="selectSubCount" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+		<include refid="select_sub_list_sql" />
+	</select>
+	
+	<!-- 查询订阅博客列表 -->
+	<select id="subList" parameterType="map" resultMap="BlogResultMap">
+		SELECT 
+			bsi.blog_code,
+			bsi.dynamic_code,
+			bsi.user_code,
+			bsi.blog_depend,
+			bsi.team_code,
+			bsi.blog_source,
+			bsi.source_blog_code,
+			bsi.source_user_code,
+			bsi.source_blog_depend,
+			bsi.source_team_code,
+			bsi.blog_title,
+			bsi.blog_digest,
+			bsi.blog_logo,
+			bsi.blog_publish_time,
+			bc.create_time AS operate_time,
+			bd.team_quality_num,
+			bd.group_quality_num,
+			bd.province_quality_num,
+			bd.city_quality_num,
+			bd.read_num,
+			bd.like_num,
+			bd.collect_num,
+			bd.forward_num,
+			bd.comment_num,
+			bd.share_num,
+			(
+				CASE 
+				WHEN bl.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_like,
+			(
+				CASE 
+				WHEN bc.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_collect
+		FROM 
+		(
+			SELECT 
+				bi.blog_code,
+				bi.dynamic_code,
+				bi.user_code,
+				bi.blog_depend,
+				bi.team_code,
+				bi.blog_source,
+				bi.source_blog_code,
+				bi.source_user_code,
+				bi.source_blog_depend,
+				bi.source_team_code,
+				bi.blog_title,
+				bi.blog_digest,
+				bi.blog_logo,
+				bi.blog_publish_time
+			<include refid="select_sub_list_sql" />
+			ORDER BY bi.blog_publish_time DESC
+			LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+		) bsi
+		LEFT JOIN blog_data bd
+		ON bsi.blog_code = bd.blog_code
+		LEFT JOIN blog_like bl
+		ON bl.subject_class = 1
+		AND bsi.blog_code = bl.subject_code
+		AND bl.user_code = #{loginUserCode,jdbcType=VARCHAR}
+		LEFT JOIN blog_collect bc
+		ON bsi.blog_code = bc.blog_code
+		AND bc.user_code = #{loginUserCode,jdbcType=VARCHAR}
+		ORDER BY bsi.blog_publish_time DESC
+	</select>
+	
+	<!-- 查询定时发布博客列表公共SQL -->
+	<sql id="select_plan_list_sql">
+		FROM blog_info
+		WHERE blog_is_delete = 0
+		AND	blog_is_shield = 0
+		AND blog_depend = #{blogDepend,jdbcType=TINYINT}
+		<if test="blogDepend == 1">
+			AND team_code = ''
+		</if>
+		<if test="blogDepend == 2">
+	        AND team_code = #{teamCode,jdbcType=VARCHAR}
+		</if>
+		AND user_code = #{userCode,jdbcType=VARCHAR}
+		AND blog_publish_time = 0
+		AND blog_plan_publish_time &gt; #{queryTime,jdbcType=BIGINT}
+	</sql>
+	
+	<!-- 查询定时发布博客列表个数 -->
+	<select id="selectPlanCount" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+		<include refid="select_plan_list_sql" />
+	</select>
+	
+	<!-- 查询定时发布博客列表 -->
+	<select id="planList" parameterType="map" resultMap="BaseResultMap">
+		SELECT 
+			blog_code,
+			dynamic_code,
+			blog_title,
+			blog_plan_publish_time
+		<include refid="select_plan_list_sql" />
+		ORDER BY blog_plan_publish_time DESC
+		LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+	</select>
+	
+	<!-- 查询定时发布博客列表 -->
+	<select id="planAllList" parameterType="map" resultMap="BaseResultMap">
+		SELECT 
+			blog_code, 
+			tenant_code, 
+			org_code, 
+			create_time,
+			modify_time, 
+			dynamic_code,
+			user_code, 
+			blog_depend, 
+			team_code, 
+			blog_title,
+			class_code, 
+			blog_digest,
+			blog_logo,
+			blog_plan_publish_time
+		FROM blog_info
+		WHERE blog_is_delete = 0
+		AND	blog_is_shield = 0
+		AND blog_publish_time = 0
+		AND blog_plan_publish_time &lt; #{queryTime,jdbcType=BIGINT}
+	</select>
+	
+	<!-- 查询RSS订阅博客列表 -->
+	<select id="selectRssList" parameterType="map" resultType="com.zssq.pojo.RssReturnPo">
+		SELECT
+			bi.blog_code AS objectCode, 
+			bi.user_code AS authorCode, 
+			bi.blog_title AS title,
+			bc.content_info AS description,
+			bi.blog_publish_time AS createTime
+		FROM
+		(
+			SELECT
+				blog_code,
+				user_code,
+				blog_title,
+				blog_publish_time
+			FROM blog_info
+			WHERE blog_is_delete = 0
+			AND	blog_is_shield = 0
+			AND	blog_depend = #{blogDepend,jdbcType=TINYINT}
+			<if test="blogDepend == 1">
+				AND team_code = ''
+				AND user_code = #{userCode,jdbcType=VARCHAR}
+			</if>
+			<if test="blogDepend == 2">
+				AND team_code = #{teamCode,jdbcType=VARCHAR}
+			</if>
+			AND blog_source = 1
+			AND blog_publish_time &gt; 0
+			ORDER BY blog_publish_time DESC
+			LIMIT #{showSize,jdbcType=INTEGER}
+		) bi
+		LEFT JOIN blog_content bc
+		ON bi.blog_code = bc.blog_code
+		ORDER BY bi.blog_publish_time DESC
+	</select>
+	
+	<!-- 班组归档时获取博客列表 -->
+	<select id="selectTeamBlogList" parameterType="map" resultMap="TeamBlogResultMap">
+		SELECT
+			bi.blog_code,
+			bi.user_code,
+			bi.blog_depend,
+			bi.team_code,
+			bi.blog_title,
+			bc.class_name,
+			bi.blog_tags,
+			bi.blog_publish_time,
+			bd.team_quality_num,
+			bd.group_quality_num,
+			bd.province_quality_num,
+			bd.city_quality_num,
+			bd.read_num,
+			bd.like_num,
+			bd.collect_num,
+			bd.forward_num,
+			bd.comment_num,
+			bd.share_num,
+			bco.content_info,
+			bcm.comment_code,
+			bcm.create_time,
+			bcm.user_code,
+			bcm.comment_content,
+			bcm.comment_like_num,
+			bcm.comment_reply_num,
+			br.reply_code,
+			br.create_time,
+			br.user_code,
+			br.to_reply_user_code,
+			br.reply_content,
+			br.reply_like_num
+		FROM
+			(
+				SELECT
+					blog_code,
+					user_code,
+					blog_depend,
+					team_code,
+					blog_title,
+					class_code,
+					blog_tags,
+					blog_publish_time
+				FROM blog_info
+				WHERE blog_is_delete = 0
+					AND blog_is_shield = 0
+					AND blog_depend = 2
+					AND team_code = #{teamCode,jdbcType=VARCHAR}
+				ORDER BY blog_publish_time DESC
+				LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+			) bi
+		LEFT JOIN blog_class bc 
+			ON bi.class_code = bc.class_code
+		LEFT JOIN blog_data bd 
+			ON bi.blog_code = bd.blog_code
+		LEFT JOIN blog_content bco 
+			ON bi.blog_code = bco.blog_code
+		LEFT JOIN blog_comment bcm 
+			ON bcm.comment_is_delete = 0
+			AND bcm.comment_is_shield = 0
+			AND bi.blog_code = bcm.blog_code
+		LEFT JOIN blog_reply br 
+			ON br.reply_is_delete = 0
+			AND br.replyt_is_shield = 0
+			AND bcm.comment_code = br.comment_code
+		ORDER BY bi.blog_publish_time DESC
+	</select>
+	
+	<!-- 查询博客基本信息 -->
+	<select id="selectMiniInfo" parameterType="map" resultMap="BaseResultMap">
+		SELECT
+			blog_code, 
+			tenant_code, 
+			org_code, 
+			create_time, 
+			modify_time, 
+			remark, 
+			dynamic_code, 
+			user_code, 
+			blog_agent_flag, 
+			agent_user_code, 
+			blog_source, 
+			source_blog_code, 
+			source_user_code, 
+			source_blog_depend, 
+			source_team_code, 
+			blog_depend, 
+			team_code, 
+			blog_title, 
+			blog_digest, 
+			class_code, 
+			blog_tags, 
+			blog_plan_publish_time, 
+			blog_publish_time, 
+			blog_logo, 
+			blog_is_delete, 
+			blog_is_shield, 
+			blog_tips
+		FROM blog_info
+		WHERE blog_code = #{blogCode,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 查询内容 -->
+	<select id="selectBaseInfo" parameterType="map" resultMap="BlogResultMap">
+		SELECT
+			bi.blog_code,
+			bi.dynamic_code,
+			bi.blog_title,
+			bi.class_code,
+			bi.blog_tags,
+			bi.blog_plan_publish_time,
+			bc.content_info
+		FROM
+		(
+			SELECT
+				blog_code,
+				dynamic_code,
+				user_code,
+				blog_title,
+				class_code,
+				blog_tags,
+				blog_plan_publish_time
+			FROM blog_info
+			WHERE blog_is_delete = 0
+			AND	blog_is_shield = 0
+			AND	blog_code = #{blogCode,jdbcType=VARCHAR}
+			AND user_code = #{userCode,jdbcType=VARCHAR}
+		) bi
+		LEFT JOIN blog_content bc
+		ON bi.blog_code = bc.blog_code
+	</select>
+	
+	<!-- 查询详情 -->
+	<select id="select" parameterType="map" resultMap="BlogResultMap">
+		SELECT
+			bi.blog_code,
+			bi.dynamic_code,
+			bi.user_code,
+			bi.blog_source,
+			bi.source_user_code,
+			bi.source_blog_depend,
+			bi.source_team_code,
+			bi.blog_depend,
+			bi.team_code,
+			bi.blog_title,
+			bcl.class_name,
+			bi.blog_tags,
+			bi.blog_publish_time,
+			bc.content_info,
+			bd.team_quality_num,
+			bd.group_quality_num,
+			bd.province_quality_num,
+			bd.city_quality_num,
+			bd.read_num,
+			bd.like_num,
+			bd.collect_num,
+			bd.forward_num,
+			bd.comment_num,
+			bd.share_num,
+			(
+				CASE 
+				WHEN bl.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_like,
+			(
+				CASE 
+				WHEN bco.id IS NULL
+				THEN 0
+				ELSE 1
+				END
+			) AS is_collect
+		FROM 
+		(
+			SELECT 
+				blog_code,
+				dynamic_code,
+				user_code,
+				blog_source,
+				source_user_code,
+				source_blog_depend,
+				source_team_code,
+				blog_depend,
+				team_code,
+				blog_title,
+				class_code,
+				blog_tags,
+				blog_publish_time
+			FROM blog_info
+			WHERE blog_is_delete = 0
+			AND	blog_is_shield = 0
+			AND	blog_code = #{blogCode,jdbcType=VARCHAR}
+		) bi
+		LEFT JOIN blog_content bc
+		ON bi.blog_code = bc.blog_code
+		LEFT JOIN blog_data bd
+		ON bi.blog_code = bd.blog_code
+		LEFT JOIN blog_class bcl
+		ON bi.class_code = bcl.class_code
+		LEFT JOIN blog_like bl
+		ON bl.subject_class = 1
+		AND bi.blog_code = bl.subject_code
+		AND bl.user_code = #{loginUserCode,jdbcType=VARCHAR}
+		LEFT JOIN blog_collect bco
+		ON bi.blog_code = bco.blog_code
+		AND bco.user_code = #{loginUserCode,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 查询定时发布时间 -->
+	<select id="getPlanPublishTime" parameterType="map" resultType="long">
+		SELECT
+			blog_plan_publish_time
+		FROM blog_info
+		WHERE blog_code = #{blogCode,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 插入 -->
+	<insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.zssq.dao.pojo.BlogInfo">
+		INSERT INTO blog_info (
+			blog_code, 
+			tenant_code,
+			org_code, 
+			create_time,
+			modify_time, 
+			remark, 
+			dynamic_code,
+			user_code, 
+			blog_agent_flag, 
+			agent_user_code,
+			blog_source, 
+			source_blog_code, 
+			source_user_code,
+			source_blog_depend,
+			source_team_code,
+			blog_depend, 
+			team_code, 
+			blog_title,
+			blog_digest, 
+			class_code, 
+			blog_tags,
+			blog_plan_publish_time, 
+			blog_publish_time, 
+			blog_logo,
+			blog_is_delete, 
+			blog_is_shield, 
+			blog_tips
+		) VALUES (
+			#{blogCode,jdbcType=VARCHAR},
+			#{tenantCode,jdbcType=VARCHAR},
+			#{orgCode,jdbcType=VARCHAR}, 
+			#{createTime,jdbcType=BIGINT},
+			#{modifyTime,jdbcType=BIGINT}, 
+			#{remark,jdbcType=VARCHAR}, 
+			#{dynamicCode,jdbcType=VARCHAR},
+			#{userCode,jdbcType=VARCHAR}, 
+			#{blogAgentFlag,jdbcType=TINYINT},
+			#{agentUserCode,jdbcType=VARCHAR},
+			#{blogSource,jdbcType=TINYINT}, 
+			#{sourceBlogCode,jdbcType=VARCHAR},
+			#{sourceUserCode,jdbcType=VARCHAR},
+			#{sourceBlogDepend,jdbcType=TINYINT},
+			#{sourceTeamCode,jdbcType=VARCHAR},
+			#{blogDepend,jdbcType=TINYINT}, 
+			#{teamCode,jdbcType=VARCHAR}, 
+			#{blogTitle,jdbcType=VARCHAR},
+			#{blogDigest,jdbcType=VARCHAR}, 
+			#{classCode,jdbcType=VARCHAR},
+			#{blogTags,jdbcType=VARCHAR},
+			#{blogPlanPublishTime,jdbcType=BIGINT}, 
+			#{blogPublishTime,jdbcType=BIGINT}, 
+			#{blogLogo,jdbcType=VARCHAR},
+			#{blogIsDelete,jdbcType=TINYINT}, 
+			#{blogIsShield,jdbcType=TINYINT},
+			#{blogTips,jdbcType=LONGVARCHAR}
+		)
+	</insert>
+	
+	<!-- 修改 -->
+	<update id="update" parameterType="map">
+		UPDATE blog_info SET 
+			blog_title = #{blogTitle,jdbcType=VARCHAR},
+			blog_digest = #{blogDigest,jdbcType=VARCHAR},
+			class_code = #{classCode,jdbcType=VARCHAR},
+			blog_tags = #{blogTags,jdbcType=VARCHAR},
+			blog_plan_publish_time = #{blogPlanPublishTime,jdbcType=BIGINT},
+			blog_logo = #{blogLogo,jdbcType=VARCHAR},
+			modify_time = #{modifyTime,jdbcType=BIGINT}
+		WHERE blog_depend = #{blogDepend,jdbcType=TINYINT}
+		AND blog_code = #{blogCode,jdbcType=VARCHAR}
+		<if test="blogDepend == 1">
+			AND team_code = ''
+		</if>
+		<if test="blogDepend == 2">
+			AND team_code = #{teamCode,jdbcType=VARCHAR}
+		</if>
+		AND user_code = #{userCode,jdbcType=VARCHAR}
+		AND blog_source = 1
+	</update>
+	
+	<!-- 修改分类 -->
+	<update id="updateClass" parameterType="map">
+		UPDATE blog_info SET 
+			class_code = #{classCode,jdbcType=VARCHAR},
+			modify_time = #{modifyTime,jdbcType=BIGINT}
+		WHERE blog_depend = #{blogDepend,jdbcType=TINYINT}
+		AND blog_code = #{blogCode,jdbcType=VARCHAR}
+		<if test="blogDepend == 1">
+			AND team_code = ''
+		</if>
+		<if test="blogDepend == 2">
+			AND team_code = #{teamCode,jdbcType=VARCHAR}
+		</if>
+		AND user_code = #{userCode,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 修改定时发布时间 -->
+	<update id="updatePublishTime" parameterType="map">
+		UPDATE blog_info SET 
+			blog_plan_publish_time = #{blogPlanPublishTime,jdbcType=BIGINT},
+			blog_publish_time = #{blogPublishTime,jdbcType=BIGINT},
+			modify_time = #{modifyTime,jdbcType=BIGINT}
+		WHERE blog_depend = #{blogDepend,jdbcType=TINYINT}
+		<if test="blogDepend == 1">
+			AND team_code = ''
+		</if>
+		<if test="blogDepend == 2">
+			AND team_code = #{teamCode,jdbcType=VARCHAR}
+		</if>
+		AND user_code = #{userCode,jdbcType=VARCHAR}
+		AND blog_code = #{blogCode,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 删除 -->
+	<update id="delete" parameterType="map">
+		UPDATE blog_info SET
+			blog_is_delete = '1',
+			modify_time = #{modifyTime,jdbcType=BIGINT}
+		WHERE blog_depend = #{blogDepend,jdbcType=TINYINT}
+		<if test="blogDepend == 1">
+			AND team_code = ''
+		</if>
+		<if test="blogDepend == 2">
+			AND team_code = #{teamCode,jdbcType=VARCHAR}
+		</if>
+		AND user_code = #{userCode,jdbcType=VARCHAR}
+		<if test="blogAgentFlag == 1">
+			AND blog_agent_flag = #{blogAgentFlag,jdbcType=TINYINT}
+			AND agent_user_code = #{agentUserCode,jdbcType=VARCHAR}
+		</if>
+		AND blog_code = #{blogCode,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 屏蔽/恢复 -->
+	<update id="shield" parameterType="map">
+		UPDATE blog_info SET
+			blog_is_shield = #{blogIsShield,jdbcType=TINYINT},
+			modify_time = #{modifyTime,jdbcType=BIGINT}
+		WHERE blog_code = #{blogCode,jdbcType=VARCHAR}
+		AND blog_is_delete = 0
+		AND blog_is_shield != #{blogIsShield,jdbcType=TINYINT}
+	</update>
+	
+	<!-- 管理 分页获取 博客 start -->
+	<!--  -->
+	<select id="selectCountByGL" parameterType="map" resultType="int">
+		select 
+			count(*) 
+			from blog_info bi
+		where bi.blog_is_delete = 0
+		AND bi.blog_is_shield =#{blogIsShield}
+		AND bi.id IS NOT NULL
+		AND bi.blog_publish_time &gt; 0
+		AND bi.blog_publish_time &lt; #{queryTime,jdbcType=BIGINT}
+		AND bi.org_code =#{orgCode,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 管理后台获取博客list -->
+	<select id="listByGL" parameterType="map" resultMap="BaseResultMap">
+		select 
+			<include refid="Base_Column_List" />
+		from blog_info bi
+		where bi.blog_is_delete = 0
+		AND bi.blog_is_shield =#{blogIsShield}
+		AND bi.id IS NOT NULL
+		AND bi.blog_publish_time &gt; 0
+		AND bi.blog_publish_time &lt; #{queryTime,jdbcType=BIGINT}
+		AND bi.org_code =#{orgCode,jdbcType=VARCHAR}
+		ORDER BY bi.blog_publish_time DESC
+		LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+	</select>
+	<!-- 管理 分页获取 博客 end -->
+	
+	<!-- 根据博客编号列表获取博客基本信息和数据信息 -->
+	<select id="getTitleDataByCode" parameterType="map" resultMap="BlogResultMap">
+		SELECT
+			bi.blog_code,
+			bi.user_code,
+			bi.blog_publish_time,
+			bi.blog_title,
+			bi.blog_digest,
+			bd.team_quality_num,
+			bd.group_quality_num,
+			bd.province_quality_num,
+			bd.city_quality_num,
+			bd.read_num,
+			bd.like_num,
+			bd.collect_num,
+			bd.forward_num,
+			bd.comment_num,
+			bd.share_num
+		FROM
+			(
+				SELECT
+					blog_code,
+					user_code,
+					blog_publish_time,
+					blog_title,
+					blog_digest
+				FROM
+					blog_info
+				WHERE
+					blog_code IN 
+					<foreach collection="blogCodeList" open="(" close=")" item="blogCode1" index="index" separator=",">
+						#{blogCode1,jdbcType=VARCHAR}
+					</foreach>
+			) bi
+		LEFT JOIN blog_data bd 
+		ON bi.blog_code = bd.blog_code
+	</select>
+	
+</mapper>

@@ -1,0 +1,235 @@
+package com.zssq.interceptor;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.zssq.constants.AppConstants;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.utils.DESUtil;
+import com.zssq.utils.PropertiesUtil;
+import org.apache.http.Consts;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+import org.apache.log4j.Logger;
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.pojo.Login;
+import com.zssq.pojo.Message;
+import com.zssq.pojo.Ticket;
+
+import redis.clients.jedis.Jedis;  
+  
+public class SSOInterceptor implements HandlerInterceptor {  
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	private Properties props = new PropertiesUtil("sso.properties");
+	
+	private Properties propsRedis = new PropertiesUtil("ssoRedis.properties");
+	
+	//false:被拦截
+	//true：进入方法
+    @Override  
+    public boolean preHandle(HttpServletRequest request,  
+            HttpServletResponse response, Object handler) throws Exception {  
+    	System.out.println("进入方法前");
+    	
+    	String uid = request.getParameter("userCode");
+    	String uidPassword = request.getParameter("uidPassword");
+    	String app = request.getParameter("app"); //app=mhpc,mhh5,glpc,saas,admin
+    	String ticket = request.getParameter("token");
+    	String isLogout = request.getParameter("isLogout"); //0:注销,1:不注销
+    	String ticketSuccess = request.getParameter("ticketSuccess"); //票据跨域已在前端存放
+    	
+    	Object ticketMsgAuth = request.getAttribute("ticketMsgAuth");
+    	if(ticketMsgAuth != null){ //不为空，用户状态错误，不进入其他层
+    		return true;
+    	}
+    	
+    	if(ticket == null || "".equals(ticket)){ //确保票据有值，供服务端判断使用
+    		ticket = "~";
+    	}
+    	
+//    	uid = "limingzhe";
+//    	uidPassword = "1234567";
+//    	app = "mhpc";
+    	
+    	boolean result = false;
+    	
+//    	String token = String.valueOf(UUID.randomUUID());
+    	
+//    	String isExistData = uid + "-" + app;
+    	
+    	String isExistData = ticket;
+    	
+    	Jedis redis = new Jedis(propsRedis.getProperty("webRedisIP"), Integer.valueOf(propsRedis.getProperty("webRedisPort")));  //本地redis
+    	redis.auth(propsRedis.getProperty("webRedisPwd"));
+    	System.out.println("Server is running: " + redis.ping()); 
+    	
+    	String resultRedis = redis.get(isExistData); //查找本地redis中是否有该用户信息
+    	
+    	log.info(resultRedis);
+    	
+    	if("0".equals(isLogout)){ //用户注销
+    		getHttpClientJSON(uid,"",app,"0",ticket);
+    		
+    		return true;
+    	}
+    	
+    	if(resultRedis != null && "1".equals(ticketSuccess)){ //说明票据跨域已存放，并且是最新票据，可直接进入其他层
+    		log.info("================================1");
+    		return true;
+    	}
+    	
+    	
+    	if(resultRedis != null){ //不等于空，说明票据匹配，为前端跨域操作重新封装redis中的用户信息后给前端
+    		log.info("================================2");
+    		String[] values = resultRedis.split("-");
+    		ResultJSON resultJSON = new ResultJSON();
+    		Message m = PropertiesUtil.getMessage("SSO_0003");
+    		resultJSON.setReturnCode(m.getCode());
+    		resultJSON.setReturnTip(m.getTip());
+            Login login = new Login();
+			login.setUserCode(values[0]);
+			//login.setUidPassword(values[2]);
+			login.setApp(values[1]);
+			login.setToken(ticket);
+			
+			resultJSON.setBody(login);
+			
+			request.setAttribute("crossDomainTicketMsg", JSONObject.toJSONString(resultJSON));
+			
+			return true;
+    	}
+    	
+    	
+    	/*if(resultRedis != null){ //判断相同客户端下，是否是同一台机器登录操作
+    		String clientTicket = resultRedis.substring(resultRedis.lastIndexOf("-") + 1);
+    		if(!clientTicket.equals(ticket)){
+    			String entityStr = getHttpClientJSON(uid,uidPassword,app,"1","");
+	    		
+	    		ResultJSON resultJSON = JSONObject.parseObject(String.valueOf(entityStr),ResultJSON.class);
+	    		if(resultJSON.getReturnCode().equals("200")){ //认证成功
+	    			Ticket t = JSONObject.parseObject(String.valueOf(resultJSON.getBody()),Ticket.class);
+	    			redis.del(isExistData);
+	    			redis.set(isExistData, uidPassword + "-" + t.getTicket());
+				}
+	    		
+	    		request.setAttribute("ticketMsg", entityStr);
+	    		
+	    		log.info("SSOInterceptor.preHandle:认证成功，存入本地redis令牌," + isExistData);
+    		}
+    	}*/
+    	
+    	
+    	System.out.println("resultRedis:" + resultRedis);
+    	
+    	if(AppConstants.SAAS.equals(app) || AppConstants.ADMIN.equals(app)){ //超管
+    		result = true;
+    	}else{
+	    	if(resultRedis == null){
+	    		String entityStr = getHttpClientJSON(uid,uidPassword,app,"",ticket);
+	    		Ticket t = null; 
+	    		ResultJSON resultJSON = JSONObject.parseObject(String.valueOf(entityStr),ResultJSON.class);
+	    		if(resultJSON.getReturnCode().equals("200")){ //认证成功
+	    			t = JSONObject.parseObject(String.valueOf(resultJSON.getBody()),Ticket.class);
+	    			redis.del(t.getToken());
+	    			redis.set(t.getToken(), uid + "-" + app + "-" + uidPassword);
+				}
+	    		
+	    		request.setAttribute("ticketMsg", entityStr);
+	    		
+	    		if(resultJSON.getReturnCode().equals("0001") || resultJSON.getReturnCode().equals("402") || resultJSON.getReturnCode().equals("0004")){
+	    			return true;
+	    		}
+	    		
+	    		
+	    		//当定时清空redis后，客户端没有注销，相当于续签，客户端还有票据时，存入客户端旧票据在aop中跟新票据比对后，客户端存入新票据
+    			if(!t.getToken().equals(ticket) && !"~".equals(ticket)){
+	    			request.setAttribute("clientTicketMsg", ticket);
+	    		}
+	    		
+	    		
+	    		log.info("SSOInterceptor.preHandle:认证成功，存入本地redis令牌," + isExistData);
+	    	}
+	    	
+	    	result = true;
+    	}
+		
+        return result; 
+        
+    }  
+      
+    @Override  
+    public void postHandle(HttpServletRequest request,  
+            HttpServletResponse response, Object handler,  
+            ModelAndView modelAndView) throws Exception {  
+
+    	//System.out.println("进入方法中");
+    	
+    }  
+  
+    @Override  
+    public void afterCompletion(HttpServletRequest request,  
+            HttpServletResponse response, Object handler, Exception ex)  
+    throws Exception {  
+
+    	//System.out.println("方法执行后");
+    }  
+      
+    private String getHttpClientJSON(String uid,String uidPassword,String app,String isLogout,String ticket) throws Exception{
+    	List<NameValuePair> requestParams = new ArrayList<NameValuePair>();
+    	String requestUrl = "";
+    	if(!"".equals(isLogout)){
+    		requestUrl = props.getProperty("sso_logout");
+    	}else{
+    		requestUrl = props.getProperty("sso_certification");
+    	}
+		
+    	HttpClient client = HttpClients.createDefault();
+    	HttpPost httpPost = new HttpPost(requestUrl);
+    	if(!"".equals(uid) && uid != null){
+    		requestParams.add(new BasicNameValuePair("userCode", DESUtil.encrypt(uid)));
+    	}
+    	if(!"".equals(uidPassword) && uidPassword != null){
+    		requestParams.add(new BasicNameValuePair("uidPassword", DESUtil.encrypt(uidPassword))); //需要加密
+    	}
+    	if(!"".equals(app) && app != null){
+    		requestParams.add(new BasicNameValuePair("app", DESUtil.encrypt(app)));
+    	}
+    	/*if(!"".equals(isClient) && isClient != null){
+    		requestParams.add(new BasicNameValuePair("isClient", DESUtil.encrypt(isClient))); //是否是相同客户端下，同一台机器登录操作，0：是，1：否
+    	}*/
+    	if(!"".equals(isLogout) && isLogout != null){
+    		requestParams.add(new BasicNameValuePair("isLogout", DESUtil.encrypt(isLogout)));
+    	}
+    	if(!"".equals(ticket) && ticket != null){
+    		requestParams.add(new BasicNameValuePair("token", DESUtil.encrypt(ticket)));
+    	}
+    	
+    	httpPost.setEntity(new UrlEncodedFormEntity(requestParams,
+				Consts.UTF_8));
+    	
+		HttpResponse httpResponse = client.execute(httpPost);
+		
+		log.info("Request.httpPost.getURI(): " + httpPost.getURI());
+		log.info("Response Code: " + httpResponse.getStatusLine().getStatusCode());
+		HttpEntity entity = httpResponse.getEntity();
+		String entityStr = EntityUtils.toString(entity);
+		log.info("entityStr:" + entityStr);
+		
+		return entityStr;
+    }
+}  

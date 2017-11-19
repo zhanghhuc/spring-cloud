@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.mblog.dao.mapper.MblogInfoMapper" >
+  <!-- 批处理 -->
+  <insert id="batchInsert" parameterType="com.zssq.mblog.pojo.MblogInfo">
+	insert into mblog_info (
+		id, 
+		mblog_code, 
+		create_time, 
+      	modify_time, 
+      	remark, 
+      	org_code, 
+       	user_code, 
+       	agent_user_code, 
+      	agent_org_code,  
+      	team_code, 
+      	source_mblog_code, 
+      	source_user_code, 
+      	mblog_depend, 
+      	mblog_source, 
+      	mblog_visible, 
+      	is_delete, 
+      	is_shield, 
+      	publish_time, 
+      	tenant_code, 
+      	mblog_logo,
+      	dynamic_code,
+      	shield_user_code,
+      	shield_time
+	)
+	values 
+	<foreach collection="list" item="item" index="index" separator=",">
+		(
+			#{item.id,jdbcType=BIGINT}, 
+			#{item.mblogCode,jdbcType=VARCHAR}, 
+			#{item.createTime,jdbcType=BIGINT}, 
+	     	#{item.modifyTime,jdbcType=BIGINT}, 
+	      	#{item.remark,jdbcType=VARCHAR}, 
+	      	#{item.orgCode,jdbcType=VARCHAR}, 
+       		#{item.userCode,jdbcType=VARCHAR}, 
+       		#{item.agentUserCode,jdbcType=VARCHAR}, 
+	      	#{item.agentOrgCode,jdbcType=VARCHAR}, 
+	       	#{item.teamCode,jdbcType=VARCHAR}, 
+	       	#{item.sourceMblogCode,jdbcType=VARCHAR}, 
+	       	#{item.sourceUserCode,jdbcType=VARCHAR}, 
+	       	#{item.mblogDepend,jdbcType=TINYINT}, 
+	       	#{item.mblogSource,jdbcType=TINYINT}, 
+	       	#{item.mblogVisible,jdbcType=TINYINT}, 
+	       	#{item.isDelete,jdbcType=TINYINT}, 
+	       	#{item.isShield,jdbcType=TINYINT}, 
+	       	#{item.publishTime,jdbcType=BIGINT}, 
+	       	#{item.tenantCode,jdbcType=VARCHAR}, 
+	       	#{item.mblogLogo,jdbcType=LONGVARCHAR},
+	       	#{item.dynamicCode,jdbcType=VARCHAR},
+	       	#{item.shieldUserCode,jdbcType=VARCHAR},
+	       	#{item.shieldTime,jdbcType=BIGINT}
+    	)
+	</foreach>
+  </insert>
+  
+  
+</mapper>

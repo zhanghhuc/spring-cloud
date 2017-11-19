@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.disk.dao.NetdiskFileMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.disk.po.NetdiskFile" >
+    <result column="FILE_ID" property="fileId" jdbcType="VARCHAR" />
+    <result column="FILE_NAME" property="fileName" jdbcType="VARCHAR" />
+    <result column="FILE_TYPE" property="fileType" jdbcType="INTEGER" />
+    <result column="FILE_PID" property="filePid" jdbcType="VARCHAR" />
+    <result column="DISK_ID" property="diskId" jdbcType="VARCHAR" />
+    <result column="USER_ID" property="userId" jdbcType="INTEGER" />
+    <result column="TEAM_ID" property="teamId" jdbcType="INTEGER" />
+    <result column="CITY_ID" property="cityId" jdbcType="INTEGER" />
+    <result column="PROVINCE_ID" property="provinceId" jdbcType="INTEGER" />
+    <result column="FILE_SIZE" property="fileSize" jdbcType="BIGINT" />
+    <result column="FILE_STATE" property="fileState" jdbcType="INTEGER" />
+    <result column="FILE_CLASS" property="fileClass" jdbcType="INTEGER" />
+    <result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="UPDATE_TIME" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="VERSION" property="version" jdbcType="DECIMAL" />
+    <result column="FILE_PATH" property="filePath" jdbcType="VARCHAR" />
+    <result column="DESCRIPTION" property="description" jdbcType="VARCHAR" />
+    <result column="FILE_LEVEL" property="fileLevel" jdbcType="INTEGER" />
+    <result column="FILE_DOWN_LEVEL" property="fileDownLevel" jdbcType="INTEGER" />
+    <result column="FILE_DOWN_PASSWORD" property="fileDownPassword" jdbcType="VARCHAR" />
+    <result column="FILE_CONTENT_TYPE" property="fileContentType" jdbcType="INTEGER" />
+    <result column="FILE_DOWN_NUM" property="fileDownNum" jdbcType="INTEGER" />
+    <result column="SHARE_NUM" property="shareNum" jdbcType="INTEGER" />
+
+    <association property="sysUserInfo" column="USER_ID" select="com.zssq.disk.dao.DiskSysUserInfoMapper.selectByPrimaryKey"
+                 javaType="com.zssq.news.po.SysUserInfo"/>
+  </resultMap>
+
+
+  <resultMap id="BaseResultMap2" type="com.zssq.disk.po.NetdiskFile" >
+    <result column="FILE_ID" property="fileId" jdbcType="VARCHAR" />
+    <result column="FILE_NAME" property="fileName" jdbcType="VARCHAR" />
+    <result column="FILE_TYPE" property="fileType" jdbcType="INTEGER" />
+    <result column="FILE_PID" property="filePid" jdbcType="VARCHAR" />
+    <result column="DISK_ID" property="diskId" jdbcType="VARCHAR" />
+    <result column="USER_ID" property="userId" jdbcType="INTEGER" />
+    <result column="TEAM_ID" property="teamId" jdbcType="INTEGER" />
+    <result column="CITY_ID" property="cityId" jdbcType="INTEGER" />
+    <result column="PROVINCE_ID" property="provinceId" jdbcType="INTEGER" />
+    <result column="FILE_SIZE" property="fileSize" jdbcType="BIGINT" />
+    <result column="FILE_STATE" property="fileState" jdbcType="INTEGER" />
+    <result column="FILE_CLASS" property="fileClass" jdbcType="INTEGER" />
+    <result column="CREATE_TIME" property="createTime" jdbcType="BIGINT" />
+    <result column="UPDATE_TIME" property="updateTime" jdbcType="BIGINT" />
+    <result column="VERSION" property="version" jdbcType="DECIMAL" />
+    <result column="FILE_PATH" property="filePath" jdbcType="VARCHAR" />
+    <result column="DESCRIPTION" property="description" jdbcType="VARCHAR" />
+    <result column="FILE_LEVEL" property="fileLevel" jdbcType="INTEGER" />
+    <result column="FILE_DOWN_LEVEL" property="fileDownLevel" jdbcType="INTEGER" />
+    <result column="FILE_DOWN_PASSWORD" property="fileDownPassword" jdbcType="VARCHAR" />
+    <result column="FILE_CONTENT_TYPE" property="fileContentType" jdbcType="INTEGER" />
+    <result column="FILE_DOWN_NUM" property="fileDownNum" jdbcType="INTEGER" />
+    <result column="SHARE_NUM" property="shareNum" jdbcType="INTEGER" />
+  </resultMap>
+
+
+
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    FILE_ID, FILE_NAME, FILE_TYPE, FILE_PID, DISK_ID, USER_ID, TEAM_ID, CITY_ID, PROVINCE_ID, 
+    FILE_SIZE, FILE_STATE, FILE_CLASS, CREATE_TIME, UPDATE_TIME, VERSION, FILE_PATH, 
+    DESCRIPTION, FILE_LEVEL, FILE_DOWN_LEVEL, FILE_DOWN_PASSWORD, FILE_CONTENT_TYPE, 
+    FILE_DOWN_NUM, SHARE_NUM
+  </sql>
+
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.zssq.disk.po.NetdiskFileExample" >
+    select
+    <include refid="Base_Column_List" />
+    from netdisk_file
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+      limit #{limitStart} , #{limitEnd}
+  </select>
+
+
+  <select id="selectList" resultMap="BaseResultMap2" parameterType="com.zssq.disk.po.NetdiskFileExample" >
+    select
+    <include refid="Base_Column_List" />
+    from netdisk_file
+      limit #{limitStart} , #{limitEnd}
+  </select>
+
+
+  <insert id="insert" parameterType="com.zssq.disk.po.NetdiskFile" >
+    insert into netdisk_file (FILE_ID, FILE_NAME, FILE_TYPE, 
+      FILE_PID, DISK_ID, USER_ID, 
+      TEAM_ID, CITY_ID, PROVINCE_ID, 
+      FILE_SIZE, FILE_STATE, FILE_CLASS, 
+      CREATE_TIME, UPDATE_TIME, VERSION, 
+      FILE_PATH, DESCRIPTION, FILE_LEVEL, 
+      FILE_DOWN_LEVEL, FILE_DOWN_PASSWORD, FILE_CONTENT_TYPE, 
+      FILE_DOWN_NUM, SHARE_NUM)
+    values (#{fileId,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, #{fileType,jdbcType=INTEGER}, 
+      #{filePid,jdbcType=VARCHAR}, #{diskId,jdbcType=VARCHAR}, #{userId,jdbcType=INTEGER}, 
+      #{teamId,jdbcType=INTEGER}, #{cityId,jdbcType=INTEGER}, #{provinceId,jdbcType=INTEGER}, 
+      #{fileSize,jdbcType=BIGINT}, #{fileState,jdbcType=INTEGER}, #{fileClass,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=VARCHAR}, #{updateTime,jdbcType=VARCHAR}, #{version,jdbcType=DECIMAL}, 
+      #{filePath,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{fileLevel,jdbcType=INTEGER}, 
+      #{fileDownLevel,jdbcType=INTEGER}, #{fileDownPassword,jdbcType=VARCHAR}, #{fileContentType,jdbcType=INTEGER}, 
+      #{fileDownNum,jdbcType=INTEGER}, #{shareNum,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.disk.po.NetdiskFile" >
+    insert into netdisk_file
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="fileId != null" >
+        FILE_ID,
+      </if>
+      <if test="fileName != null" >
+        FILE_NAME,
+      </if>
+      <if test="fileType != null" >
+        FILE_TYPE,
+      </if>
+      <if test="filePid != null" >
+        FILE_PID,
+      </if>
+      <if test="diskId != null" >
+        DISK_ID,
+      </if>
+      <if test="userId != null" >
+        USER_ID,
+      </if>
+      <if test="teamId != null" >
+        TEAM_ID,
+      </if>
+      <if test="cityId != null" >
+        CITY_ID,
+      </if>
+      <if test="provinceId != null" >
+        PROVINCE_ID,
+      </if>
+      <if test="fileSize != null" >
+        FILE_SIZE,
+      </if>
+      <if test="fileState != null" >
+        FILE_STATE,
+      </if>
+      <if test="fileClass != null" >
+        FILE_CLASS,
+      </if>
+      <if test="createTime != null" >
+        CREATE_TIME,
+      </if>
+      <if test="updateTime != null" >
+        UPDATE_TIME,
+      </if>
+      <if test="version != null" >
+        VERSION,
+      </if>
+      <if test="filePath != null" >
+        FILE_PATH,
+      </if>
+      <if test="description != null" >
+        DESCRIPTION,
+      </if>
+      <if test="fileLevel != null" >
+        FILE_LEVEL,
+      </if>
+      <if test="fileDownLevel != null" >
+        FILE_DOWN_LEVEL,
+      </if>
+      <if test="fileDownPassword != null" >
+        FILE_DOWN_PASSWORD,
+      </if>
+      <if test="fileContentType != null" >
+        FILE_CONTENT_TYPE,
+      </if>
+      <if test="fileDownNum != null" >
+        FILE_DOWN_NUM,
+      </if>
+      <if test="shareNum != null" >
+        SHARE_NUM,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="fileId != null" >
+        #{fileId,jdbcType=VARCHAR},
+      </if>
+      <if test="fileName != null" >
+        #{fileName,jdbcType=VARCHAR},
+      </if>
+      <if test="fileType != null" >
+        #{fileType,jdbcType=INTEGER},
+      </if>
+      <if test="filePid != null" >
+        #{filePid,jdbcType=VARCHAR},
+      </if>
+      <if test="diskId != null" >
+        #{diskId,jdbcType=VARCHAR},
+      </if>
+      <if test="userId != null" >
+        #{userId,jdbcType=INTEGER},
+      </if>
+      <if test="teamId != null" >
+        #{teamId,jdbcType=INTEGER},
+      </if>
+      <if test="cityId != null" >
+        #{cityId,jdbcType=INTEGER},
+      </if>
+      <if test="provinceId != null" >
+        #{provinceId,jdbcType=INTEGER},
+      </if>
+      <if test="fileSize != null" >
+        #{fileSize,jdbcType=BIGINT},
+      </if>
+      <if test="fileState != null" >
+        #{fileState,jdbcType=INTEGER},
+      </if>
+      <if test="fileClass != null" >
+        #{fileClass,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=VARCHAR},
+      </if>
+      <if test="version != null" >
+        #{version,jdbcType=DECIMAL},
+      </if>
+      <if test="filePath != null" >
+        #{filePath,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null" >
+        #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="fileLevel != null" >
+        #{fileLevel,jdbcType=INTEGER},
+      </if>
+      <if test="fileDownLevel != null" >
+        #{fileDownLevel,jdbcType=INTEGER},
+      </if>
+      <if test="fileDownPassword != null" >
+        #{fileDownPassword,jdbcType=VARCHAR},
+      </if>
+      <if test="fileContentType != null" >
+        #{fileContentType,jdbcType=INTEGER},
+      </if>
+      <if test="fileDownNum != null" >
+        #{fileDownNum,jdbcType=INTEGER},
+      </if>
+      <if test="shareNum != null" >
+        #{shareNum,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.zssq.disk.po.NetdiskFileExample" resultType="java.lang.Integer" >
+    select count(*) from netdisk_file
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+</mapper>

@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.RelationLikeMapper">
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.RelationLike">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="like_code" jdbcType="VARCHAR" property="likeCode" />
+    <result column="tenant_code" jdbcType="VARCHAR" property="tenantCode" />
+    <result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+    <result column="create_time" jdbcType="BIGINT" property="createTime" />
+    <result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="subject_code" jdbcType="VARCHAR" property="subjectCode" />
+    <result column="subject_class" jdbcType="TINYINT" property="subjectClass" />
+    <result column="user_code" jdbcType="VARCHAR" property="userCode" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, like_code, tenant_code, org_code, create_time, modify_time, remark, 
+    subject_code, subject_class, user_code
+  </sql>
+  <!-- <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from relation_like
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from relation_like
+    where id = #{id,jdbcType=BIGINT}
+  </delete> -->
+  <insert id="insert" parameterType="com.zssq.dao.pojo.RelationLike">
+    insert into relation_like 
+    	(id,
+    	 like_code, 
+    	 tenant_code, 
+      	 org_code,
+      	 create_time, 
+      	 modify_time, 
+      	 remark, 
+      	 subject_code, 
+      	 subject_class, 
+      	 user_code)
+    values 
+    	(#{id,jdbcType=BIGINT}, 
+    	 #{likeCode,jdbcType=VARCHAR}, 
+    	 #{tenantCode,jdbcType=VARCHAR}, 
+      	 #{orgCode,jdbcType=VARCHAR},
+      	 #{createTime,jdbcType=BIGINT}, 
+      	 #{modifyTime,jdbcType=BIGINT}, 
+      	 #{remark,jdbcType=VARCHAR}, 
+      	 #{subjectCode,jdbcType=VARCHAR}, 
+      	 #{subjectClass,jdbcType=TINYINT}, 
+      	 #{userCode,jdbcType=VARCHAR})
+  </insert>
+  <!-- <insert id="insertSelective" parameterType="com.zssq.dao.pojo.RelationLike">
+    insert into relation_like
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="likeCode != null">
+        like_code,
+      </if>
+      <if test="tenantCode != null">
+        tenant_code,
+      </if>
+      <if test="orgCode != null">
+        org_code,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="modifyTime != null">
+        modify_time,
+      </if>
+      <if test="remark != null">
+        remark,
+      </if>
+      <if test="subjectCode != null">
+        subject_code,
+      </if>
+      <if test="subjectClass != null">
+        subject_class,
+      </if>
+      <if test="userCode != null">
+        user_code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="likeCode != null">
+        #{likeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null">
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null">
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null">
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null">
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="subjectCode != null">
+        #{subjectCode,jdbcType=VARCHAR},
+      </if>
+      <if test="subjectClass != null">
+        #{subjectClass,jdbcType=TINYINT},
+      </if>
+      <if test="userCode != null">
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.RelationLike">
+    update relation_like
+    <set>
+      <if test="likeCode != null">
+        like_code = #{likeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null">
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null">
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null">
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null">
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="subjectCode != null">
+        subject_code = #{subjectCode,jdbcType=VARCHAR},
+      </if>
+      <if test="subjectClass != null">
+        subject_class = #{subjectClass,jdbcType=TINYINT},
+      </if>
+      <if test="userCode != null">
+        user_code = #{userCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.RelationLike">
+    update relation_like
+    set like_code = #{likeCode,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      subject_code = #{subjectCode,jdbcType=VARCHAR},
+      subject_class = #{subjectClass,jdbcType=TINYINT},
+      user_code = #{userCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.RelationLike">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="like_code" jdbcType="VARCHAR" property="likeCode" />
+    <result column="tenant_code" jdbcType="VARCHAR" property="tenantCode" />
+    <result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+    <result column="create_time" jdbcType="BIGINT" property="createTime" />
+    <result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="subject_code" jdbcType="VARCHAR" property="subjectCode" />
+    <result column="subject_class" jdbcType="TINYINT" property="subjectClass" />
+    <result column="user_code" jdbcType="VARCHAR" property="userCode" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, like_code, tenant_code, org_code, create_time, modify_time, remark, 
+    subject_code, subject_class, user_code
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from relation_like
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from relation_like
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.RelationLike">
+    insert into relation_like (id, like_code, tenant_code, 
+      org_code, create_time, 
+      modify_time, remark, subject_code, 
+      subject_class, user_code)
+    values (#{id,jdbcType=BIGINT}, #{likeCode,jdbcType=VARCHAR}, #{tenantCode,jdbcType=VARCHAR}, 
+      #{orgCode,jdbcType=VARCHAR}, #{createTime,jdbcType=BIGINT}, 
+      #{modifyTime,jdbcType=BIGINT}, #{remark,jdbcType=VARCHAR}, #{subjectCode,jdbcType=VARCHAR}, 
+      #{subjectClass,jdbcType=TINYINT}, #{userCode,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.RelationLike">
+    insert into relation_like
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="likeCode != null">
+        like_code,
+      </if>
+      <if test="tenantCode != null">
+        tenant_code,
+      </if>
+      <if test="orgCode != null">
+        org_code,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="modifyTime != null">
+        modify_time,
+      </if>
+      <if test="remark != null">
+        remark,
+      </if>
+      <if test="subjectCode != null">
+        subject_code,
+      </if>
+      <if test="subjectClass != null">
+        subject_class,
+      </if>
+      <if test="userCode != null">
+        user_code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="likeCode != null">
+        #{likeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null">
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null">
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null">
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null">
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="subjectCode != null">
+        #{subjectCode,jdbcType=VARCHAR},
+      </if>
+      <if test="subjectClass != null">
+        #{subjectClass,jdbcType=TINYINT},
+      </if>
+      <if test="userCode != null">
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.RelationLike">
+    update relation_like
+    <set>
+      <if test="likeCode != null">
+        like_code = #{likeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null">
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null">
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null">
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null">
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="subjectCode != null">
+        subject_code = #{subjectCode,jdbcType=VARCHAR},
+      </if>
+      <if test="subjectClass != null">
+        subject_class = #{subjectClass,jdbcType=TINYINT},
+      </if>
+      <if test="userCode != null">
+        user_code = #{userCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.RelationLike">
+    update relation_like
+    set like_code = #{likeCode,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      subject_code = #{subjectCode,jdbcType=VARCHAR},
+      subject_class = #{subjectClass,jdbcType=TINYINT},
+      user_code = #{userCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update> -->
+  
+  <delete id="delete" parameterType="map">
+		DELETE 
+			FROM relation_like
+		WHERE 
+			user_code = #{userCode,jdbcType=VARCHAR}
+			AND subject_code = #{subjectCode,jdbcType=VARCHAR}
+	</delete>
+</mapper>

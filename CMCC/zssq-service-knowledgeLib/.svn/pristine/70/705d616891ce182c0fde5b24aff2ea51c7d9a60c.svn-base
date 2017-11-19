@@ -1,0 +1,107 @@
+package com.zssq.service.impl;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.dao.mapper.RepositoryKnowledgeContentBySryMapper;
+import com.zssq.dao.mapper.RepositoryKnowledgeContentMapperByGuoYang;
+import com.zssq.dao.pojo.RepositoryKnowledgeContent;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.model.GetKnowledgeInfoForGLModel;
+import com.zssq.model.RepositoryKnowledgeContentMH;
+import com.zssq.service.RepositoryKnowledgeContentService;
+import com.zssq.vo.GetKnowledgeInfoForGLForSerVo;
+import com.zssq.vo.RepositoryKnowledgeContentVo;
+
+/**
+ * 
+ * @ClassName: RepositoryKnowledgeContentService  
+ * @Description: 知识正文  
+ * @author sry  
+ * @date 2017年4月28日  
+ *
+ */
+@Service("repositoryKnowledgeContentService")
+public class RepositoryKnowledgeContentServiceImpl implements RepositoryKnowledgeContentService {
+	
+	
+private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private RepositoryKnowledgeContentBySryMapper repositoryKnowledgeContentBySryMapper;
+	@Autowired
+	private RepositoryKnowledgeContentMapperByGuoYang repositoryKnowledgeContentMapperByGuoYang;
+	/**
+	 * 后台获取知识正文
+	 */
+	@Override
+	public GetKnowledgeInfoForGLModel getKnowledgeInfoForGL(
+			GetKnowledgeInfoForGLForSerVo getKnowledgeInfoForGLForSerVo) throws BusinessException {
+		GetKnowledgeInfoForGLModel getKnowledgeInfoForGLModel = null;
+		try {
+			// 参数校验
+			if (getKnowledgeInfoForGLForSerVo == null) {
+				log.error("RepositoryKnowledgeContentServiceImpl.getKnowledgeInfoForGL：getKnowledgeInfoForGLForSerVo为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			
+			// 获取参数
+			String contentCode = getKnowledgeInfoForGLForSerVo.getContentCode(); // 正文编号
+			
+			// 参数校验
+			if (StringUtils.isBlank(contentCode)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.getKnowledgeContentForMH：contentCode为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			
+			RepositoryKnowledgeContent repositoryKnowledgeContent = new RepositoryKnowledgeContent();
+			repositoryKnowledgeContent.setContentCode(getKnowledgeInfoForGLForSerVo.getContentCode());
+			getKnowledgeInfoForGLModel = repositoryKnowledgeContentMapperByGuoYang.selectInfoByCode(repositoryKnowledgeContent);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return getKnowledgeInfoForGLModel;
+	}
+
+	/**
+	 * 门户获取知识正文
+	 */
+	@Override
+	public RepositoryKnowledgeContentMH getKnowledgeContentForMH(RepositoryKnowledgeContentVo infoVo)
+			throws BusinessException {
+		RepositoryKnowledgeContentMH rMH = null;
+		try {
+			// 参数校验
+			if (infoVo == null) {
+				log.error("RepositoryKnowledgeContentServiceImpl.getKnowledgeContentForMH：repositoryKnowledgeContentVo为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			
+			// 获取参数
+			String contentCode = infoVo.getContentCode(); // 正文编号
+			
+			// 参数校验
+			if (StringUtils.isBlank(contentCode)) {
+				log.error("RepositoryKnowledgeContentServiceImpl.getKnowledgeContentForMH：contentCode为空");
+				throw BusinessException.build("COMMON_402");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("contentCode", contentCode); // 正文编号
+			// 查询
+			rMH = repositoryKnowledgeContentBySryMapper.selectKnowledgeContent(paramMap);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return rMH;
+	}
+
+}

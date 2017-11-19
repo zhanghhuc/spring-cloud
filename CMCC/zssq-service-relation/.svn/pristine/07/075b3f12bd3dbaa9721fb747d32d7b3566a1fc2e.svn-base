@@ -1,0 +1,676 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.RelationQualityMapper">
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.RelationQuality">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="quality_code" jdbcType="VARCHAR" property="qualityCode" />
+    <result column="tenant_code" jdbcType="VARCHAR" property="tenantCode" />
+    <result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+   
+    <result column="create_time" jdbcType="BIGINT" property="createTime" />
+    <result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="subject_code" jdbcType="VARCHAR" property="subjectCode" />
+    <result column="subject_class" jdbcType="TINYINT" property="subjectClass" />
+    <result column="quality_depend" jdbcType="TINYINT" property="qualityDepend" />
+    <result column="quality_seq_num" jdbcType="INTEGER" property="qualitySeqNum" />
+    <result column="quality_is_top" jdbcType="TINYINT" property="qualityIsTop" />
+    <result column="quality_top_time" jdbcType="BIGINT" property="qualityTopTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, quality_code, tenant_code, org_code, 
+    create_time, modify_time, remark, subject_code, subject_class, quality_depend, quality_seq_num, 
+    quality_is_top, quality_top_time
+  </sql>
+  
+  
+    <insert id="insert" parameterType="com.zssq.dao.pojo.RelationQuality" >
+    insert into relation_quality (quality_code, tenant_code, 
+      org_code, team_code, create_time, 
+      modify_time, remark, subject_code, 
+      subject_class, quality_depend, quality_seq_num, 
+      quality_is_top, quality_top_time)
+    values (#{qualityCode,jdbcType=VARCHAR}, #{tenantCode,jdbcType=VARCHAR}, 
+      #{orgCode,jdbcType=VARCHAR}, #{teamCode,jdbcType=VARCHAR}, #{createTime,jdbcType=BIGINT}, 
+      #{modifyTime,jdbcType=BIGINT}, #{remark,jdbcType=VARCHAR}, #{subjectCode,jdbcType=VARCHAR}, 
+      #{subjectClass,jdbcType=TINYINT}, #{qualityDepend,jdbcType=TINYINT}, #{qualitySeqNum,jdbcType=INTEGER}, 
+      #{qualityIsTop,jdbcType=TINYINT}, #{qualityTopTime,jdbcType=BIGINT})
+  </insert>
+  
+  
+<!--   自定义语句 -->
+
+  <resultMap id="BaseResultMap1" type="com.zssq.model.EtRelationQualityModel">
+    <result column="qualityCode" jdbcType="VARCHAR" property="qualityCode" />
+    <result column="subjectCode" jdbcType="VARCHAR" property="subjectCode" />
+    <result column="dynamicCode" jdbcType="VARCHAR" property="dynamicCode" />
+    <result column="teamCode" jdbcType="VARCHAR" property="teamCode" />
+    <result column="subjectClass" jdbcType="VARCHAR" property="subjectClass" />
+    <result column="subjectDepend" jdbcType="VARCHAR" property="subjectDepend" />
+    <result column="create_time" jdbcType="BIGINT" property="createTime" />
+    <result column="userCode" jdbcType="VARCHAR" property="userCode" />
+    <result column="subjectPublishTime" jdbcType="BIGINT" property="subjectPublishTime" />
+    <result column="subjectTitle" jdbcType="VARCHAR" property="subjectTitle" />
+    <result column="subjectDigest" jdbcType="VARCHAR" property="subjectDigest" />
+    <result column="subjectUrl" jdbcType="VARCHAR" property="subjectUrl" />
+    <result column="teamQualityNum" jdbcType="BIGINT" property="teamQualityNum" />
+    <result column="groupQualityNum" jdbcType="BIGINT" property="groupQualityNum" />
+    <result column="provinceQualityNum" jdbcType="BIGINT" property="provinceQualityNum" />
+    <result column="cityQualityNum" jdbcType="BIGINT" property="cityQualityNum" />
+    <result column="readNum" jdbcType="BIGINT" property="readNum" />
+    <result column="likeNum" jdbcType="BIGINT" property="likeNum" />
+    <result column="collectNum" jdbcType="BIGINT" property="collectNum" />
+    <result column="forwardNum" jdbcType="BIGINT" property="forwardNum" />
+    <result column="commentNum" jdbcType="BIGINT" property="commentNum" />
+    <result column="shareNum" jdbcType="BIGINT" property="shareNum" />
+    <result column="qualityIsLike" jdbcType="BIGINT" property="qualityIsLike" />
+    <result column="qualityIsCollect" jdbcType="BIGINT" property="qualityIsCollect" />
+    
+    <result column="relIsHomeShow" jdbcType="TINYINT" property="relIsHomeShow" />
+    <collection property="resList" ofType="com.zssq.model.ResourceModel">
+	    <result column="resCode" jdbcType="VARCHAR" property="resCode" />
+	    <result column="resUrl" jdbcType="VARCHAR" property="resUrl" />
+	    <result column="resClass" jdbcType="BIGINT" property="resClass" />
+    </collection>
+  </resultMap>
+
+
+<!-- 根据内容编号和类型查找精华内容 -->
+ <select id="selectByCond" parameterType="com.zssq.dao.pojo.RelationQuality" resultType="java.lang.Long">
+    select 
+	    count(1)
+	    from relation_quality
+    where 
+	        subject_class = #{subjectClass,jdbcType=TINYINT}
+		and subject_code = #{subjectCode,jdbcType=VARCHAR}
+  </select>
+  	
+  	<!-- 门户取消加精 -->
+  	<delete id="deleteByQualityCood" parameterType="java.lang.String">
+	    delete from relation_quality
+	    where quality_code = #{qualityCode,jdbcType=VARCHAR}
+  	</delete>
+  <!-- 精华置顶|取消置顶-->
+    <update id="updateQualityTop" parameterType="java.util.Map">
+    update  relation_quality
+    <set>
+      		 quality_is_top = #{isTop},
+      		 modify_time = #{modifyTime}
+      		 
+      		 <if test="qualityTopTime != null">
+    			  quality_top_time = #{qualityTopTime}
+   			 </if>
+      		 
+      </set>
+      where quality_code = #{qualityCode}
+  </update>
+  
+  
+  
+   
+    <!--  查询班组精华列表-->
+   <select id="selectTeamQualityList" parameterType="map" resultMap="BaseResultMap1">
+   
+	   SELECT 
+	  quality.quality_code AS qualityCode,
+	  quality.subject_code AS subjectCode,
+	  quality.subject_class AS subjectClass,
+	  quality.create_time,
+	  subjectInfo.subject_depend AS subjectDepend,
+	  subjectInfo.`user_code` AS userCode,
+	  subjectInfo.dynamic_code AS dynamicCode,
+	  subjectInfo.`subject_publish_time` AS subjectPublishTime,
+	  subjectInfo.`subject_title` AS subjectTitle,
+	  subjectInfo.`subject_digest` AS subjectDigest,
+	  subjectInfo.`subject_url` AS subjectUrl,
+	  subjectInfo.org_code AS subjectOrgCode,
+	  subjectInfo.team_code AS subjectTeamCode,
+	  
+	  subjectData.`team_quality_num` AS teamQualityNum,
+	  subjectData.`group_quality_num` AS groupQualityNum,
+	  subjectData.`province_quality_num` AS provinceQualityNum,
+	  subjectData.`city_quality_num` AS cityQualityNum,
+	  subjectData.`read_num` AS readNum,
+	  subjectData.`like_num` AS likeNum,
+	  subjectData.`collect_num` AS collectNum,
+	  subjectData.`forward_num` AS forwardNum,
+	  subjectData.`comment_num` AS commentNum,
+	  subjectData.`share_num` AS shareNum,
+	  CASE  WHEN IFNULL(likeTable.`like_code`,0) =0 THEN 0 ELSE 1 END AS qualityIsLike,
+	  CASE  WHEN IFNULL(collect.`collect_code`,0) =0 THEN 0 ELSE 1 END AS qualityIsCollect,
+	  resource.`subject_res_code` AS resCode,
+	  resource.`res_url` AS resUrl,
+	  resource.`res_class` AS resClass,
+	  rdtr.rel_is_home_show AS relIsHomeShow 
+	FROM
+			  (select 
+			    quality_code,
+			    subject_code,
+			    subject_class,
+			    quality_depend,
+			    team_code,
+			    create_time 
+			  from
+			    `relation_quality` 
+			  WHERE 
+			     relation_quality.create_time &lt; #{queryTime,jdbcType=BIGINT} 
+			    AND relation_quality.quality_depend = #{qualityDepend,jdbcType=BIGINT} 
+			    AND relation_quality.team_code =  #{teamCode,jdbcType=VARCHAR}
+			  ) 
+	AS quality 
+	  LEFT JOIN 
+			    (SELECT 
+			      user_code,
+			      subject_depend,
+			      subject_publish_time,
+			      subject_title,
+			      subject_digest,
+			      subject_code,
+			      dynamic_code,
+			      subject_is_delete,
+			      subject_is_shield,
+			      org_code,
+			      team_code,
+			      subject_url 
+			    FROM
+			      relation_subject_info 
+			    )
+	 AS subjectInfo 
+	    ON quality.`subject_code` = subjectInfo.`subject_code` 
+	  LEFT JOIN `relation_subject_data` AS subjectData 
+	    ON quality.`subject_code` = subjectData.`subject_code` 
+	  LEFT JOIN `relation_like` AS likeTable 
+	    ON quality.`subject_code` = likeTable.`subject_code`
+	    AND likeTable.user_code = #{userCode,jdbcType=VARCHAR}  
+	  LEFT JOIN `relation_collect` AS collect 
+	    ON quality.`subject_code` = collect.`subject_code`
+	    AND collect.user_code = #{userCode,jdbcType=VARCHAR} 
+	  LEFT JOIN `relation_subject_resource` AS resource 
+	    ON quality.subject_code = resource.subject_code 
+	  LEFT JOIN relation_dynamic_team_rel as rdtr 
+	    ON subjectInfo.dynamic_code = rdtr.dynamic_code 
+	    
+	   WHERE subjectInfo.subject_is_delete = 0 
+			 AND subjectInfo.subject_is_shield = 0
+	ORDER BY quality.create_time DESC 
+	 limit #{limitStart} , #{limitCount} 
+   </select>
+   <select id="selectTeamQualityListCount" parameterType="map" resultType="java.lang.Long">
+	SELECT
+	COUNT(1)
+	FROM
+			  (select 
+			    quality_code,
+			    subject_code,
+			    subject_class,
+			    quality_depend,
+			    team_code,
+			    create_time 
+			  from
+			    `relation_quality` 
+			  WHERE
+			       relation_quality.create_time &lt; #{queryTime,jdbcType=BIGINT} 
+			   AND relation_quality.quality_depend = #{qualityDepend,jdbcType=BIGINT} 
+			    AND relation_quality.team_code =  #{teamCode,jdbcType=VARCHAR}
+			  ) 
+	AS quality 
+	  LEFT JOIN 
+			    (SELECT 
+			      user_code,
+			      subject_depend,
+			      subject_publish_time,
+			      subject_title,
+			      subject_digest,
+			      subject_is_delete,
+			      subject_is_shield,
+			      subject_code,
+			      dynamic_code,
+			      subject_url 
+			    FROM
+			      relation_subject_info 
+			    ) 
+	AS subjectInfo 
+	ON quality.`subject_code` = subjectInfo.`subject_code` 
+	WHERE subjectInfo.subject_is_delete = 0 
+	AND subjectInfo.subject_is_shield = 0
+  </select>
+  
+ <!--  查询个人精华列表 -->
+     <select id="selectUserQualityList" parameterType="map" resultMap="BaseResultMap1">
+	SELECT 
+	  quality.quality_code AS qualityCode,
+	  quality.subject_code AS subjectCode,
+	  quality.subject_class AS subjectClass,
+	  quality.create_time,
+	  subjectInfo.`user_code` AS userCode,
+	  subjectInfo.`subject_publish_time` AS subjectPublishTime,
+	  subjectInfo.`subject_title` AS subjectTitle,
+	  subjectInfo.`subject_digest` AS subjectDigest,
+	  subjectInfo.`subject_url` AS subjectUrl,
+	  subjectData.`team_quality_num` AS teamQualityNum,
+	  subjectData.`group_quality_num` AS groupQualityNum,
+	  subjectData.`province_quality_num` AS provinceQualityNum,
+	  subjectData.`city_quality_num` AS cityQualityNum,
+	  subjectData.`read_num` AS readNum,
+	  subjectData.`like_num` AS likeNum,
+	  subjectData.`collect_num` AS collectNum,
+	  subjectData.`forward_num` AS forwardNum,
+	  subjectData.`comment_num` AS commentNum,
+	  subjectData.`share_num` AS shareNum,
+	CASE  WHEN IFNULL(likeTable.`like_code`,0) =0 THEN 0 ELSE 1 END AS qualityIsLike,
+	CASE  WHEN IFNULL(collect.`collect_code`,0) =0 THEN 0 ELSE 1 END AS qualityIsCollect,
+	  resource.`subject_res_code` AS resCode,
+	  resource.`res_url` AS resUrl,
+	  resource.`res_class` AS resClass 
+	FROM
+			  (SELECT 
+			    quality_code,
+			    subject_code,
+			    subject_class,
+			    create_time 
+			  FROM
+			    `relation_quality` 
+			  WHERE 
+			  relation_quality.create_time &lt; #{queryTime,jdbcType=BIGINT}
+			  GROUP BY `subject_code`)
+	  AS quality 
+	  LEFT JOIN 
+			    (SELECT 
+			      user_code,
+			      subject_publish_time,
+			      subject_title,
+			      subject_digest,
+			      subject_code,
+			      subject_is_delete,
+			      subject_is_shield,
+			      subject_url 
+			    FROM
+			      relation_subject_info 
+			    WHERE 
+			   	  relation_subject_info.subject_depend = #{subjectDepend,jdbcType=BIGINT} 
+			      )
+	 AS subjectInfo 
+	    ON quality.`subject_code` = subjectInfo.`subject_code` 
+	  LEFT JOIN `relation_subject_data` AS subjectData 
+	    ON quality.`subject_code` = subjectData.`subject_code` 
+	  LEFT JOIN `relation_like` AS likeTable 
+	    ON quality.`subject_code` = likeTable.`subject_code` 
+	    AND likeTable.user_code = #{userCode,jdbcType=VARCHAR}
+	  LEFT JOIN `relation_collect` AS collect 
+	    ON quality.`subject_code` = collect.`subject_code` 
+	    AND collect.user_code = #{userCode,jdbcType=VARCHAR}
+	  LEFT JOIN `relation_subject_resource` AS resource 
+	    ON quality.subject_code = resource.subject_code 
+	   where   subjectInfo.subject_is_delete = 0 
+			   AND subjectInfo.subject_is_shield = 0
+			   AND subjectInfo.user_code = #{queryUserCode,jdbcType=VARCHAR} 
+	ORDER BY quality.create_time DESC 
+
+	limit #{limitStart} , #{limitCount} 
+	 
+   </select>
+   <select id="selectUserQualityListCount" parameterType="map" resultType="java.lang.Long">
+	SELECT
+		count(1)
+	FROM
+			  (SELECT 
+			    quality_code,
+			    subject_code,
+			    subject_class,
+			    create_time 
+			  FROM
+			    `relation_quality` WHERE  relation_quality.create_time &lt; #{queryTime,jdbcType=BIGINT}
+			  GROUP BY `subject_code`)
+	  AS quality 
+	  LEFT JOIN 
+			    (SELECT 
+			      user_code,
+			      subject_publish_time,
+			      subject_title,
+			      subject_digest,
+			      subject_is_delete,
+			      subject_is_shield,
+			      subject_code,
+			      subject_url 
+			    FROM
+			      relation_subject_info 
+			    WHERE relation_subject_info.subject_depend = #{subjectDepend,jdbcType=BIGINT} 
+			      ) 
+		AS subjectInfo 
+	    ON quality.`subject_code` = subjectInfo.`subject_code` 
+	    where  subjectInfo.subject_is_delete = 0 
+			   AND subjectInfo.subject_is_shield = 0
+			   AND subjectInfo.user_code = #{queryUserCode,jdbcType=VARCHAR}
+
+  </select>
+  
+   <!--  查询门户精华列表 -->
+     <select id="selectPortalQualityList" parameterType="map" resultMap="BaseResultMap1">
+	     	
+	SELECT 
+	  quality.quality_code AS qualityCode,
+	  quality.subject_code AS subjectCode,
+	  quality.subject_class AS subjectClass,
+	  quality.team_code AS teamCode,
+	  quality.create_time,
+	  
+	  subjectInfo.subject_depend AS subjectDepend,
+	  subjectInfo.`user_code` AS userCode,
+	  subjectInfo.`subject_publish_time` AS subjectPublishTime,
+	  subjectInfo.`subject_title` AS subjectTitle,
+	  subjectInfo.`subject_digest` AS subjectDigest,
+	  subjectInfo.`subject_url` AS subjectUrl,
+	  subjectInfo.org_code AS subjectOrgCode,
+	  subjectInfo.team_code AS subjectTeamCode,
+	  
+	  subjectData.`team_quality_num` AS teamQualityNum,
+	  subjectData.`group_quality_num` AS groupQualityNum,
+	  subjectData.`province_quality_num` AS provinceQualityNum,
+	  subjectData.`city_quality_num` AS cityQualityNum,
+	  subjectData.`read_num` AS readNum,
+	  subjectData.`like_num` AS likeNum,
+	  subjectData.`collect_num` AS collectNum,
+	  subjectData.`forward_num` AS forwardNum,
+	  subjectData.`comment_num` AS commentNum,
+	  subjectData.`share_num` AS shareNum,
+	CASE  WHEN IFNULL(likeTable.`like_code`,0) =0 THEN 0 ELSE 1 END AS qualityIsLike,
+	CASE  WHEN IFNULL(collect.`collect_code`,0) =0 THEN 0 ELSE 1 END AS qualityIsCollect,
+	  resource.`subject_res_code` AS resCode,
+	  resource.`res_url` AS resUrl,
+	  resource.`res_class` AS resClass 
+	FROM
+		  (SELECT 
+		    quality_code,
+		    subject_code,
+		    subject_class,
+		    team_code,
+		    quality_depend,
+		    org_code,
+		    quality_is_top,
+		    quality_top_time,
+		    quality_seq_num,
+		    create_time 
+		  FROM
+		    `relation_quality` 
+		  WHERE  relation_quality.quality_depend = #{qualityDepend,jdbcType=BIGINT}
+		    AND relation_quality.org_code = #{orgCode,jdbcType=VARCHAR}
+			<if test="subjectClass != null and subjectClass !=0">
+		     AND relation_quality.subject_class = #{subjectClass,jdbcType=BIGINT}
+		    </if>
+		    AND relation_quality.create_time  &lt; #{queryTime,jdbcType=BIGINT}
+		) 
+	AS quality 
+	LEFT JOIN 
+		  (SELECT 
+		    user_code,
+		    subject_publish_time,
+		    subject_title,
+		    subject_digest,
+		    subject_code,
+		    subject_depend,
+		    team_code,
+		    subject_is_delete,
+			subject_is_shield,
+		    org_code,
+		    subject_url 
+		  FROM
+		    relation_subject_info 
+		 ) 
+    AS subjectInfo 
+	  ON quality.`subject_code` = subjectInfo.`subject_code` 
+	LEFT JOIN `relation_subject_data` AS subjectData 
+	  ON quality.`subject_code` = subjectData.`subject_code` 
+	LEFT JOIN `relation_like` AS likeTable 
+	  ON quality.`subject_code` = likeTable.`subject_code` 
+	  AND likeTable.user_code = #{userCode,jdbcType=VARCHAR}
+	LEFT JOIN `relation_collect` AS collect 
+	  ON quality.`subject_code` = collect.`subject_code` 
+	  AND collect.user_code = #{userCode,jdbcType=VARCHAR}
+	LEFT JOIN `relation_subject_resource` AS resource 
+	  ON quality.subject_code = resource.subject_code 
+    WHERE subjectInfo.subject_is_delete = 0 
+		  AND subjectInfo.subject_is_shield = 0
+	ORDER BY
+	    quality.`quality_is_top` DESC,
+	    quality.`quality_top_time` DESC,
+	    quality.`quality_seq_num` DESC
+
+	 limit #{limitStart} , #{limitCount} 
+   </select>
+   <select id="selectPortalQualityListCount" parameterType="map" resultType="java.lang.Long">
+	SELECT
+	COUNT(1)
+	FROM
+		  (SELECT 
+		    quality_code,
+		    subject_code,
+		    subject_class,
+		    team_code,
+		    quality_depend,
+		    org_code,
+		    quality_is_top,
+		    quality_top_time,
+		    quality_seq_num,
+		    create_time 
+		  FROM
+		    `relation_quality` 
+		  WHERE  relation_quality.quality_depend = #{qualityDepend,jdbcType=BIGINT}
+		    AND relation_quality.org_code = #{orgCode,jdbcType=VARCHAR}
+			<if test="subjectClass != null and subjectClass !=0">
+		     AND relation_quality.subject_class = #{subjectClass,jdbcType=BIGINT}
+		    </if>
+		    AND relation_quality.create_time  &lt; #{queryTime,jdbcType=BIGINT}
+		) 
+    AS quality 
+    
+	LEFT JOIN 
+		  (SELECT 
+		    user_code,
+		    subject_publish_time,
+		    subject_title,
+		    subject_digest,
+		    subject_code,
+		    subject_depend,
+		    subject_is_delete,
+			subject_is_shield,
+		    subject_url 
+		  FROM
+		    relation_subject_info 
+		 ) 
+	AS subjectInfo 
+	 ON quality.`subject_code` = subjectInfo.`subject_code`
+	WHERE subjectInfo.subject_is_delete = 0 
+		  AND subjectInfo.subject_is_shield = 0 
+  </select>
+  
+    <!-- 排序字段赋值-->
+    <update id="updateSortNum" parameterType="map">
+	UPDATE 
+	  relation_quality 
+	inner join
+	(SELECT   IFNULL((MAX(`quality_seq_num`) + 1),0) AS num  FROM `relation_quality` WHERE  `org_code`=#{orgCode,jdbcType=VARCHAR}) temp
+	set relation_quality.`quality_seq_num`=temp.num,
+		relation_quality.modify_time=#{modifyTime}
+	WHERE quality_code = #{qualityCode} 
+  </update>
+ 
+<!-- 获取排序字段 -->
+  <select id="selectInfoByCode" parameterType="map" resultType="java.lang.String">
+    select 
+    quality_seq_num
+    from relation_quality
+    where quality_code = #{qualityCode} 
+  </select>
+  
+  
+ <!--  更新当前行排序值 -->
+  <update id="updateMyUpSortNum" parameterType="map">
+	UPDATE 
+	  relation_quality 
+	INNER JOIN
+	(SELECT  `quality_seq_num`AS num FROM `relation_quality` WHERE `quality_code`=#{qualityCode}) temp
+	SET relation_quality.`quality_seq_num`=temp.num,
+	relation_quality.modify_time= #{modifyTime} 
+	WHERE quality_code = #{nowRowCode}  
+  </update>
+  
+   <!--  更新受影响行排序值 -->
+   <update id="updateOtherSortNum" parameterType="map">
+	UPDATE 
+	  relation_quality 
+	  set
+	quality_seq_num=#{tempNum},
+	modify_time= #{modifyTime} 
+	WHERE quality_code = #{qualityCode}  
+  </update>
+  
+     <!--  查询门户展示精华列表 -->
+     <select id="selectPortalFrontQualityList" parameterType="map" resultType="com.zssq.model.EtRelationQualityModel">
+	     
+	  SELECT 
+	  quality.quality_code AS qualityCode,
+	  quality.subject_code AS subjectCode,
+	  quality.subject_class AS subjectClass,
+	  
+	  subjectInfo.subject_title AS subjectTitle,
+	  subjectInfo.`subject_publish_time` AS subjectPublishTime,
+	  
+	  subjectData.`team_quality_num` AS teamQualityNum,
+	  subjectData.`group_quality_num` AS groupQualityNum,
+	  subjectData.`province_quality_num` AS provinceQualityNum,
+	  subjectData.`city_quality_num` AS cityQualityNum 
+	FROM
+		  (SELECT 
+		    quality_code,
+		    subject_code,
+		    subject_class,
+		    quality_depend,
+		    org_code,
+		    quality_is_top,
+		    quality_top_time,
+		    quality_seq_num,
+		    create_time 
+		  FROM
+		    `relation_quality` 
+		  WHERE relation_quality.quality_depend = 2 
+		    AND relation_quality.org_code = #{orgCode,jdbcType=VARCHAR}) 
+	 AS quality 
+	 
+	 LEFT JOIN 
+		    (SELECT 
+		      user_code,
+		      subject_publish_time,
+		      subject_title,
+		      subject_digest,
+		      subject_code,
+		      subject_depend,
+		      subject_is_delete,
+		      subject_is_shield,
+		      subject_url 
+		    FROM
+		      relation_subject_info 
+		   ) 
+	AS subjectInfo 
+    ON quality.`subject_code` = subjectInfo.`subject_code` 
+    LEFT JOIN `relation_subject_data` AS subjectData 
+    ON quality.`subject_code` = subjectData.`subject_code`
+    WHERE subjectInfo.subject_is_delete = 0 
+		  AND subjectInfo.subject_is_shield = 0 
+	ORDER BY quality.`quality_is_top` DESC,
+	  quality.`quality_top_time` DESC,
+	  quality.`quality_seq_num` DESC 
+     
+	 limit 0 , #{pageSize} 
+   </select>
+   
+  <!--  排序用门户展示中推荐推荐列表 -->
+   <select id="selectPortalRecListSeq" parameterType="map" resultType="com.zssq.model.EtRelationQualityModel">
+	   
+	  SELECT 
+	  quality.`quality_is_top` AS qualityIsTop,
+	  recommend.`quality_code` AS qualityCode,
+	  quality.quality_seq_num as qualitySeqNum 
+	FROM   
+		 (select 
+			    rec_code,
+			    subject_code,
+			    subject_class,
+			    create_time,
+			    rec_user_code,
+			    rec_status,
+			    modify_time,
+			    quality_code,
+			    rec_quality_time,
+			    rec_to_org_code
+			     
+			  from
+			    `relation_recommend` 
+			  where relation_recommend.rec_to_org_code = #{orgCode,jdbcType=VARCHAR} 
+			  and relation_recommend.create_time &lt; #{queryTime,jdbcType=BIGINT}
+			  
+		    <if test="beginTime != null">
+		      and relation_recommend.create_time &gt; #{beginTime,jdbcType=BIGINT}
+		    </if>
+		    <if test="endTime != null">
+		       and relation_recommend.create_time &lt; #{endTime,jdbcType=BIGINT}
+		    </if>
+		    <if test="recStatus != null">
+		      and relation_recommend.rec_status = #{recStatus,jdbcType=TINYINT}
+		   </if>
+		    <if test="subjectClass != null">
+		      and relation_recommend.subject_class = #{subjectClass,jdbcType=TINYINT}
+		    </if>
+			    )
+	  AS recommend 
+	  LEFT JOIN 
+			    (SELECT 
+			      user_code,
+			      subject_publish_time,
+			      subject_title,
+			      subject_code,
+			      subject_depend,
+			      subject_is_delete,
+			      subject_is_shield,
+			      create_time 
+			    FROM
+			      relation_subject_info 
+			<if test="subjectTitle != null">
+				where
+		       relation_subject_info.subject_title like CONCAT('%',#{subjectTitle,jdbcType=VARCHAR},'%')
+		    </if>
+			       ) 
+	AS subjectInfo 
+	    ON recommend.`subject_code` = subjectInfo.`subject_code` 
+	  LEFT JOIN `relation_quality` AS quality 
+	    ON recommend.`quality_code` = quality.`quality_code` 
+	WHERE subjectInfo.subject_is_delete = 0 
+	AND subjectInfo.subject_is_shield = 0
+
+	ORDER BY quality.`quality_is_top` DESC,
+	  quality.`quality_top_time` DESC,
+	  quality.`quality_seq_num` DESC 
+
+   </select>
+   
+<!--    根据orgCode 判断是否在本级门户已被置精 -->
+    <select id="selectByOrgCode" parameterType="com.zssq.dao.pojo.RelationQuality" resultType="java.lang.Long">
+    select 
+	    count(1)
+	    from relation_quality
+    where 
+	        subject_class = #{subjectClass,jdbcType=TINYINT}
+	      and  org_code = #{orgCode}
+	      and quality_depend=2
+	      and subject_code = #{subjectCode,jdbcType=VARCHAR}
+  </select>
+  
+  <!-- 根据精华code查询精华信息 -->
+    <select id="selectQualityByCode" parameterType="com.zssq.dao.pojo.RelationQuality" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+	    from relation_quality
+    where 
+			quality_code = #{qualityCode,jdbcType=VARCHAR}
+  </select>
+  
+</mapper>

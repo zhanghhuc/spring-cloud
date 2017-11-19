@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.RelationRecommendMapper">
+
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.RelationRecommend">
+		<id column="id" jdbcType="BIGINT" property="id" />
+		<result column="rec_code" jdbcType="VARCHAR" property="recCode" />
+		<result column="tenant_code" jdbcType="VARCHAR" property="tenantCode" />
+		<result column="create_time" jdbcType="BIGINT" property="createTime" />
+		<result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+		<result column="remark" jdbcType="VARCHAR" property="remark" />
+		<result column="subject_code" jdbcType="VARCHAR" property="subjectCode" />
+		<result column="subject_class" jdbcType="TINYINT" property="subjectClass" />
+		<result column="rec_source" jdbcType="TINYINT" property="recSource" />
+		<result column="team_code" jdbcType="VARCHAR" property="teamCode" />
+		<result column="rec_user_code" jdbcType="VARCHAR" property="recUserCode" />
+		<result column="rec_org_code" jdbcType="VARCHAR" property="recOrgCode" />
+		<result column="rec_to_org_code" jdbcType="VARCHAR" property="recToOrgCode" />
+		<result column="rec_status" jdbcType="TINYINT" property="recStatus" />
+		<result column="rec_quality_time" jdbcType="BIGINT" property="recQualityTime" />
+		<result column="quality_code" jdbcType="VARCHAR" property="qualityCode" />
+	</resultMap>
+	
+	<!-- 精华详情返回集合 -->
+	<resultMap id="RecResultMap" type="com.zssq.model.RelationRecModel">
+	    <result column="rec_code" jdbcType="VARCHAR" property="recCode" />
+		<result column="create_time" jdbcType="BIGINT" property="createTime" />
+		<result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+		<result column="subject_code" jdbcType="VARCHAR" property="subjectCode" />
+		<result column="subject_class" jdbcType="TINYINT" property="subjectClass" />
+		<result column="subject_depend" jdbcType="TINYINT" property="subjectDepend" />
+		<result column="team_code" jdbcType="VARCHAR" property="teamCode" />
+		<result column="rec_user_code" jdbcType="VARCHAR" property="recUserCode" />
+		<result column="rec_quality_time" jdbcType="BIGINT" property="recQualityTime" />
+		<result column="quality_code" jdbcType="VARCHAR" property="qualityCode" />
+		<result column="user_code" jdbcType="VARCHAR" property="userCode" />
+		<result column="subject_title" jdbcType="VARCHAR" property="subjectTitle" />
+		<result column="subject_publish_time" jdbcType="BIGINT" property="subjectPublishTime" />
+		<result column="quality_is_top" jdbcType="TINYINT" property="qualityIsTop" />
+		<result column="quality_seq_num" jdbcType="TINYINT" property="qualitySeqNum" />
+	</resultMap>
+	
+	<!-- 列列表 -->
+	<sql id="Base_Column_List">
+		id, rec_code, tenant_code, create_time, modify_time, remark, subject_code, 
+		subject_class, rec_source, team_code, rec_user_code, rec_org_code, rec_to_org_code,
+		rec_status, rec_quality_time, quality_code
+	</sql>
+	
+	<!-- 查询推荐列表公共SQL -->
+	<sql id="select_portal_rec_sql">
+		FROM
+			(
+				SELECT
+					rec_code,
+					create_time,
+					modify_time,
+					subject_code,
+					subject_class,
+					GROUP_CONCAT(rec_user_code) as rec_user_code,
+					rec_quality_time,
+					quality_code
+				FROM
+					relation_recommend
+				WHERE rec_to_org_code = #{orgCode,jdbcType=VARCHAR}
+					<if test="subjectClass != null">
+						AND subject_class = #{subjectClass,jdbcType=TINYINT}
+					</if>
+					<if test="recStatus != null">
+						AND rec_status = #{recStatus,jdbcType=TINYINT}
+					</if>
+					<if test="beginTime != null">
+						AND create_time &gt; #{beginTime,jdbcType=BIGINT}
+					</if>
+					<if test="endTime != null">
+						AND create_time &lt; #{endTime,jdbcType=BIGINT}
+					</if>
+					AND create_time &lt; #{queryTime,jdbcType=BIGINT}
+				GROUP BY subject_code
+			) rr
+		LEFT JOIN relation_subject_info rsi 
+			ON rr.subject_code = rsi.subject_code
+		<if test="recStatus == 2">
+			LEFT JOIN relation_quality rq 
+				ON rr.quality_code = rq.quality_code
+		</if>
+		<if test="subjectTitle != null">
+			WHERE rsi.subject_title LIKE CONCAT('%',#{subjectTitle,jdbcType=VARCHAR},'%')
+		</if>
+	</sql>
+	
+	<!-- 查询推荐列表个数 -->
+	<select id="selectPortalRecCount" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+		<include refid="select_portal_rec_sql" />
+	</select>
+	
+	<!--查询推荐列表 -->
+	<select id="selectPortalRecList" parameterType="map" resultMap="RecResultMap">
+		SELECT
+			rr.rec_code,
+			rr.create_time,
+			rr.modify_time,
+			rr.subject_code,
+			rr.subject_class,
+			rr.rec_user_code,
+			rr.rec_quality_time,
+			rr.quality_code,
+			<if test="recStatus != null and recStatus == 2">
+				rq.quality_is_top,
+				rq.quality_seq_num,
+			</if>
+			rsi.user_code,
+			rsi.subject_depend,
+			rsi.team_code,
+			rsi.subject_title,
+			rsi.subject_publish_time
+		<include refid="select_portal_rec_sql" />
+		<choose>
+			<when test="recStatus != null and recStatus == 2">
+				ORDER BY rq.quality_is_top DESC,
+					rq.quality_top_time DESC,
+					rq.quality_seq_num DESC
+			</when>
+			<otherwise>
+				ORDER BY rr.create_time DESC
+			</otherwise>
+		</choose>
+		LIMIT #{limitStart,jdbcType=INTEGER}, #{limitCount,jdbcType=INTEGER}
+	</select>
+	
+	<!-- 查询是否被推荐过 -->
+	<select id="getRecStatus" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM relation_recommend
+		WHERE subject_code = #{subjectCode,jdbcType=VARCHAR}
+			AND rec_org_code = #{orgCode,jdbcType=VARCHAR}
+			AND rec_to_org_code = #{recToOrgCode,jdbcType=VARCHAR}
+			<if test="recStatus != null and recStatus == 2">
+				AND rec_status = #{recStatus,jdbcType=TINYINT}
+			</if>
+	</select>
+	
+	<!-- 获取已被推荐到相同门户的相同内容信息 -->
+	<select id="getSameRec" parameterType="map" resultMap="BaseResultMap">
+		SELECT 
+			<include refid="Base_Column_List" />
+		FROM relation_recommend
+		WHERE subject_code = #{subjectCode,jdbcType=VARCHAR}
+			AND rec_to_org_code = #{recToOrgCode,jdbcType=VARCHAR}
+		LIMIT 1
+	</select>
+
+	<!-- 插入 -->
+	<insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.zssq.dao.pojo.RelationRecommend">
+		INSERT INTO relation_recommend (
+			rec_code, 
+			tenant_code,
+			create_time, 
+			modify_time, 
+			remark,
+			subject_code, 
+			subject_class, 
+			rec_source,
+			team_code, 
+			rec_user_code, 
+			rec_org_code,
+			rec_to_org_code,
+			rec_status, 
+			rec_quality_time, 
+			quality_code
+		) VALUES (
+			#{recCode,jdbcType=VARCHAR},
+			#{tenantCode,jdbcType=VARCHAR},
+			#{createTime,jdbcType=BIGINT}, 
+			#{modifyTime,jdbcType=BIGINT}, 
+			#{remark,jdbcType=VARCHAR},
+			#{subjectCode,jdbcType=VARCHAR}, 
+			#{subjectClass,jdbcType=TINYINT},
+			#{recSource,jdbcType=TINYINT},
+			#{teamCode,jdbcType=VARCHAR}, 
+			#{recUserCode,jdbcType=VARCHAR}, 
+			#{recOrgCode,jdbcType=VARCHAR},
+			#{recToOrgCode,jdbcType=VARCHAR},
+			#{recStatus,jdbcType=TINYINT}, 
+			#{recQualityTime,jdbcType=BIGINT}, 
+			#{qualityCode,jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<!-- 修改推荐状态 -->
+	<update id="updateStatus" parameterType="map">
+		UPDATE relation_recommend SET 
+			rec_status = #{recStatus,jdbcType=TINYINT},
+			<if test="recStatus == 2 or recStatus == 4">
+				quality_code = #{qualityCode,jdbcType=VARCHAR},
+				rec_quality_time = #{recQualityTime,jdbcType=BIGINT},
+			</if>
+			modify_time = #{modifyTime,jdbcType=BIGINT}
+		WHERE rec_to_org_code = #{orgCode,jdbcType=VARCHAR}
+			AND subject_code = (
+				SELECT
+					subject_code
+				FROM
+					(
+						SELECT
+							subject_code
+						FROM relation_recommend
+						WHERE rec_code = #{recCode,jdbcType=VARCHAR}
+					) rr
+			)
+	</update>
+
+</mapper>

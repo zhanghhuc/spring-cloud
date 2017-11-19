@@ -1,0 +1,230 @@
+package com.zssq.blog.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.blog.service.BlogCommentService;
+import com.zssq.blog.service.BlogService;
+import com.zssq.blog.service.BlogThirdService;
+import com.zssq.blog.vo.DB2BlogReply;
+import com.zssq.blog.vo.MySQLBlogComment;
+import com.zssq.blog.vo.UserInfo;
+import com.zssq.constants.BlogConstants;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.EmojiConvertUtil;
+import com.zssq.utils.StringTools;
+
+/**
+ * 
+ * @ClassName: BlogCommentController  
+ * @Description: 评论数据迁移Controller  
+ * @author ZKZ  
+ * @date 2017年5月22日  
+ *
+ */
+@Controller
+@RequestMapping("blogCommentController")
+public class BlogCommentController {
+
+	@Autowired
+	private BlogCommentService blogCommentService;
+	@Autowired
+	private BlogService blogService;
+	@Autowired
+	private BlogThirdService blogThirdService;
+	
+	/**
+	 * 
+	 * @Title: transferCommentData  
+	 * @Description: 迁移评论数据
+	 * @param pageNo
+	 * @param pageSize    参数  
+	 * @return: void    返回类型
+	 */
+	@RequestMapping(value = "/transferCommentData")  
+	@ResponseBody
+	public ResultJSON transferCommentData(int pageNo, int pageSize) {
+		// 返回值
+		ResultJSON result = new ResultJSON("COMMON_200");
+		JSONObject body = new JSONObject();
+		
+		try {
+			// 参数校验
+			if (pageNo <= 0) {
+				pageNo = 0;
+			}
+			if (pageSize <= 0) {
+				pageSize = 100;
+			}
+			
+			// 创建临时表
+			boolean createFlag = createTempTable();
+			if (!createFlag) {
+				body.put("message", "新建临时表失败");
+				throw new Exception();
+			}
+			
+			// 查询DB2库中评论数据总量
+			int DB2CommentCount = blogCommentService.getDB2CommentCount();
+			if (DB2CommentCount <= 0) {
+				body.put("message", "查询DB2库中评论数据总量时出错，查询出的个数为：" + DB2CommentCount);
+				throw new Exception();
+			}
+			
+			// 总页数
+			int totalPage = DB2CommentCount/pageSize + 1;
+			
+			// 循环处理数据
+			boolean arrangeFlag = true;
+			for (int i = pageNo; i < totalPage; i++) {
+				arrangeFlag = arrangeCommentData(pageNo, pageSize);
+				if (!arrangeFlag) {
+					body.put("message", "处理数据时失败");
+					throw new Exception();
+				}
+				pageNo++;
+			}
+		} catch (Exception e) {
+			result = new ResultJSON("COMMON_400");
+			body.put("pageNo", pageNo);
+			result.setBody(body);
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+	public void transferCommentDataMain(int pageNo, int pageSize) throws Exception {
+		// 参数校验
+		if (pageNo <= 0) {
+			pageNo = 0;
+		}
+		if (pageSize <= 0) {
+			pageSize = 100;
+		}
+		
+		// 创建临时表
+		boolean createFlag = createTempTable();
+		if (!createFlag) {
+			System.err.println(this.getClass() + "新建临时表失败");
+			throw new Exception();
+		}
+		
+		// 查询DB2库中评论数据总量
+		int DB2CommentCount = blogCommentService.getDB2CommentCount();
+		if (DB2CommentCount <= 0) {
+			System.err.println(this.getClass() + "查询DB2库中评论数据总量时出错，查询出的个数为：" + DB2CommentCount);
+			throw new Exception();
+		}
+		
+		// 总页数
+		int totalPage = DB2CommentCount/pageSize + 1;
+		System.out.println(this.getClass() + "评论数据共" + totalPage + "页");
+		
+		// 循环处理数据
+		boolean arrangeFlag = true;
+		for (int i = pageNo; i < totalPage; i++) {
+			arrangeFlag = arrangeCommentData(pageNo, pageSize);
+			if (!arrangeFlag) {
+				System.err.println(this.getClass() + "处理数据时失败");
+				throw new Exception();
+			}
+			System.out.println(this.getClass() + "评论数据第" + pageNo + "页处理成功");
+			pageNo++;
+		}
+	}
+	
+	/**
+	 * 
+	 * @Title: createTempTable  
+	 * @Description: 创建临时表
+	 * @return: boolean    返回类型
+	 */
+	private boolean createTempTable() {
+		// 返回值
+		boolean result = true;
+		
+		try {
+			// 新建临时表
+			blogCommentService.createMySQLCommentTemp();
+		} catch (Exception e) {
+			result = false;
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @Title: arrangeCommentData  
+	 * @Description: 整理评论数据
+	 * @param pageStart
+	 * @param pageSize    参数  
+	 * @return: boolean    返回类型
+	 */
+	private boolean arrangeCommentData(int pageNo, int pageSize) {
+		// 返回值
+		boolean result = true;
+		
+		try {
+			// 获取DB2库中的评论数据
+			List<DB2BlogReply> DB2ReplyList = blogCommentService.getDB2CommentList(pageNo, pageSize);
+			
+			// 校验返回值
+			if (DB2ReplyList == null || DB2ReplyList.isEmpty()) {
+				return false;
+			}
+			
+			// 将DB2中的数据整理为MySQL中的数据
+			List<MySQLBlogComment> mySQLCommentList = new ArrayList<MySQLBlogComment>();
+			for (DB2BlogReply db2BlogReply : DB2ReplyList) {
+				MySQLBlogComment mySQLBlogComment = new MySQLBlogComment();
+				mySQLBlogComment.setCommentCode(UUIDHelper.getUUID());
+				
+				// 获取评论人信息
+				UserInfo userInfo = blogThirdService.getUserInfo(db2BlogReply.getUserId());
+				mySQLBlogComment.setTenantCode(userInfo == null ? "" : StringTools.formatToString(userInfo.getTenantCode()));
+				mySQLBlogComment.setOrgCode(userInfo == null ? "" : StringTools.formatToString(userInfo.getOrgCode()));
+				mySQLBlogComment.setUserCode(userInfo == null ? "" : StringTools.formatToString(userInfo.getUserCode()));
+				mySQLBlogComment.setCreateTime(db2BlogReply.getCreateTime() == null ? 0L : db2BlogReply.getCreateTime().getTime());
+				mySQLBlogComment.setModifyTime(db2BlogReply.getUpdateTime() == null ? 0L : db2BlogReply.getUpdateTime().getTime());
+				
+				// 获取博客编号
+				if (db2BlogReply.getBlogId() != null) {
+					String blogCode = blogService.getBlogCode(db2BlogReply.getBlogId());
+					mySQLBlogComment.setBlogCode(StringTools.formatToString(blogCode));
+				} else {
+					mySQLBlogComment.setBlogCode("");
+				}
+				
+				mySQLBlogComment.setCommentContent(EmojiConvertUtil.emojiConvert(StringTools.formatToString(db2BlogReply.getReplyContent())));
+				mySQLBlogComment.setCommentIsDelete(BlogConstants.BLOG_NO);
+				mySQLBlogComment.setCommentIsShield(BlogConstants.BLOG_NO);
+				mySQLBlogComment.setCommentReplyNum(0);
+				mySQLBlogComment.setCommentLikeNum(0);
+				mySQLBlogComment.setOldId(db2BlogReply.getId());
+				mySQLCommentList.add(mySQLBlogComment);
+			}
+			
+			// 插入评论数据到MySQL库中
+			boolean insertFlag = blogCommentService.insertMySQLCommentList(mySQLCommentList);
+			if (!insertFlag) {
+				result = false;
+			}
+		} catch (Exception e) {
+			result = false;
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+}

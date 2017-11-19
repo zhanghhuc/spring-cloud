@@ -1,0 +1,1138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.ActivityInfoMapper">
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.ActivityInfo">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="code" jdbcType="VARCHAR" property="code" />
+    <result column="is_disable" jdbcType="TINYINT" property="isDisable" />
+    <result column="is_hide" jdbcType="TINYINT" property="isHide" />
+    <result column="is_delete" jdbcType="TINYINT" property="isDelete" />
+    <result column="tenant_code" jdbcType="VARCHAR" property="tenantCode" />
+    <result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+    <result column="org_level" jdbcType="TINYINT" property="orgLevel" />
+    <result column="create_time" jdbcType="BIGINT" property="createTime" />
+    <result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="template_code" jdbcType="VARCHAR" property="templateCode" />
+    <result column="activity_no" jdbcType="VARCHAR" property="activityNo" />
+    <result column="activity_name" jdbcType="VARCHAR" property="activityName" />
+    <result column="activity_type" jdbcType="TINYINT" property="activityType" />
+    <result column="organizer" jdbcType="VARCHAR" property="organizer" />
+    <result column="activity_status" jdbcType="TINYINT" property="activityStatus" />
+    <result column="detail_url" jdbcType="VARCHAR" property="detailUrl" />
+    <result column="preheat_time" jdbcType="BIGINT" property="preheatTime" />
+    <result column="start_time" jdbcType="BIGINT" property="startTime" />
+    <result column="end_time" jdbcType="BIGINT" property="endTime" />
+    <result column="offline_time" jdbcType="BIGINT" property="offlineTime" />
+    <result column="click_num" jdbcType="INTEGER" property="clickNum" />
+    <result column="join_num" jdbcType="INTEGER" property="joinNum" />
+    <result column="comment_num" jdbcType="INTEGER" property="commentNum" />
+    <result column="collection_num" jdbcType="INTEGER" property="collectionNum" />
+    <result column="share_num" jdbcType="INTEGER" property="shareNum" />
+    <result column="praise_num" jdbcType="INTEGER" property="praiseNum" />
+    <result column="enable_comment" jdbcType="TINYINT" property="enableComment" />
+    <result column="create_user_code" jdbcType="VARCHAR" property="createUserCode" />
+    <result column="create_user_name" jdbcType="VARCHAR" property="createUserName" />
+    <result column="last_operation_user_code" jdbcType="VARCHAR" property="lastOperationUserCode" />
+    <result column="last_operation_time" jdbcType="BIGINT" property="lastOperationTime" />
+    <result column="is_cascade" jdbcType="TINYINT" property="isCascade" />
+    <result column="join_range_code" jdbcType="VARCHAR" property="joinRangeCode" />
+    <result column="join_range_name" jdbcType="VARCHAR" property="joinRangeName" />
+    <result column="cCode" property="collectionCode" jdbcType="VARCHAR" />
+    <result column="pCode" property="praiseCode" jdbcType="VARCHAR" />
+    <result column="cId" property="collectionId" jdbcType="BIGINT" />
+    <result column="cTime" property="collectionTime" jdbcType="BIGINT" />
+  </resultMap>
+  <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.zssq.dao.pojo.ActivityInfoWithBLOBs">
+    <result column="introduce" jdbcType="LONGVARCHAR" property="introduce" />
+    <result column="activity_rule" jdbcType="LONGVARCHAR" property="activityRule" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, code, is_disable, is_hide, is_delete, tenant_code, org_code, org_level, create_time, 
+    modify_time, remark, template_code, activity_no, activity_name, activity_type, organizer, 
+    activity_status, detail_url, preheat_time, start_time, end_time, offline_time, click_num, 
+    join_num, comment_num, collection_num, share_num, praise_num, enable_comment, create_user_code, 
+    create_user_name, last_operation_user_code, last_operation_time, is_cascade, join_range_code, 
+    join_range_name
+  </sql>
+  <sql id="Blob_Column_List">
+    introduce, activity_rule
+  </sql>
+  <select id="selectByExampleWithBLOBs" parameterType="com.zssq.dao.pojo.ActivityInfoExample" resultMap="ResultMapWithBLOBs">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from activity_info
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByExample" parameterType="com.zssq.dao.pojo.ActivityInfoExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from activity_info
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+    <if test="limitStart != null and limitStart&gt;=0">
+      limit #{limitStart} , #{limitEnd}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="ResultMapWithBLOBs">
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from activity_info
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from activity_info
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.zssq.dao.pojo.ActivityInfoExample">
+    delete from activity_info
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.ActivityInfoWithBLOBs">
+    insert into activity_info (id, code, is_disable, 
+      is_hide, is_delete, tenant_code, 
+      org_code, org_level, create_time, 
+      modify_time, remark, template_code, 
+      activity_no, activity_name, activity_type, 
+      organizer, activity_status, detail_url, 
+      preheat_time, start_time, end_time, 
+      offline_time, click_num, join_num, 
+      comment_num, collection_num, share_num, 
+      praise_num, enable_comment, create_user_code, 
+      create_user_name, last_operation_user_code, 
+      last_operation_time, is_cascade, join_range_code, 
+      join_range_name, introduce, activity_rule
+      )
+    values (#{id,jdbcType=BIGINT}, #{code,jdbcType=VARCHAR}, #{isDisable,jdbcType=TINYINT}, 
+      #{isHide,jdbcType=TINYINT}, #{isDelete,jdbcType=TINYINT}, #{tenantCode,jdbcType=VARCHAR}, 
+      #{orgCode,jdbcType=VARCHAR}, #{orgLevel,jdbcType=TINYINT}, #{createTime,jdbcType=BIGINT}, 
+      #{modifyTime,jdbcType=BIGINT}, #{remark,jdbcType=VARCHAR}, #{templateCode,jdbcType=VARCHAR}, 
+      #{activityNo,jdbcType=VARCHAR}, #{activityName,jdbcType=VARCHAR}, #{activityType,jdbcType=TINYINT}, 
+      #{organizer,jdbcType=VARCHAR}, #{activityStatus,jdbcType=TINYINT}, #{detailUrl,jdbcType=VARCHAR}, 
+      #{preheatTime,jdbcType=BIGINT}, #{startTime,jdbcType=BIGINT}, #{endTime,jdbcType=BIGINT}, 
+      #{offlineTime,jdbcType=BIGINT}, #{clickNum,jdbcType=INTEGER}, #{joinNum,jdbcType=INTEGER}, 
+      #{commentNum,jdbcType=INTEGER}, #{collectionNum,jdbcType=INTEGER}, #{shareNum,jdbcType=INTEGER}, 
+      #{praiseNum,jdbcType=INTEGER}, #{enableComment,jdbcType=TINYINT}, #{createUserCode,jdbcType=VARCHAR}, 
+      #{createUserName,jdbcType=VARCHAR}, #{lastOperationUserCode,jdbcType=VARCHAR}, 
+      #{lastOperationTime,jdbcType=BIGINT}, #{isCascade,jdbcType=TINYINT}, #{joinRangeCode,jdbcType=VARCHAR}, 
+      #{joinRangeName,jdbcType=VARCHAR}, #{introduce,jdbcType=LONGVARCHAR}, #{activityRule,jdbcType=LONGVARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.ActivityInfoWithBLOBs">
+    insert into activity_info
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="code != null">
+        code,
+      </if>
+      <if test="isDisable != null">
+        is_disable,
+      </if>
+      <if test="isHide != null">
+        is_hide,
+      </if>
+      <if test="isDelete != null">
+        is_delete,
+      </if>
+      <if test="tenantCode != null">
+        tenant_code,
+      </if>
+      <if test="orgCode != null">
+        org_code,
+      </if>
+      <if test="orgLevel != null">
+        org_level,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="modifyTime != null">
+        modify_time,
+      </if>
+      <if test="remark != null">
+        remark,
+      </if>
+      <if test="templateCode != null">
+        template_code,
+      </if>
+      <if test="activityNo != null">
+        activity_no,
+      </if>
+      <if test="activityName != null">
+        activity_name,
+      </if>
+      <if test="activityType != null">
+        activity_type,
+      </if>
+      <if test="organizer != null">
+        organizer,
+      </if>
+      <if test="activityStatus != null">
+        activity_status,
+      </if>
+      <if test="detailUrl != null">
+        detail_url,
+      </if>
+      <if test="preheatTime != null">
+        preheat_time,
+      </if>
+      <if test="startTime != null">
+        start_time,
+      </if>
+      <if test="endTime != null">
+        end_time,
+      </if>
+      <if test="offlineTime != null">
+        offline_time,
+      </if>
+      <if test="clickNum != null">
+        click_num,
+      </if>
+      <if test="joinNum != null">
+        join_num,
+      </if>
+      <if test="commentNum != null">
+        comment_num,
+      </if>
+      <if test="collectionNum != null">
+        collection_num,
+      </if>
+      <if test="shareNum != null">
+        share_num,
+      </if>
+      <if test="praiseNum != null">
+        praise_num,
+      </if>
+      <if test="enableComment != null">
+        enable_comment,
+      </if>
+      <if test="createUserCode != null">
+        create_user_code,
+      </if>
+      <if test="createUserName != null">
+        create_user_name,
+      </if>
+      <if test="lastOperationUserCode != null">
+        last_operation_user_code,
+      </if>
+      <if test="lastOperationTime != null">
+        last_operation_time,
+      </if>
+      <if test="isCascade != null">
+        is_cascade,
+      </if>
+      <if test="joinRangeCode != null">
+        join_range_code,
+      </if>
+      <if test="joinRangeName != null">
+        join_range_name,
+      </if>
+      <if test="introduce != null">
+        introduce,
+      </if>
+      <if test="activityRule != null">
+        activity_rule,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="code != null">
+        #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="isDisable != null">
+        #{isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="isHide != null">
+        #{isHide,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null">
+        #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="tenantCode != null">
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null">
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null">
+        #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null">
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null">
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="templateCode != null">
+        #{templateCode,jdbcType=VARCHAR},
+      </if>
+      <if test="activityNo != null">
+        #{activityNo,jdbcType=VARCHAR},
+      </if>
+      <if test="activityName != null">
+        #{activityName,jdbcType=VARCHAR},
+      </if>
+      <if test="activityType != null">
+        #{activityType,jdbcType=TINYINT},
+      </if>
+      <if test="organizer != null">
+        #{organizer,jdbcType=VARCHAR},
+      </if>
+      <if test="activityStatus != null">
+        #{activityStatus,jdbcType=TINYINT},
+      </if>
+      <if test="detailUrl != null">
+        #{detailUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="preheatTime != null">
+        #{preheatTime,jdbcType=BIGINT},
+      </if>
+      <if test="startTime != null">
+        #{startTime,jdbcType=BIGINT},
+      </if>
+      <if test="endTime != null">
+        #{endTime,jdbcType=BIGINT},
+      </if>
+      <if test="offlineTime != null">
+        #{offlineTime,jdbcType=BIGINT},
+      </if>
+      <if test="clickNum != null">
+        #{clickNum,jdbcType=INTEGER},
+      </if>
+      <if test="joinNum != null">
+        #{joinNum,jdbcType=INTEGER},
+      </if>
+      <if test="commentNum != null">
+        #{commentNum,jdbcType=INTEGER},
+      </if>
+      <if test="collectionNum != null">
+        #{collectionNum,jdbcType=INTEGER},
+      </if>
+      <if test="shareNum != null">
+        #{shareNum,jdbcType=INTEGER},
+      </if>
+      <if test="praiseNum != null">
+        #{praiseNum,jdbcType=INTEGER},
+      </if>
+      <if test="enableComment != null">
+        #{enableComment,jdbcType=TINYINT},
+      </if>
+      <if test="createUserCode != null">
+        #{createUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createUserName != null">
+        #{createUserName,jdbcType=VARCHAR},
+      </if>
+      <if test="lastOperationUserCode != null">
+        #{lastOperationUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="lastOperationTime != null">
+        #{lastOperationTime,jdbcType=BIGINT},
+      </if>
+      <if test="isCascade != null">
+        #{isCascade,jdbcType=TINYINT},
+      </if>
+      <if test="joinRangeCode != null">
+        #{joinRangeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="joinRangeName != null">
+        #{joinRangeName,jdbcType=VARCHAR},
+      </if>
+      <if test="introduce != null">
+        #{introduce,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="activityRule != null">
+        #{activityRule,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.zssq.dao.pojo.ActivityInfoExample" resultType="java.lang.Integer">
+    select count(*) from activity_info
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update activity_info
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.code != null">
+        code = #{record.code,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDisable != null">
+        is_disable = #{record.isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="record.isHide != null">
+        is_hide = #{record.isHide,jdbcType=TINYINT},
+      </if>
+      <if test="record.isDelete != null">
+        is_delete = #{record.isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="record.tenantCode != null">
+        tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgCode != null">
+        org_code = #{record.orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgLevel != null">
+        org_level = #{record.orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="record.createTime != null">
+        create_time = #{record.createTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.modifyTime != null">
+        modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.remark != null">
+        remark = #{record.remark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.templateCode != null">
+        template_code = #{record.templateCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.activityNo != null">
+        activity_no = #{record.activityNo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.activityName != null">
+        activity_name = #{record.activityName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.activityType != null">
+        activity_type = #{record.activityType,jdbcType=TINYINT},
+      </if>
+      <if test="record.organizer != null">
+        organizer = #{record.organizer,jdbcType=VARCHAR},
+      </if>
+      <if test="record.activityStatus != null">
+        activity_status = #{record.activityStatus,jdbcType=TINYINT},
+      </if>
+      <if test="record.detailUrl != null">
+        detail_url = #{record.detailUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="record.preheatTime != null">
+        preheat_time = #{record.preheatTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.startTime != null">
+        start_time = #{record.startTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.endTime != null">
+        end_time = #{record.endTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.offlineTime != null">
+        offline_time = #{record.offlineTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.clickNum != null">
+        click_num = #{record.clickNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.joinNum != null">
+        join_num = #{record.joinNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.commentNum != null">
+        comment_num = #{record.commentNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.collectionNum != null">
+        collection_num = #{record.collectionNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.shareNum != null">
+        share_num = #{record.shareNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.praiseNum != null">
+        praise_num = #{record.praiseNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.enableComment != null">
+        enable_comment = #{record.enableComment,jdbcType=TINYINT},
+      </if>
+      <if test="record.createUserCode != null">
+        create_user_code = #{record.createUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createUserName != null">
+        create_user_name = #{record.createUserName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.lastOperationUserCode != null">
+        last_operation_user_code = #{record.lastOperationUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.lastOperationTime != null">
+        last_operation_time = #{record.lastOperationTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.isCascade != null">
+        is_cascade = #{record.isCascade,jdbcType=TINYINT},
+      </if>
+      <if test="record.joinRangeCode != null">
+        join_range_code = #{record.joinRangeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.joinRangeName != null">
+        join_range_name = #{record.joinRangeName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.introduce != null">
+        introduce = #{record.introduce,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="record.activityRule != null">
+        activity_rule = #{record.activityRule,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExampleWithBLOBs" parameterType="map">
+    update activity_info
+    set id = #{record.id,jdbcType=BIGINT},
+      code = #{record.code,jdbcType=VARCHAR},
+      is_disable = #{record.isDisable,jdbcType=TINYINT},
+      is_hide = #{record.isHide,jdbcType=TINYINT},
+      is_delete = #{record.isDelete,jdbcType=TINYINT},
+      tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      org_code = #{record.orgCode,jdbcType=VARCHAR},
+      org_level = #{record.orgLevel,jdbcType=TINYINT},
+      create_time = #{record.createTime,jdbcType=BIGINT},
+      modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      template_code = #{record.templateCode,jdbcType=VARCHAR},
+      activity_no = #{record.activityNo,jdbcType=VARCHAR},
+      activity_name = #{record.activityName,jdbcType=VARCHAR},
+      activity_type = #{record.activityType,jdbcType=TINYINT},
+      organizer = #{record.organizer,jdbcType=VARCHAR},
+      activity_status = #{record.activityStatus,jdbcType=TINYINT},
+      detail_url = #{record.detailUrl,jdbcType=VARCHAR},
+      preheat_time = #{record.preheatTime,jdbcType=BIGINT},
+      start_time = #{record.startTime,jdbcType=BIGINT},
+      end_time = #{record.endTime,jdbcType=BIGINT},
+      offline_time = #{record.offlineTime,jdbcType=BIGINT},
+      click_num = #{record.clickNum,jdbcType=INTEGER},
+      join_num = #{record.joinNum,jdbcType=INTEGER},
+      comment_num = #{record.commentNum,jdbcType=INTEGER},
+      collection_num = #{record.collectionNum,jdbcType=INTEGER},
+      share_num = #{record.shareNum,jdbcType=INTEGER},
+      praise_num = #{record.praiseNum,jdbcType=INTEGER},
+      enable_comment = #{record.enableComment,jdbcType=TINYINT},
+      create_user_code = #{record.createUserCode,jdbcType=VARCHAR},
+      create_user_name = #{record.createUserName,jdbcType=VARCHAR},
+      last_operation_user_code = #{record.lastOperationUserCode,jdbcType=VARCHAR},
+      last_operation_time = #{record.lastOperationTime,jdbcType=BIGINT},
+      is_cascade = #{record.isCascade,jdbcType=TINYINT},
+      join_range_code = #{record.joinRangeCode,jdbcType=VARCHAR},
+      join_range_name = #{record.joinRangeName,jdbcType=VARCHAR},
+      introduce = #{record.introduce,jdbcType=LONGVARCHAR},
+      activity_rule = #{record.activityRule,jdbcType=LONGVARCHAR}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update activity_info
+    set id = #{record.id,jdbcType=BIGINT},
+      code = #{record.code,jdbcType=VARCHAR},
+      is_disable = #{record.isDisable,jdbcType=TINYINT},
+      is_hide = #{record.isHide,jdbcType=TINYINT},
+      is_delete = #{record.isDelete,jdbcType=TINYINT},
+      tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      org_code = #{record.orgCode,jdbcType=VARCHAR},
+      org_level = #{record.orgLevel,jdbcType=TINYINT},
+      create_time = #{record.createTime,jdbcType=BIGINT},
+      modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      template_code = #{record.templateCode,jdbcType=VARCHAR},
+      activity_no = #{record.activityNo,jdbcType=VARCHAR},
+      activity_name = #{record.activityName,jdbcType=VARCHAR},
+      activity_type = #{record.activityType,jdbcType=TINYINT},
+      organizer = #{record.organizer,jdbcType=VARCHAR},
+      activity_status = #{record.activityStatus,jdbcType=TINYINT},
+      detail_url = #{record.detailUrl,jdbcType=VARCHAR},
+      preheat_time = #{record.preheatTime,jdbcType=BIGINT},
+      start_time = #{record.startTime,jdbcType=BIGINT},
+      end_time = #{record.endTime,jdbcType=BIGINT},
+      offline_time = #{record.offlineTime,jdbcType=BIGINT},
+      click_num = #{record.clickNum,jdbcType=INTEGER},
+      join_num = #{record.joinNum,jdbcType=INTEGER},
+      comment_num = #{record.commentNum,jdbcType=INTEGER},
+      collection_num = #{record.collectionNum,jdbcType=INTEGER},
+      share_num = #{record.shareNum,jdbcType=INTEGER},
+      praise_num = #{record.praiseNum,jdbcType=INTEGER},
+      enable_comment = #{record.enableComment,jdbcType=TINYINT},
+      create_user_code = #{record.createUserCode,jdbcType=VARCHAR},
+      create_user_name = #{record.createUserName,jdbcType=VARCHAR},
+      last_operation_user_code = #{record.lastOperationUserCode,jdbcType=VARCHAR},
+      last_operation_time = #{record.lastOperationTime,jdbcType=BIGINT},
+      is_cascade = #{record.isCascade,jdbcType=TINYINT},
+      join_range_code = #{record.joinRangeCode,jdbcType=VARCHAR},
+      join_range_name = #{record.joinRangeName,jdbcType=VARCHAR}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.ActivityInfoWithBLOBs">
+    update activity_info
+    <set>
+      <if test="code != null">
+        code = #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="isDisable != null">
+        is_disable = #{isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="isHide != null">
+        is_hide = #{isHide,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null">
+        is_delete = #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="tenantCode != null">
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null">
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null">
+        org_level = #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null">
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null">
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="templateCode != null">
+        template_code = #{templateCode,jdbcType=VARCHAR},
+      </if>
+      <if test="activityNo != null">
+        activity_no = #{activityNo,jdbcType=VARCHAR},
+      </if>
+      <if test="activityName != null">
+        activity_name = #{activityName,jdbcType=VARCHAR},
+      </if>
+      <if test="activityType != null">
+        activity_type = #{activityType,jdbcType=TINYINT},
+      </if>
+      <if test="organizer != null">
+        organizer = #{organizer,jdbcType=VARCHAR},
+      </if>
+      <if test="activityStatus != null">
+        activity_status = #{activityStatus,jdbcType=TINYINT},
+      </if>
+      <if test="detailUrl != null">
+        detail_url = #{detailUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="preheatTime != null">
+        preheat_time = #{preheatTime,jdbcType=BIGINT},
+      </if>
+      <if test="startTime != null">
+        start_time = #{startTime,jdbcType=BIGINT},
+      </if>
+      <if test="endTime != null">
+        end_time = #{endTime,jdbcType=BIGINT},
+      </if>
+      <if test="offlineTime != null">
+        offline_time = #{offlineTime,jdbcType=BIGINT},
+      </if>
+      <if test="clickNum != null">
+        click_num = #{clickNum,jdbcType=INTEGER},
+      </if>
+      <if test="joinNum != null">
+        join_num = #{joinNum,jdbcType=INTEGER},
+      </if>
+      <if test="commentNum != null">
+        comment_num = #{commentNum,jdbcType=INTEGER},
+      </if>
+      <if test="collectionNum != null">
+        collection_num = #{collectionNum,jdbcType=INTEGER},
+      </if>
+      <if test="shareNum != null">
+        share_num = #{shareNum,jdbcType=INTEGER},
+      </if>
+      <if test="praiseNum != null">
+        praise_num = #{praiseNum,jdbcType=INTEGER},
+      </if>
+      <if test="enableComment != null">
+        enable_comment = #{enableComment,jdbcType=TINYINT},
+      </if>
+      <if test="createUserCode != null">
+        create_user_code = #{createUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createUserName != null">
+        create_user_name = #{createUserName,jdbcType=VARCHAR},
+      </if>
+      <if test="lastOperationUserCode != null">
+        last_operation_user_code = #{lastOperationUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="lastOperationTime != null">
+        last_operation_time = #{lastOperationTime,jdbcType=BIGINT},
+      </if>
+      <if test="isCascade != null">
+        is_cascade = #{isCascade,jdbcType=TINYINT},
+      </if>
+      <if test="joinRangeCode != null">
+        join_range_code = #{joinRangeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="joinRangeName != null">
+        join_range_name = #{joinRangeName,jdbcType=VARCHAR},
+      </if>
+      <if test="introduce != null">
+        introduce = #{introduce,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="activityRule != null">
+        activity_rule = #{activityRule,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.zssq.dao.pojo.ActivityInfoWithBLOBs">
+    update activity_info
+    set code = #{code,jdbcType=VARCHAR},
+      is_disable = #{isDisable,jdbcType=TINYINT},
+      is_hide = #{isHide,jdbcType=TINYINT},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      template_code = #{templateCode,jdbcType=VARCHAR},
+      activity_no = #{activityNo,jdbcType=VARCHAR},
+      activity_name = #{activityName,jdbcType=VARCHAR},
+      activity_type = #{activityType,jdbcType=TINYINT},
+      organizer = #{organizer,jdbcType=VARCHAR},
+      activity_status = #{activityStatus,jdbcType=TINYINT},
+      detail_url = #{detailUrl,jdbcType=VARCHAR},
+      preheat_time = #{preheatTime,jdbcType=BIGINT},
+      start_time = #{startTime,jdbcType=BIGINT},
+      end_time = #{endTime,jdbcType=BIGINT},
+      offline_time = #{offlineTime,jdbcType=BIGINT},
+      click_num = #{clickNum,jdbcType=INTEGER},
+      join_num = #{joinNum,jdbcType=INTEGER},
+      comment_num = #{commentNum,jdbcType=INTEGER},
+      collection_num = #{collectionNum,jdbcType=INTEGER},
+      share_num = #{shareNum,jdbcType=INTEGER},
+      praise_num = #{praiseNum,jdbcType=INTEGER},
+      enable_comment = #{enableComment,jdbcType=TINYINT},
+      create_user_code = #{createUserCode,jdbcType=VARCHAR},
+      create_user_name = #{createUserName,jdbcType=VARCHAR},
+      last_operation_user_code = #{lastOperationUserCode,jdbcType=VARCHAR},
+      last_operation_time = #{lastOperationTime,jdbcType=BIGINT},
+      is_cascade = #{isCascade,jdbcType=TINYINT},
+      join_range_code = #{joinRangeCode,jdbcType=VARCHAR},
+      join_range_name = #{joinRangeName,jdbcType=VARCHAR},
+      introduce = #{introduce,jdbcType=LONGVARCHAR},
+      activity_rule = #{activityRule,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.ActivityInfo">
+    update activity_info
+    set code = #{code,jdbcType=VARCHAR},
+      is_disable = #{isDisable,jdbcType=TINYINT},
+      is_hide = #{isHide,jdbcType=TINYINT},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      template_code = #{templateCode,jdbcType=VARCHAR},
+      activity_no = #{activityNo,jdbcType=VARCHAR},
+      activity_name = #{activityName,jdbcType=VARCHAR},
+      activity_type = #{activityType,jdbcType=TINYINT},
+      organizer = #{organizer,jdbcType=VARCHAR},
+      activity_status = #{activityStatus,jdbcType=TINYINT},
+      detail_url = #{detailUrl,jdbcType=VARCHAR},
+      preheat_time = #{preheatTime,jdbcType=BIGINT},
+      start_time = #{startTime,jdbcType=BIGINT},
+      end_time = #{endTime,jdbcType=BIGINT},
+      offline_time = #{offlineTime,jdbcType=BIGINT},
+      click_num = #{clickNum,jdbcType=INTEGER},
+      join_num = #{joinNum,jdbcType=INTEGER},
+      comment_num = #{commentNum,jdbcType=INTEGER},
+      collection_num = #{collectionNum,jdbcType=INTEGER},
+      share_num = #{shareNum,jdbcType=INTEGER},
+      praise_num = #{praiseNum,jdbcType=INTEGER},
+      enable_comment = #{enableComment,jdbcType=TINYINT},
+      create_user_code = #{createUserCode,jdbcType=VARCHAR},
+      create_user_name = #{createUserName,jdbcType=VARCHAR},
+      last_operation_user_code = #{lastOperationUserCode,jdbcType=VARCHAR},
+      last_operation_time = #{lastOperationTime,jdbcType=BIGINT},
+      is_cascade = #{isCascade,jdbcType=TINYINT},
+      join_range_code = #{joinRangeCode,jdbcType=VARCHAR},
+      join_range_name = #{joinRangeName,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  <!-- 更新评论数 -->
+  <update id="updateCommentNum" parameterType="java.util.Map">
+  	UPDATE activity_info
+	SET comment_num = comment_num ${express},
+		modify_time = #{modifyTime}
+	WHERE code = #{code}
+  </update>
+  
+  <!-- 更新收藏数 -->
+  <update id="updateCollectionNum" parameterType="java.util.Map">
+  	UPDATE activity_info
+	SET collection_num = collection_num ${express},
+		modify_time = #{modifyTime}
+	WHERE code = #{code}
+  </update>
+  
+  <!-- 查询收藏数 -->
+  <select id="queryCollectionNum" parameterType="java.lang.String" resultType="java.lang.Integer">
+  	select collection_num from activity_info where code = #{0}
+  </select>
+  
+  <!-- 更新点赞数 -->
+  <update id="updatePraiseNum" parameterType="java.util.Map">
+  	UPDATE activity_info
+	SET praise_num = praise_num ${express},
+		modify_time = #{modifyTime}
+	WHERE code = #{code}
+  </update>
+  
+  <!-- 更新分享数 -->
+  <update id="updateShareNum" parameterType="java.util.Map">
+  	UPDATE activity_info
+	SET share_num = share_num ${express},
+		modify_time = #{modifyTime}
+	WHERE code = #{code}
+  </update>
+  
+  <!-- 更新参与数 -->
+  <update id="updateJoinNum" parameterType="java.util.Map">
+  	UPDATE activity_info
+	SET join_num = join_num ${express},
+		modify_time = #{modifyTime}
+	WHERE code = #{code}
+  </update>
+  
+  <!-- 查询点赞数 -->
+  <select id="queryPraiseNum" parameterType="java.lang.String" resultType="java.lang.Integer">
+  	select praise_num from activity_info where code = #{0}
+  </select>
+  
+  <!-- 查询活动的奖项和资源 -->
+  <select id="selectPrizeAndResource" parameterType="java.util.Map" resultMap="PrizeResResultMap">
+  	select a.`code` activityCode,p.id pId ,p.code pCode,
+		p.prize_name,p.is_join_prize,
+		p.sequence_no psn ,p.introduce,p.rule,
+		p.is_reward_gold,p.reward_gold_num,
+		p.is_award_honor,p.award_honor_code,
+		p.award_honor_name,p.award_honor_url,
+		r.id rId,r.code rCode,r.type,r.url,r.sequence_no rsn
+	from (
+		select `code` from activity_info 
+		where is_delete = 0
+			AND is_disable = 0
+			AND is_hide = 0
+			AND tenant_code = #{tenantCode}
+			AND org_code = #{orgCode}
+			AND template_code = #{templateCode}
+			AND code = #{activityCode}
+	) a
+	LEFT JOIN activity_prize p
+	on a.code = p.`activity_code`
+		AND p.is_delete = 0
+		AND p.is_disable = 0
+		AND p.tenant_code = #{tenantCode}
+		AND p.org_code = #{orgCode}
+	LEFT JOIN activity_resource r
+	on a.code = r.activity_code
+		AND r.is_delete = 0
+		AND r.is_disable = 0
+		AND r.tenant_code = #{tenantCode}
+		AND r.org_code = #{orgCode}
+  </select>
+  <resultMap type="com.zssq.dao.pojo.ActivityInfoWithBLOBs" id="PrizeResResultMap">
+  	<id column="activityCode" jdbcType="VARCHAR" property="code" />
+  	<collection property="prizes" ofType="com.zssq.dao.pojo.ActivityPrize">
+  		<id column="pId" property="id" jdbcType="BIGINT" />
+	    <result column="pCode" property="code" jdbcType="VARCHAR" />
+	    <result column="prize_name" property="prizeName" jdbcType="VARCHAR" />
+	    <result column="is_join_prize" property="isJoinPrize" jdbcType="TINYINT" />
+	    <result column="psn" property="sequenceNo" jdbcType="INTEGER" />
+	    <result column="introduce" property="introduce" jdbcType="VARCHAR" />
+	    <result column="rule" property="rule" jdbcType="LONGVARCHAR" />
+	    <result column="is_reward_gold" property="isRewardGold" jdbcType="TINYINT" />
+	    <result column="reward_gold_num" property="rewardGoldNum" jdbcType="INTEGER" />
+	    <result column="is_award_honor" property="isAwardHonor" jdbcType="TINYINT" />
+	    <result column="award_honor_code" property="awardHonorCode" jdbcType="VARCHAR" />
+	    <result column="award_honor_name" property="awardHonorName" jdbcType="VARCHAR" />
+	    <result column="award_honor_url" property="awardHonorUrl" jdbcType="VARCHAR" />
+  	</collection>
+  	<collection property="resources" ofType="com.zssq.dao.pojo.ActivityResource">
+  		<id column="rId" property="id" jdbcType="BIGINT" />
+	    <result column="rCode" property="code" jdbcType="VARCHAR" />
+	    <result column="type" property="type" jdbcType="TINYINT" />
+	    <result column="url" property="url" jdbcType="VARCHAR" />
+	    <result column="rsn" property="sequenceNo" jdbcType="INTEGER" />
+  	</collection>
+  </resultMap>
+  
+  <!-- 批量更新 -->
+  <update id="updateActivityListStatus" parameterType="java.util.Map" >
+    UPDATE 
+    	activity_info
+    SET activity_status = #{status},
+    	modify_time = #{modifyTime},
+    	last_operation_time = #{lastOperationTime}
+   	WHERE 
+   	code in     
+    <foreach collection="codeList" index="index" item="code" open="(" separator="," close=")">    
+        #{code.code}    
+    </foreach>
+  </update>
+  <select id="queryActivityList" parameterType="java.util.Map" resultMap="BaseResultMap">
+  	SELECT 
+		ai.id,
+		ai.CODE,
+		ai.activity_no,
+		ai.activity_name,
+		ai.activity_type,
+		ai.activity_status,
+		ai.preheat_time,
+		ai.start_time,
+		ai.end_time,
+		ai.offline_time,
+		ai.join_num,
+		ai.praise_num,
+		ai.collection_num,
+		ai.share_num,
+		ai.comment_num,
+		ac.code as cCode,
+		ap.code as pCode
+	FROM activity_info ai
+	LEFT JOIN activity_collection ac
+	ON ac.activity_code = ai.CODE
+	AND ac.is_delete = 0
+	AND ac.is_disable = 0
+	AND ac.tenant_code = #{tenantCode}
+	AND ac.collector_code = #{userCode}
+	LEFT JOIN activity_praise ap
+	ON ap.info_code = ai.CODE
+	AND ap.is_delete = 0
+	AND ap.is_disable = 0
+	AND ap.tenant_code = #{tenantCode}
+	AND ap.admirer_code = #{userCode}
+	WHERE ai.is_delete = 0
+	AND ai.is_disable = 0
+	AND ai.tenant_code = #{tenantCode}
+	AND ai.activity_status IN (5,6,7)
+	AND ai.org_code = #{orgCode}
+	<if test="id != null and id>0" >
+		AND ai.id <![CDATA[<]]> #{id} 
+	</if>
+	ORDER BY ai.id DESC
+	LIMIT #{pageSize}
+  </select>
+  <select id="queryActivityListWithBLOBs" parameterType="java.util.Map" resultMap="ResultMapWithBLOBs">
+  	SELECT 
+		ai.id,
+		ai.CODE,
+		ai.activity_no,
+		ai.activity_name,
+		ai.activity_type,
+		ai.activity_status,
+		ai.preheat_time,
+		ai.start_time,
+		ai.end_time,
+		ai.offline_time,
+		ai.join_num,
+		ai.praise_num,
+		ai.collection_num,
+		ai.share_num,
+		ai.comment_num,
+		ai.introduce,
+		ai.activity_rule,
+		ac.code as cCode,
+		ap.code as pCode
+	FROM activity_info ai
+	LEFT JOIN activity_collection ac
+	ON ac.activity_code = ai.CODE
+	AND ac.is_delete = 0
+	AND ac.is_disable = 0
+	AND ac.tenant_code = #{tenantCode}
+	AND ac.collector_code = #{userCode}
+	LEFT JOIN activity_praise ap
+	ON ap.info_code = ai.CODE
+	AND ap.is_delete = 0
+	AND ap.is_disable = 0
+	AND ap.tenant_code = #{tenantCode}
+	AND ap.admirer_code = #{userCode}
+	WHERE ai.is_delete = 0
+	AND ai.is_disable = 0
+	AND ai.tenant_code = #{tenantCode}
+	AND ai.CODE = #{code}
+	AND ai.activity_type = #{activityType}
+  </select>
+  <select id="queryActivityCollectionList" parameterType="java.util.Map" resultMap="ResultMapWithBLOBs">
+  	SELECT 
+		ac.id AS cId,
+		ai.CODE,
+		ai.activity_no,
+		ai.activity_name,
+		ai.activity_type,
+		ai.activity_status,
+		ai.preheat_time,
+		ai.start_time,
+		ai.end_time,
+		ai.offline_time,
+		ai.create_user_code,
+		ai.join_num,
+		ai.praise_num,
+		ai.collection_num,
+		ai.share_num,
+		ai.comment_num,
+		ai.introduce,
+		ac.create_time AS cTime,
+		ap.code as pCode
+	FROM activity_collection ac
+	LEFT JOIN activity_info ai
+	ON ac.activity_code = ai.CODE
+	AND ai.is_delete = 0
+	AND ai.is_disable = 0
+	AND ai.tenant_code = #{tenantCode}
+	LEFT JOIN activity_praise ap
+	ON ap.info_code = ai.CODE
+	AND ap.is_delete = 0
+	AND ap.is_disable = 0
+	AND ap.tenant_code = #{tenantCode}
+	AND ap.admirer_code = #{userCode}
+	WHERE ac.is_delete = 0
+	AND ac.is_disable = 0
+	AND ac.tenant_code = #{tenantCode}
+    AND ac.collector_code = #{userCode}
+    <if test="id != null and id>0" >
+		AND ac.id <![CDATA[<]]> #{id} 
+	</if>
+	ORDER BY ac.id DESC
+	LIMIT #{pageSize}
+  </select>
+  <select id="queryActivityCollectionListForH5" parameterType="java.util.Map" resultMap="BaseResultMap">
+  	SELECT 
+		ac.id AS cId,
+		ai.CODE,
+		ai.activity_no,
+		ai.activity_name,
+		ai.activity_type,
+		ai.activity_status,
+		ai.preheat_time,
+		ai.start_time,
+		ai.end_time,
+		ai.offline_time,
+		ai.create_user_code,
+		ai.join_num,
+		ai.praise_num,
+		ai.collection_num,
+		ai.share_num,
+		ai.comment_num,
+		ac.create_time AS cTime,
+		ap.code as pCode
+	FROM activity_collection ac
+	LEFT JOIN activity_info ai
+	ON ac.activity_code = ai.CODE
+	AND ai.is_delete = 0
+	AND ai.is_disable = 0
+	AND ai.tenant_code = #{tenantCode}
+	LEFT JOIN activity_praise ap
+	ON ap.info_code = ai.CODE
+	AND ap.is_delete = 0
+	AND ap.is_disable = 0
+	AND ap.tenant_code = #{tenantCode}
+	AND ap.admirer_code = #{userCode}
+	WHERE ac.is_delete = 0
+	AND ac.is_disable = 0
+	AND ac.tenant_code = #{tenantCode}
+    AND ac.collector_code = #{userCode}
+    <if test="id != null and id>0" >
+		AND ac.id <![CDATA[<]]> #{id} 
+	</if>
+	ORDER BY ac.id DESC
+	LIMIT #{pageSize}
+  </select>
+</mapper>

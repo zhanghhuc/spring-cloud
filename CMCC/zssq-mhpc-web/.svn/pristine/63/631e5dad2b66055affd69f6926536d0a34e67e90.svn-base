@@ -1,0 +1,60 @@
+package com.zssq.msg.vo;
+
+import java.io.Serializable;
+
+import org.hibernate.validator.constraints.NotBlank;
+
+import com.zssq.annotation.validation.IntType;
+
+/**
+ * 
+ * @ClassName: PraiseListVO  
+ * @Description: 消息点赞查询VO
+ * @author YDB  
+ * @date 2017年3月20日  
+ *
+ */
+public class PraiseListVO  implements Serializable{
+
+	
+	
+	    
+	/**  
+	 * @Fields serialVersionUID : TODO
+	 */  
+	private static final long serialVersionUID = 1L;
+
+	@NotBlank(message = "{empty.message}")
+	private String userCode;
+	
+	@IntType(expression = ">0")
+	private Integer pageSize;
+	
+	@IntType(expression = ">0")
+	private Integer PageNo;
+	
+	
+	public String getUserCode() {
+		return userCode;
+	}
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
+	}
+	public Integer getPageSize() {
+		return pageSize;
+	}
+	public void setPageSize(Integer pageSize) {
+		this.pageSize = pageSize;
+	}
+	public Integer getPageNo() {
+		return PageNo;
+	}
+	public void setPageNo(Integer pageNo) {
+		PageNo = pageNo;
+	}
+	
+	
+	
+	
+	
+}

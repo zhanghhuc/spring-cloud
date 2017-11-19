@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.mblog.dao.mapper.MblogCommentMapper" >
+  <!-- 批处理 -->
+  <insert id="batchInsert" parameterType="com.zssq.mblog.pojo.MblogComment">
+	insert into mblog_comment (
+		id, 
+		mblog_comment_code, 
+		create_time, 
+    	modify_time, 
+    	remark, 
+    	org_code, 
+       	user_code, 
+       	is_delete, 
+      	is_shield, 
+      	mblog_code, 
+      	tenant_code, 
+      	content ,
+      	shield_user_code,
+      	shield_time
+      	)
+	values 
+	<foreach collection="list" item="item" index="index" separator=",">
+		(#{item.id,jdbcType=BIGINT}, 
+		#{item.mblogCommentCode,jdbcType=VARCHAR}, 
+		#{item.createTime,jdbcType=BIGINT}, 
+      	#{item.modifyTime,jdbcType=BIGINT}, 
+      	#{item.remark,jdbcType=VARCHAR}, 
+      	#{item.orgCode,jdbcType=VARCHAR}, 
+       	#{item.userCode,jdbcType=VARCHAR}, 
+       	#{item.isDelete,jdbcType=TINYINT}, 
+      	#{item.isShield,jdbcType=TINYINT}, 
+      	#{item.mblogCode,jdbcType=VARCHAR}, 
+      	#{item.tenantCode,jdbcType=VARCHAR},  
+      	#{item.content,jdbcType=LONGVARCHAR},
+      	#{item.shieldUserCode,jdbcType=VARCHAR},
+      	#{item.shieldTime,jdbcType=BIGINT})
+	</foreach>
+  </insert>
+  
+</mapper>

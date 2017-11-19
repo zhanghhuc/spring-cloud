@@ -1,0 +1,554 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.vote.dao.mapper.TransVoteMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.vote.pojo.TransVote" >
+    <id column="VOTE_ID" property="voteId" jdbcType="INTEGER" />
+    <result column="USER_ID" property="userId" jdbcType="INTEGER" />
+    <result column="PROVINCE_ID" property="provinceId" jdbcType="INTEGER" />
+    <result column="CITY_ID" property="cityId" jdbcType="INTEGER" />
+    <result column="TEAM_ID" property="teamId" jdbcType="INTEGER" />
+    <result column="VOTE_TYPE" property="voteType" jdbcType="INTEGER" />
+    <result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="VOTE_TITLE" property="voteTitle" jdbcType="VARCHAR" />
+    <result column="VOTE_DECLARE" property="voteDeclare" jdbcType="VARCHAR" />
+    <result column="OPTIONS_TYPE" property="optionsType" jdbcType="INTEGER" />
+    <result column="VOTE_END_TIME" property="voteEndTime" jdbcType="TIMESTAMP" />
+    <result column="DEL_FLAG" property="delFlag" jdbcType="INTEGER" />
+    <result column="CMT_NUM" property="cmtNum" jdbcType="INTEGER" />
+    <result column="VOTE_NUM" property="voteNum" jdbcType="INTEGER" />
+    <result column="VOTE_START_TIME" property="voteStartTime" jdbcType="TIMESTAMP" />
+    <result column="FLAG_RECO" property="flagReco" jdbcType="INTEGER" />
+    <result column="INSTEAD_FLAG" property="insteadFlag" jdbcType="INTEGER" />
+    <result column="INSTEAD_USER" property="insteadUser" jdbcType="INTEGER" />
+    <result column="UPDATE_TIME" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="VOTE_DOMAIN" property="voteDomain" jdbcType="INTEGER" />
+    <result column="VOTE_FLAG" property="voteFlag" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    VOTE_ID, USER_ID, PROVINCE_ID, CITY_ID, TEAM_ID, VOTE_TYPE, CREATE_TIME, VOTE_TITLE, 
+    VOTE_DECLARE, OPTIONS_TYPE, VOTE_END_TIME, DEL_FLAG, CMT_NUM, VOTE_NUM, VOTE_START_TIME, 
+    FLAG_RECO, INSTEAD_FLAG, INSTEAD_USER, UPDATE_TIME, VOTE_DOMAIN, VOTE_FLAG
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.zssq.vote.pojo.TransVoteExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from trans_vote
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+    <if test="limitStart != null and limitStart>=0" >
+      limit #{limitStart} , #{limitEnd}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from trans_vote
+    where VOTE_ID = #{voteId,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from trans_vote
+    where VOTE_ID = #{voteId,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.zssq.vote.pojo.TransVoteExample" >
+    delete from trans_vote
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.zssq.vote.pojo.TransVote" >
+    insert into trans_vote (VOTE_ID, USER_ID, PROVINCE_ID, 
+      CITY_ID, TEAM_ID, VOTE_TYPE, 
+      CREATE_TIME, VOTE_TITLE, VOTE_DECLARE, 
+      OPTIONS_TYPE, VOTE_END_TIME, DEL_FLAG, 
+      CMT_NUM, VOTE_NUM, VOTE_START_TIME, 
+      FLAG_RECO, INSTEAD_FLAG, INSTEAD_USER, 
+      UPDATE_TIME, VOTE_DOMAIN, VOTE_FLAG
+      )
+    values (#{voteId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{provinceId,jdbcType=INTEGER}, 
+      #{cityId,jdbcType=INTEGER}, #{teamId,jdbcType=INTEGER}, #{voteType,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{voteTitle,jdbcType=VARCHAR}, #{voteDeclare,jdbcType=VARCHAR}, 
+      #{optionsType,jdbcType=INTEGER}, #{voteEndTime,jdbcType=TIMESTAMP}, #{delFlag,jdbcType=INTEGER}, 
+      #{cmtNum,jdbcType=INTEGER}, #{voteNum,jdbcType=INTEGER}, #{voteStartTime,jdbcType=TIMESTAMP}, 
+      #{flagReco,jdbcType=INTEGER}, #{insteadFlag,jdbcType=INTEGER}, #{insteadUser,jdbcType=INTEGER}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{voteDomain,jdbcType=INTEGER}, #{voteFlag,jdbcType=INTEGER}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.vote.pojo.TransVote" >
+    insert into trans_vote
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="voteId != null" >
+        VOTE_ID,
+      </if>
+      <if test="userId != null" >
+        USER_ID,
+      </if>
+      <if test="provinceId != null" >
+        PROVINCE_ID,
+      </if>
+      <if test="cityId != null" >
+        CITY_ID,
+      </if>
+      <if test="teamId != null" >
+        TEAM_ID,
+      </if>
+      <if test="voteType != null" >
+        VOTE_TYPE,
+      </if>
+      <if test="createTime != null" >
+        CREATE_TIME,
+      </if>
+      <if test="voteTitle != null" >
+        VOTE_TITLE,
+      </if>
+      <if test="voteDeclare != null" >
+        VOTE_DECLARE,
+      </if>
+      <if test="optionsType != null" >
+        OPTIONS_TYPE,
+      </if>
+      <if test="voteEndTime != null" >
+        VOTE_END_TIME,
+      </if>
+      <if test="delFlag != null" >
+        DEL_FLAG,
+      </if>
+      <if test="cmtNum != null" >
+        CMT_NUM,
+      </if>
+      <if test="voteNum != null" >
+        VOTE_NUM,
+      </if>
+      <if test="voteStartTime != null" >
+        VOTE_START_TIME,
+      </if>
+      <if test="flagReco != null" >
+        FLAG_RECO,
+      </if>
+      <if test="insteadFlag != null" >
+        INSTEAD_FLAG,
+      </if>
+      <if test="insteadUser != null" >
+        INSTEAD_USER,
+      </if>
+      <if test="updateTime != null" >
+        UPDATE_TIME,
+      </if>
+      <if test="voteDomain != null" >
+        VOTE_DOMAIN,
+      </if>
+      <if test="voteFlag != null" >
+        VOTE_FLAG,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="voteId != null" >
+        #{voteId,jdbcType=INTEGER},
+      </if>
+      <if test="userId != null" >
+        #{userId,jdbcType=INTEGER},
+      </if>
+      <if test="provinceId != null" >
+        #{provinceId,jdbcType=INTEGER},
+      </if>
+      <if test="cityId != null" >
+        #{cityId,jdbcType=INTEGER},
+      </if>
+      <if test="teamId != null" >
+        #{teamId,jdbcType=INTEGER},
+      </if>
+      <if test="voteType != null" >
+        #{voteType,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="voteTitle != null" >
+        #{voteTitle,jdbcType=VARCHAR},
+      </if>
+      <if test="voteDeclare != null" >
+        #{voteDeclare,jdbcType=VARCHAR},
+      </if>
+      <if test="optionsType != null" >
+        #{optionsType,jdbcType=INTEGER},
+      </if>
+      <if test="voteEndTime != null" >
+        #{voteEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="delFlag != null" >
+        #{delFlag,jdbcType=INTEGER},
+      </if>
+      <if test="cmtNum != null" >
+        #{cmtNum,jdbcType=INTEGER},
+      </if>
+      <if test="voteNum != null" >
+        #{voteNum,jdbcType=INTEGER},
+      </if>
+      <if test="voteStartTime != null" >
+        #{voteStartTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="flagReco != null" >
+        #{flagReco,jdbcType=INTEGER},
+      </if>
+      <if test="insteadFlag != null" >
+        #{insteadFlag,jdbcType=INTEGER},
+      </if>
+      <if test="insteadUser != null" >
+        #{insteadUser,jdbcType=INTEGER},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="voteDomain != null" >
+        #{voteDomain,jdbcType=INTEGER},
+      </if>
+      <if test="voteFlag != null" >
+        #{voteFlag,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.zssq.vote.pojo.TransVoteExample" resultType="java.lang.Integer" >
+    select count(*) from trans_vote
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update trans_vote
+    <set >
+      <if test="record.voteId != null" >
+        VOTE_ID = #{record.voteId,jdbcType=INTEGER},
+      </if>
+      <if test="record.userId != null" >
+        USER_ID = #{record.userId,jdbcType=INTEGER},
+      </if>
+      <if test="record.provinceId != null" >
+        PROVINCE_ID = #{record.provinceId,jdbcType=INTEGER},
+      </if>
+      <if test="record.cityId != null" >
+        CITY_ID = #{record.cityId,jdbcType=INTEGER},
+      </if>
+      <if test="record.teamId != null" >
+        TEAM_ID = #{record.teamId,jdbcType=INTEGER},
+      </if>
+      <if test="record.voteType != null" >
+        VOTE_TYPE = #{record.voteType,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null" >
+        CREATE_TIME = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.voteTitle != null" >
+        VOTE_TITLE = #{record.voteTitle,jdbcType=VARCHAR},
+      </if>
+      <if test="record.voteDeclare != null" >
+        VOTE_DECLARE = #{record.voteDeclare,jdbcType=VARCHAR},
+      </if>
+      <if test="record.optionsType != null" >
+        OPTIONS_TYPE = #{record.optionsType,jdbcType=INTEGER},
+      </if>
+      <if test="record.voteEndTime != null" >
+        VOTE_END_TIME = #{record.voteEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.delFlag != null" >
+        DEL_FLAG = #{record.delFlag,jdbcType=INTEGER},
+      </if>
+      <if test="record.cmtNum != null" >
+        CMT_NUM = #{record.cmtNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.voteNum != null" >
+        VOTE_NUM = #{record.voteNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.voteStartTime != null" >
+        VOTE_START_TIME = #{record.voteStartTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.flagReco != null" >
+        FLAG_RECO = #{record.flagReco,jdbcType=INTEGER},
+      </if>
+      <if test="record.insteadFlag != null" >
+        INSTEAD_FLAG = #{record.insteadFlag,jdbcType=INTEGER},
+      </if>
+      <if test="record.insteadUser != null" >
+        INSTEAD_USER = #{record.insteadUser,jdbcType=INTEGER},
+      </if>
+      <if test="record.updateTime != null" >
+        UPDATE_TIME = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.voteDomain != null" >
+        VOTE_DOMAIN = #{record.voteDomain,jdbcType=INTEGER},
+      </if>
+      <if test="record.voteFlag != null" >
+        VOTE_FLAG = #{record.voteFlag,jdbcType=INTEGER},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update trans_vote
+    set VOTE_ID = #{record.voteId,jdbcType=INTEGER},
+      USER_ID = #{record.userId,jdbcType=INTEGER},
+      PROVINCE_ID = #{record.provinceId,jdbcType=INTEGER},
+      CITY_ID = #{record.cityId,jdbcType=INTEGER},
+      TEAM_ID = #{record.teamId,jdbcType=INTEGER},
+      VOTE_TYPE = #{record.voteType,jdbcType=INTEGER},
+      CREATE_TIME = #{record.createTime,jdbcType=TIMESTAMP},
+      VOTE_TITLE = #{record.voteTitle,jdbcType=VARCHAR},
+      VOTE_DECLARE = #{record.voteDeclare,jdbcType=VARCHAR},
+      OPTIONS_TYPE = #{record.optionsType,jdbcType=INTEGER},
+      VOTE_END_TIME = #{record.voteEndTime,jdbcType=TIMESTAMP},
+      DEL_FLAG = #{record.delFlag,jdbcType=INTEGER},
+      CMT_NUM = #{record.cmtNum,jdbcType=INTEGER},
+      VOTE_NUM = #{record.voteNum,jdbcType=INTEGER},
+      VOTE_START_TIME = #{record.voteStartTime,jdbcType=TIMESTAMP},
+      FLAG_RECO = #{record.flagReco,jdbcType=INTEGER},
+      INSTEAD_FLAG = #{record.insteadFlag,jdbcType=INTEGER},
+      INSTEAD_USER = #{record.insteadUser,jdbcType=INTEGER},
+      UPDATE_TIME = #{record.updateTime,jdbcType=TIMESTAMP},
+      VOTE_DOMAIN = #{record.voteDomain,jdbcType=INTEGER},
+      VOTE_FLAG = #{record.voteFlag,jdbcType=INTEGER}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.vote.pojo.TransVote" >
+    update trans_vote
+    <set >
+      <if test="userId != null" >
+        USER_ID = #{userId,jdbcType=INTEGER},
+      </if>
+      <if test="provinceId != null" >
+        PROVINCE_ID = #{provinceId,jdbcType=INTEGER},
+      </if>
+      <if test="cityId != null" >
+        CITY_ID = #{cityId,jdbcType=INTEGER},
+      </if>
+      <if test="teamId != null" >
+        TEAM_ID = #{teamId,jdbcType=INTEGER},
+      </if>
+      <if test="voteType != null" >
+        VOTE_TYPE = #{voteType,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        CREATE_TIME = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="voteTitle != null" >
+        VOTE_TITLE = #{voteTitle,jdbcType=VARCHAR},
+      </if>
+      <if test="voteDeclare != null" >
+        VOTE_DECLARE = #{voteDeclare,jdbcType=VARCHAR},
+      </if>
+      <if test="optionsType != null" >
+        OPTIONS_TYPE = #{optionsType,jdbcType=INTEGER},
+      </if>
+      <if test="voteEndTime != null" >
+        VOTE_END_TIME = #{voteEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="delFlag != null" >
+        DEL_FLAG = #{delFlag,jdbcType=INTEGER},
+      </if>
+      <if test="cmtNum != null" >
+        CMT_NUM = #{cmtNum,jdbcType=INTEGER},
+      </if>
+      <if test="voteNum != null" >
+        VOTE_NUM = #{voteNum,jdbcType=INTEGER},
+      </if>
+      <if test="voteStartTime != null" >
+        VOTE_START_TIME = #{voteStartTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="flagReco != null" >
+        FLAG_RECO = #{flagReco,jdbcType=INTEGER},
+      </if>
+      <if test="insteadFlag != null" >
+        INSTEAD_FLAG = #{insteadFlag,jdbcType=INTEGER},
+      </if>
+      <if test="insteadUser != null" >
+        INSTEAD_USER = #{insteadUser,jdbcType=INTEGER},
+      </if>
+      <if test="updateTime != null" >
+        UPDATE_TIME = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="voteDomain != null" >
+        VOTE_DOMAIN = #{voteDomain,jdbcType=INTEGER},
+      </if>
+      <if test="voteFlag != null" >
+        VOTE_FLAG = #{voteFlag,jdbcType=INTEGER},
+      </if>
+    </set>
+    where VOTE_ID = #{voteId,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.vote.pojo.TransVote" >
+    update trans_vote
+    set USER_ID = #{userId,jdbcType=INTEGER},
+      PROVINCE_ID = #{provinceId,jdbcType=INTEGER},
+      CITY_ID = #{cityId,jdbcType=INTEGER},
+      TEAM_ID = #{teamId,jdbcType=INTEGER},
+      VOTE_TYPE = #{voteType,jdbcType=INTEGER},
+      CREATE_TIME = #{createTime,jdbcType=TIMESTAMP},
+      VOTE_TITLE = #{voteTitle,jdbcType=VARCHAR},
+      VOTE_DECLARE = #{voteDeclare,jdbcType=VARCHAR},
+      OPTIONS_TYPE = #{optionsType,jdbcType=INTEGER},
+      VOTE_END_TIME = #{voteEndTime,jdbcType=TIMESTAMP},
+      DEL_FLAG = #{delFlag,jdbcType=INTEGER},
+      CMT_NUM = #{cmtNum,jdbcType=INTEGER},
+      VOTE_NUM = #{voteNum,jdbcType=INTEGER},
+      VOTE_START_TIME = #{voteStartTime,jdbcType=TIMESTAMP},
+      FLAG_RECO = #{flagReco,jdbcType=INTEGER},
+      INSTEAD_FLAG = #{insteadFlag,jdbcType=INTEGER},
+      INSTEAD_USER = #{insteadUser,jdbcType=INTEGER},
+      UPDATE_TIME = #{updateTime,jdbcType=TIMESTAMP},
+      VOTE_DOMAIN = #{voteDomain,jdbcType=INTEGER},
+      VOTE_FLAG = #{voteFlag,jdbcType=INTEGER}
+    where VOTE_ID = #{voteId,jdbcType=INTEGER}
+  </update>
+  
+  <!-- *************************************************** -->
+  <select id="queryOriginalVoteOfCount" resultType="java.lang.Integer">
+  	SELECT 
+	  COUNT(*) 
+	FROM
+	  trans_vote tv 
+	  LEFT JOIN base_sys_user_info sui 
+	    ON tv.user_id = sui.user_id 
+	  LEFT JOIN base_sys_org_info soi
+	    ON sui.org_code = soi.sys_org_code
+	WHERE DEL_FLAG = 0 AND sui.user_code IS NOT NULL
+  </select>
+  <select id="queryOriginalVote" parameterType="java.util.Map" resultType="java.util.Map">
+  	SELECT 
+	  tv.vote_id as voteId,
+	  tv.user_id as userId,
+	  tv.province_id as provinceId,
+	  tv.city_id as cityId,
+	  tv.team_id as teamId,
+	  tv.vote_type as voteType,
+	  tv.create_time as createTime,
+	  tv.vote_title as voteTitle,
+	  tv.vote_declare as voteDeclare,
+	  tv.options_type as optionsType,
+	  tv.vote_end_time as voteEndTime,
+	  tv.cmt_num as cmtNum,
+	  tv.vote_num as voteNum,
+	  tv.vote_start_time as voteStartTime,
+	  tv.flag_reco as flagReco,
+	  tv.update_time as updateTime,
+	  tv.vote_domain as voteDomain,
+	  tv.vote_flag as voteFlag,
+	  sui.saas_tenant_code as saasTenantCode,
+	  sui.user_code as userCode,
+	  soi.man_org_code as manOrgCode 
+	FROM
+	  trans_vote tv 
+	  LEFT JOIN base_sys_user_info sui 
+	    ON tv.user_id = sui.user_id 
+	  LEFT JOIN base_sys_org_info soi
+	    ON sui.org_code = soi.sys_org_code
+	WHERE DEL_FLAG = 0 AND sui.user_code IS NOT NULL
+	ORDER BY vote_id ASC 
+	<if test="limitStart != null and limitStart>=0" >
+      LIMIT #{limitStart} , #{limitEnd}
+    </if>
+  </select>
+  
+  <select id="queryOriginalVoteOfOne" parameterType="java.lang.Integer" resultType="java.util.Map">
+  	SELECT 
+	  tv.vote_id as voteId,
+	  tv.user_id as userId,
+	  tv.province_id as provinceId,
+	  tv.city_id as cityId,
+	  tv.team_id as teamId,
+	  tv.vote_type as voteType,
+	  tv.create_time as createTime,
+	  tv.vote_title as voteTitle,
+	  tv.vote_declare as voteDeclare,
+	  tv.options_type as optionsType,
+	  tv.vote_end_time as voteEndTime,
+	  tv.cmt_num as cmtNum,
+	  tv.vote_num as voteNum,
+	  tv.vote_start_time as voteStartTime,
+	  tv.flag_reco as flagReco,
+	  tv.update_time as updateTime,
+	  tv.vote_domain as voteDomain,
+	  tv.vote_flag as voteFlag,
+	  sui.saas_tenant_code as saasTenantCode,
+	  sui.user_code as userCode,
+	  soi.man_org_code as manOrgCode 
+	FROM
+	  trans_vote tv 
+	  LEFT JOIN base_sys_user_info sui 
+	    ON tv.user_id = sui.user_id 
+	  LEFT JOIN base_sys_org_info soi
+	    ON sui.org_code = soi.sys_org_code
+	WHERE tv.DEL_FLAG = 0 AND tv.vote_id=#{0} AND sui.user_code IS NOT NULL
+  </select>
+  
+  
+  
+  
+  
+</mapper>

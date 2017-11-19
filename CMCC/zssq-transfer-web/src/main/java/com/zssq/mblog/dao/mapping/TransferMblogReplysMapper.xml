@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.mblog.dao.mapper.TransferMblogReplysMapper" >
+<!--   <sql id="">
+ 	SELECT 
+ 		idCode.mblog_code AS mblogCode,
+ 		userInfo.user_code AS userCode,
+ 		proOrgInfo.sys_org_code AS proCode,
+ 		cityOrgInfo.sys_org_code AS cityCode,
+ 		REPLY_CONTENTEXT AS content,
+ 		unix_timestamp(REPLY_TIME) * 1000 AS replyTime,
+ 		userInfo.saas_tenant_code AS tenantCode
+ 	FROM
+	  	(
+	 	 	SELECT 
+		  		REPLY_TIME,
+		  		USER_ID,
+		  		MBLOG_ID,
+		  		REPLY_CONTENTEXT,
+		  		CITY_ID,
+		  		PROVINCE_ID
+		  	FROM
+		  		transfer_mblog_replys
+		  	WHERE
+		  		DEL_FLAG = 0
+	  	) AS trCom
+	  	LEFT JOIN
+	  		transfer_id_code AS idCode ON trCom.MBLOG_ID = idCode.mblog_id
+	  	LEFT JOIN 
+	  		sys_user_info AS userInfo ON trCom.USER_ID = userInfo.user_id
+	  	LEFT JOIN
+	  		sys_org_info AS proOrgInfo ON trCom.PROVINCE_ID = proOrgInfo.org_id
+	  	LEFT JOIN
+	  		sys_org_info AS cityOrgInfo ON trCom.CITY_ID = cityOrgInfo.org_id
+  </sql> -->
+  
+  <select id="selectAllComment" parameterType="java.util.Map" resultType="com.zssq.mblog.pojo.MoveComVo">
+		SELECT 
+	 		idCode.mblog_code AS mblogCode,
+	 		userInfo.user_code AS userCode,
+	 		proOrgInfo.sys_org_code AS proCode,
+	 		cityOrgInfo.sys_org_code AS cityCode,
+	 		REPLY_CONTENTEXT AS content,
+	 		unix_timestamp(REPLY_TIME) * 1000 AS replyTime,
+	 		userInfo.saas_tenant_code AS tenantCode
+	 	FROM
+		  	(
+		 	 	SELECT
+		 	 		ID, 
+			  		REPLY_TIME,
+			  		USER_ID,
+			  		MBLOG_ID,
+			  		REPLY_CONTENTEXT,
+			  		CITY_ID,
+			  		PROVINCE_ID
+			  	FROM
+			  		transfer_mblog_replys
+			  	WHERE
+			  		DEL_FLAG = 0
+			  	ORDER BY ID
+			  	LIMIT 
+			  		#{startPage},#{pageSize}
+		  	) AS trCom
+		  	LEFT JOIN
+		  		transfer_id_code AS idCode ON trCom.MBLOG_ID = idCode.mblog_id
+		  	LEFT JOIN 
+		  		sys_user_info AS userInfo ON trCom.USER_ID = userInfo.user_id
+		  	LEFT JOIN
+		  		sys_org_info AS proOrgInfo ON trCom.PROVINCE_ID = proOrgInfo.org_id
+		  	LEFT JOIN
+		  		sys_org_info AS cityOrgInfo ON trCom.CITY_ID = cityOrgInfo.org_id
+  </select>
+
+
+	<select id="selectAllCommentCount" resultType="java.lang.Integer">
+			SELECT 
+		 		COUNT(*)
+		 	FROM
+		  		transfer_mblog_replys
+		  	WHERE
+		  		DEL_FLAG = 0
+	  </select>
+
+
+</mapper>

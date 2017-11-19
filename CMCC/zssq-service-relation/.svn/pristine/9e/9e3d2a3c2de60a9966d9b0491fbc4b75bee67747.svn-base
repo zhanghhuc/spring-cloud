@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.RelationShareMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.RelationShare" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="share_code" property="shareCode" jdbcType="VARCHAR" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="dynamic_code" property="dynamicCode" jdbcType="VARCHAR" />
+    <result column="subject_code" property="subjectCode" jdbcType="VARCHAR" />
+    <result column="subject_class" property="subjectClass" jdbcType="TINYINT" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, share_code, tenant_code, org_code,create_time, modify_time, remark, 
+    dynamic_code, subject_code, subject_class, user_code
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from relation_share
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from relation_share
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.RelationShare" >
+    insert into relation_share (id, share_code, tenant_code, 
+      org_code,create_time, 
+      modify_time, remark, dynamic_code, 
+      subject_code, subject_class, user_code
+      )
+    values (#{id,jdbcType=BIGINT}, #{shareCode,jdbcType=VARCHAR}, #{tenantCode,jdbcType=VARCHAR}, 
+      #{orgCode,jdbcType=VARCHAR}, #{createTime,jdbcType=BIGINT}, 
+      #{modifyTime,jdbcType=BIGINT}, #{remark,jdbcType=VARCHAR}, #{dynamicCode,jdbcType=VARCHAR}, 
+      #{subjectCode,jdbcType=VARCHAR}, #{subjectClass,jdbcType=TINYINT}, #{userCode,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.RelationShare" >
+    insert into relation_share
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="shareCode != null" >
+        share_code,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="dynamicCode != null" >
+        dynamic_code,
+      </if>
+      <if test="subjectCode != null" >
+        subject_code,
+      </if>
+      <if test="subjectClass != null" >
+        subject_class,
+      </if>
+      <if test="userCode != null" >
+        user_code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="shareCode != null" >
+        #{shareCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="dynamicCode != null" >
+        #{dynamicCode,jdbcType=VARCHAR},
+      </if>
+      <if test="subjectCode != null" >
+        #{subjectCode,jdbcType=VARCHAR},
+      </if>
+      <if test="subjectClass != null" >
+        #{subjectClass,jdbcType=TINYINT},
+      </if>
+      <if test="userCode != null" >
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.RelationShare" >
+    update relation_share
+    <set >
+      <if test="shareCode != null" >
+        share_code = #{shareCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="dynamicCode != null" >
+        dynamic_code = #{dynamicCode,jdbcType=VARCHAR},
+      </if>
+      <if test="subjectCode != null" >
+        subject_code = #{subjectCode,jdbcType=VARCHAR},
+      </if>
+      <if test="subjectClass != null" >
+        subject_class = #{subjectClass,jdbcType=TINYINT},
+      </if>
+      <if test="userCode != null" >
+        user_code = #{userCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.RelationShare" >
+    update relation_share
+    set share_code = #{shareCode,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      dynamic_code = #{dynamicCode,jdbcType=VARCHAR},
+      subject_code = #{subjectCode,jdbcType=VARCHAR},
+      subject_class = #{subjectClass,jdbcType=TINYINT},
+      user_code = #{userCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  
+<!--   自定义sql  -->
+<!--   查询用户分享列表 -->
+  <select id="selectUserShareList" resultType="com.zssq.model.EtRelationShareModel" parameterType="map" >
+  
+  	
+	select 
+	  relationShare.`share_code` as shareCode,
+	  relationShare.`subject_class` as shareClass,
+	  relationShare.`dynamic_code` AS dynamicCode,
+	  subjectInfo.`subject_code` as subjectCode,
+	  subjectInfo.`subject_depend` as subjectDepend,
+	  subjectInfo.`subject_digest` as subjectDigest,
+	  subjectInfo.`user_code` as userCode,
+	  subjectInfo.`source_depend` as sourceDepend,
+	  subjectInfo.`team_code` as teamCode,
+	  subjectInfo.`org_code` as orgCode,
+	  subjectInfo.`subject_title` as subjectTitle 
+	from
+	  (select 
+	    share_code,
+	    subject_class,
+	    dynamic_code ,
+	    create_time,
+	    subject_code
+	  from
+	    `relation_share` 
+	  where relation_share.`user_code` = #{userCode,jdbcType=VARCHAR}
+	    and relation_share.create_time &lt; #{queryTime,jdbcType=BIGINT}) as relationShare 
+	  LEFT join `relation_subject_info` AS subjectInfo 
+	    ON relationShare.`subject_code` = subjectInfo.`subject_code` 
+	    
+	ORDER BY
+	relationShare.create_time DESC
+
+  </select>
+  <select id="selectUserShareCount" resultType="long" parameterType="map" >
+	select COUNT(1)
+	from
+	  (select 
+	    share_code,
+	    subject_class,
+	    dynamic_code ,
+	    create_time,
+	    subject_code
+	  from
+	    `relation_share` 
+	  where relation_share.`user_code` = #{userCode,jdbcType=VARCHAR}
+	    and relation_share.create_time &lt; #{queryTime,jdbcType=BIGINT}) as relationShare 
+	  LEFT join `relation_subject_info` AS subjectInfo 
+	    ON relationShare.`subject_code` = subjectInfo.`subject_code`
+  </select>
+  
+  <!-- 根据分享code查询分享信息 -->
+    <select id="selectShareInfoByCode" resultType="com.zssq.dao.pojo.RelationShare" parameterType="com.zssq.dao.pojo.RelationShare" >
+    select 
+    <include refid="Base_Column_List" />
+    from relation_share
+    where share_code = #{shareCode}
+  </select>
+  
+    <!-- 根据分享code删除分享信息 -->
+    <delete id="deleteByCode" parameterType="com.zssq.dao.pojo.RelationShare" >
+    delete from relation_share
+    where share_code = #{shareCode}
+  </delete>
+</mapper>

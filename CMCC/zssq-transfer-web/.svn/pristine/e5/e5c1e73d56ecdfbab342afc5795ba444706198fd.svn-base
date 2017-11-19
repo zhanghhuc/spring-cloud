@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.blog.dao.mapper.BlogSubMapper">
+
+	<!-- 删除订阅表中的数据 -->
+	<delete id="deleteSubData">
+		DELETE FROM blog_subscribe
+	</delete>
+
+	<!-- 查询原订阅数据 -->
+	<select id="getSourceSubList" resultType="com.zssq.blog.pojo.SourceSubModel">
+		SELECT
+			sui2.user_code AS publishUser,
+			sui1.user_code AS subscribeUser,
+			smsr.create_time AS createTime,
+			soi1.saas_tenant_code AS tenantCode,
+			soi1.man_org_code AS orgCode
+		FROM
+			(
+				SELECT
+					publish_user,
+					subscribe_user,
+					create_time
+				FROM
+					source_ms_subscribe_relation
+				WHERE
+					type = 12
+			) smsr
+		LEFT JOIN sys_user_info sui1 
+			ON smsr.subscribe_user = sui1.user_id
+		LEFT JOIN sys_org_info soi1 
+			ON sui1.org_code = soi1.sys_org_code
+		LEFT JOIN sys_user_info sui2 
+			ON smsr.publish_user = sui2.user_id
+		WHERE sui1.id IS NOT NULL
+			AND sui2.id IS NOT NULL
+		GROUP BY sui1.user_code, sui2.user_code
+	</select>
+	
+	<!-- 插入订阅数据 -->
+	<insert id="insertSourceSub" useGeneratedKeys="true" keyProperty="id" parameterType="list">
+		INSERT IGNORE INTO blog_subscribe (
+			sub_code, 
+			tenant_code,
+			org_code, 
+			create_time,
+			modify_time, 
+			remark, 
+			user_code,
+			sub_class, 
+			team_code, 
+			sub_user_code
+		) VALUES
+		<foreach collection="list" item="item" index="index" separator=",">
+			(
+				#{item.subCode,jdbcType=VARCHAR},
+				#{item.tenantCode,jdbcType=VARCHAR},
+				#{item.orgCode,jdbcType=VARCHAR}, 
+				#{item.createTime,jdbcType=BIGINT},
+				#{item.modifyTime,jdbcType=BIGINT}, 
+				#{item.remark,jdbcType=VARCHAR},
+				#{item.userCode,jdbcType=VARCHAR},
+				#{item.subClass,jdbcType=TINYINT}, 
+				#{item.teamCode,jdbcType=VARCHAR}, 
+				#{item.subUserCode,jdbcType=VARCHAR}
+			)
+		</foreach>
+	</insert>
+	
+</mapper>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.SysDictionaryMapper">
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.SysDictionary">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="dict_code" property="dictCode" jdbcType="VARCHAR" />
+		<result column="parent_code" property="parentCode" jdbcType="VARCHAR" />
+		<result column="dict_name" property="dictName" jdbcType="VARCHAR" />
+		<result column="dict_value" property="dictValue" jdbcType="VARCHAR" />
+		<result column="display_value" property="displayValue" jdbcType="VARCHAR" />
+		<result column="order_num" property="orderNum" jdbcType="TINYINT" />
+		<result column="is_enable" property="isEnable" jdbcType="TINYINT" />
+		<result column="remark" property="remark" jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, dict_code, parent_code, dict_name, dict_value, display_value,
+		order_num, is_enable,remark
+	</sql>
+	<select id="selectByCode" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from sys_dictionary
+		where dict_code = #{dictCode,jdbcType=VARCHAR}
+	</select>
+	<select id="selectByRecord" parameterType="com.zssq.dao.pojo.SysDictionary" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from sys_dictionary
+		where 1=1
+		<if test="parentCode != null">
+			and parent_code = #{parentCode,jdbcType=VARCHAR}
+		</if>
+		order by order_num
+	</select>
+	
+	<insert id="insertSelective" parameterType="com.zssq.dao.pojo.SysDictionary">
+		insert into sys_dictionary
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="dictCode != null">
+				dict_code,
+			</if>
+			<if test="parentCode != null">
+				parent_code,
+			</if>
+			<if test="dictName != null">
+				dict_name,
+			</if>
+			<if test="dictValue != null">
+				dict_value,
+			</if>
+			<if test="displayValue != null">
+				display_value,
+			</if>
+			<if test="orderNum != null">
+				order_num,
+			</if>
+			<if test="isEnable != null">
+				is_enable,
+			</if>
+			<if test="remark != null">
+				remark,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=BIGINT},
+			</if>
+			<if test="dictCode != null">
+				#{dictCode,jdbcType=VARCHAR},
+			</if>
+			<if test="parentCode != null">
+				#{parentCode,jdbcType=VARCHAR},
+			</if>
+			<if test="dictName != null">
+				#{dictName,jdbcType=VARCHAR},
+			</if>
+			<if test="dictValue != null">
+				#{dictValue,jdbcType=VARCHAR},
+			</if>
+			<if test="displayValue != null">
+				#{displayValue,jdbcType=VARCHAR},
+			</if>
+			<if test="orderNum != null">
+				#{orderNum,jdbcType=TINYINT},
+			</if>
+			<if test="isEnable != null">
+				#{isEnable,jdbcType=TINYINT},
+			</if>
+			<if test="remark != null">
+				#{remark,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+	
+</mapper>

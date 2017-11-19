@@ -1,0 +1,502 @@
+package com.zssq.blog.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.blog.pojo.BlogData;
+import com.zssq.blog.pojo.BlogInfo;
+import com.zssq.blog.pojo.BlogTemp;
+import com.zssq.blog.pojo.SourceBlogModel;
+import com.zssq.blog.service.BlogService;
+import com.zssq.constants.BlogConstants;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.StringTools;
+
+/**
+ * 
+ * @ClassName: BlogController  
+ * @Description: 博客数据迁移Controller  
+ * @author ZKZ  
+ * @date 2017年5月22日  
+ *
+ */
+@Controller
+@RequestMapping("blogController")
+public class BlogController {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+
+	@Autowired
+	private BlogService blogService;
+	
+	/**
+	 * 
+	 * @Title: transferUserBlogData  
+	 * @Description: 迁移个人博客数据
+	 * @param pageNo
+	 * @param pageSize    参数  
+	 * @return: void    返回类型
+	 */
+	@RequestMapping(value = "/transferUserBlogData")  
+	@ResponseBody
+	public ResultJSON transferUserBlogData(int pageNo, int pageSize) {
+		// 返回值
+		ResultJSON result = new ResultJSON("COMMON_200");
+		JSONObject body = new JSONObject();
+		
+		// 开始时间
+		long beginTime = System.currentTimeMillis(); 
+		log.info("开始时间：" + beginTime);
+		
+		try {
+			// 参数校验
+			if (pageNo <= 0) {
+				pageNo = 0;
+			}
+			if (pageSize <= 0) {
+				pageSize = 1000;
+			}
+			
+			// 创建临时表
+			log.info("开始创建博客临时表...");
+			boolean createFlag = createTempTable();
+			if (!createFlag) {
+				body.put("message", "新建博客临时表失败");
+				log.error("新建博客临时表失败");
+				throw new Exception();
+			}
+			log.info("创建博客临时表成功");
+			
+			// 查询原博客表中数据总量
+			log.info("开始查询原博客表中数据总量...");
+			int sourceBlogCount = blogService.getSourceBlogCount();
+			if (sourceBlogCount <= 0) {
+				body.put("message", "查询源数据库中博客数据总量时出错，查询出的个数为：" + sourceBlogCount);
+				log.error("查询源数据库中博客数据总量时出错，查询出的个数为：" + sourceBlogCount);
+				throw new Exception();
+			}
+			log.info("查询原博客表中数据总量成功");
+			
+			// 总页数
+			int totalPage = sourceBlogCount/pageSize + 1;
+			
+			// 导入原个人博客数据
+			boolean insertFlag = true;
+			for (int i = pageNo; i < totalPage; i++) {
+				log.info("开始导入原个人博客第" + pageNo + "页...");
+				insertFlag = insertSourceBlog(pageNo, pageSize, BlogConstants.BLOG_DEPEND_USER);
+				if (!insertFlag) {
+					body.put("message", "导入原个人博客时失败");
+					log.error("导入原个人博客时失败，pageNo=" + pageNo);
+					throw new Exception();
+				}
+				log.info("导入原个人博客第" + pageNo + "页成功");
+				pageNo++;
+			}
+			
+			// 结束时间
+			long endTime = System.currentTimeMillis(); 
+			log.info("结束时间：" + endTime);
+			
+			// 用时
+			long useTime = endTime - beginTime;
+			log.info("使用时间：" + useTime);
+			
+			// 返回值
+			body.put("message", "导入个人博客成功，共用时:" + useTime);
+			result.setBody(body);
+		} catch (Exception e) {
+			result = new ResultJSON("COMMON_400");
+			body.put("pageNo", pageNo);
+			result.setBody(body);
+			long errorTime = System.currentTimeMillis(); 
+			log.info("失败时间：" + errorTime);
+			long useTime = errorTime - beginTime;
+			log.info("使用时间：" + useTime);
+			body.put("useTime", "共用时:" + useTime);
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @Title: transferTeamBlogData  
+	 * @Description: 迁移班组博客数据
+	 * @param pageNo
+	 * @param pageSize    参数  
+	 * @return: void    返回类型
+	 */
+	@RequestMapping(value = "/transferTeamBlogData")  
+	@ResponseBody
+	public ResultJSON transferTeamBlogData(int pageNo, int pageSize) {
+		// 返回值
+		ResultJSON result = new ResultJSON("COMMON_200");
+		JSONObject body = new JSONObject();
+		
+		// 开始时间
+		long beginTime = System.currentTimeMillis(); 
+		log.info("开始时间：" + beginTime);
+		
+		try {
+			// 参数校验
+			if (pageNo <= 0) {
+				pageNo = 0;
+			}
+			if (pageSize <= 0) {
+				pageSize = 1000;
+			}
+			
+			// 创建临时表
+			log.info("开始创建博客临时表...");
+			boolean createFlag = createTempTable();
+			if (!createFlag) {
+				body.put("message", "新建博客临时表失败");
+				log.error("新建博客临时表失败");
+				throw new Exception();
+			}
+			log.info("创建博客临时表成功");
+			
+			// 查询原博客表中数据总量
+			log.info("开始查询原博客表中数据总量...");
+			int sourceBlogCount = blogService.getSourceBlogCount();
+			if (sourceBlogCount <= 0) {
+				body.put("message", "查询源数据库中博客数据总量时出错，查询出的个数为：" + sourceBlogCount);
+				log.error("查询源数据库中博客数据总量时出错，查询出的个数为：" + sourceBlogCount);
+				throw new Exception();
+			}
+			log.info("查询源数据库中博客数据总量成功");
+			
+			// 总页数
+			int totalPage = sourceBlogCount/pageSize + 1;
+			
+			// 导入原班组博客数据
+			boolean insertFlag = true;
+			for (int i = pageNo; i < totalPage; i++) {
+				log.info("开始导入原班组博客第" + pageNo + "页...");
+				insertFlag = insertSourceBlog(pageNo, pageSize, BlogConstants.BLOG_DEPEND_TEAM);
+				if (!insertFlag) {
+					body.put("message", "导入原班组博客时失败");
+					log.error("导入原班组博客时失败，pageNo=" + pageNo);
+					throw new Exception();
+				}
+				log.info("导入原班组博客第" + pageNo + "页成功");
+				pageNo++;
+			}
+			
+			// 结束时间
+			long endTime = System.currentTimeMillis(); 
+			log.info("结束时间：" + endTime);
+			
+			// 用时
+			long useTime = endTime - beginTime;
+			log.info("使用时间：" + useTime);
+			
+			// 返回值
+			body.put("message", "导入班组博客成功，共用时:" + useTime);
+			result.setBody(body);
+		} catch (Exception e) {
+			result = new ResultJSON("COMMON_400");
+			body.put("pageNo", pageNo);
+			result.setBody(body);
+			long errorTime = System.currentTimeMillis(); 
+			log.info("失败时间：" + errorTime);
+			long useTime = errorTime - beginTime;
+			log.info("使用时间：" + useTime);
+			body.put("useTime", "共用时:" + useTime);
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @Title: transferBlogContent  
+	 * @Description: 迁移博客内容数据
+	 * @return: void    返回类型
+	 */
+	@RequestMapping(value = "/transferBlogContent")  
+	@ResponseBody
+	public ResultJSON transferBlogContent() {
+		// 返回值
+		ResultJSON result = new ResultJSON("COMMON_200");
+		JSONObject body = new JSONObject();
+		
+		try {
+			// 开始时间
+			long beginTime = System.currentTimeMillis(); 
+			log.info("开始时间：" + beginTime);
+
+			// 导入原博客内容数据
+			log.info("开始导入原博客内容...");
+			boolean	insertFlag = insertSourceBlogContent();
+			if (!insertFlag) {
+				body.put("message", "导入原博客内容时失败");
+				log.error("导入原博客内容时失败");
+				throw new Exception();
+			}
+			
+			// 结束时间
+			long endTime = System.currentTimeMillis(); 
+			log.info("结束时间：" + endTime);
+			
+			// 用时
+			long useTime = endTime - beginTime;
+			log.info("使用时间：" + useTime);
+			
+			// 返回值
+			body.put("message", "导入博客内容成功，共用时:" + useTime);
+			result.setBody(body);
+		} catch (Exception e) {
+			result = new ResultJSON("COMMON_400");
+			result.setBody(body);
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @Title: transferRelationSubjectData  
+	 * @Description: 迁移内容数据
+	 * @return: ResultJSON    返回类型
+	 */
+//	@RequestMapping(value = "/transferRelationSubjectData")
+//	@ResponseBody
+//	public ResultJSON transferRelationSubjectData() {
+//		// 返回值
+//		ResultJSON result = new ResultJSON("COMMON_200");
+//		JSONObject body = new JSONObject();
+//		
+//		try {
+//			// 开始时间
+//			long beginTime = System.currentTimeMillis(); 
+//			log.info("开始时间：" + beginTime);
+//			
+//			// 导入关系内容数据
+//			log.info("开始导入关系内容数据...");
+//			boolean	insertFlag = insertRelationSubjectData();
+//			if (!insertFlag) {
+//				body.put("message", "导入关系内容数据失败");
+//				log.error("导入关系内容数据失败");
+//				throw new Exception();
+//			}
+//			
+//			// 结束时间
+//			long endTime = System.currentTimeMillis(); 
+//			log.info("结束时间：" + endTime);
+//			
+//			// 用时
+//			long useTime = endTime - beginTime;
+//			log.info("使用时间：" + useTime);
+//			
+//			// 返回值
+//			body.put("message", "导入关系内容数据成功，共用时:" + useTime);
+//			result.setBody(body);
+//		} catch (Exception e) {
+//			result = new ResultJSON("COMMON_400");
+//			result.setBody(body);
+//			e.printStackTrace();
+//		}
+//		
+//		return result;
+//	}
+
+	/**
+	 * 
+	 * @Title: createTempTable  
+	 * @Description: 创建临时表
+	 * @return: boolean    返回类型
+	 */
+	private boolean createTempTable() {
+		// 返回值
+		boolean result = true;
+		
+		try {
+			// 新建临时表
+			blogService.createTempTable();
+		} catch (Exception e) {
+			result = false;
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @Title: insertSourceBlog  
+	 * @Description: 导入原博客数据
+	 * @param pageNo
+	 * @param pageSize
+	 * @param blogDepend
+	 * @return: boolean    返回类型
+	 */
+	private boolean insertSourceBlog(int pageNo, int pageSize, Byte blogDepend) {
+		// 返回值
+		boolean result = true;
+		
+		try {
+			// 获取原博客数据
+			List<SourceBlogModel> sourceBlogModelList = blogService.getSourceBlogList(pageNo, pageSize, blogDepend);
+			
+			// 校验返回值
+			if (sourceBlogModelList == null) {
+				return false;
+			}
+			if (sourceBlogModelList.isEmpty()) {
+				return true;
+			}
+			
+			// 整理数据
+			List<BlogInfo> blogInfoList = new ArrayList<BlogInfo>(); // 博客列表
+			List<BlogData> blogDataList = new ArrayList<BlogData>(); // 博客数据列表
+			List<BlogTemp> blogTempList = new ArrayList<BlogTemp>(); // 博客临时表列表
+			for (SourceBlogModel sourceBlogModel : sourceBlogModelList) {
+				if (sourceBlogModel == null) {
+					continue;
+				}
+				
+				// 共用
+				String blogCode = UUIDHelper.getUUID(); // 博客编号
+				String orgCode = ""; // 组织编号
+				
+				// 判断数据是否需要导入
+				if (StringUtils.isBlank(sourceBlogModel.getUserCode())) {
+					continue;
+				}
+				if (BlogConstants.BLOG_DEPEND_TEAM.equals(blogDepend) && StringUtils.isBlank(sourceBlogModel.getTeamCode())) {
+					continue;
+				}
+				
+				// 组织信息
+				if (!StringUtils.isBlank(sourceBlogModel.getCityCode())) {
+					orgCode = sourceBlogModel.getCityCode();
+				} else if (!StringUtils.isBlank(sourceBlogModel.getProvinceCode())) {
+					orgCode = sourceBlogModel.getProvinceCode();
+				} else {
+					orgCode = "";
+				}
+				
+				// 博客
+				BlogInfo blogInfo = new BlogInfo();
+				blogInfo.setBlogCode(blogCode);
+				blogInfo.setTenantCode(StringTools.formatToString(sourceBlogModel.getTenantCode()));
+				blogInfo.setOrgCode(StringTools.formatToString(orgCode));
+				blogInfo.setCreateTime(sourceBlogModel.getCreateTime() == null ? 0L : sourceBlogModel.getCreateTime().getTime());
+				blogInfo.setModifyTime(sourceBlogModel.getUpdatetime() == null ? 0L : sourceBlogModel.getUpdatetime().getTime());
+				blogInfo.setDynamicCode(UUIDHelper.getUUID());
+				blogInfo.setBlogAgentFlag(BlogConstants.BLOG_NO);
+				blogInfo.setBlogSource(BlogConstants.BLOG_SOURCE_ORIGINAL);
+				
+				// 从属关系
+				if (BlogConstants.BLOG_DEPEND_TEAM.equals(blogDepend)) {
+					blogInfo.setBlogDepend(BlogConstants.BLOG_DEPEND_TEAM);
+					blogInfo.setTeamCode(StringTools.formatToString(sourceBlogModel.getTeamCode()));
+				} else {
+					blogInfo.setBlogDepend(BlogConstants.BLOG_DEPEND_USER);
+				}
+				
+				blogInfo.setUserCode(StringTools.formatToString(sourceBlogModel.getUserCode()));
+				blogInfo.setBlogTitle(StringTools.formatToString(sourceBlogModel.getTitle()));
+				blogInfo.setBlogDigest(StringTools.formatToString(sourceBlogModel.getDigest()));
+				blogInfo.setClassCode(StringTools.formatToString(sourceBlogModel.getClassCode()));
+				blogInfo.setBlogPlanPublishTime(0L);
+				blogInfo.setBlogPublishTime(sourceBlogModel.getCreateTime() == null ? 0L : sourceBlogModel.getCreateTime().getTime());
+				blogInfo.setBlogLogo(StringTools.formatToString(sourceBlogModel.getBlogLogo()));
+				blogInfo.setBlogIsDelete(BlogConstants.BLOG_NO);
+				blogInfo.setBlogIsShield(BlogConstants.BLOG_NO);
+				
+				blogInfoList.add(blogInfo);
+				
+				// 博客数据表
+				BlogData blogData = new BlogData();
+				blogData.setDataCode(UUIDHelper.getUUID());
+				blogData.setTenantCode(StringTools.formatToString(sourceBlogModel.getTenantCode()));
+				blogData.setOrgCode(orgCode);
+				blogData.setCreateTime(sourceBlogModel.getCreateTime() == null ? 0L : sourceBlogModel.getCreateTime().getTime());
+				blogData.setModifyTime(sourceBlogModel.getUpdatetime() == null ? 0L : sourceBlogModel.getUpdatetime().getTime());
+				blogData.setBlogCode(blogCode);
+				blogData.setReadNum(sourceBlogModel.getViewNum());
+				
+				blogDataList.add(blogData);
+				
+				// 临时表
+				BlogTemp blogTemp = new BlogTemp();
+				blogTemp.setOldId(sourceBlogModel.getBlogId());
+				blogTemp.setBlogCode(blogCode);
+				blogTemp.setTenantCode(StringTools.formatToString(sourceBlogModel.getTenantCode()));
+				blogTemp.setOrgCode(orgCode);
+				blogTemp.setCreateTime(sourceBlogModel.getCreateTime() == null ? 0L : sourceBlogModel.getCreateTime().getTime());
+				blogTemp.setModifyTime(sourceBlogModel.getUpdatetime() == null ? 0L : sourceBlogModel.getUpdatetime().getTime());
+				
+				blogTempList.add(blogTemp);
+			}
+			
+			// 插入
+			if (!blogInfoList.isEmpty()) {
+				blogService.insertBlogList(blogInfoList, blogDataList, blogTempList);
+			}
+		} catch (Exception e) {
+			result = false;
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+
+	/**
+	 * 
+	 * @Title: insertSourceBlogContent  
+	 * @Description: 导入原博客内容数据
+	 * @return: boolean    返回类型
+	 */
+	private boolean insertSourceBlogContent() {
+		// 返回值
+		boolean result = true;
+		
+		try {
+			// 导入原博客内容数据
+			blogService.insertSourceBlogContent();
+		} catch (Exception e) {
+			result = false;
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+
+	/**
+	 * 
+	 * @Title: insertRelationSubjectData  
+	 * @Description: 导入关系内容数据
+	 * @return: boolean    返回类型
+	 */
+//	private boolean insertRelationSubjectData() {
+//		// 返回值
+//		boolean result = true;
+//		
+//		try {
+//			// 导入原博客内容数据
+//			blogService.insertRelationSubjectData();
+//		} catch (Exception e) {
+//			result = false;
+//			e.printStackTrace();
+//		}
+//		
+//		return result;
+//	}
+	
+}

@@ -1,0 +1,81 @@
+package com.zssq.team.controller;
+
+import java.util.Date;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.zssq.team.service.IHonorTeamService;
+import com.zssq.team.service.ITeamInfoService;
+import com.zssq.team.service.ITeamMemberService;
+
+@Controller
+@RequestMapping(value = "/team")  
+public class TeamController {
+	
+
+	@Autowired
+	private ITeamInfoService teamInfoservice;
+	
+	@Autowired
+	private ITeamMemberService teamMemberService;
+	
+	@Autowired
+	private IHonorTeamService honorTeamService;
+	
+	/**
+	 * @Function insert
+	 * @Description 班组信息
+	 * @param req
+	 * @param res
+	 * @return
+	 */
+	@RequestMapping(value = "/insert/info")  
+	@ResponseBody
+    public String insert(){
+		long start = new Date().getTime();
+		teamInfoservice.teamInfoInsert();
+		long end = new Date().getTime();
+		System.out.println("x=============================>"+(end - start));
+		return "success";
+	}
+	
+	
+	/**
+	 * @Function insertMember
+	 * @Description 班组成员
+	 * @param req
+	 * @param res
+	 * @return
+	 */
+	@RequestMapping(value = "/insert/member")  
+	@ResponseBody
+    public String insertMember(){
+		long start = new Date().getTime();
+		teamMemberService.teamMemberInsert();
+		long end = new Date().getTime();
+		System.out.println("x=============================>"+(end - start));
+		return "success";
+	}
+	
+	/**
+	 * @Function insertHonor
+	 * @Description 百强班组
+	 * @param req
+	 * @param res
+	 * @return
+	 */
+	@RequestMapping(value = "/insert/honor")  
+	@ResponseBody
+    public String insertHonor(){
+		long start = new Date().getTime();
+		honorTeamService.honorTeamInsert();
+		long end = new Date().getTime();
+		System.out.println("x=============================>"+(end - start));
+		return "success";
+	}
+	
+	
+}

@@ -1,0 +1,93 @@
+package com.zssq.dao.pojo;
+
+import java.util.List;
+
+import com.zssq.pojo.BasePage;
+
+public class TeamMember extends BasePage {
+	
+	private static final long serialVersionUID = 1L;
+
+	private Long id;
+
+    private String teamMemberCode;
+    
+    private List<String> teamMemberCodes;
+
+    private String teamCode;
+
+    private String userCode;
+
+    private Byte isLeader;
+
+    private String orgCode;
+
+//    private Byte orgLevel;
+    
+    private Long createTime;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getTeamMemberCode() {
+        return teamMemberCode;
+    }
+
+    public void setTeamMemberCode(String teamMemberCode) {
+        this.teamMemberCode = teamMemberCode == null ? null : teamMemberCode.trim();
+    }
+
+    public String getTeamCode() {
+        return teamCode;
+    }
+
+    public void setTeamCode(String teamCode) {
+        this.teamCode = teamCode == null ? null : teamCode.trim();
+    }
+
+    public String getUserCode() {
+        return userCode;
+    }
+
+    public void setUserCode(String userCode) {
+        this.userCode = userCode == null ? null : userCode.trim();
+    }
+
+    public Byte getIsLeader() {
+        return isLeader;
+    }
+
+    public void setIsLeader(Byte isLeader) {
+        this.isLeader = isLeader;
+    }
+
+    public String getOrgCode() {
+        return orgCode;
+    }
+
+    public void setOrgCode(String orgCode) {
+        this.orgCode = orgCode == null ? null : orgCode.trim();
+    }
+
+	public Long getCreateTime() {
+		return createTime;
+	}
+
+	public void setCreateTime(Long createTime) {
+		this.createTime = createTime;
+	}
+
+	public List<String> getTeamMemberCodes() {
+		return teamMemberCodes;
+	}
+
+	public void setTeamMemberCodes(List<String> teamMemberCodes) {
+		this.teamMemberCodes = teamMemberCodes;
+	}
+    
+}

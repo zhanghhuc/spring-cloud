@@ -1,0 +1,302 @@
+package com.zssq.relation.controller;
+
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.constants.RelationConstants;
+import com.zssq.dao.pojo.SysOrgInfo;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.dao.pojo.TeamInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.model.EtRelationQualityModel;
+import com.zssq.model.ResourceModel;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.relation.vo.GetPortalQualityListVO;
+import com.zssq.relation.vo.GetTeamQualityListVO;
+import com.zssq.service.ISysUserService;
+import com.zssq.service.ITeamInfoService;
+import com.zssq.service.RelationQualityService;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.utils.StringTools;
+import com.zssq.vo.RelationQualityVO;
+
+
+/**
+ * @ClassName RelationQualityH5Controller
+ * @Description 精华列表
+ * @author LXW
+ * @date 2017年5月25日 下午3:15:56
+ * @version 1.0
+ * @since JDK 1.7
+ */
+@Controller
+@RequestMapping("/relation")
+public class RelationQualityH5Controller {
+private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private RelationQualityService relationQualityService;
+	@Autowired
+	private ISysUserService sysUserService;
+	@Autowired
+	private ITeamInfoService teamInfoService;
+
+	
+
+
+	/**
+	 * @Function getTeamQualityList
+	 * @Description 获取班组精华列表
+	 * @param getTeamQualityListVO
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value="getTeamQualityList",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getTeamQualityList(@RequireValid GetTeamQualityListVO getTeamQualityListVO) throws BusinessException {
+		// 返回值
+		ResultJSON result = null;
+		try {
+			log.info("RelationQualityH5Controller.getTeamQualityList：获取班组精华列表");
+			
+			// 获取参数
+			Long queryTime = Long.valueOf(getTeamQualityListVO.getQueryTime());
+			String teamCode = getTeamQualityListVO.getTeamCode();
+			String userCode = getTeamQualityListVO.getUserCode();//当前用户
+			
+			// 查询班组精华列表参数
+			PageParam pageParam = new PageParam(Integer.valueOf(getTeamQualityListVO.getPageNo()), Integer.valueOf(getTeamQualityListVO.getPageSize()));
+			RelationQualityVO relationQualityVO =new RelationQualityVO();
+			relationQualityVO.setTeamCode(teamCode);
+			relationQualityVO.setUserCode(userCode);
+			relationQualityVO.setQueryTime(queryTime);
+			//查询
+			PageBean bean = relationQualityService.getTeamQualityList(pageParam, relationQualityVO);
+			JSONArray jsonArray = new JSONArray();
+			List<Object> recordList = bean.getRecordList();
+			if (null != recordList && !recordList.isEmpty()) {
+				for (Object object : recordList) {
+					EtRelationQualityModel quality = (EtRelationQualityModel) object;
+					if(quality!=null){
+						if (quality.getQualityCode() != null) {
+							JSONObject item = new JSONObject();
+							item.put("qualityCode", StringTools.formatToString(quality.getQualityCode()));//精华编号
+							item.put("subjectCode", StringTools.formatToString(quality.getSubjectCode()));//内容编号
+							item.put("dynamicCode", StringTools.formatToString(quality.getDynamicCode()));//动态编号
+							item.put("teamFrontShow", StringTools.formatToString(quality.getRelIsHomeShow()!=null ?quality.getRelIsHomeShow():RelationConstants.RELATION_NO));
+							item.put("subjectClass", StringTools.formatToString(quality.getSubjectClass()));//内容类型：1.微博；2.博客；
+							item.put("subjectDepend", StringTools.formatToString(quality.getSubjectDepend()));//内容从属关系：1.个人；2.班组
+							item.put("userCode", StringTools.formatToString(quality.getUserCode()));//内容发布人编号
+							// 发布人信息
+							// 发布人信息
+						    SysUserInfo selectByCode = sysUserService.selectByCode(quality.getUserCode());
+							SysUserInfo sysUserInfo = selectByCode!=null?selectByCode:new SysUserInfo();
+							if(quality.getSubjectDepend()==RelationConstants.RELATION_SUBJECT_DEPEND_USER){
+								//属于个人
+								SysOrgInfo manageOrgInfo = sysUserInfo.getManageOrgInfo();
+								SysOrgInfo orgInfo = manageOrgInfo!=null?manageOrgInfo:new SysOrgInfo();
+								item.put("orgCode", StringTools.formatToString(orgInfo.getSysOrgCode()));//内容发布人所属组织编号
+								item.put("orgName", StringTools.formatToString(orgInfo.getSysOrgName()));//内容发布人所属组织名称
+							}else if(quality.getSubjectDepend()==RelationConstants.RELATION_SUBJECT_DEPEND_TEAM){
+								//属于班组 
+								TeamInfo team = teamInfoService.selectByCode(quality.getSubjectTeamCode());
+								TeamInfo teamInfo = team!=null?team:new TeamInfo();
+								item.put("orgCode", StringTools.formatToString(teamInfo.getOrgCode()));//内容发布人所属组织编号
+								item.put("orgName", StringTools.formatToString(teamInfo.getTeamName()));//内容发布人所属组织名称
+							}	
+							item.put("userName", StringTools.formatToString(sysUserInfo.getUserName()));//内容发布人名称
+							item.put("userPhotoUrl", StringTools.formatToString(sysUserInfo.getHeadPortrait()));//内容发布人头像链接
+							
+							item.put("subjectPublishTime", StringTools.formatToString(quality.getSubjectPublishTime()));//内容发布时间
+							item.put("subjectTitle", StringTools.formatToString(quality.getSubjectTitle()));//内容标题
+							item.put("subjectDigest", StringTools.formatToString(quality.getSubjectDigest()));//内容摘要
+							item.put("subjectUrl", StringTools.formatToString(quality.getSubjectUrl()));//内容图片链接
+							item.put("teamQualityNum", StringTools.formatToString(quality.getTeamQualityNum()));//班组置精次数
+							item.put("groupQualityNum", StringTools.formatToString(quality.getGroupQualityNum()));//集团级别置精次数
+							item.put("provinceQualityNum", StringTools.formatToString(quality.getProvinceQualityNum()));//省级别置精次数
+							item.put("cityQualityNum", StringTools.formatToString(quality.getCityQualityNum()));//市级别置精次数
+							item.put("readNum", StringTools.formatToString(quality.getReadNum()));//浏览量
+							item.put("likeNum", StringTools.formatToString(quality.getLikeNum()));//点赞量
+							item.put("collectNum", StringTools.formatToString(quality.getCollectNum()));//收藏量
+							item.put("forwardNum", StringTools.formatToString(quality.getForwardNum()));//转发量
+							item.put("commentNum", StringTools.formatToString(quality.getCommentNum()));//评论量
+							item.put("shareNum", StringTools.formatToString(quality.getShareNum()));//分享量
+							item.put("qualityIsLike", StringTools.formatToString(quality.getQualityIsLike()));//是否点赞：0.否；1.是
+							item.put("qualityIsCollect", StringTools.formatToString(quality.getQualityIsCollect()));//是否收藏：0.否；1.是
+							
+							//获取资源集合
+							JSONArray resJSarray = new JSONArray();
+							List<ResourceModel> resList = quality.getResList();
+							for (ResourceModel resourceModel : resList) {
+								JSONObject resItem = new JSONObject();
+								resItem.put("resCode", StringTools.formatToString(resourceModel.getResCode()));//资源编号
+								resItem.put("resUrl", StringTools.formatToString(resourceModel.getResUrl()));//资源链接
+								resItem.put("resClass", StringTools.formatToString(resourceModel.getResClass()));//资源类型：1.图片；2.音频；3.视频；
+								resJSarray.add(resItem);
+							}
+							item.put("resList", resJSarray);//
+							jsonArray.add(item);
+						}
+					}
+				}
+			}
+			//出参
+			result = new ResultJSON("COMMON_200");
+			JSONObject body = new JSONObject();
+			
+			
+			// 调用接口查班组
+			TeamInfo selectByCode = teamInfoService.selectByCode(teamCode);
+			TeamInfo teamInfo = selectByCode!=null?selectByCode:new TeamInfo();
+			body.put("teamName", teamInfo.getTeamName());
+			body.put("teamCode",teamCode );
+			body.put("total", bean.getTotalCount());
+			body.put("qualityList", jsonArray);
+			log.info("RelationQualityH5Controller.getTeamQualityList ：获取班组精华列表成功");
+			result.setBody(body);
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("RelationQualityH5Controller.removeTeamQualityVO", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		return result;
+		
+	}
+	
+	
+	
+	
+	
+	/**
+	 * @Function getPortalQualityList
+	 * @Description 门户精华列表
+	 * @param inVo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value="getPortalQualityList",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getPortalQualityList(@RequireValid GetPortalQualityListVO inVo) throws BusinessException {
+		// 返回值
+		ResultJSON result = null;
+		try {
+			log.info("RelationQualityH5Controller.getPortalQualityList：获取门户精华列表");
+			
+			// 获取参数
+			Long queryTime = Long.valueOf(inVo.getQueryTime());
+			String orgCode = inVo.getOrgCode();//组织机构编码
+			String userCode = inVo.getUserCode();//当前用户
+			Byte subjectClass=0;
+			if(!"".equals(inVo.getSubjectClass())){
+				subjectClass= Byte.valueOf(inVo.getSubjectClass());
+			}
+			
+			// 查询班组精华列表参数
+			PageParam pageParam = new PageParam(Integer.valueOf(inVo.getPageNo()), Integer.valueOf(inVo.getPageSize()));
+			RelationQualityVO relationQualityVO =new RelationQualityVO();
+			relationQualityVO.setOrgCode(orgCode);
+			relationQualityVO.setUserCode(userCode);
+			relationQualityVO.setSubjectClass(subjectClass);
+			relationQualityVO.setQueryTime(queryTime);
+			//查询
+			PageBean bean = relationQualityService.getPortalQualityList(pageParam, relationQualityVO);
+			JSONArray jsonArray = new JSONArray();
+			List<Object> recordList = bean.getRecordList();
+			if (null != recordList && !recordList.isEmpty()) {
+				for (Object object : recordList) {
+					EtRelationQualityModel quality = (EtRelationQualityModel) object;
+					if(quality!=null){
+						if (quality.getQualityCode() != null) {
+							JSONObject item = new JSONObject();
+							item.put("qualityCode", StringTools.formatToString(quality.getQualityCode()));//精华编号
+							item.put("subjectCode", StringTools.formatToString(quality.getSubjectCode()));//内容编号
+							item.put("subjectClass", StringTools.formatToString(quality.getSubjectClass()));//内容类型：1.微博；2.博客；
+							item.put("subjectDepend", StringTools.formatToString(quality.getSubjectDepend()));//内容从属关系：1.个人；2.班组
+							item.put("userCode", StringTools.formatToString(quality.getUserCode()));//内容发布人编号
+							
+							// 发布人信息
+						    SysUserInfo selectByCode = sysUserService.selectByCode(quality.getUserCode());
+							SysUserInfo sysUserInfo = selectByCode!=null?selectByCode:new SysUserInfo();
+							if(quality.getSubjectDepend()==RelationConstants.RELATION_SUBJECT_DEPEND_USER){
+								//属于个人
+								SysOrgInfo manageOrgInfo = sysUserInfo.getManageOrgInfo();
+								SysOrgInfo orgInfo = manageOrgInfo!=null?manageOrgInfo:new SysOrgInfo();
+								item.put("orgCode", StringTools.formatToString(orgInfo.getSysOrgCode()));//内容发布人所属组织编号
+								item.put("orgName", StringTools.formatToString(orgInfo.getSysOrgName()));//内容发布人所属组织名称
+								item.put("teamCode", "");//内容发布人所属班组编号
+								item.put("teamName", "");//内容发布人所属班组名称
+							}else if(quality.getSubjectDepend()==RelationConstants.RELATION_SUBJECT_DEPEND_TEAM){
+								//属于班组 
+								item.put("orgCode", "");//内容发布人所属组织编号
+								item.put("orgName", "");//内容发布人所属组织名称
+								item.put("teamCode", StringTools.formatToString(quality.getSubjectTeamCode()));//内容发布人所属班组编号
+								// 调用接口查班组
+								TeamInfo selectByCode2 = teamInfoService.selectByCode(quality.getTeamCode());
+								TeamInfo teamInfo = selectByCode2!=null?selectByCode2:new TeamInfo();
+								item.put("teamName", StringTools.formatToString(teamInfo.getTeamName()));//内容发布人所属班组名称
+							}
+							item.put("userName", StringTools.formatToString(sysUserInfo.getUserName()));//内容发布人名称
+							item.put("userPhotoUrl", StringTools.formatToString(sysUserInfo.getHeadPortrait()));//内容发布人头像链接
+
+							item.put("subjectPublishTime", StringTools.formatToString(quality.getSubjectPublishTime()));//内容发布时间
+							item.put("subjectTitle", StringTools.formatToString(quality.getSubjectTitle()));//内容标题
+							item.put("subjectDigest", StringTools.formatToString(quality.getSubjectDigest()));//内容摘要
+							item.put("subjectUrl", StringTools.formatToString(quality.getSubjectUrl()));//内容图片链接
+							item.put("teamQualityNum", StringTools.formatToString(quality.getTeamQualityNum()));//班组置精次数
+							item.put("groupQualityNum", StringTools.formatToString(quality.getGroupQualityNum()));//集团级别置精次数
+							item.put("provinceQualityNum", StringTools.formatToString(quality.getProvinceQualityNum()));//省级别置精次数
+							item.put("cityQualityNum", StringTools.formatToString(quality.getCityQualityNum()));//市级别置精次数
+							item.put("readNum", StringTools.formatToString(quality.getReadNum()));//浏览量
+							item.put("likeNum", StringTools.formatToString(quality.getLikeNum()));//点赞量
+							item.put("collectNum", StringTools.formatToString(quality.getCollectNum()));//收藏量
+							item.put("forwardNum", StringTools.formatToString(quality.getForwardNum()));//转发量
+							item.put("commentNum", StringTools.formatToString(quality.getCommentNum()));//评论量
+							item.put("shareNum", StringTools.formatToString(quality.getShareNum()));//分享量
+							item.put("qualityIsLike", StringTools.formatToString(quality.getQualityIsLike()));//是否点赞：0.否；1.是
+							item.put("qualityIsCollect", StringTools.formatToString(quality.getQualityIsCollect()));//是否收藏：0.否；1.是
+							
+							//获取资源集合
+							JSONArray resJSarray = new JSONArray();
+							List<ResourceModel> resList = quality.getResList();
+							for (ResourceModel resourceModel : resList) {
+								JSONObject resItem = new JSONObject();
+								resItem.put("resCode", StringTools.formatToString(resourceModel.getResCode()));//资源编号
+								resItem.put("resUrl", StringTools.formatToString(resourceModel.getResUrl()));//资源链接
+								resItem.put("resClass", StringTools.formatToString(resourceModel.getResClass()));//资源类型：1.图片；2.音频；3.视频；
+								resJSarray.add(resItem);
+							}
+							item.put("resList", resJSarray);//
+							jsonArray.add(item);
+						}
+					}
+				}
+			}
+			//出参
+			result = new ResultJSON("COMMON_200");
+			JSONObject body = new JSONObject();
+			body.put("total", bean.getTotalCount());
+			body.put("qualityList", jsonArray);
+			log.info("RelationQualityH5Controller.getPortalQualityList：获取门户精华列表成功");
+			result.setBody(body);
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("RelationQualityH5Controller.getPortalQualityList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		return result;
+		
+	}
+	
+}

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.mblog.dao.mapper.MblogNumMapper" >
+  
+  <!-- 批处理 -->
+  <insert id="batchInsert" parameterType="com.zssq.mblog.pojo.MblogNum">
+	insert into mblog_num (
+		id, 
+		subject_code,
+      	mblog_num_code, 
+      	create_time, 
+      	modify_time, remark, 
+      	num_source, 
+      	praise_num, 
+      	comment_num, 
+      	collect_num, 
+      	recommend_num, 
+      	report_num, 
+      	forward_num,
+      	reply_num,
+      	team_essence_num,
+      	city_essence_num,
+      	province_essence_num,
+      	group_essence_num
+      )
+	values 
+	<foreach collection="list" item="item" index="index" separator=",">
+		(
+			#{item.id,jdbcType=BIGINT}, 
+    		#{item.subjectCode,jdbcType=VARCHAR},
+    		#{item.mblogNumCode,jdbcType=VARCHAR}, 
+    		#{item.createTime,jdbcType=BIGINT}, 
+    		#{item.modifyTime,jdbcType=BIGINT}, 
+    		#{item.remark,jdbcType=VARCHAR}, 
+    		#{item.numSource,jdbcType=TINYINT} ,
+    		#{item.praiseNum,jdbcType=INTEGER},
+    		#{item.commentNum,jdbcType=INTEGER},
+    		#{item.collectNum,jdbcType=INTEGER},
+    		#{item.recommendNum,jdbcType=INTEGER},
+    		#{item.reportNum,jdbcType=INTEGER},
+    		#{item.forwardNum,jdbcType=INTEGER},
+    		#{item.replyNum,jdbcType=INTEGER},
+    		#{item.teamEssenceNum,jdbcType=INTEGER},
+    		#{item.cityEssenceNum,jdbcType=INTEGER},
+    		#{item.provinceEssenceNum,jdbcType=INTEGER},
+    		#{item.groupEssenceNum,jdbcType=INTEGER}
+    	)
+	</foreach>
+  </insert>
+  <select id="selectNumCount" resultType="java.lang.Integer">
+  	SELECT
+  		COUNT(*)
+  	FROM
+  		transfer_id_code
+  </select>
+  <insert id="insertIntoSelect" parameterType="java.util.Map">
+  		insert into mblog_num (
+			subject_code,
+	      	mblog_num_code, 
+	      	create_time, 
+	      	modify_time, 
+	      	remark, 
+	      	num_source, 
+	      	praise_num, 
+	      	comment_num, 
+	      	collect_num, 
+	      	recommend_num, 
+	      	report_num, 
+	      	forward_num,
+	      	reply_num,
+	      	team_essence_num,
+	      	city_essence_num,
+	      	province_essence_num,
+	      	group_essence_num
+	      )
+	      (
+	      	SELECT
+	      		mblog_code,
+	      		replace(UUID(),'-',''),
+	      		put_time,
+	      		put_time,
+	      		'',
+	      		1,
+	      		0,
+	      		com_num,
+	      		0,
+	      		0,
+	      		0,
+	      		for_num,
+	      		0,
+	      		0,
+	      		0,
+	      		0,
+	      		0
+	      	FROM
+	      		transfer_id_code
+	      	ORDER BY mblog_id
+	      	LIMIT
+	      		#{startPage},#{pageSize}
+	      )
+  </insert>
+</mapper>

@@ -1,0 +1,31 @@
+<tr>
+	<th align="center" valign="middle">任务名称</th>
+	<th align="center" valign="middle">任务状态</th>
+	<th align="center" valign="middle">任务数据总数</th>
+	<th align="center" valign="middle">任务总页数</th>
+	<th align="center" valign="middle">任务执行页数</th>
+	<th align="center" valign="middle">开始时间</th>
+	<th align="center" valign="middle">结束时间</th>
+	<th align="center" valign="middle">失败时间</th>
+	<th align="center" valign="middle">操作</th>
+</tr>
+<%if(taskList != null){%>
+	<%for(var i = 0;i < taskList.length;i++){%>
+		<tr>
+			<td align="center" valign="middle"><%=taskList[i]["taskName"]%></td>
+			<td align="center" valign="middle"><%=taskList[i]["taskStatusView"]%></td>
+			<td align="center" valign="middle"><%=taskList[i]["totalCount"]%></td>
+			<td align="center" valign="middle"><%=taskList[i]["totalPage"]%></td>
+			<td align="center" valign="middle"><%=taskList[i]["pageNo"]%></td>
+			<td align="center" valign="middle"><%=taskList[i]["startTime"]%></td>
+			<td align="center" valign="middle"><%=taskList[i]["endTime"]%></td>
+			<td align="center" valign="middle"><%=taskList[i]["failTime"]%></td>
+			<td align="center" valign="middle">
+				<%if(taskList[i]["taskStatus"] == 4){%>
+					<a href="javascript:void(0);" onclick="_execute(<%=taskList[i]["taskType"]%>,<%=taskList[i]["pageNo"]%>);">重新开始</a>
+				<%}%>
+			</td>
+			
+		</tr>
+	<%}%>
+<%}%>

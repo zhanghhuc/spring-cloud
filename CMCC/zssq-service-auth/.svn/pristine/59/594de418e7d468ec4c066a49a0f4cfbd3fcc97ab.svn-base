@@ -1,0 +1,221 @@
+package com.zssq.service.impl;
+
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.common.cache.client.JedisClusterService;
+import com.zssq.constants.AuthConstants;
+import com.zssq.dao.mapper.SaasTenantInfoMapper;
+import com.zssq.dao.mapper.SaasTenantMapper;
+import com.zssq.dao.mapper.SysMenuMapper;
+import com.zssq.dao.pojo.SaasTenantInfo;
+import com.zssq.dao.pojo.SysAdminInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.pojo.Message;
+import com.zssq.service.ISaasTenantService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.DateUtils;
+import com.zssq.utils.PropertiesUtil;
+
+/**
+ * Saas用户登录以及对租户操作的业务处理组件
+ * 
+ * @since  JDK 1.7
+ * @author 赵翊
+ */
+@Service("saasTenantService")
+public class SaasTenantServiceImpl implements ISaasTenantService {
+
+	/** 日志记录操作 */
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	/** Saas租户持久化操作接口 */
+	@Autowired
+	private SaasTenantMapper saasTenantMapper;
+	
+	@Autowired
+	private SaasTenantInfoMapper saasTenantInfoMapper;
+	
+	/** 菜单信息持久化操作接口 */
+	@Autowired
+	private SysMenuMapper sysMenuMapper;
+	
+	/** Redis 缓存服务操作 */
+	@Autowired
+	private JedisClusterService jedisClusterService;
+	
+	@Override
+	public SysAdminInfo saasLogin(String adminAccount, String adminPass, String adminType) throws BusinessException {
+		
+		try {
+			SysAdminInfo searchParam = new SysAdminInfo();
+			searchParam.setAdminAccount(adminAccount);
+			searchParam.setAdminType(Byte.valueOf(adminType));
+			// 根据登录帐号，从管理员信息表中获取Saas帐号，判断密码是否匹配
+			SysAdminInfo sysAdminInfo = saasTenantMapper.selectByAccount(searchParam);
+			
+			// 帐号密码验证通过时，为其生成token，并将该token存至缓存服务器
+			if(sysAdminInfo != null && StringUtils.equals(adminPass, sysAdminInfo.getAdminPass())) {
+				String token = "saas" + new Date().getTime();								
+				sysAdminInfo.setToken(token);
+				
+				List<String> permissions = sysMenuMapper.selectUserPermissions(adminAccount);
+				sysAdminInfo.setPermissions(permissions);
+				
+				// 以管理员帐号为键，将Saas帐号存入缓存
+				jedisClusterService.setObject(adminAccount, sysAdminInfo, 0);
+				
+				return sysAdminInfo;
+			} 
+			return null;
+		} catch (Exception e) {
+			log.error("Saas管理员登录出错", e);
+			throw new BusinessException("Saas管理员登录出错", e);
+		}
+	}
+	
+	@Override
+	public Long saasLogout(String adminAccount) throws BusinessException {
+		
+		try {
+			return jedisClusterService.delObject(adminAccount);
+		} catch (Exception e) {
+			log.error("Saas管理员退出登录出错", e);
+			throw new BusinessException("Saas管理员退出登录出错", e);
+		}
+	}
+	
+	@Override
+	public String selectSaasToken(String saasAccount) throws BusinessException {
+		
+		try {
+			return jedisClusterService.get("Saas" + saasAccount);
+		} catch (Exception e) {
+			log.error("获取Saas用户token出错", e);
+			throw new BusinessException("获取Saas用户token出错", e);
+		}
+	}
+
+	/**
+	 * 新增租户
+	 * @see com.zssq.service.ISaasTenantService#addTenant(java.lang.String, java.lang.String, java.lang.String)
+	 */
+	@Override
+	public Boolean addTenant(String name,String acount,String pass) throws BusinessException {
+		try {
+			SaasTenantInfo tenantInfo = new SaasTenantInfo();
+			tenantInfo.setSaasTenantCode(UUIDHelper.getUUID());
+			tenantInfo.setSaasTenantName(name);
+			tenantInfo.setCreateTime(DateUtils.getFormatDateLong());
+			tenantInfo.setIsEnable(AuthConstants.BOOLEAN_TRUE);
+			SysAdminInfo adminInfo = new SysAdminInfo();
+			adminInfo.setAdminAccount(acount);
+			adminInfo.setAdminPass(pass);
+			adminInfo.setAdminType(AuthConstants.ADMIN_TYPE_2);
+			adminInfo.setTenantCode(tenantInfo.getSaasTenantCode());
+			adminInfo.setCreateTime(DateUtils.getFormatDateLong());
+			adminInfo.setModifyTime(DateUtils.getFormatDateLong());
+			adminInfo.setIsEnable(AuthConstants.BOOLEAN_TRUE);
+			saasTenantInfoMapper.insertSelective(tenantInfo);
+			return saasTenantMapper.insertSelective(adminInfo) == 1;
+		}catch (Exception e) {
+			if(e.getMessage().contains("Duplicate entry")){
+				Message message = null;
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10004);
+				throw new BusinessException(message.getCode(), String.format(message.getTip(), "新增租户","登录账户重复"));
+			}else{
+				throw new BusinessException("新增租户出错", e);
+			}
+		}
+	}
+
+	@Override
+	public Object selectByRedisKey(String key) throws BusinessException {
+
+		try {
+			return jedisClusterService.getObject(key);
+		} catch (Exception e) {
+			log.error("根据key从缓存服务器中获取数据出错", e);
+			throw new BusinessException("根据key从缓存服务器中获取数据出错", e);
+		}
+	}
+
+	/**
+	 * 返回租户集合
+	 * @see com.zssq.service.ISaasTenantService#selectTenant()
+	 */
+	@Override
+	public List<SaasTenantInfo> selectTenant() throws BusinessException {
+		try {
+			return saasTenantInfoMapper.selectTenant();
+		} catch (Exception e) {
+			log.error("根据key从缓存服务器中获取数据出错", e);
+			throw new BusinessException("根据key从缓存服务器中获取数据出错", e);
+		}
+	}
+
+	/**
+	 * 租户启禁用
+	 * @see com.zssq.service.ISaasTenantService#setTenantState(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public boolean setTenantState(String tenants,String isEnable) throws BusinessException {
+		try {
+			List<String> codes = Arrays.asList(tenants.split(","));
+			SaasTenantInfo record = new SaasTenantInfo();
+			record.setIsEnable(Byte.parseByte(isEnable));
+			record.setSaasTenantCodes(codes);
+			return saasTenantInfoMapper.setTenantState(record) > 0;
+		} catch (Exception e) {
+			log.error("租户启禁用出错", e);
+			throw new BusinessException("租户启禁用出错", e);
+		}
+	}
+
+	/**
+	 * 租户修改密码
+	 * @see com.zssq.service.ISaasTenantService#updatePassword(com.zssq.dao.pojo.SysAdminInfo)
+	 */
+	@Override
+	public boolean updatePassword(String account,String pass) throws BusinessException {
+		try {
+			SysAdminInfo record = new SysAdminInfo();
+			record.setAdminAccount(account);
+			record.setAdminPass(pass);
+			return saasTenantMapper.updatePassword(record) > 0;
+		} catch (Exception e) {
+			log.error("租户启禁用出错", e);
+			throw new BusinessException("租户启禁用出错", e);
+		}
+	}
+
+	@Override
+	public boolean updateSaasPass(String saasAccount, String oldPass, String newPass) throws BusinessException {
+		try {
+			SysAdminInfo searchParam = new SysAdminInfo();
+			searchParam.setAdminAccount(saasAccount);
+			SysAdminInfo sysAdminInfo = saasTenantMapper.selectByAccount(searchParam);
+			if(sysAdminInfo != null && StringUtils.equals(oldPass, sysAdminInfo.getAdminPass())) {
+				SysAdminInfo record = new SysAdminInfo();
+				record.setAdminAccount(saasAccount);
+				record.setAdminPass(newPass);
+				return saasTenantMapper.updatePassword(record) == 1;
+			}else{
+				Message message = null;
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10004);
+				throw new BusinessException(message.getCode(), String.format(message.getTip(), "SaaS修改密码","原始密码不正确"));
+			} 
+		} catch (BusinessException e){
+			throw e;
+		} catch (Exception e) {
+			log.error("Saas修改密码出错", e);
+			throw new BusinessException("Saas修改密码出错", e);
+		}
+	}
+}

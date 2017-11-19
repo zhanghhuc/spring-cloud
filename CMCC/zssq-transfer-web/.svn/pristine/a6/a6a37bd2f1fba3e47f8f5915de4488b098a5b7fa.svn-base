@@ -1,0 +1,27 @@
+driver=com.mysql.jdbc.Driver
+validationQuery=SELECT 1
+
+#\u5FAE\u535A\u6570\u636E\u5E93\u8FDE\u63A5\u4FE1\u606F
+mblog.url=jdbc:mysql://172.16.126.180:3306/zssq_mblog_1?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
+mblog.username=root
+mblog.password=123456
+
+#\u6388\u6743\u6570\u636E\u5E93\u8FDE\u63A5\u4FE1\u606F
+auth.url=jdbc:mysql://127.0.0.1:3306/zssq_auth?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
+auth.username=root
+auth.password=
+
+#\u6295\u7968\u6570\u636E\u5E93\u8FDE\u63A5\u4FE1\u606F
+vote.url=jdbc:mysql://172.16.126.180:3306/zssq_vote_transfer?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
+vote.username=root
+vote.password=123456
+
+#\u8BBA\u575B\u6570\u636E\u5E93\u8FDE\u63A5\u4FE1\u606F
+forum.url=jdbc:mysql://172.16.126.138:3306/zssq_forum_transfer?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
+forum.username=root
+forum.password=123456
+
+#\u535A\u5BA2\u6570\u636E\u5E93\u8FDE\u63A5\u4FE1\u606F
+blog.url=jdbc:mysql://localhost:3306/zssq_blog?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
+blog.username=root
+blog.password=123456

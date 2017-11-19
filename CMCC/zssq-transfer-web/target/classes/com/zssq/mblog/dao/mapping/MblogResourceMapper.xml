@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.mblog.dao.mapper.MblogResourceMapper" >
+  <!-- 批处理 -->
+  <insert id="batchInsert" parameterType="com.zssq.mblog.pojo.MblogResource">
+	insert into
+		mblog_resource
+		(
+			id, 
+			mblog_recource_code, 
+			create_time, 
+	      	modify_time, 
+	      	remark, 
+	      	org_code, 
+	       	mblog_code, 
+	       	res_type, 
+	      	tenant_code, 
+	      	content
+	     )
+	values 
+	<foreach collection="list" item="item" index="index" separator=",">
+		(
+			#{item.id,jdbcType=BIGINT}, 
+			#{item.mblogRecourceCode,jdbcType=VARCHAR}, 
+			#{item.createTime,jdbcType=BIGINT}, 
+	      	#{item.modifyTime,jdbcType=BIGINT}, 
+	      	#{item.remark,jdbcType=VARCHAR}, 
+	      	#{item.orgCode,jdbcType=VARCHAR}, 
+	       	#{item.mblogCode,jdbcType=VARCHAR}, 
+	       	#{item.resType,jdbcType=TINYINT}, 
+	      	#{item.tenantCode,jdbcType=VARCHAR}, 
+	      	#{item.content,jdbcType=LONGVARCHAR})
+	</foreach>
+  </insert>
+  
+ <insert id="insertIntoImg" parameterType="java.util.Map">
+ 	<include refid="intoImgSourceInfo" />
+ </insert>
+ <insert id="insertIntoVideo" parameterType="java.util.Map">
+ 	<include refid="intoVideoSourceInfo" />
+ </insert>
+ <insert id="insertIntoMusic" parameterType="java.util.Map">
+ 	<include refid="intoMusicSourceInfo" />
+ </insert>
+ 
+ <select id="selectImgCount" resultType="java.lang.Integer">
+ 	SELECT 
+ 		COUNT(*)
+ 	FROM
+ 		transfer_mblog_image
+ </select>
+ 
+ 
+ <select id="selectVideoCount" resultType="java.lang.Integer">
+ 	SELECT 
+ 		COUNT(*)
+ 	FROM
+ 		transfer_mblog_video
+ </select>
+ 
+ <select id="selectMusicCount" resultType="java.lang.Integer">
+ 	SELECT 
+ 		COUNT(*)
+ 	FROM
+ 		transfer_mblog_music
+ </select>
+ 
+ <sql id="intoImgSourceInfo">
+  		INSERT INTO
+	  		mblog_resource
+			( 
+				mblog_recource_code, 
+				create_time, 
+		      	modify_time, 
+		      	remark, 
+		      	org_code, 
+		       	mblog_code, 
+		       	res_type, 
+		      	tenant_code, 
+		      	content
+		     )
+		     (
+		     	SELECT
+		     		replace(UUID(),'-',''),
+		     		IFNULL(put_time,0),
+		     		IFNULL(put_time,0),
+		     		'',
+		     		IFNULL(org_code,''),
+		     		IFNULL(mblog_code,''),
+		     		2,
+		     		IFNULL(tenant_code,''),
+		     		IMG_URL
+		     	FROM
+		     		(
+		     			SELECT
+		     				ID,
+		     				IMG_URL,
+		     				MBLOG_ID
+		     			FROM
+		     				transfer_mblog_image
+		     			ORDER BY ID
+		     			LIMIT
+		     				#{startPage},#{pageSize}
+		     				
+		     		) AS trImg
+		     		
+		     		LEFT JOIN 
+		     		
+		     		(
+		     			SELECT
+		     				mblog_id,
+		     				mblog_code,
+		     				org_code,
+		     				tenant_code,
+		     				put_time
+		     			FROM
+		     				transfer_id_code
+		     		) AS idCode
+		     		
+		     		ON trImg.MBLOG_ID = idCode.mblog_id
+		     	WHERE
+		     		idCode.mblog_id != null
+		     )
+  
+  </sql>
+  
+  <sql id="intoVideoSourceInfo">
+  		INSERT INTO
+	  		mblog_resource
+			( 
+				mblog_recource_code, 
+				create_time, 
+		      	modify_time, 
+		      	remark, 
+		      	org_code, 
+		       	mblog_code, 
+		       	res_type, 
+		      	tenant_code, 
+		      	content
+		     )
+		     (
+		     	SELECT
+		     		replace(UUID(),'-',''),
+		     		put_time,
+		     		put_time,
+		     		'',
+		     		org_code,
+		     		mblog_code,
+		     		4,
+		     		tenant_code,
+		     		VIDEO_URL
+		     	FROM
+		     		(
+		     			SELECT
+		     				mblog_id,
+		     				mblog_code,
+		     				org_code,
+		     				tenant_code,
+		     				put_time,
+		     				video_id
+		     			FROM
+		     				transfer_id_code
+		     			WHERE
+		     				video_id != null
+		     			ORDER BY mblog_id
+		     			LIMIT
+		     				#{startPage},#{pageSize}
+		     		) AS idCode
+		     		LEFT JOIN
+		     			transfer_mblog_video AS trVideo
+		     		ON trVideo.ID = idCode.video_id
+		     )
+  
+  </sql>
+  
+  <sql id="intoMusicSourceInfo">
+  		INSERT INTO
+	  		mblog_resource
+			( 
+				mblog_recource_code, 
+				create_time, 
+		      	modify_time, 
+		      	remark, 
+		      	org_code, 
+		       	mblog_code, 
+		       	res_type, 
+		      	tenant_code, 
+		      	content
+		     )
+		     (
+		     	SELECT
+		     		replace(UUID(),'-',''),
+		     		put_time,
+		     		put_time,
+		     		'',
+		     		org_code,
+		     		mblog_code,
+		     		3,
+		     		tenant_code,
+		     		MUSIC_URL
+		     	FROM
+		     		(
+		     			SELECT
+		     				mblog_id,
+		     				mblog_code,
+		     				org_code,
+		     				tenant_code,
+		     				put_time,
+		     				music_id
+		     			FROM
+		     				transfer_id_code
+		     			WHERE
+		     				music_id != null
+		     			ORDER BY mblog_id
+		     			LIMIT
+		     				#{startPage},#{pageSize}
+		     		) AS idCode
+		     		LEFT JOIN
+		     			transfer_mblog_music AS trMusic
+		     		ON trMusic.ID = idCode.music_id
+		     )
+  </sql>
+  
+  
+  
+</mapper>

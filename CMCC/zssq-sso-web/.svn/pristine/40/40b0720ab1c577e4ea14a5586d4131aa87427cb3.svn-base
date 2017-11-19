@@ -1,0 +1,132 @@
+package com.zssq.sso.controller;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.dao.pojo.SSO;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.pojo.Login;
+import com.zssq.pojo.Logout;
+import com.zssq.pojo.Message;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.ISSOService;
+import com.zssq.utils.DESUtil;
+import com.zssq.utils.PropertiesUtil;
+
+@Controller  
+@RequestMapping("/sso")
+public class SSOController {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private ISSOService ssoService;  
+	
+	@RequestMapping("/certification")  
+	@ResponseBody
+    public ResultJSON certification(HttpServletRequest request,HttpServletResponse response,@RequireValid Login param) throws BusinessException{  
+		Message m = null;
+		ResultJSON rj = new ResultJSON();
+		
+		try {
+			String uidPassword = "";
+			//解密
+			String uid = DESUtil.decrypt(param.getUserCode());
+			if(param.getUidPassword() != null && !"".equals(param.getUidPassword())){
+				uidPassword = DESUtil.decrypt(param.getUidPassword());
+			}
+			String app = DESUtil.decrypt(param.getApp());
+			String ticket = DESUtil.decrypt(param.getToken());
+//			String isClient = DESUtil.decrypt(param.getIsClient());
+			
+			System.out.println(uid + "-" + uidPassword + "-" + app);
+			
+			String newTicket = ssoService.certification(uid, uidPassword, app,ticket);
+			
+			if("".equals(newTicket)){ //认证失败
+				m = PropertiesUtil.getMessage("SSO_0004");
+			}else{
+		    	m = PropertiesUtil.getMessage("COMMON_200");
+			}
+			
+			JSONObject jo = new JSONObject();
+        	jo.put("token", newTicket.replace("@", ""));
+            
+            rj.setReturnCode(m.getCode());
+            rj.setReturnTip(m.getTip());
+            rj.setBody(jo);
+	    	
+            log.info("SSOController.certification:票据发送成功" + ticket);
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			throw BusinessException.build("SSO_0001", "发送票据");
+		}
+		
+        return rj;
+	}
+	
+	@RequestMapping("/logout")  
+	@ResponseBody
+    public ResultJSON logout(HttpServletRequest request,HttpServletResponse response,@RequireValid Logout param) throws BusinessException{
+		Message m = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			String uid = DESUtil.decrypt(param.getUserCode());
+			String app = DESUtil.decrypt(param.getApp());
+			String ticket = DESUtil.decrypt(param.getToken());
+			
+			ssoService.logout(uid,app,ticket);
+			
+	    	m = PropertiesUtil.getMessage("COMMON_200");
+	    	
+	    	rj.setReturnCode(m.getCode());
+            rj.setReturnTip(m.getTip());
+            rj.setBody(new JSONObject());
+            
+            log.info("SSOController.logout:注销成功，" + uid + "-" + app);
+			
+		} catch (Exception e) {
+			throw BusinessException.build("SSO_0001", "注销");
+		}
+		
+		return rj;
+	}
+	
+	@RequestMapping("/getLoginInfo")  
+	@ResponseBody
+    public ResultJSON getLoginInfo(HttpServletRequest request,HttpServletResponse response) throws BusinessException{
+		Message m = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			List<SSO> ssos = ssoService.updateInfo();
+			
+	    	m = PropertiesUtil.getMessage("COMMON_200");
+	    	
+	    	JSONObject jo = new JSONObject();
+        	jo.put("ssos", ssos);
+	    	
+	    	rj.setReturnCode(m.getCode());
+            rj.setReturnTip(m.getTip());
+            rj.setBody(jo);
+            
+            log.info("SSOController.getLoginInfo:获取用户登录信息成功");
+			
+		} catch (Exception e) {
+			throw BusinessException.build("SSO_0001", "获取用户登录信息");
+		}
+		
+		return rj;
+	}
+	
+}

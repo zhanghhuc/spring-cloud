@@ -1,0 +1,469 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.vote.dao.mapper.VoteJoinAuthMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.vote.pojo.VoteJoinAuth" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="CODE" property="code" jdbcType="VARCHAR" />
+    <result column="is_disable" property="isDisable" jdbcType="TINYINT" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="org_level" property="orgLevel" jdbcType="TINYINT" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="vote_info_code" property="voteInfoCode" jdbcType="VARCHAR" />
+    <result column="range_type" property="rangeType" jdbcType="TINYINT" />
+    <result column="is_cascade" property="isCascade" jdbcType="TINYINT" />
+    <result column="g_range_code" property="gRangeCode" jdbcType="VARCHAR" />
+    <result column="g_range_name" property="gRangeName" jdbcType="VARCHAR" />
+    <result column="p_range_code" property="pRangeCode" jdbcType="VARCHAR" />
+    <result column="p_range_name" property="pRangeName" jdbcType="VARCHAR" />
+    <result column="c_range_code" property="cRangeCode" jdbcType="VARCHAR" />
+    <result column="c_range_name" property="cRangeName" jdbcType="VARCHAR" />
+    <result column="t_range_code" property="tRangeCode" jdbcType="VARCHAR" />
+    <result column="t_range_name" property="tRangeName" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, CODE, is_disable, is_delete, tenant_code, org_code, org_level, create_time, modify_time, 
+    remark, vote_info_code, range_type, is_cascade, g_range_code, g_range_name, p_range_code, 
+    p_range_name, c_range_code, c_range_name, t_range_code, t_range_name
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.zssq.vote.pojo.VoteJoinAuthExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from vote_join_auth
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+    <if test="limitStart != null and limitStart>=0" >
+      limit #{limitStart} , #{limitEnd}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from vote_join_auth
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from vote_join_auth
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.zssq.vote.pojo.VoteJoinAuthExample" >
+    delete from vote_join_auth
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.zssq.vote.pojo.VoteJoinAuth" >
+    insert into vote_join_auth (id, CODE, is_disable, 
+      is_delete, tenant_code, org_code, 
+      org_level, create_time, modify_time, 
+      remark, vote_info_code, range_type, 
+      is_cascade, g_range_code, g_range_name, 
+      p_range_code, p_range_name, c_range_code, 
+      c_range_name, t_range_code, t_range_name
+      )
+    values (#{id,jdbcType=BIGINT}, #{code,jdbcType=VARCHAR}, #{isDisable,jdbcType=TINYINT}, 
+      #{isDelete,jdbcType=TINYINT}, #{tenantCode,jdbcType=VARCHAR}, #{orgCode,jdbcType=VARCHAR}, 
+      #{orgLevel,jdbcType=TINYINT}, #{createTime,jdbcType=BIGINT}, #{modifyTime,jdbcType=BIGINT}, 
+      #{remark,jdbcType=VARCHAR}, #{voteInfoCode,jdbcType=VARCHAR}, #{rangeType,jdbcType=TINYINT}, 
+      #{isCascade,jdbcType=TINYINT}, #{gRangeCode,jdbcType=VARCHAR}, #{gRangeName,jdbcType=VARCHAR}, 
+      #{pRangeCode,jdbcType=VARCHAR}, #{pRangeName,jdbcType=VARCHAR}, #{cRangeCode,jdbcType=VARCHAR}, 
+      #{cRangeName,jdbcType=VARCHAR}, #{tRangeCode,jdbcType=VARCHAR}, #{tRangeName,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.vote.pojo.VoteJoinAuth" >
+    insert into vote_join_auth
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="code != null" >
+        CODE,
+      </if>
+      <if test="isDisable != null" >
+        is_disable,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="orgLevel != null" >
+        org_level,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="voteInfoCode != null" >
+        vote_info_code,
+      </if>
+      <if test="rangeType != null" >
+        range_type,
+      </if>
+      <if test="isCascade != null" >
+        is_cascade,
+      </if>
+      <if test="gRangeCode != null" >
+        g_range_code,
+      </if>
+      <if test="gRangeName != null" >
+        g_range_name,
+      </if>
+      <if test="pRangeCode != null" >
+        p_range_code,
+      </if>
+      <if test="pRangeName != null" >
+        p_range_name,
+      </if>
+      <if test="cRangeCode != null" >
+        c_range_code,
+      </if>
+      <if test="cRangeName != null" >
+        c_range_name,
+      </if>
+      <if test="tRangeCode != null" >
+        t_range_code,
+      </if>
+      <if test="tRangeName != null" >
+        t_range_name,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="code != null" >
+        #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="isDisable != null" >
+        #{isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="voteInfoCode != null" >
+        #{voteInfoCode,jdbcType=VARCHAR},
+      </if>
+      <if test="rangeType != null" >
+        #{rangeType,jdbcType=TINYINT},
+      </if>
+      <if test="isCascade != null" >
+        #{isCascade,jdbcType=TINYINT},
+      </if>
+      <if test="gRangeCode != null" >
+        #{gRangeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="gRangeName != null" >
+        #{gRangeName,jdbcType=VARCHAR},
+      </if>
+      <if test="pRangeCode != null" >
+        #{pRangeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="pRangeName != null" >
+        #{pRangeName,jdbcType=VARCHAR},
+      </if>
+      <if test="cRangeCode != null" >
+        #{cRangeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="cRangeName != null" >
+        #{cRangeName,jdbcType=VARCHAR},
+      </if>
+      <if test="tRangeCode != null" >
+        #{tRangeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tRangeName != null" >
+        #{tRangeName,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.zssq.vote.pojo.VoteJoinAuthExample" resultType="java.lang.Integer" >
+    select count(*) from vote_join_auth
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update vote_join_auth
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.code != null" >
+        CODE = #{record.code,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDisable != null" >
+        is_disable = #{record.isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="record.isDelete != null" >
+        is_delete = #{record.isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="record.tenantCode != null" >
+        tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgCode != null" >
+        org_code = #{record.orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgLevel != null" >
+        org_level = #{record.orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.modifyTime != null" >
+        modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.remark != null" >
+        remark = #{record.remark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.voteInfoCode != null" >
+        vote_info_code = #{record.voteInfoCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.rangeType != null" >
+        range_type = #{record.rangeType,jdbcType=TINYINT},
+      </if>
+      <if test="record.isCascade != null" >
+        is_cascade = #{record.isCascade,jdbcType=TINYINT},
+      </if>
+      <if test="record.gRangeCode != null" >
+        g_range_code = #{record.gRangeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.gRangeName != null" >
+        g_range_name = #{record.gRangeName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pRangeCode != null" >
+        p_range_code = #{record.pRangeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pRangeName != null" >
+        p_range_name = #{record.pRangeName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cRangeCode != null" >
+        c_range_code = #{record.cRangeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cRangeName != null" >
+        c_range_name = #{record.cRangeName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.tRangeCode != null" >
+        t_range_code = #{record.tRangeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.tRangeName != null" >
+        t_range_name = #{record.tRangeName,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update vote_join_auth
+    set id = #{record.id,jdbcType=BIGINT},
+      CODE = #{record.code,jdbcType=VARCHAR},
+      is_disable = #{record.isDisable,jdbcType=TINYINT},
+      is_delete = #{record.isDelete,jdbcType=TINYINT},
+      tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      org_code = #{record.orgCode,jdbcType=VARCHAR},
+      org_level = #{record.orgLevel,jdbcType=TINYINT},
+      create_time = #{record.createTime,jdbcType=BIGINT},
+      modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      vote_info_code = #{record.voteInfoCode,jdbcType=VARCHAR},
+      range_type = #{record.rangeType,jdbcType=TINYINT},
+      is_cascade = #{record.isCascade,jdbcType=TINYINT},
+      g_range_code = #{record.gRangeCode,jdbcType=VARCHAR},
+      g_range_name = #{record.gRangeName,jdbcType=VARCHAR},
+      p_range_code = #{record.pRangeCode,jdbcType=VARCHAR},
+      p_range_name = #{record.pRangeName,jdbcType=VARCHAR},
+      c_range_code = #{record.cRangeCode,jdbcType=VARCHAR},
+      c_range_name = #{record.cRangeName,jdbcType=VARCHAR},
+      t_range_code = #{record.tRangeCode,jdbcType=VARCHAR},
+      t_range_name = #{record.tRangeName,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.vote.pojo.VoteJoinAuth" >
+    update vote_join_auth
+    <set >
+      <if test="code != null" >
+        CODE = #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="isDisable != null" >
+        is_disable = #{isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        org_level = #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="voteInfoCode != null" >
+        vote_info_code = #{voteInfoCode,jdbcType=VARCHAR},
+      </if>
+      <if test="rangeType != null" >
+        range_type = #{rangeType,jdbcType=TINYINT},
+      </if>
+      <if test="isCascade != null" >
+        is_cascade = #{isCascade,jdbcType=TINYINT},
+      </if>
+      <if test="gRangeCode != null" >
+        g_range_code = #{gRangeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="gRangeName != null" >
+        g_range_name = #{gRangeName,jdbcType=VARCHAR},
+      </if>
+      <if test="pRangeCode != null" >
+        p_range_code = #{pRangeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="pRangeName != null" >
+        p_range_name = #{pRangeName,jdbcType=VARCHAR},
+      </if>
+      <if test="cRangeCode != null" >
+        c_range_code = #{cRangeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="cRangeName != null" >
+        c_range_name = #{cRangeName,jdbcType=VARCHAR},
+      </if>
+      <if test="tRangeCode != null" >
+        t_range_code = #{tRangeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tRangeName != null" >
+        t_range_name = #{tRangeName,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.vote.pojo.VoteJoinAuth" >
+    update vote_join_auth
+    set CODE = #{code,jdbcType=VARCHAR},
+      is_disable = #{isDisable,jdbcType=TINYINT},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      vote_info_code = #{voteInfoCode,jdbcType=VARCHAR},
+      range_type = #{rangeType,jdbcType=TINYINT},
+      is_cascade = #{isCascade,jdbcType=TINYINT},
+      g_range_code = #{gRangeCode,jdbcType=VARCHAR},
+      g_range_name = #{gRangeName,jdbcType=VARCHAR},
+      p_range_code = #{pRangeCode,jdbcType=VARCHAR},
+      p_range_name = #{pRangeName,jdbcType=VARCHAR},
+      c_range_code = #{cRangeCode,jdbcType=VARCHAR},
+      c_range_name = #{cRangeName,jdbcType=VARCHAR},
+      t_range_code = #{tRangeCode,jdbcType=VARCHAR},
+      t_range_name = #{tRangeName,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

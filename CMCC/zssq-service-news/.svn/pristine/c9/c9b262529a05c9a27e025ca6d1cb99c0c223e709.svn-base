@@ -1,0 +1,56 @@
+package com.zssq.biz;
+
+import com.zssq.dao.mapper.NewsArchiveMapper;
+import com.zssq.news.dao.pojo.NewsArchive;
+import com.zssq.news.dao.pojo.NewsInfoComment;
+import com.zssq.news.model.*;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+/**
+ * Created by admin on 2017-04-05.
+ */
+@Service
+public class NewsArchiveBiz {
+
+    @Autowired
+    private NewsArchiveMapper newsArchiveMapper;
+
+    public int addNewsArchive(NewsArchiveModel newsArchiveModel) {
+        long currentTime = System.currentTimeMillis() ;
+        NewsArchive record = generateNewsInfoComment(newsArchiveModel,currentTime,currentTime);
+        return  newsArchiveMapper.insertSelective(record) ;
+    }
+
+    public Integer selectCount(NewsArchiveQuery newsArchiveQuery) {
+        return  newsArchiveMapper.selectCount(newsArchiveQuery) ;
+    }
+
+    public List<NewsArchive> selectList(NewsArchiveQuery newsArchiveQuery) {
+        return  newsArchiveMapper.selectList(newsArchiveQuery) ;
+    }
+
+    private NewsArchive generateNewsInfoComment(NewsArchiveModel newsArchiveModel,long createTime,long modifyTime) {
+        NewsArchive record = new NewsArchive() ;
+        record.setNewsCode(newsArchiveModel.getNewsCodes());
+        record.setTenantCode(newsArchiveModel.getTenantCode());
+        record.setCreatorCode(newsArchiveModel.getCreatorCode());
+        record.setOrgCode(newsArchiveModel.getOrgCode());
+        record.setArchiveCode(UUIDHelper.getUUID());
+        record.setArchiveTitle(newsArchiveModel.getArchiveTitle());
+        record.setArchiveName(newsArchiveModel.getArchiveName());
+        record.setArchiveUrl(newsArchiveModel.getArchiveUrl());
+        record.setIsDelete(newsArchiveModel.getIsShield());
+        record.setIsShield(newsArchiveModel.getIsDelete());
+        record.setRemark(newsArchiveModel.getRemark());
+        if(modifyTime > 0){
+            record.setCreateTime(createTime);
+        }
+        record.setModifyTime(modifyTime);
+        return record ;
+    }
+
+}

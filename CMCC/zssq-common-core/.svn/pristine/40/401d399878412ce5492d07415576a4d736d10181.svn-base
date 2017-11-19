@@ -1,0 +1,223 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.zssq</groupId>
+		<artifactId>zssq-common-parent</artifactId>
+		<version>1.0</version>
+		<relativePath>../zssq-common-parent</relativePath>
+	</parent>
+
+	<groupId>com.zssq</groupId>
+	<artifactId>zssq-common-core</artifactId>
+	<version>${zssq-common-core.version}</version>
+	<packaging>jar</packaging>
+
+	<name>zssq-common-core</name>
+	<url>http://maven.apache.org</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.1</version>
+				<configuration>
+					<source>${jdk.version}</source>
+					<target>${jdk.version}</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	
+	<dependencies>
+
+		<dependency>
+			<groupId>com.zssq</groupId>
+			<artifactId>zssq-common</artifactId>
+			<version>${zssq-common.version}</version>
+		</dependency>
+
+		<dependency>  
+            <groupId>junit</groupId>  
+            <artifactId>junit</artifactId>  
+            <version>${junit.version}</version>  
+            <!-- 表示开发的时候引入，发布的时候不会加载此包 -->  
+            <scope>test</scope>  
+        </dependency>  
+        <!-- spring核心包 -->  
+        <dependency>  
+            <groupId>org.springframework</groupId>  
+            <artifactId>spring-core</artifactId>  
+            <version>${spring.version}</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.springframework</groupId>  
+            <artifactId>spring-web</artifactId>  
+            <version>${spring.version}</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.springframework</groupId>  
+            <artifactId>spring-oxm</artifactId>  
+            <version>${spring.version}</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.springframework</groupId>  
+            <artifactId>spring-tx</artifactId>  
+            <version>${spring.version}</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.springframework</groupId>  
+            <artifactId>spring-jdbc</artifactId>  
+            <version>${spring.version}</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.springframework</groupId>  
+            <artifactId>spring-webmvc</artifactId>  
+            <version>${spring.version}</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.springframework</groupId>  
+            <artifactId>spring-aop</artifactId>  
+            <version>${spring.version}</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.springframework</groupId>  
+            <artifactId>spring-context-support</artifactId>  
+            <version>${spring.version}</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.springframework</groupId>  
+            <artifactId>spring-test</artifactId>  
+            <version>${spring.version}</version>  
+        </dependency>  
+        <!-- mybatis核心包 -->  
+        <dependency>  
+            <groupId>org.mybatis</groupId>  
+            <artifactId>mybatis</artifactId>  
+            <version>${mybatis.version}</version>  
+        </dependency>  
+        <!-- mybatis/spring包 -->  
+        <dependency>  
+            <groupId>org.mybatis</groupId>  
+            <artifactId>mybatis-spring</artifactId>  
+            <version>${mybatis-spring.version}</version>  
+        </dependency>  
+        <!-- 导入java ee jar 包 -->  
+        <dependency>  
+            <groupId>javax</groupId>  
+            <artifactId>javaee-api</artifactId>  
+            <version>${javaee-api.version}</version>  
+        </dependency>  
+        <!-- 导入Mysql数据库链接jar包 -->  
+        <dependency>  
+            <groupId>mysql</groupId>  
+            <artifactId>mysql-connector-java</artifactId>  
+            <version>${mysql.version}</version>  
+        </dependency>  
+        <!-- 导入dbcp的jar包，用来在applicationContext.xml中配置数据库 -->  
+        <dependency>  
+            <groupId>commons-dbcp</groupId>  
+            <artifactId>commons-dbcp</artifactId>  
+            <version>${commons-dbcp.version}</version>  
+        </dependency>  
+        <!-- JSTL标签类 -->  
+        <dependency>  
+            <groupId>jstl</groupId>  
+            <artifactId>jstl</artifactId>  
+            <version>${jstl.version}</version>  
+        </dependency>  
+        <!-- 映入JSON -->  
+        <dependency>  
+            <groupId>org.codehaus.jackson</groupId>  
+            <artifactId>jackson-mapper-asl</artifactId>  
+            <version>${jackson.version}</version>  
+        </dependency>  
+        <!-- 上传组件包 -->  
+        <dependency>  
+            <groupId>commons-fileupload</groupId>  
+            <artifactId>commons-fileupload</artifactId>
+            <version>${commons-fileupload.version}</version>
+        </dependency>  
+        <dependency>  
+            <groupId>commons-io</groupId>  
+            <artifactId>commons-io</artifactId>  
+            <version>${commons-io.version}</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>commons-codec</groupId>  
+            <artifactId>commons-codec</artifactId>  
+            <version>${commons-codec.version}</version>  
+        </dependency>  
+        <!-- spring4依赖包 -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${spring-jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${spring-jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${spring-jackson.version}</version>
+        </dependency>
+        <!-- 事务依赖包 -->
+        <dependency>
+		  <groupId>org.aspectj</groupId> 
+		  <artifactId>aspectjweaver</artifactId> 
+		  <version>${aspectjweaver.version}</version>
+		</dependency>
+		
+		<!-- comet4j-tomcat7 dependency -->
+        <dependency>
+		  <groupId>comet4j</groupId>
+		  <artifactId>comet4j</artifactId>
+		  <version>${comet4j.version}</version>
+		</dependency>
+		<!-- BaiduYun push dependency -->
+		<dependency>
+		  <groupId>push.baidu</groupId>
+		  <artifactId>bccs-api</artifactId>
+		  <version>${bccs-api.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>druid</artifactId>
+			<version>${druid.version}</version>
+		</dependency>
+		
+		<!-- shiro start -->
+		<dependency>
+			<groupId>org.apache.shiro</groupId>
+			<artifactId>shiro-core</artifactId>
+			<version>${shiro.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.shiro</groupId>
+			<artifactId>shiro-ehcache</artifactId>
+			<version>${shiro.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.shiro</groupId>
+			<artifactId>shiro-quartz</artifactId>
+			<version>${shiro.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.shiro</groupId>
+			<artifactId>shiro-spring</artifactId>
+			<version>${shiro.version}</version>
+		</dependency>
+		<!-- shiro End -->
+	</dependencies>
+
+</project>

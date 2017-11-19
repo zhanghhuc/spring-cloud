@@ -1,0 +1,88 @@
+package com.zssq.dao.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+import com.zssq.dao.pojo.VoteComment;
+import com.zssq.dao.pojo.VoteCommentExample;
+
+public interface VoteCommentMapper {
+    int countByExample(VoteCommentExample example);
+
+    int deleteByExample(VoteCommentExample example);
+
+    int deleteByPrimaryKey(Long id);
+
+    int insert(VoteComment record);
+
+    int insertSelective(VoteComment record);
+
+    List<VoteComment> selectByExampleWithBLOBs(VoteCommentExample example);
+
+    List<VoteComment> selectByExample(VoteCommentExample example);
+
+    VoteComment selectByPrimaryKey(Long id);
+
+    int updateByExampleSelective(@Param("record") VoteComment record, @Param("example") VoteCommentExample example);
+
+    int updateByExampleWithBLOBs(@Param("record") VoteComment record, @Param("example") VoteCommentExample example);
+
+    int updateByExample(@Param("record") VoteComment record, @Param("example") VoteCommentExample example);
+
+    int updateByPrimaryKeySelective(VoteComment record);
+
+    int updateByPrimaryKeyWithBLOBs(VoteComment record);
+
+    int updateByPrimaryKey(VoteComment record);
+
+    /**
+     * @Function updateReplyNum
+     * @Description 更新回复数
+     * @param paramMap  过滤条件
+     * @return num	        影响条数
+     */
+	int updateReplyNum(Map<String, Object> paramMap);
+
+	/**
+	 * @Function getCommentList
+	 * @Description     查询投票评论列表
+	 * @param paramMap  过滤条件
+	 * @return List     评论列表
+	 */
+	List<VoteComment> getCommentList(Map<String, Object> paramMap);
+
+	/**
+	 * @Function updateReplyCountForComment
+	 * @Description 更新评论表中的回复数
+	 * @param paramMap  过滤条件 
+	 * @return int      影响条数
+	 */
+	int updateReplyCountForComment(Map<String, Object> paramMap);
+
+	/**
+	 * @Function updatePraiseCountByComment
+	 * @Description 点赞/取消点赞评论时 更新评论点赞数
+	 * @param paramMap   过滤条件 
+	 * @return
+	 */
+	int updatePraiseCountByComment(Map<String, Object> paramMap);
+
+	/**
+	 * @Function updatePraiseCountByReply
+	 * @Description 点赞/取消点赞评论回复时 更新评论点赞数
+	 * @param paramMap   过滤条件 
+	 * @return
+	 */
+	int updatePraiseCountByReply(Map<String, Object> paramMap);
+	
+	/**
+	 * 
+	 * @Function getCommentListForLocation
+	 * @Description 查询投票评论列表  --定位
+	 * @param paramMap  过滤条件
+	 * @return List     评论列表
+	 */
+	List<VoteComment> getCommentListForLocation(Map<String, Object> paramMap);
+}

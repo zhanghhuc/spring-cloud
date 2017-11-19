@@ -1,0 +1,97 @@
+package com.zssq.service;
+
+import java.util.List;
+
+import com.zssq.dao.pojo.TeamElect;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+
+/**
+ * @ClassName ITeamElectService
+ * @Description 百强班组评选
+ * @author JiPengChun
+ * @date 2017年3月15日 下午4:47:26
+ * @version 1.0
+ * @since JDK 1.7
+ */
+public interface ITeamElectService {
+
+	/**
+	 * @Function getNowTeamElect
+	 * @Description 拿到正在进行的评选
+	 * @return
+	 */
+	public TeamElect getNowTeamElect() throws BusinessException;
+	
+	/**
+	 * @Function getElectCode
+	 * @Description 生成的评选编码
+	 * @return
+	 * @throws BusinessException
+	 */
+	public String getElectCode() throws BusinessException;
+	
+	/**
+	 * @Function getLastTeamElect
+	 * @Description 拿到刚结束的评选
+	 * @return
+	 * @throws BusinessException
+	 */
+	public TeamElect getLastTeamElect() throws BusinessException;
+	
+	/**
+	 * @Function startElect
+	 * @Description 开始评选
+	 * @param record
+	 * @return
+	 * @throws BusinessException
+	 */
+	public boolean startElect(TeamElect record) throws BusinessException;
+	
+	/**
+	 * @Function selectTeamElectList
+	 * @Description 获取班组评选列表
+	 * @param record
+	 * @param pageParam
+	 * @return
+	 * @throws BusinessException
+	 */
+	public PageBean selectTeamElectList(TeamElect record,PageParam pageParam) throws BusinessException;
+	
+	/**
+	 * @Function closeElect
+	 * @Description 关闭正在进行的评选
+	 * @return
+	 * @throws BusinessException
+	 */
+	public boolean closeElect() throws BusinessException;
+	
+	/**
+	 * @Function awardHonor
+	 * @Description 颁发荣誉
+	 * @param teamCodes 班组集合
+	 * @return
+	 * @throws BusinessException
+	 */
+	public boolean awardHonor(List<String> teamCodes) throws BusinessException;
+	
+	/**
+	 * @Function isExcelent
+	 * @Description 当前班组是否是上一期的百强班组
+	 * @param teamCode 班组编码
+	 * @return
+	 * @throws BusinessException
+	 */
+	public boolean isExcelent(String teamCode) throws BusinessException;
+	
+	
+	/**
+	 * @Function selectLastHonorTeam
+	 * @Description 拿到刚结束的百强班组
+	 * @return
+	 * @throws BusinessException
+	 */
+	public List<String> selectLastHonorTeam() throws BusinessException;
+	
+}

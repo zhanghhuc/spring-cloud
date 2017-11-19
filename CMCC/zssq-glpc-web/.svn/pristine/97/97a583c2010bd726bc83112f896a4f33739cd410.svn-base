@@ -1,0 +1,51 @@
+package com.zssq.msg.vo;
+
+import org.hibernate.validator.constraints.NotBlank;
+
+import com.zssq.annotation.validation.IntType;
+
+/**
+ * 
+ * @ClassName: SystemListVO  
+ * @Description: 系统消息查询Vo  
+ * @author YDB  
+ * @date 2017年4月5日  
+ *
+ */
+public class SystemListVO {
+	@NotBlank(message = "{empty.message}")
+	private String userCode;
+	@IntType(expression = ">0")
+	private int pageSize;
+	@IntType(expression = ">0")
+	private int pageNo;
+	
+	private String title;
+	
+	
+	public String getUserCode() {
+		return userCode;
+	}
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
+	}
+	public int getPageSize() {
+		return pageSize;
+	}
+	public void setPageSize(int pageSize) {
+		this.pageSize = pageSize;
+	}
+	public int getPageNo() {
+		return pageNo;
+	}
+	public void setPageNo(int pageNo) {
+		this.pageNo = pageNo;
+	}
+	public String getTitle() {
+		return title;
+	}
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	
+}

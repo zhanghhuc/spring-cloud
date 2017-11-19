@@ -1,0 +1,30 @@
+package com.zssq.vote.dao.mapper;
+
+import com.zssq.vote.pojo.SysOrgInfo;
+import com.zssq.vote.pojo.SysOrgInfoExample;
+import java.util.List;
+import org.apache.ibatis.annotations.Param;
+
+public interface SysOrgInfoMapper {
+    int countByExample(SysOrgInfoExample example);
+
+    int deleteByExample(SysOrgInfoExample example);
+
+    int deleteByPrimaryKey(Long id);
+
+    int insert(SysOrgInfo record);
+
+    int insertSelective(SysOrgInfo record);
+
+    List<SysOrgInfo> selectByExample(SysOrgInfoExample example);
+
+    SysOrgInfo selectByPrimaryKey(Long id);
+
+    int updateByExampleSelective(@Param("record") SysOrgInfo record, @Param("example") SysOrgInfoExample example);
+
+    int updateByExample(@Param("record") SysOrgInfo record, @Param("example") SysOrgInfoExample example);
+
+    int updateByPrimaryKeySelective(SysOrgInfo record);
+
+    int updateByPrimaryKey(SysOrgInfo record);
+}

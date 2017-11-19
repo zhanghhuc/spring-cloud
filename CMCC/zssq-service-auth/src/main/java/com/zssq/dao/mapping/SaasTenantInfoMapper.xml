@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.SaasTenantInfoMapper">
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.SaasTenantInfo">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="saas_tenant_code" property="saasTenantCode" jdbcType="VARCHAR" />
+		<result column="saas_tenant_name" property="saasTenantName" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="is_enable" property="isEnable" jdbcType="TINYINT" />
+		<result column="sys_admin_account" property="sysAdminAccount" jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, saas_tenant_code, saas_tenant_name, create_time, is_enable
+	</sql>
+	<insert id="insertSelective" parameterType="com.zssq.dao.pojo.SaasTenantInfo">
+		insert into saas_tenant_info
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="saasTenantCode != null">
+				saas_tenant_code,
+			</if>
+			<if test="saasTenantName != null">
+				saas_tenant_name,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+			<if test="isEnable != null">
+				is_enable,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=BIGINT},
+			</if>
+			<if test="saasTenantCode != null">
+				#{saasTenantCode,jdbcType=VARCHAR},
+			</if>
+			<if test="saasTenantName != null">
+				#{saasTenantName,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=BIGINT},
+			</if>
+			<if test="isEnable != null">
+				#{isEnable,jdbcType=TINYINT},
+			</if>
+		</trim>
+	</insert>
+	
+	<!-- 查询租户及租户超管信息 -->
+	<select id="selectTenant" resultMap="BaseResultMap">
+		SELECT 
+			st.*,
+		  	sa.sys_admin_account 
+		FROM
+		  	saas_tenant_info st 
+		  	LEFT JOIN sys_admin_info sa ON st.saas_tenant_code = sa.saas_tenant_code 
+		WHERE sa.sys_admin_type = 2
+	</select>
+	
+	<update id="setTenantState" parameterType="com.zssq.dao.pojo.SaasTenantInfo" >
+		UPDATE 
+		  saas_tenant_info 
+		SET
+		  is_enable = #{isEnable,jdbcType=TINYINT}
+		WHERE saas_tenant_code IN 
+		<foreach collection="saasTenantCodes" item="item" index="index" separator="," open="(" close=")">  
+	        #{item,jdbcType=VARCHAR}
+	    </foreach>
+	</update>
+	
+</mapper>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.mblog.dao.mapper.TransferMblogMentionMapper" >
+  
+  <select id="selectAtList" parameterType="java.util.Map" resultType="com.zssq.mblog.pojo.MoveAtVo">
+  	SELECT
+  		userInfo.user_code AS userCode,
+  		userInfo.saas_tenant_code AS tenantCode,
+  		unix_timestamp(CREATE_TIME) * 1000 AS createTime,
+  		orgInfo.man_org_code AS orgCode,
+  		idCode.mblog_code AS mblogCode
+  	FROM
+  		(
+  			SELECT
+  				ID,
+		  		CREATE_TIME,
+		  		USER_ID,
+		  		MENTION_TYPE,
+		  		ITEM_ID
+		  	FROM
+  				transfer_mblog_mention
+  			WHERE
+  				MENTION_TYPE = 1
+  			ORDER BY ID
+  			LIMIT 
+  	 			#{startPage},#{pageSize}
+  	 	) AS trAt
+  	LEFT JOIN
+  		transfer_id_code AS idCode ON trAt.ITEM_ID = idCode.mblog_id
+  	LEFT JOIN
+  		sys_user_info AS userInfo ON trAt.USER_ID = userInfo.user_id
+  	LEFT JOIN
+  		sys_org_info AS orgInfo ON userInfo.org_code = orgInfo.sys_org_code
+  </select>
+  
+  <select id="selectAtListCount" resultType="java.lang.Integer">
+  	SELECT
+  		COUNT(*)
+  	FROM
+  		transfer_mblog_mention
+  	WHERE
+  		MENTION_TYPE = 1
+  </select>
+  
+</mapper>

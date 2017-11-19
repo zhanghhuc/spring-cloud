@@ -1,0 +1,145 @@
+package com.zssq.blog.service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.zssq.blog.dao.mapper.BlogMapper;
+import com.zssq.blog.pojo.BlogData;
+import com.zssq.blog.pojo.BlogInfo;
+import com.zssq.blog.pojo.BlogTemp;
+import com.zssq.blog.pojo.SourceBlogModel;
+import com.zssq.constants.BlogConstants;
+
+/**
+ * 
+ * @ClassName: BlogService  
+ * @Description: 博客数据迁移Service  
+ * @author ZKZ  
+ * @date 2017年5月22日  
+ *
+ */
+@Service("blogService")
+public class BlogService {
+	
+	@Autowired
+	private BlogMapper blogMapper;
+	
+	/**
+	 * 
+	 * @Title: deleteIndex  
+	 * @Description: 删除索引
+	 * @return: void    返回类型
+	 */
+	@Transactional
+	public void deleteIndex() {
+		// 查看Index_1索引是否存在
+		String indexName = blogMapper.isIndexExists();
+		if (indexName == null) {
+			return;
+		}
+		
+		// 删除索引
+		blogMapper.deleteIndex();
+	}
+	
+	/**
+	 * 
+	 * @Title: createTempTable  
+	 * @Description: 创建博客临时表
+	 * @return: void    返回类型
+	 */
+	@Transactional
+	public void createTempTable() {
+		// 查看是否存在临时表
+		String tempTable = blogMapper.isTempTableExists();
+		if (tempTable != null) {
+			return;
+		}
+		
+		// 新建临时表
+		blogMapper.createTempTable();
+	}
+
+	/**
+	 * 
+	 * @Title: createIndex  
+	 * @Description: 创建索引
+	 * @return: void    返回类型
+	 */
+	public void createIndex() {
+		blogMapper.createIndex();
+	}
+	
+	/**
+	 * 
+	 * @Title: getSourceBlogCount  
+	 * @Description: 查询原博客表中数据总量
+	 * @return: int    返回类型
+	 */
+	public int getSourceBlogCount() {
+		return blogMapper.getSourceBlogCount();
+	}
+
+	/**
+	 * 
+	 * @Title: getSourceBlogList  
+	 * @Description: 获取原博客数据
+	 * @param pageNo
+	 * @param pageSize
+	 * @param blogDepend
+	 * @return: List<SourceBlogModel>    返回类型
+	 */
+	public List<SourceBlogModel> getSourceBlogList(int pageNo, int pageSize, Byte blogDepend) {
+		// 拼接参数
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("limitStart", pageNo*pageSize); // 查询开始条数
+		paramMap.put("limitCount", pageSize); // 查询结果条数
+		
+		if (BlogConstants.BLOG_DEPEND_USER.equals(blogDepend)) {
+			// 查询个人博客数据
+			return blogMapper.getSourceUserBlogList(paramMap);
+		} else {
+			// 查询班组博客数据
+			return blogMapper.getSourceTeamBlogList(paramMap);
+		}
+	}
+
+	/**
+	 * 
+	 * @Title: insertBlogList  
+	 * @Description: 导入原博客数据
+	 * @param blogInfoList
+	 * @param blogDataList 
+	 * @param blogTempList    参数  
+	 * @param subjectInfoList 
+	 * @return: void    返回类型
+	 */
+	@Transactional
+	public void insertBlogList(List<BlogInfo> blogInfoList, List<BlogData> blogDataList, List<BlogTemp> blogTempList) {
+		// 插入博客列表
+		blogMapper.insertBlogList(blogInfoList);
+		
+		// 插入博客数据列表
+		blogMapper.insertBlogDataList(blogDataList);
+		
+		// 插入博客临时列表
+		blogMapper.insertBlogTempList(blogTempList);
+	}
+
+	/**
+	 * 
+	 * @Title: insertSourceBlogContent  
+	 * @Description: 导入原博客内容数据 
+	 * @return: void    返回类型
+	 */
+	@Transactional
+	public void insertSourceBlogContent() {
+		blogMapper.insertSourceBlogContent();
+	}
+	
+}

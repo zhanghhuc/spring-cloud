@@ -1,0 +1,106 @@
+package com.zssq.service;
+
+import java.util.List;
+
+import com.zssq.dao.pojo.RelationQuality;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.vo.RelationQualityVO;
+
+/**
+ * 
+ * @ClassName: RelationQualityService  
+ * @Description: 精华  
+ * @author ZKZ  
+ * @date 2017年3月16日  
+ *
+ */
+public interface RelationQualityService {
+
+	/**
+	 * 
+	 * @Title: getTeamQualityList  
+	 * @Description: 查询班组精华列表
+	 * @param pageParam 分页参数
+	 * @param relationQualityVO
+	 * @throws BusinessException    参数  
+	 * @return: PageBean    返回类型
+	 */
+	public PageBean getTeamQualityList(PageParam pageParam, RelationQualityVO relationQualityVO) throws BusinessException;
+	
+	/**
+	 * 
+	 * @Title: getPortalQualityList  
+	 * @Description: 查询门户精华列表
+	 * @param pageParam 分页参数
+	 * @param relationQualityVO
+	 * @throws BusinessException    参数  
+	 * @return: PageBean    返回类型
+	 */
+	public PageBean getPortalQualityList(PageParam pageParam, RelationQualityVO relationQualityVO) throws BusinessException;
+	
+	/**
+	 * 
+	 * @Title: getPortalFrontQualityList  
+	 * @Description: 查询门户首页展示精华列表
+	 * @param relationQualityVO
+	 * @throws BusinessException    参数  
+	 * @return: List<Object>    返回类型
+	 */
+	public List<Object> getPortalFrontQualityList(RelationQualityVO relationQualityVO) throws BusinessException;
+	
+
+	/**
+	 * 
+	 * @Title: setPortalQualityTop  
+	 * @Description: 精华置顶/取消置顶-门户
+	 * @param relationQualityVO
+	 * @param relationYes 
+	 * @throws BusinessException    参数  
+	 * @return: boolean    返回类型
+	 */
+	public boolean setPortalQualityTop(RelationQualityVO relationQualityVO, Byte relationYes) throws BusinessException;
+	
+	/**
+	 * 
+	 * @Title: updatePortalQualitySeq  
+	 * @Description: 精华排序-门户
+	 * @param relationQualityVO
+	 * @throws BusinessException    参数  
+	 * @return: boolean    返回类型
+	 */
+	public boolean updatePortalQualitySeq(RelationQualityVO relationQualityVO) throws BusinessException;
+
+	
+
+
+
+	/**
+	 * @Function getUserQualityPageBean
+	 * @Description 查询个人精化列表
+	 * @param pageParam
+	 * @param relationQualityVO
+	 * @return
+	 */
+	public PageBean getUserQualityPageBean(PageParam pageParam, RelationQualityVO relationQualityVO)throws BusinessException;
+
+
+	/**
+	 * @Function isQuality
+	 * @Description 判断内容是否已被置精
+	 * @param quality
+	 * @return
+	 */
+	public boolean isQuality(RelationQuality quality)throws BusinessException;
+
+	/**
+	 * @Function getQualityByCode
+	 * @Description 通过精华编号查询精华信息
+	 * @param quality
+	 * @return
+	 */
+	public RelationQuality getQualityByCode(RelationQuality quality);
+
+
+}

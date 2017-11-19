@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.UserConcernsMapper">
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.UserConcerns">
+		<id column="id" jdbcType="BIGINT" property="id" />
+		<result column="concerns_code" jdbcType="VARCHAR" property="concernsCode" />
+		<result column="concerns_user_code" jdbcType="VARCHAR" property="concernsUserCode" />
+		<result column="is_concerns_user_code" jdbcType="VARCHAR" property="isConcernsUserCode" />
+		<result column="create_time" jdbcType="BIGINT" property="createTime" />
+		<result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+		<result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+		<result column="org_level" jdbcType="TINYINT" property="orgLevel" />
+	</resultMap>
+	
+	<sql id="Base_Column_List">
+		id, concerns_code, concerns_user_code, is_concerns_user_code,
+		create_time, modify_time,org_code, org_level
+	</sql>
+	
+	<!-- 查询我的关注 -->
+	<select id="selectMyConcerns" parameterType="java.lang.String" resultType="java.lang.String">
+		select
+			is_concerns_user_code
+		from 
+			user_concerns
+		where concerns_user_code = #{value,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectByCode" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select
+			<include refid="Base_Column_List" />
+		from 
+			user_concerns
+		where concerns_code = #{concernsCode,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectByRecord" parameterType="com.zssq.dao.pojo.UserConcerns" resultMap="BaseResultMap">
+		select 
+			<include refid="Base_Column_List" />
+		from 
+			user_concerns
+		where 1=1
+		<if test="isConcernsUserCode != null">
+			and is_concerns_user_code = #{isConcernsUserCode,jdbcType=VARCHAR}
+		</if>
+		<if test="concernsUserCode != null">
+			and concerns_user_code = #{concernsUserCode,jdbcType=VARCHAR}
+		</if>
+		order by create_time desc
+		<if test="limitStart != null">
+			limit #{limitStart,jdbcType=VARCHAR},#{limitEnd,jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<select id="selectCount" parameterType="com.zssq.dao.pojo.UserConcerns" resultType="java.lang.Integer">
+		select 
+			count(1)
+		from 
+			user_concerns
+		where 1=1
+		<if test="isConcernsUserCode != null">
+			and is_concerns_user_code = #{isConcernsUserCode,jdbcType=VARCHAR}
+		</if>
+		<if test="concernsUserCode != null">
+			and concerns_user_code = #{concernsUserCode,jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<!-- <select id="selectMyFriend" parameterType="com.zssq.dao.pojo.UserConcerns" resultMap="BaseResultMap">
+		select t1.* from user_concerns t1
+		join user_concerns t2 
+		on t2.concerns_user_code=t1.is_concerns_user_code 
+		and t2.is_concerns_user_code=#{concernsUserCode,jdbcType=VARCHAR}
+		where t1.concerns_user_code=#{concernsUserCode,jdbcType=VARCHAR}
+		<if test="limitStart != null">
+			limit #{limitStart,jdbcType=VARCHAR},#{limitEnd,jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<select id="selectMyFriendsCount" parameterType="java.lang.String" resultType="java.lang.Integer">
+		select count(1) 
+		from user_concerns t1
+		join user_concerns t2 
+		on t2.concerns_user_code=t1.is_concerns_user_code 
+		and t2.is_concerns_user_code=#{userCode,jdbcType=VARCHAR}
+		where t1.concerns_user_code=#{userCode,jdbcType=VARCHAR}
+	</select>  -->
+	
+	<select id="selectMyFansCount" parameterType="java.lang.String" resultType="java.lang.Integer">
+		select count(1) 
+		from user_concerns 
+		where is_concerns_user_code=#{userCode,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectMyConcernsCount" parameterType="java.lang.String" resultType="java.lang.Integer">
+		select count(1) 
+		from user_concerns 
+		where concerns_user_code=#{userCode,jdbcType=VARCHAR}
+	</select>
+	
+	<delete id="delUSerConcerns" parameterType="com.zssq.dao.pojo.UserConcerns">
+		delete from user_concerns 
+		where concerns_user_code = #{concernsUserCode,jdbcType=VARCHAR}
+		  and is_concerns_user_code = #{isConcernsUserCode,jdbcType=VARCHAR}
+	</delete>
+	
+	<delete id="delBoth" parameterType="com.zssq.dao.pojo.UserConcerns">
+		delete from user_concerns 
+		where (concerns_user_code = #{concernsUserCode,jdbcType=VARCHAR}
+		  and is_concerns_user_code = #{isConcernsUserCode,jdbcType=VARCHAR})
+		  or
+		  (is_concerns_user_code = #{concernsUserCode,jdbcType=VARCHAR}
+		  and concerns_user_code = #{isConcernsUserCode,jdbcType=VARCHAR})
+	</delete>
+	
+	<insert id="insertSelective" parameterType="com.zssq.dao.pojo.UserConcerns">
+		insert into user_concerns
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="concernsCode != null">
+				concerns_code,
+			</if>
+			<if test="concernsUserCode != null">
+				concerns_user_code,
+			</if>
+			<if test="isConcernsUserCode != null">
+				is_concerns_user_code,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+			<if test="modifyTime != null">
+				modify_time,
+			</if>
+			<if test="orgCode != null">
+				org_code,
+			</if>
+			<if test="orgLevel != null">
+				org_level,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=BIGINT},
+			</if>
+			<if test="concernsCode != null">
+				#{concernsCode,jdbcType=VARCHAR},
+			</if>
+			<if test="concernsUserCode != null">
+				#{concernsUserCode,jdbcType=VARCHAR},
+			</if>
+			<if test="isConcernsUserCode != null">
+				#{isConcernsUserCode,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=BIGINT},
+			</if>
+			<if test="modifyTime != null">
+				#{modifyTime,jdbcType=BIGINT},
+			</if>
+			<if test="orgCode != null">
+				#{orgCode,jdbcType=VARCHAR},
+			</if>
+			<if test="orgLevel != null">
+				#{orgLevel,jdbcType=TINYINT},
+			</if>
+		</trim>
+	</insert>
+	
+	
+</mapper>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.team.dao.mapper.TeamInfoMapper">
+	<resultMap id="BaseResultMap" type="com.zssq.team.pojo.TeamInfo">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="team_code" property="teamCode" jdbcType="VARCHAR" />
+		<result column="team_name" property="teamName" jdbcType="VARCHAR" />
+		<result column="team_intro" property="teamIntro" jdbcType="VARCHAR" />
+		<result column="team_icon" property="teamIcon" jdbcType="VARCHAR" />
+		<result column="team_type" property="teamType" jdbcType="TINYINT" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="dissolve_time" property="dissolveTime" jdbcType="BIGINT" />
+		<result column="is_dissolve" property="isDissolve" jdbcType="TINYINT" />
+		<result column="is_record" property="isRecord" jdbcType="TINYINT" />
+		<result column="record_file_url" property="recordFileUrl" jdbcType="VARCHAR" />
+		<result column="user_code" property="userCode" jdbcType="VARCHAR" />
+		<result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+		<result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<sql id="Base_Column_List">
+		id, team_code, team_name, team_intro, team_icon, team_type, create_time,
+		dissolve_time, is_dissolve, is_record, record_file_url, user_code, org_code,tenant_code
+	</sql>
+	
+	
+	<select id="selectData" resultType="com.zssq.team.pojo.TeamInfo">
+		SELECT t.*,t1.man_org_code orgCode FROM (
+			SELECT 
+			  team_id teamId,
+			  TEAM_CODE teamCode,
+			  TEAM_NAME teamName,
+			  TEAM_DESC teamIntro,
+			  TEAM_LOGO teamIcon,
+			  CASE
+			    WHEN ISNUMBERONE <![CDATA[ <> ]]> 0 
+			    THEN 1 
+			    ELSE 0 
+			  END teamType,
+			  TEAM_STATE isDissolve,
+			  UNIX_TIMESTAMP(CREATE_DATE) * 1000 createTime,
+			CASE WHEN ORG_ID IS NULL OR ORG_ID = 0 THEN PROVINCE_ID ELSE ORG_ID END orgId
+			FROM
+			  kc_team ) t
+		 JOIN sys_org_info t1 ON t.orgId=t1.org_id
+	</select>
+	
+	<insert id="batchInsert" useGeneratedKeys="true" parameterType="java.util.List">
+		insert into team_info (
+		  team_code,
+		  team_name,
+		  team_intro,
+		  team_icon,
+		  team_type,
+		  create_time,
+		  is_dissolve,
+		  is_record,
+		  tenant_code,
+		  team_id,
+		  org_id,
+		  org_code
+		) 
+		values
+		<foreach collection="list" item="item" index="index" separator="," >
+			(
+				#{item.teamCode,jdbcType=VARCHAR},
+				#{item.teamName,jdbcType=VARCHAR},
+				#{item.teamIntro,jdbcType=VARCHAR},
+				#{item.teamIcon,jdbcType=VARCHAR},
+				#{item.teamType,jdbcType=TINYINT},
+				#{item.createTime,jdbcType=BIGINT},
+				#{item.isDissolve,jdbcType=TINYINT},
+				0,
+				#{item.tenantCode,jdbcType=VARCHAR},
+				#{item.teamId,jdbcType=INTEGER},
+				#{item.orgId,jdbcType=INTEGER},
+				#{item.orgCode,jdbcType=VARCHAR}
+			)
+		</foreach>
+	</insert>
+	
+	<delete id="deleteTeamInfo">
+		delete from team_info where team_code like 'banzu%' 
+	</delete>
+	
+	
+	<select id="selectHonotTeam" resultType="java.lang.String">
+		select team_code from kc_team t where t.istop = 1
+	</select>
+	
+	<select id="selectAOrg" resultType="java.lang.String">
+		select sys_org_code from sys_org_info t where t.sys_org_type='3b16c578b64149a2997edae4cc5eeb99';
+	</select>
+	
+</mapper>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.SyncResultMapper">
+
+	<!-- 查询字段与实体属性映射关系 -->
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.SyncResult">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="succ_syncid" property="succSyncId" jdbcType="VARCHAR" />
+		<result column="fail_syncid" property="failSyncId" jdbcType="VARCHAR" />
+		<result column="sync_type" property="syncType" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<!-- 查询上次同步结果信息 -->
+	<select id="selectLastSyncResult" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+			id, succ_syncid, fail_syncid, sync_type
+		from
+			smap_result  
+		where
+			sync_type = #{value}
+		order by id desc limit 1
+	</select>
+	
+	<!-- 新增同步结果 -->
+	<insert id="insert" parameterType="com.zssq.dao.pojo.SyncResult">
+		insert into smap_result 
+		(
+			succ_syncid, 
+			fail_syncid,
+			sync_type
+		)
+		values 
+		(
+			#{succSyncId,jdbcType=VARCHAR},
+			#{failSyncId,jdbcType=VARCHAR},
+			#{syncType,jdbcType=VARCHAR}
+		)
+	</insert>
+</mapper>

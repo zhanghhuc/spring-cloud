@@ -1,0 +1,273 @@
+package com.zssq.filter;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.beans.factory.annotation.Required;
+import org.springframework.core.annotation.Order;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.constants.AuthConstants;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.pojo.Message;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.utils.PropertiesUtil;
+
+
+
+/**
+ * AOP
+ * @ClassName: SpringAspect  
+ * @Description:   
+ * @author lr  
+ * @date 2017年1月4日  
+ *
+ */
+@Aspect
+@Order(1)
+public class SpringAspect {
+
+	private final Logger logger = Logger.getLogger(this.getClass());  
+	
+	private Validator validator;
+	private long startTimeMillis = 0; // 开始时间  
+	private long endTimeMillis = 0; // 结束时间  
+	private HttpServletRequest request = null;
+
+	// Controller层切点
+	@Pointcut("execution(* com.zssq.*.controller.*.*(..))")
+	public void controllerAspect() {
+	}
+
+	@Around("controllerAspect()")
+	public Object aroundMethod(ProceedingJoinPoint joinPoint){
+		startTimeMillis = System.currentTimeMillis(); //记录方法开始执行的时间  
+    	Object result = null;
+		
+		MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
+		Method method = methodSignature.getMethod();
+		
+		String className = joinPoint.getTarget().getClass().getName();
+		String methodName = method.getName();
+		Annotation[][] argAnnotations = method.getParameterAnnotations();
+		Object[] args = joinPoint.getArgs();
+		//String[] argNames = methodSignature.getParameterNames();
+		try {
+			RequestAttributes ra = RequestContextHolder.getRequestAttributes();  
+			ServletRequestAttributes sra = (ServletRequestAttributes)ra;
+			HttpServletRequest request = sra.getRequest();
+			Object requestParams = JSONObject.toJSON(request.getParameterMap());
+			
+			Object ticketMsgAuth = request.getAttribute("ticketMsgAuth");
+	    	if(ticketMsgAuth != null){ //不为空，用户状态错误，不进入其他层
+	    		ResultJSON resultJSON = JSONObject.parseObject(String.valueOf(ticketMsgAuth),ResultJSON.class);
+	    		return resultJSON;
+	    	}
+			
+			Object ssoCrossDomainObj = request.getAttribute("crossDomainTicketMsg"); //获取跨域票据信息
+			if(ssoCrossDomainObj != null){
+				ResultJSON resultJSON = JSONObject.parseObject(String.valueOf(ssoCrossDomainObj),ResultJSON.class);
+				return resultJSON;
+			}
+			
+			Object ssoObj = request.getAttribute("ticketMsg"); //获取票据信息
+			if(ssoObj != null){
+				ResultJSON resultJSON = JSONObject.parseObject(String.valueOf(ssoObj),ResultJSON.class);
+				if(!resultJSON.getReturnCode().equals("200")){ //无票据或参数错误
+					return resultJSON;
+				}
+				Object clientSSOObj = request.getAttribute("clientTicketMsg"); //获取客户端旧票据信息
+				if(clientSSOObj != null){
+					Message m = PropertiesUtil.getMessage("SSO_0002");
+					ResultJSON rj = new ResultJSON();
+					rj.setReturnCode(m.getCode());
+		            rj.setReturnTip(m.getTip());
+		            rj.setBody(resultJSON.getBody());
+		            
+		            return rj;
+				}
+			}
+			
+			// 获取身份验证结果，无访问权限时返回验证结果，拦截请求
+			ResultJSON authMsg = (ResultJSON) request.getAttribute("authMsg"); 
+			if(authMsg != null && 
+					(StringUtils.equals(AuthConstants.RETURNCODE_COMMON_403, authMsg.getReturnCode()) 
+							|| StringUtils.equals("10008", authMsg.getReturnCode()))){
+				return authMsg;				
+			}
+			
+			// 前置通知
+			logger.info("The method " + methodName + " start. param<" + requestParams + ">");
+			
+			// 校验输入参数
+			for (int i = 0; i < args.length; i++) {
+//				System.out.println("argAnnotations[i]:" + argAnnotations[i]);
+//				System.out.println("args[i]:" + args[i]);
+				if(hasValidAnnotations(argAnnotations[i])){
+					validateArg(args[i]);
+				}
+			}
+			logger.info("================================3");
+			// 执行目标方法
+			result = joinPoint.proceed();
+			// 返回通知
+			logger.info("The method " + methodName + " end. result<" + JSONObject.toJSON(result) + ">");
+			
+			endTimeMillis = System.currentTimeMillis();
+	        //格式化开始时间
+	        String startTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(startTimeMillis);
+	        //格式化结束时间
+	        String endTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(endTimeMillis);
+	        
+	        logger.info("操作方法名:" + methodName + " 操作开始时间:" + startTime + " 操作结束时间:" +endTime);
+		} catch (BusinessException be) {
+			
+			ResultJSON rj = new ResultJSON();
+	        rj.setReturnCode(be.getMessageCode());
+	        rj.setReturnTip(be.getMessage());
+	        rj.setBody(new JSONObject());
+			
+			result = rj;
+			
+			logger.error(className + "." + methodName + ":" + JSONObject.toJSON(result),be);
+		} catch (Throwable e) {
+			// 异常通知
+			Message m = PropertiesUtil.getMessage("COMMON_999");
+			
+			ResultJSON rj = new ResultJSON();
+	        rj.setReturnCode(m.getCode());
+	        rj.setReturnTip(m.getTip());
+	        rj.setBody(new JSONObject());
+			
+			result = rj;
+			logger.error(className + "." + methodName + ":",e);
+		}
+		return result;
+	}
+	
+	/*@AfterReturning(value = "controllerAspect()", returning = "result")
+	public void afterReturning(JoinPoint joinPoint, Object result) {
+		String methodName = joinPoint.getSignature().getName();
+		System.out.println("The method " + methodName + " return with " + result);
+	}*/
+
+	/**
+	 * 获取注解中对方法的描述信息 用于Controller层注解
+	 * @Title: getControllerMethodDesc  
+	 * @Description: 
+	 * @param @param joinPoint
+	 * @param @return
+	 * @param @throws Exception    参数  
+	 * @return String    返回类型  
+	 * @throws
+	 */
+	/*@SuppressWarnings("rawtypes")
+	public static String getControllerMethodDesc(ProceedingJoinPoint joinPoint) throws Exception {
+		String targetName = joinPoint.getTarget().getClass().getName();
+		String methodName = joinPoint.getSignature().getName();
+		Object[] arguments = joinPoint.getArgs();
+		Class targetClass = Class.forName(targetName);
+		Method[] methods = targetClass.getMethods();
+		String description = "";
+		for (Method method : methods) {
+			if (method.getName().equals(methodName)) {
+				Class[] clazzs = method.getParameterTypes();
+				if (clazzs.length == arguments.length) {
+					description = method.getAnnotation(SystemControllerLog.class).desc();
+					break;
+				}
+			}
+		}
+		return description;
+	}*/
+	
+	private boolean hasValidAnnotations(Annotation[] annotations) {
+		for (Annotation annotation : annotations) {
+			if (RequireValid.class.isInstance(annotation)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * @throws IllegalAccessException 
+	 * @throws IllegalArgumentException 
+	 * @throws Exception 
+	 * 校验输入参数的合法性
+	 * @Title: validateArg  
+	 * @Description: TODO
+	 * @param @param arg
+	 * @param @param argName
+	 * @param @return    参数  
+	 * @return ResultInfoOut    返回类型  
+	 * @throws
+	 */
+	@SuppressWarnings("rawtypes")
+	private void validateArg(Object arg) throws BusinessException, IllegalArgumentException, IllegalAccessException {
+		
+//		System.out.println("验证开始");
+    	
+		Field[] fields = arg.getClass().getDeclaredFields();
+		
+		for (Field field : fields) {
+			field.setAccessible(true);
+			String className = field.getType().getSimpleName();
+			
+//			System.out.println("className:" + className);
+			
+//			System.out.println("validator:" + validator);
+			
+			if ("String".equalsIgnoreCase(className)) {
+//				System.out.println("field.getName():" + field.getName());
+				Set<ConstraintViolation<Object>> violations = validator.validateProperty(arg, field.getName());
+				//System.out.println("violations.size():" + violations.size());
+				
+				if (violations.size() > 0) {
+					for (ConstraintViolation<Object> violation : violations) {
+//						System.out.println("violation.getMessage():" + violation.getMessage());
+						Message m = PropertiesUtil.getMessage("COMMON_402");
+						throw new BusinessException(m.getCode(), String.format(m.getTip(), field.getName()));
+					}
+				}
+			}
+			if ("List".equalsIgnoreCase(className)) {
+				//如果是List类型的属性，继续校验List中每个对象中属性
+				Object property = field.get(arg);
+				
+//				System.out.println("property:" + property);
+				if(property != null){
+					List ls = (List) property;
+					for (Object object : ls) {
+						validateArg(object);
+					}
+				}
+			}
+		}
+	}
+	
+	@Required
+	public void setValidator(Validator validator) {
+		this.validator = validator;
+	}
+
+}

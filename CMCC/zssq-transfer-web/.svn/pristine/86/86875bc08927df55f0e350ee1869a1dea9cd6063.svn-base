@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.mblog.dao.mapper.TransferTaskMapper" >
+  
+  <select id="selectAllTask" resultType="com.zssq.mblog.pojo.TransferTaskVo">
+  		SELECT
+  			task_name AS taskName,
+			task_type AS taskType,
+			task_status AS taskStatus,
+			page_no AS pageNo,
+			total_page AS totalPage,
+			total_count AS totalCount,
+			create_time AS createTime,
+			start_time AS startTime,
+			end_time AS endTime,
+			fail_time AS failTime
+		FROM
+			transfer_task
+  </select>
+  
+  <update id="updateTaskStatus" parameterType="java.util.Map">
+  		UPDATE
+  			transfer_task
+  		SET
+  			task_status = #{taskStatus},
+  		 <if test="taskStatus == 2" >
+	        start_time = #{curTime},
+	        fail_time = 0
+	     </if>
+	     <if test="taskStatus == 3" >
+	        end_time = #{curTime}
+	     </if>
+	     <if test="taskStatus == 4" >
+	        fail_time = #{curTime}
+	     </if>
+		WHERE
+			task_type = #{taskType}	  	
+  </update>
+  
+  <update id="updateTaskTotal" parameterType="java.util.Map">
+  		UPDATE
+  			transfer_task
+  		SET
+  			total_count = #{totalCount},
+  			total_page = #{totalPage}
+		WHERE
+			task_type = #{taskType}	  	
+  </update>
+  
+  
+  <update id="updateTaskPage" parameterType="java.util.Map">
+  		UPDATE
+  			transfer_task
+  		SET
+  			page_no = #{pageNo}
+		WHERE
+			task_type = #{taskType}	  	
+  </update>
+  
+  
+</mapper>

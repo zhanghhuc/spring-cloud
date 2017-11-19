@@ -1,0 +1,686 @@
+package com.zssq.complaint.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.complaint.vo.DeleteOrNotMonitorInfoVo;
+import com.zssq.complaint.vo.GetComplaintByPerson;
+import com.zssq.complaint.vo.GetComplaintInfoList;
+import com.zssq.complaint.vo.GetDelMonitorInfoListVo;
+import com.zssq.complaint.vo.GetPeopleList;
+import com.zssq.complaint.vo.HandleComplaint;
+import com.zssq.constants.BlogConstants;
+import com.zssq.constants.ComplaintConstants;
+import com.zssq.constants.RelationConstants;
+import com.zssq.dao.pojo.ComplaintInfo;
+import com.zssq.dao.pojo.ComplaintMonitorInfo;
+import com.zssq.dao.pojo.RelaPersonComplaint;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.kafka.core.KafkaProducerTemplate;
+import com.zssq.news.model.third.ShieldModel;
+import com.zssq.news.service.NewsThridService;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.BlogThirdService;
+import com.zssq.service.ComplaintService;
+import com.zssq.service.DiskFileService;
+import com.zssq.service.HonorThirdService;
+import com.zssq.service.IActivityThirdService;
+import com.zssq.service.IForumThirdService;
+import com.zssq.service.ISysUserService;
+import com.zssq.service.ITeamInfoService;
+import com.zssq.service.IVoteThirdService;
+import com.zssq.service.MblogThridService;
+import com.zssq.service.MessagerBoradService;
+import com.zssq.service.RelationThirdDynamicService;
+import com.zssq.utils.DateUtils;
+import com.zssq.utils.PageInfo;
+import com.zssq.utils.StringTools;
+import com.zssq.vo.BlogThirdVO;
+import com.zssq.vo.RelationDataVO;
+import com.zssq.vo.RelationDynamicVO;
+import com.zssq.vote.controller.BaseController;
+
+@RequestMapping("/complaint")
+@Controller
+public class ComplaintControllerByGl extends BaseController {
+
+	private Logger log = Logger.getLogger(this.getClass());
+
+	@Autowired
+	private ComplaintService complaintService;
+	@Autowired
+	private MblogThridService mblogThridService;
+	@Autowired
+	private IVoteThirdService voteThirdService;
+	@Autowired
+	private IForumThirdService forumThirdService;
+	@Autowired
+	private HonorThirdService honorThirdService;
+	@Autowired
+	private BlogThirdService blogThirdService;
+	@Autowired
+	private NewsThridService newsThridServiceImpl;
+	@Autowired
+	private RelationThirdDynamicService relationThirdDynamicService;
+	@Autowired
+	private IActivityThirdService ativityThirdServiceImpl;
+	@Autowired
+	private KafkaProducerTemplate<String, String> producerTeplate;
+	@Autowired
+	private DiskFileService diskFileService;
+	@Autowired
+	private ITeamInfoService teamInfoService;
+	@Autowired
+	private MessagerBoradService messagerBoradService;
+	@Autowired
+	private ISysUserService userService;
+
+	/**
+	 * 查询举报信息列表
+	 * 
+	 * @param vo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "/info/list", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getComplaintInfoList(@RequireValid GetComplaintInfoList vo) throws BusinessException {
+
+		try {
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			if (userInfo == null) {
+				// 用户信息不存在
+				throw BusinessException.build("COMPLAINT_20002", "用户信息");
+			}
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+
+			/** 传递查询条件 */
+			// 设置分页数据
+			PageInfo page = new PageInfo(Integer.parseInt(vo.getPageNo()) + 1, Integer.parseInt(vo.getPageSize()));
+
+			ComplaintInfo info = new ComplaintInfo();
+			info.setOrderBy(Integer.parseInt(vo.getOrderBy()));
+			info.setHandleStatus(Byte.parseByte(vo.getHandleStatus()));
+			info.setApplication(Byte.parseByte(vo.getApplication()));
+			info.setTenantCode(tenantCode);
+			// 当前用户只能查看本组织机构的内容
+			info.setPublisherOrgCode(orgCode);
+
+			/** 查询数据库 */
+			PageInfo pageInfo = complaintService.selectComplaintList(info, page);
+
+			/** 构造返回对象 */
+			JSONObject body = new JSONObject();
+			JSONArray array = new JSONArray();
+			List<ComplaintInfo> list = pageInfo.getList();
+			if (list.size() > 0) {
+				for (ComplaintInfo com : list) {
+					JSONObject item = new JSONObject();
+					item.put("complaintCode", StringTools.formatToString(com.getComplaintInfoCode()));
+					item.put("infoCode", StringTools.formatToString(com.getInfoCode()));
+					item.put("infoUrl", StringTools.formatToString(com.getInfoUrl()));
+					item.put("application", StringTools.formatToString(com.getApplication()));
+					item.put("publisherName", StringTools.formatToString(com.getPublisherName()));
+					item.put("publisherOrg", StringTools.formatToString(com.getPublisherOrg()));
+					item.put("publishTime", StringTools.formatToString(com.getPublishTime()));
+					item.put("complaintCount", StringTools.formatToString(com.getComplaintCount()));
+					item.put("handleStatus", StringTools.formatToString(com.getHandleStatus()));
+
+					array.add(item);
+				}
+			}
+			body.put("totalCount", StringTools.formatToString(pageInfo.getTotalItem()));
+			body.put("complaintList", array);
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(body);
+
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ComplaintControllerByGl.getComplaintInfoList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	/**
+	 * 查询举报人列表
+	 * 
+	 * @param vo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "/people/list", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getPeopleList(@RequireValid GetPeopleList vo) throws BusinessException {
+		try {
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			if (userInfo == null) {
+				// 用户信息不存在
+				throw BusinessException.build("COMPLAINT_20002", "用户信息");
+			}
+			String tenantCode = userInfo.getTenantCode();
+
+			/** 传递查询条件 */
+			// 设置分页数据
+			PageInfo page = new PageInfo(Integer.parseInt(vo.getPageNo()) + 1, Integer.parseInt(vo.getPageSize()));
+
+			RelaPersonComplaint person = new RelaPersonComplaint();
+			
+			List<String> userCodeList = new ArrayList<String>();
+			boolean flag = false;
+			if (StringTools.isNotEmpty(vo.getComplainantName())) {
+				userCodeList = userService.selectCodeByName(vo.getComplainantName());
+				flag = true;
+			}
+			if (StringTools.isNotEmpty(vo.getReason())) {
+				person.setReason(Byte.parseByte(vo.getReason()));
+			}
+			person.setComplaintCode(vo.getComplaintCode());
+			person.setTenantCode(tenantCode);
+
+			/** 查询数据库 */
+			PageInfo pageInfo = new PageInfo();
+			if(flag && userCodeList.size()==0){
+				//传入了名字但没有对应的code
+				//直接返回空列表
+				List<RelaPersonComplaint> list = new ArrayList<RelaPersonComplaint>();
+				pageInfo.setList(list);
+			}else{
+				//没有传入名字或有对应的code
+				//查询数据库
+				pageInfo = complaintService.selectPersonList(person, userCodeList, page);
+			}
+
+			/** 构造返回对象 */
+			JSONObject body = new JSONObject();
+			JSONArray array = new JSONArray();
+			List<RelaPersonComplaint> list = pageInfo.getList();
+			if (list.size() > 0) {
+				for (RelaPersonComplaint p : list) {
+					JSONObject item = new JSONObject();
+					item.put("complainantCode", StringTools.formatToString(p.getComplainantCode()));
+					SysUserInfo personInfo = getUserInfo(p.getComplainantCode());
+					if (personInfo != null) {
+						item.put("complainantName", StringTools.formatToString(personInfo.getUserName()));
+					} else {
+						item.put("complainantName", "");
+					}
+					item.put("complaintTime", StringTools.formatToString(p.getComplaintTime()));
+					item.put("reason", StringTools.formatToString(p.getReason()));
+					array.add(item);
+				}
+			}
+			body.put("totalCount", StringTools.formatToString(pageInfo.getTotalItem()));
+			body.put("complainantList", array);
+
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(body);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ComplaintControllerByGl.getPeopleList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	/**
+	 * 处理举报信息
+	 * 
+	 * @param vo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "/handle", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON handleComplaint(@RequireValid HandleComplaint vo) throws BusinessException {
+		try {
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			if (userInfo == null) {
+				// 用户信息不存在
+				throw BusinessException.build("COMPLAINT_20002", "用户信息");
+			}
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+
+			/** 设置查询参数 */
+			ComplaintInfo info = new ComplaintInfo();
+			info.setTenantCode(tenantCode);
+			info.setOrgCode(orgCode);
+			info.setComplaintInfoCode(vo.getComplaintCode());
+			Byte byteStatus = Byte.parseByte(vo.getHandleStatus());
+			info.setHandleStatus(byteStatus);
+
+			/** 查询举报信息 */
+			ComplaintInfo complaint = complaintService.selectComplaintByCode(info);
+			
+			//屏蔽和恢复才有下面的操作
+			if(ComplaintConstants.COMPLAINT_STATUS_HIDE.equals(byteStatus) 
+					|| ComplaintConstants.COMPLAINT_STATUS_BACK.equals(byteStatus)){
+				/** 调用服务修改相应数据 */
+				Byte isHide = null;// 是否屏蔽
+				Byte type = null;// 信息类型
+				if (info.getHandleStatus().equals(ComplaintConstants.COMPLAINT_STATUS_HIDE)) {
+					// 屏蔽
+					isHide = ComplaintConstants.COMPLAINT_YES;
+				}
+				if (info.getHandleStatus().equals(ComplaintConstants.COMPLAINT_STATUS_BACK)) {
+					// 恢复
+					isHide = ComplaintConstants.COMPLAINT_NO;
+				}
+				JSONObject jsonObject = JSONObject.parseObject(complaint.getInfoUrl());
+				String appCode = (String) jsonObject.get("appCode");
+				String commentCode = (String) jsonObject.get("commentCode");
+				String replyCode = (String) jsonObject.get("replyCode");
+				String dynamicCode = (String) jsonObject.get("dynamicCode");
+				if (StringTools.isNotEmpty(replyCode)) {
+					type = ComplaintConstants.COMPLAINT_TYPE_REPLY;
+				} else if (StringTools.isNotEmpty(commentCode)) {
+					type = ComplaintConstants.COMPLAINT_TYPE_COMMENT;
+				} else if (StringTools.isNotEmpty(appCode)) {
+					type = ComplaintConstants.COMPLAINT_TYPE_APP;
+				}
+	
+				/** 操作内容    调用相应的服务处理被举报数据*/
+				if(ComplaintConstants.COMPLAINT_TYPE_COMMENT.equals(type)){
+					updateApp(vo.getUserCode(), tenantCode, complaint.getInfoCode(), isHide, type, complaint.getApplication(),appCode);
+				}else if(ComplaintConstants.COMPLAINT_TYPE_REPLY.equals(type)){
+					updateApp(vo.getUserCode(), tenantCode, complaint.getInfoCode(), isHide, type, complaint.getApplication(),commentCode);
+				}else{
+					updateApp(vo.getUserCode(), tenantCode, complaint.getInfoCode(), isHide, type, complaint.getApplication(),null);
+				}
+				/** 操作动态   屏蔽/恢复动态*/
+				if (StringTools.isNotEmpty(appCode) && StringTools.isEmpty(commentCode) 
+						&& StringTools.isEmpty(replyCode) && StringTools.isNotEmpty(dynamicCode)) {
+					// 只有应用本身有动态
+					updateDynamic(complaint, isHide, dynamicCode);
+				}else if(StringTools.isNotEmpty(appCode) && StringTools.isNotEmpty(commentCode)
+						&& StringTools.isEmpty(replyCode) && !ComplaintConstants.PERSON_MESSAGE.equals(complaint.getApplication())
+						&& !ComplaintConstants.TEAM_MESSAGE.equals(complaint.getApplication())){
+					//如果是评论被屏蔽/恢复，需要修改动态中的评论数
+					RelationDataVO dataVO = new RelationDataVO();
+					dataVO.setSubjectCode(complaint.getInfoCode());
+					if(ComplaintConstants.COMPLAINT_YES.equals(isHide)){
+						dataVO.setUpdateNumber(RelationConstants.NUM_BELOW_ONE);
+					}
+					if(ComplaintConstants.COMPLAINT_NO.equals(isHide)){
+						dataVO.setUpdateNumber(RelationConstants.NUM_ONE);
+					}
+					dataVO.setModifyTime(DateUtils.getFormatDateLong());
+					dataVO.setUpdateClass(RelationConstants.RELATION_THIRD_DATANUM_TYPE_COMMENT);
+					String data = JSONObject.toJSONString(dataVO);
+					producerTeplate.send(RelationConstants.RELATION_TOPIC, data);
+				}
+			}
+			
+			/** 修改举报信息 */
+			complaintService.updateComplaintStatus(info, vo.getUserCode(),
+					userInfo.getUserName());
+			
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(new JSONObject());
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ComplaintControllerByGl.handleComplaint", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	/**
+	 * 屏蔽/恢复 应用，应用的评论，评论的回复
+	 * 
+	 * @param userCode
+	 *            用户code
+	 * @param tenantCode
+	 *            租户code
+	 * @param complaint
+	 *            举报对象
+	 * @param isHide
+	 *            是否屏蔽
+	 * @param type
+	 *            操作类型 1应用，2应用的评论，3评论的回复
+	 * @throws BusinessException
+	 */
+	private void updateApp(String userCode, String tenantCode, String infoCode, Byte isHide, Byte type,
+			Byte application,String upSubjectCode) throws BusinessException {
+		if (isHide != null && type != null ) {
+			switch (application) {
+			case 1:
+				// 1-新闻
+				ShieldModel model = new ShieldModel();
+				model.setActionCode(infoCode);
+				model.setActionType((int)type);
+				model.setUserCode(userCode);
+				model.setIsShield((int)isHide);
+				newsThridServiceImpl.modifyShield(model);
+				break;
+			case 2:
+				// 2-微博
+				 mblogThridService.modifyShield(infoCode, type, isHide, userCode);
+				break;
+			case 3:
+				// 3-博客
+				BlogThirdVO thirdVo = new BlogThirdVO();
+				thirdVo.setSubjectCode(infoCode);
+				thirdVo.setSubjectType(type);
+				thirdVo.setUpSubjectCode(upSubjectCode);
+				if(ComplaintConstants.COMPLAINT_YES.equals(isHide)){
+					thirdVo.setActionClass(BlogConstants.BLOG_ACTION_YES);
+				}else if(ComplaintConstants.COMPLAINT_NO.equals(isHide)){
+					thirdVo.setActionClass(BlogConstants.BLOG_ACTION_NO);
+				}
+				thirdVo.setModifyTime(DateUtils.getFormatDateLong());
+				blogThirdService.updateShieldStatus(thirdVo);
+				break;
+			case 4:
+				// 4-论坛
+				forumThirdService.deleteOrNot(tenantCode, infoCode, type, isHide);
+				break;
+			case 5:
+				// 5-投票
+				voteThirdService.deleteOrNot(tenantCode, infoCode, type, isHide);
+				break;
+			case 6:
+				// 6-活动
+				ativityThirdServiceImpl.deleteOrNot(tenantCode, infoCode, type, isHide);
+				break;
+			case 7:
+				if(ComplaintConstants.COMPLAINT_TYPE_COMMENT.equals(type) || ComplaintConstants.COMPLAINT_TYPE_REPLY.equals(type)){
+					// 7-荣誉
+					honorThirdService.updateHonorMessage(infoCode, type, isHide, userCode);
+				}
+				break;
+			case 8:
+				// 8-网盘
+				diskFileService.reportFile(infoCode, (int)isHide, userCode);
+				break;
+			case 9:
+				// 9-个人留言
+				messagerBoradService.ReportBoardAndReplyMsg(infoCode, type, (int)isHide);
+				break;
+			case 10:
+				// 10-班组留言
+				teamInfoService.complaintTeamMessage(infoCode, type, isHide);
+				break;
+			default:
+				break;
+			}
+		}
+	}
+
+	/**
+	 * 屏蔽/恢复动态
+	 * 
+	 * @param complaint
+	 *            举报信息对象
+	 * @param isHide
+	 *            是否屏蔽
+	 * @param appCode
+	 *            应用code
+	 * @param commentCode
+	 *            评论code
+	 * @param replyCode
+	 *            评论回复code
+	 * @param dynamicCode
+	 *            动态code
+	 * @throws BusinessException
+	 */
+	private void updateDynamic(ComplaintInfo complaint, Byte isHide, String dynamicCode) {
+
+		try {
+			RelationDynamicVO dynamic = new RelationDynamicVO();
+			dynamic.setDynamicCode(dynamicCode);
+			dynamic.setSubjectCode(complaint.getInfoCode());
+			if(ComplaintConstants.COMPLAINT_YES.equals(isHide)){
+				dynamic.setActionClass(RelationConstants.RELATION_ACTION_YES);
+			}else if(ComplaintConstants.COMPLAINT_NO.equals(isHide)){
+				dynamic.setActionClass(RelationConstants.RELATION_ACTION_NO);
+			}
+			dynamic.setModifyTime(DateUtils.getFormatDateLong());
+			if (ComplaintConstants.MBOLG.equals(complaint.getApplication())) {
+				dynamic.setSubjectClass(RelationConstants.RELATION_SUBJECT_MBLOG);
+			}
+			if (ComplaintConstants.BOLG.equals(complaint.getApplication())) {
+				dynamic.setSubjectClass(RelationConstants.RELATION_SUBJECT_BLOG);
+			}
+			if (ComplaintConstants.VOTE.equals(complaint.getApplication())) {
+				dynamic.setSubjectClass(RelationConstants.RELATION_SUBJECT_VOTE);
+			}
+			if (ComplaintConstants.ACTIVITY.equals(complaint.getApplication())) {
+				dynamic.setSubjectClass(RelationConstants.RELATION_SUBJECT_ACTIVITY);
+			}
+			if (ComplaintConstants.NEWS.equals(complaint.getApplication())) {
+				dynamic.setSubjectClass(RelationConstants.RELATION_SUBJECT_NEWS);
+			}
+			if (dynamic.getSubjectClass() != null) {
+				relationThirdDynamicService.updateShieldStatus(dynamic);
+			}
+		} catch (BusinessException e) {
+			log.error("ComplaintControllerByGl.updateDynamic(屏蔽/恢复动态)", e);
+		}
+	}
+
+	/**
+	 * 查询某一举报人所举报的信息列表
+	 * 
+	 * @param vo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "/by/person", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getComplaintByPerson(@RequireValid GetComplaintByPerson vo) throws BusinessException {
+		try {
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			if (userInfo == null) {
+				// 用户信息不存在
+				throw BusinessException.build("COMPLAINT_20002", "用户信息");
+			}
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+			/** 查询数据库 */
+			// orgCode 任意举报人所举报的本机构的内容
+			List<ComplaintInfo> list = complaintService.selectComplaintByPerson(vo.getComplainantCode(), tenantCode,
+					orgCode);
+
+			/** 构造返回对象 */
+			JSONObject body = new JSONObject();
+			JSONArray array = new JSONArray();
+			if (list.size() > 0) {
+				for (ComplaintInfo info : list) {
+					JSONObject item = new JSONObject();
+					item.put("complaintCode", StringTools.formatToString(info.getComplaintInfoCode()));
+					item.put("infoCode", StringTools.formatToString(info.getInfoCode()));
+					item.put("infoUrl", StringTools.formatToString(info.getInfoUrl()));
+					item.put("application", StringTools.formatToString(info.getApplication()));
+					item.put("publisherName", StringTools.formatToString(info.getPublisherName()));
+					item.put("publisherOrg", StringTools.formatToString(info.getPublisherOrg()));
+					item.put("publishTime", StringTools.formatToString(info.getPublishTime()));
+					item.put("complaintCount", StringTools.formatToString(info.getComplaintCount()));
+					item.put("handleStatus", StringTools.formatToString(info.getHandleStatus()));
+
+					array.add(item);
+				}
+			}
+			body.put("totalCount", StringTools.formatToString(list.size()));
+			body.put("complaintList", array);
+
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(body);
+
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ComplaintControllerByGl.getComplaintByPerson", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	/**
+	 * 删除/恢复监控信息
+	 * 
+	 * @param vo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "/deleteOrNotMonitorInfo", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON deleteOrNotMonitorInfo(@RequireValid DeleteOrNotMonitorInfoVo vo) throws BusinessException {
+
+		try {
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			if (userInfo == null) {
+				// 用户信息不存在
+				throw BusinessException.build("COMPLAINT_20002", "用户信息");
+			}
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+
+			ComplaintMonitorInfo info = new ComplaintMonitorInfo();
+			info.setTenantCode(tenantCode);
+			info.setOrgCode(orgCode);
+			info.setInfoCode(vo.getInfoCode());
+			Byte type = null;
+			if (ComplaintConstants.OPT_DELETE.equals(Byte.parseByte(vo.getOperateType()))) {
+				// 删除操作
+				/** 1.添加一条数据 */
+				if (StringTools.isNotEmpty(vo.getDynamicCode())) {
+					info.setDynamicCode(vo.getDynamicCode());
+				}
+				info.setInfoUrl(vo.getInfoUrl());
+				info.setApplication(Byte.parseByte(vo.getApplication()));
+				info.setPublisherCode(vo.getPublisherCode());
+				SysUserInfo publisher = getUserInfo(vo.getPublisherCode());
+				if (publisher != null) {
+					info.setPublisherName(publisher.getUserName());
+					info.setPublisherOrgCode(publisher.getManageOrgInfo().getSysOrgCode());
+					info.setPublisherOrg(publisher.getManageOrgInfo().getSysOrgName());
+				} else {
+					// 信息发布人信息不存在
+					throw BusinessException.build("COMPLAINT_20002", "信息发布人信息");
+				}
+				info.setPublishTime(Long.parseLong(vo.getPublishTime()));
+				info.setHandlerCode(vo.getUserCode());
+				info.setHandlerName(userInfo.getUserName());
+
+				type = new Byte("1");
+			} else if (ComplaintConstants.OPT_BACK.equals(Byte.parseByte(vo.getOperateType()))) {
+				// 恢复操作
+				type = new Byte("0");
+			} else {
+				throw BusinessException.build("COMMON_402", "operateType");
+			}
+			
+			/** 删除/恢复应用 */
+			updateApp(vo.getUserCode(), tenantCode, vo.getInfoCode(), type,
+					ComplaintConstants.COMPLAINT_TYPE_APP, Byte.parseByte(vo.getApplication()),null);
+			
+			if(StringTools.isNotEmpty(vo.getDynamicCode())){	
+				/**删除/恢复应用的动态 */
+				ComplaintInfo complaintInfo = new ComplaintInfo();
+				complaintInfo.setApplication(Byte.parseByte(vo.getApplication()));
+				complaintInfo.setInfoCode(vo.getInfoCode());
+				updateDynamic(complaintInfo, type, vo.getDynamicCode());
+			}
+			
+			if(type.equals(new Byte("1"))){
+				/**添加一条删除数据*/
+				complaintService.insertMonitorInfo(info);
+			}else{
+				/** 删除对应数据 */
+				complaintService.deleteOneMontior(info);
+			}
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(new JSONObject());
+			return result;
+		}catch(NumberFormatException e){
+			throw BusinessException.build("COMMON_402", "publishTime");
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ComplaintControllerByGl.deleteOrNotMonitorInfo", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * 查询已删除的监控信息列表
+	 * @param vo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value = "/getDelMonitorInfoList", method = RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getDelMonitorInfoList(@RequireValid GetDelMonitorInfoListVo vo) throws BusinessException{
+		
+		try {
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			if (userInfo == null) {
+				// 用户信息不存在
+				throw BusinessException.build("COMPLAINT_20002", "用户信息");
+			}
+			String tenantCode = userInfo.getTenantCode();
+			String orgCode = userInfo.getManageOrgInfo().getSysOrgCode();
+			
+			ComplaintMonitorInfo info = new ComplaintMonitorInfo();
+			info.setTenantCode(tenantCode);
+			info.setOrgCode(orgCode);
+			info.setApplication(Byte.parseByte(vo.getApplication()));
+			
+			// 设置分页数据
+			PageInfo page = new PageInfo(Integer.parseInt(vo.getPageNo()) + 1, Integer.parseInt(vo.getPageSize()));
+			
+			page = complaintService.selectDelMonitorList(info,page);
+			
+			JSONObject body = new JSONObject();
+			List<ComplaintMonitorInfo> list = page.getList();
+			JSONArray array = new JSONArray();
+			if(list.size()>0){
+				for (ComplaintMonitorInfo m : list) {
+					JSONObject item = new JSONObject();
+					item.put("id", StringTools.formatToString(m.getId()));
+					item.put("code", m.getCode());
+					item.put("infoCode", m.getInfoCode());
+					item.put("infoUrl", m.getInfoUrl());
+					item.put("dynamicCode", m.getDynamicCode());
+					item.put("application", StringTools.formatToString(m.getApplication()));
+					item.put("publisherName", m.getPublisherName());
+					item.put("publisherOrg", m.getPublisherOrg());
+					item.put("publisherCode",m.getPublisherCode());
+					item.put("publishTime", StringTools.formatToString(m.getPublishTime()));
+					item.put("handlerCode", m.getHandlerCode());
+					item.put("handlerName", m.getHandlerName());
+					item.put("handleTime", StringTools.formatToString(m.getCreateTime()));
+					array.add(item);
+				}
+			}
+			body.put("totalCount", StringTools.formatToString(page.getTotalItem()));
+			body.put("delMonitorList", array);
+			
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(body);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ComplaintControllerByGl.getDelMonitorInfoList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+}

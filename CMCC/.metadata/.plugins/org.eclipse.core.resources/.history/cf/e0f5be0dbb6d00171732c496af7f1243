@@ -1,0 +1,136 @@
+package com.zssq.vote.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.zssq.constants.RelationConstants;
+import com.zssq.constants.VoteConstants;
+import com.zssq.relation.pojo.RelationSubjectData;
+import com.zssq.relation.pojo.RelationSubjectInfo;
+import com.zssq.relation.service.IRelationThirdService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.vote.dao.mapper.VoteInfoMapper;
+import com.zssq.vote.pojo.VoteInfo;
+import com.zssq.vote.pojo.VoteInfoExample;
+import com.zssq.vote.service.IVoteRelationService;
+@Transactional
+@Service("voteRelationService")
+public class VoteRelationServiceImpl implements IVoteRelationService {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private VoteInfoMapper voteInfoMapper;
+	@Autowired
+	private IRelationThirdService relationThirdService;
+//	@Autowired
+//	private RelationSubjectDataVoteMapper relationSubjectDataVoteMapper;
+//	@Autowired
+//	private RelationSubjectInfoVoteMapper relationSubjectInfoVoteMapper;
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = false, rollbackFor = Throwable.class)
+	public void transferAll() {
+		try {
+			VoteInfoExample example = new VoteInfoExample();
+			example.setLimitStart(0);
+			example.setLimitEnd(5);
+			example.setOrderByClause("id asc");
+			
+			List<VoteInfo> list = voteInfoMapper.selectByExampleWithBLOBs(example);
+			if (list.size() > 0) {
+				handler(list);
+			} else {
+				log.debug("没有需要迁移到relation的数据");
+			}
+		} catch (Exception e) {
+			log.error("#######VoteRelationServiceImpl.transferAll()报错：", e);
+		}
+
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = false, rollbackFor = Throwable.class)
+	public void transfer(String voteInfoCode) {
+		try {
+			VoteInfoExample example = new VoteInfoExample();
+			VoteInfoExample.Criteria criteria = example.createCriteria();
+			  
+			criteria.andCodeEqualTo(voteInfoCode);
+			
+			List<VoteInfo> list = voteInfoMapper.selectByExampleWithBLOBs(example);
+			if (list.size() > 0) {
+				handler(list);
+			} else {
+				log.debug("没有需要迁移到relation的数据");
+			}
+		} catch (Exception e) {
+			log.error("#######VoteRelationServiceImpl.transfer()报错：", e);
+		}
+
+	}
+	
+	public void handler(List<VoteInfo> list) {
+		List<RelationSubjectInfo> subjectInfoList = new ArrayList<>();
+		List<RelationSubjectData> subjectDataList = new ArrayList<>();
+		for (int i = 0; i < list.size(); i++) {
+			VoteInfo vi = list.get(i);
+			
+			// 内容信息表
+			RelationSubjectInfo subjectInfo = new RelationSubjectInfo();
+			subjectInfo.setSubjectCode(vi.getCode());
+			subjectInfo.setTenantCode(vi.getTenantCode());
+			subjectInfo.setOrgCode(vi.getOrgCode());
+			subjectInfo.setCreateTime(vi.getCreateTime());
+			subjectInfo.setModifyTime(vi.getModifyTime());
+			subjectInfo.setSubjectClass(RelationConstants.RELATION_SUBJECT_VOTE);
+			if (VoteConstants.SPONSOR_TYPE_PERSON.equals(vi.getSponsorType())) {
+				subjectInfo.setSubjectDepend(RelationConstants.RELATION_SUBJECT_DEPEND_USER);// 从属关系1-个人
+			}
+			if (VoteConstants.SPONSOR_TYPE_CLASS.equals(vi.getSponsorType())) {
+				subjectInfo.setSubjectDepend(RelationConstants.RELATION_SUBJECT_DEPEND_TEAM);// 从属关系2-班组
+				subjectInfo.setTeamCode(vi.getSponsorOrgCode());
+			}
+			if (VoteConstants.SPONSOR_TYPE_MANAGER.equals(vi.getSponsorType())) {
+				subjectInfo.setSubjectDepend(RelationConstants.RELATION_SUBJECT_DEPEND_ORG);
+			}
+			subjectInfo.setUserCode(vi.getSponsorCode());
+			subjectInfo.setSubjectPublishTime(vi.getCreateTime());
+			subjectInfo.setSubjectTitle(vi.getTitle());
+			subjectInfo.setSubjectDigest(vi.getVoteExplain());
+			subjectInfo.setSubjectSource(RelationConstants.RELATION_SUBJECT_SOURCE_ORIGINAL);
+			subjectInfo.setSubjectEndTime(vi.getEndTime());
+			subjectInfo.setSubjectBeginTime(vi.getStartTime());
+			
+			subjectInfoList.add(subjectInfo);
+			
+			// 内容数据表
+			RelationSubjectData rsd = new RelationSubjectData();
+			rsd.setSubjectDataCode(UUIDHelper.getUUID());
+			rsd.setSubjectCode(vi.getCode());
+			rsd.setTenantCode(vi.getTenantCode());
+			rsd.setOrgCode(vi.getOrgCode());
+			rsd.setCreateTime(vi.getCreateTime());
+			rsd.setModifyTime(vi.getModifyTime());
+			rsd.setJoinNum(vi.getJoinNum());// 参与人数
+			rsd.setCommentNum(vi.getCommentNum());//评论人数
+			
+			subjectDataList.add(rsd);
+			
+			if (i == list.size() - 1) {
+				relationThirdService.insertSubjectAll(subjectInfoList, subjectDataList);
+			} else if (subjectInfoList.size() == 2000) {
+				relationThirdService.insertSubjectAll(subjectInfoList, subjectDataList);
+
+				subjectInfoList.clear();
+				subjectDataList.clear();
+			}
+		}
+	}
+}

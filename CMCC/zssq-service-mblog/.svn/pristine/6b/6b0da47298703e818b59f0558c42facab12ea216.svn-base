@@ -1,0 +1,4 @@
+默认web.xml中配置的欢迎页
+http://localhost:8080/cmckc-service-mblog/
+指定controller地址
+http://localhost:8080/cmckc-service-mblog/user/list?id=3

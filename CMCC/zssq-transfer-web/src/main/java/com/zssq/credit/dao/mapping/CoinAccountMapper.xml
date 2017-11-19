@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.credit.dao.mapper.CoinAccountMapper">
+	<resultMap id="BaseResultMap" type="com.zssq.credit.pojo.CoinAccount">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="account_code" property="accountCode" jdbcType="VARCHAR" />
+		<result column="account_type" property="accountType" jdbcType="TINYINT" />
+		<result column="coin_balance" property="coinBalance" jdbcType="INTEGER" />
+		<result column="coin_balance_salt" property="coinBalanceSalt" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+		<result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+		<result column="saas_tenant_code" property="saasTenantCode" jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, account_code, account_type, coin_balance,
+		coin_balance_salt, create_time, modify_time,
+		org_code, saas_tenant_code
+	</sql>
+	
+	<insert id="batchInsert" parameterType="com.zssq.credit.pojo.CoinAccount">
+		insert into coin_account(
+			id,
+			account_code,
+			account_type,
+			coin_balance,
+			coin_balance_salt,
+			create_time,
+			modify_time,
+			org_code,
+			saas_tenant_code
+		)
+		values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(
+				#{item.id},
+				#{item.accountCode},
+				#{item.accountType},
+				#{item.coinBalance},
+				#{item.coinBalanceSalt},
+				#{item.createTime},
+				#{item.modifyTime},
+				#{item.orgCode},
+				#{item.saasTenantCode}
+			)
+		</foreach>
+	</insert>
+	
+	<select id="selectPage" parameterType="hashmap" resultMap="BaseResultMap">
+		select 
+		<include refid="Base_Column_List"/>
+		from coin_account
+		limit ${limitStart}, ${limitEnd}
+	</select>
+	
+	<select id="selectPageCount" resultType="java.lang.Integer">
+		select count(1) from coin_account
+	</select>
+	
+</mapper>

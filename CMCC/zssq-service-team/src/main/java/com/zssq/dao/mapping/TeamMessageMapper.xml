@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.TeamMessageMapper">
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.TeamMessage">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="team_message_code" property="teamMessageCode" jdbcType="VARCHAR" />
+		<result column="team_code" property="teamCode" jdbcType="VARCHAR" />
+		<result column="content" property="content" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="user_code" property="userCode" jdbcType="VARCHAR" />
+		<result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, team_message_code, team_code, content, create_time, user_code,
+		is_delete
+	</sql>
+	
+	<!-- 根据唯一标识查询 -->
+	<select id="selectByCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select 
+			<include refid="Base_Column_List" />
+		from 
+			team_message
+		where team_message_code = #{teamMessageCode,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 查询班组留言 -->
+	<select id="selectPage" parameterType="com.zssq.dao.pojo.TeamMessage" resultMap="BaseResultMap">
+		select 
+			<include refid="Base_Column_List" />
+		from 
+			team_message
+		where is_delete = '0' 
+		<if test="teamCode != null">
+			and team_code = #{teamCode,jdbcType=VARCHAR}
+		</if>
+		<if test="teamCodes != null">
+			and team_code in 
+			<foreach collection="teamCodes" index="index" item="item" open="(" close=")" separator=",">
+				#{item,jdbcType=VARCHAR}
+			</foreach>
+		</if>
+		order by create_time desc
+		<if test="limitStart != null">
+			limit #{limitStart,jdbcType=VARCHAR},#{limitEnd,jdbcType=VARCHAR}
+		</if>
+	</select>
+	<!-- 查询班组留言(总数) -->
+	<select id="selectCount" parameterType="com.zssq.dao.pojo.TeamMessage" resultType="java.lang.Integer">
+		select 
+			count(1)
+		from 
+			team_message
+		where is_delete = '0'
+		<if test="teamCode != null">
+			and team_code = #{teamCode,jdbcType=VARCHAR}
+		</if>
+		<if test="teamCodes != null">
+			and team_code in 
+			<foreach collection="teamCodes" index="index" item="item" open="(" close=")" separator=",">
+				#{item,jdbcType=VARCHAR}
+			</foreach>
+		</if>
+	</select>
+	
+	<!-- 根据唯一标识删除 -->
+	<delete id="deleteByCode" parameterType="java.lang.String">
+		delete 
+		from 
+			team_message 
+		where team_message_code = #{teamMessageCode,jdbcType=VARCHAR}
+	</delete>
+	
+	<!-- 动态插入 -->
+	<insert id="insertSelective" parameterType="com.zssq.dao.pojo.TeamMessage">
+		insert into team_message
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="teamMessageCode != null">
+				team_message_code,
+			</if>
+			<if test="teamCode != null">
+				team_code,
+			</if>
+			<if test="content != null">
+				content,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+			<if test="userCode != null">
+				user_code,
+			</if>
+			<if test="isDelete != null">
+				is_delete,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=BIGINT},
+			</if>
+			<if test="teamMessageCode != null">
+				#{teamMessageCode,jdbcType=VARCHAR},
+			</if>
+			<if test="teamCode != null">
+				#{teamCode,jdbcType=VARCHAR},
+			</if>
+			<if test="content != null">
+				#{content,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=BIGINT},
+			</if>
+			<if test="userCode != null">
+				#{userCode,jdbcType=VARCHAR},
+			</if>
+			<if test="isDelete != null">
+				#{isDelete,jdbcType=TINYINT},
+			</if>
+		</trim>
+	</insert>
+	
+	<!-- 举报/取消举报 -->
+	<update id="complaintMessage" parameterType="com.zssq.dao.pojo.TeamMessage" >
+		update team_message set is_delete = #{isDelete,jdbcType=TINYINT}
+		where team_message_code = #{teamMessageCode,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 查询班组留言信息，并过滤掉指定的留言信息 -->
+	<select id="selectTeamMessageGPS" parameterType="com.zssq.dao.vo.MessageGPSVo" resultMap="BaseResultMap">
+		select 
+			<include refid="Base_Column_List" />
+		from 
+			team_message
+		where 
+			is_delete = '0' 
+			and team_code = #{teamCode, jdbcType=VARCHAR} 
+			and team_message_code != #{messageCode, jdbcType=VARCHAR} 
+		order by create_time desc 		
+		limit #{limitStart, jdbcType=VARCHAR}, #{limitEnd, jdbcType=VARCHAR}		
+	</select>
+	
+	<!-- 查询班组留言信息，并过滤掉指定的留言信息，数量统计 -->
+	<select id="selectTeamMessageGPSCount" parameterType="com.zssq.dao.vo.MessageGPSVo" resultType="java.lang.Integer">
+		select 
+			count(0) 
+		from 
+			team_message
+		where 
+			is_delete = '0' 
+			and team_code = #{teamCode, jdbcType=VARCHAR} 
+	</select>	
+</mapper>

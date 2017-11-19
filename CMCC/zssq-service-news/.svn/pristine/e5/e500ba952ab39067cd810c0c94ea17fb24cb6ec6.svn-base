@@ -1,0 +1,25 @@
+package com.zssq.dao.mapper;
+
+
+import com.zssq.news.dao.pojo.NewsArchive;
+import com.zssq.news.model.NewsArchiveQuery;
+
+import java.util.List;
+
+public interface NewsArchiveMapper {
+    int deleteByPrimaryKey(Long id);
+
+    int insert(NewsArchive record);
+
+    int insertSelective(NewsArchive record);
+
+    NewsArchive selectByPrimaryKey(Long id);
+
+    int updateByPrimaryKeySelective(NewsArchive record);
+
+    int updateByPrimaryKey(NewsArchive record);
+
+    Integer selectCount(NewsArchiveQuery newsArchiveQuery);
+
+    List<NewsArchive> selectList(NewsArchiveQuery newsArchiveQuery);
+}

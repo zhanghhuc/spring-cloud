@@ -1,0 +1,651 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.HonorCommentMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.HonorComment" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="honor_award_comment_code" property="honorAwardCommentCode" jdbcType="VARCHAR" />
+    <result column="is_disable" property="isDisable" jdbcType="TINYINT" />
+    <result column="is_hide" property="isHide" jdbcType="TINYINT" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="org_level" property="orgLevel" jdbcType="TINYINT" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="award_record_code" property="awardRecordCode" jdbcType="VARCHAR" />
+    <result column="commenter_code" property="commenterCode" jdbcType="VARCHAR" />
+    <result column="praise_count" property="praiseCount" jdbcType="INTEGER" />
+    <result column="reply_count" property="replyCount" jdbcType="INTEGER" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.zssq.dao.pojo.HonorComment" extends="BaseResultMap" >
+    <result column="content" property="content" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, honor_award_comment_code, is_disable, is_hide, is_delete, tenant_code, org_code, 
+    org_level, create_time, modify_time, remark, award_record_code, commenter_code, praise_count, 
+    reply_count
+  </sql>
+  <sql id="Blob_Column_List" >
+    content
+  </sql>
+  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.zssq.dao.pojo.HonorCommentExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from honor_comment
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+    <if test="limitStart != null and limitStart>=0" >
+      limit #{limitStart} , #{limitEnd}
+    </if>
+  </select>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.zssq.dao.pojo.HonorCommentExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from honor_comment
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+    <if test="limitStart != null and limitStart>=0" >
+      limit #{limitStart} , #{limitEnd}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from honor_comment
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from honor_comment
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.zssq.dao.pojo.HonorCommentExample" >
+    delete from honor_comment
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.HonorComment" >
+    insert into honor_comment (id, honor_award_comment_code, is_disable, 
+      is_hide, is_delete, tenant_code, 
+      org_code, org_level, create_time, 
+      modify_time, remark, award_record_code, 
+      commenter_code, praise_count, reply_count, 
+      content)
+    values (#{id,jdbcType=BIGINT}, #{honorAwardCommentCode,jdbcType=VARCHAR}, #{isDisable,jdbcType=TINYINT}, 
+      #{isHide,jdbcType=TINYINT}, #{isDelete,jdbcType=TINYINT}, #{tenantCode,jdbcType=VARCHAR}, 
+      #{orgCode,jdbcType=VARCHAR}, #{orgLevel,jdbcType=TINYINT}, #{createTime,jdbcType=BIGINT}, 
+      #{modifyTime,jdbcType=BIGINT}, #{remark,jdbcType=VARCHAR}, #{awardRecordCode,jdbcType=VARCHAR}, 
+      #{commenterCode,jdbcType=VARCHAR}, #{praiseCount,jdbcType=INTEGER}, #{replyCount,jdbcType=INTEGER}, 
+      #{content,jdbcType=LONGVARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.HonorComment" >
+    insert into honor_comment
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="honorAwardCommentCode != null" >
+        honor_award_comment_code,
+      </if>
+      <if test="isDisable != null" >
+        is_disable,
+      </if>
+      <if test="isHide != null" >
+        is_hide,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="orgLevel != null" >
+        org_level,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="awardRecordCode != null" >
+        award_record_code,
+      </if>
+      <if test="commenterCode != null" >
+        commenter_code,
+      </if>
+      <if test="praiseCount != null" >
+        praise_count,
+      </if>
+      <if test="replyCount != null" >
+        reply_count,
+      </if>
+      <if test="content != null" >
+        content,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="honorAwardCommentCode != null" >
+        #{honorAwardCommentCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isDisable != null" >
+        #{isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="isHide != null" >
+        #{isHide,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="awardRecordCode != null" >
+        #{awardRecordCode,jdbcType=VARCHAR},
+      </if>
+      <if test="commenterCode != null" >
+        #{commenterCode,jdbcType=VARCHAR},
+      </if>
+      <if test="praiseCount != null" >
+        #{praiseCount,jdbcType=INTEGER},
+      </if>
+      <if test="replyCount != null" >
+        #{replyCount,jdbcType=INTEGER},
+      </if>
+      <if test="content != null" >
+        #{content,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.zssq.dao.pojo.HonorCommentExample" resultType="java.lang.Integer" >
+    select count(*) from honor_comment
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update honor_comment
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.honorAwardCommentCode != null" >
+        honor_award_comment_code = #{record.honorAwardCommentCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDisable != null" >
+        is_disable = #{record.isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="record.isHide != null" >
+        is_hide = #{record.isHide,jdbcType=TINYINT},
+      </if>
+      <if test="record.isDelete != null" >
+        is_delete = #{record.isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="record.tenantCode != null" >
+        tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgCode != null" >
+        org_code = #{record.orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgLevel != null" >
+        org_level = #{record.orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.modifyTime != null" >
+        modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.remark != null" >
+        remark = #{record.remark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.awardRecordCode != null" >
+        award_record_code = #{record.awardRecordCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.commenterCode != null" >
+        commenter_code = #{record.commenterCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.praiseCount != null" >
+        praise_count = #{record.praiseCount,jdbcType=INTEGER},
+      </if>
+      <if test="record.replyCount != null" >
+        reply_count = #{record.replyCount,jdbcType=INTEGER},
+      </if>
+      <if test="record.content != null" >
+        content = #{record.content,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExampleWithBLOBs" parameterType="map" >
+    update honor_comment
+    set id = #{record.id,jdbcType=BIGINT},
+      honor_award_comment_code = #{record.honorAwardCommentCode,jdbcType=VARCHAR},
+      is_disable = #{record.isDisable,jdbcType=TINYINT},
+      is_hide = #{record.isHide,jdbcType=TINYINT},
+      is_delete = #{record.isDelete,jdbcType=TINYINT},
+      tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      org_code = #{record.orgCode,jdbcType=VARCHAR},
+      org_level = #{record.orgLevel,jdbcType=TINYINT},
+      create_time = #{record.createTime,jdbcType=BIGINT},
+      modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      award_record_code = #{record.awardRecordCode,jdbcType=VARCHAR},
+      commenter_code = #{record.commenterCode,jdbcType=VARCHAR},
+      praise_count = #{record.praiseCount,jdbcType=INTEGER},
+      reply_count = #{record.replyCount,jdbcType=INTEGER},
+      content = #{record.content,jdbcType=LONGVARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update honor_comment
+    set id = #{record.id,jdbcType=BIGINT},
+      honor_award_comment_code = #{record.honorAwardCommentCode,jdbcType=VARCHAR},
+      is_disable = #{record.isDisable,jdbcType=TINYINT},
+      is_hide = #{record.isHide,jdbcType=TINYINT},
+      is_delete = #{record.isDelete,jdbcType=TINYINT},
+      tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      org_code = #{record.orgCode,jdbcType=VARCHAR},
+      org_level = #{record.orgLevel,jdbcType=TINYINT},
+      create_time = #{record.createTime,jdbcType=BIGINT},
+      modify_time = #{record.modifyTime,jdbcType=BIGINT},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      award_record_code = #{record.awardRecordCode,jdbcType=VARCHAR},
+      commenter_code = #{record.commenterCode,jdbcType=VARCHAR},
+      praise_count = #{record.praiseCount,jdbcType=INTEGER},
+      reply_count = #{record.replyCount,jdbcType=INTEGER}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.HonorComment" >
+    update honor_comment
+    <set >
+      <if test="honorAwardCommentCode != null" >
+        honor_award_comment_code = #{honorAwardCommentCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isDisable != null" >
+        is_disable = #{isDisable,jdbcType=TINYINT},
+      </if>
+      <if test="isHide != null" >
+        is_hide = #{isHide,jdbcType=TINYINT},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        org_level = #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="awardRecordCode != null" >
+        award_record_code = #{awardRecordCode,jdbcType=VARCHAR},
+      </if>
+      <if test="commenterCode != null" >
+        commenter_code = #{commenterCode,jdbcType=VARCHAR},
+      </if>
+      <if test="praiseCount != null" >
+        praise_count = #{praiseCount,jdbcType=INTEGER},
+      </if>
+      <if test="replyCount != null" >
+        reply_count = #{replyCount,jdbcType=INTEGER},
+      </if>
+      <if test="content != null" >
+        content = #{content,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.zssq.dao.pojo.HonorComment" >
+    update honor_comment
+    set honor_award_comment_code = #{honorAwardCommentCode,jdbcType=VARCHAR},
+      is_disable = #{isDisable,jdbcType=TINYINT},
+      is_hide = #{isHide,jdbcType=TINYINT},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      award_record_code = #{awardRecordCode,jdbcType=VARCHAR},
+      commenter_code = #{commenterCode,jdbcType=VARCHAR},
+      praise_count = #{praiseCount,jdbcType=INTEGER},
+      reply_count = #{replyCount,jdbcType=INTEGER},
+      content = #{content,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.HonorComment" >
+    update honor_comment
+    set honor_award_comment_code = #{honorAwardCommentCode,jdbcType=VARCHAR},
+      is_disable = #{isDisable,jdbcType=TINYINT},
+      is_hide = #{isHide,jdbcType=TINYINT},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      award_record_code = #{awardRecordCode,jdbcType=VARCHAR},
+      commenter_code = #{commenterCode,jdbcType=VARCHAR},
+      praise_count = #{praiseCount,jdbcType=INTEGER},
+      reply_count = #{replyCount,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  <!-- 更新点赞数 ByComment-->
+  <update id="updatePraiseCountByComment" parameterType="java.util.Map">
+       UPDATE honor_comment 
+       SET praise_count = praise_count ${type},
+	       modify_time = #{modifyTime}
+       WHERE honor_award_comment_code = #{honorAwardCommentCode}
+       	AND is_delete = 0
+		AND is_disable = 0
+		AND tenant_code = #{tenantCode}
+  </update>
+  
+  <!-- 查询评论列表 -->
+  <select id="selectCommentList" parameterType = "java.util.Map" resultType="com.zssq.dao.pojo.HonorComment" >
+   	  SELECT 
+   	  	hc.id as id,
+   	  	hc.award_record_code as awardRecordCode,
+		hc.honor_award_comment_code as honorAwardCommentCode,
+		hc.commenter_code as commenterCode,
+		hc.content as content,
+		hc.create_time as createTime,
+		hc.reply_count as replyCount,
+		hc.praise_count as praiseCount,
+		hp.admirer_code as admirerCode
+ 	  FROM 
+ 	  	honor_comment hc
+       LEFT JOIN honor_praise hp
+      ON hp.info_code = hc.honor_award_comment_code
+      	AND hp.info_type = #{infoType}
+    	AND hp.admirer_code = #{admierCode}
+    	AND hp.tenant_code = #{tenantCode}
+    	AND hp.is_delete = 0
+    	AND hp.is_disable = 0
+      WHERE hc.is_disable = 0
+    	AND hc.is_delete = 0
+    	AND hc.award_record_code = #{awardRecordCode}
+    	<if test="id != null and id > 0">
+    	    AND hc.id <![CDATA[<]]>#{id}
+    	</if>
+    	AND hc.tenant_code = #{tenantCode}
+      ORDER BY hc.id DESC
+      LIMIT #{limitStart},#{limitEnd}
+  </select>
+  
+  <!-- 查询评论数 -->
+  <select id="selectCommentCount" parameterType = "java.util.Map" resultType="java.lang.Integer" >
+   	  SELECT 
+   	  	count(1)
+ 	  FROM 
+ 	  	honor_comment hc
+       LEFT JOIN honor_praise hp
+      ON hp.info_code = hc.honor_award_comment_code
+      	AND hp.info_type = #{infoType}
+    	AND hp.admirer_code = #{admierCode}
+    	AND hp.tenant_code = #{tenantCode}
+    	AND hp.is_delete = 0
+    	AND hp.is_disable = 0
+      WHERE hc.is_disable = 0
+    	AND hc.is_delete = 0
+    	AND hc.award_record_code = #{awardRecordCode}
+    	AND hc.tenant_code = #{tenantCode}
+  </select>
+  
+  
+  
+   <!-- 发表回复时增加回复数-->
+  <update id="updateIncreaseReplyCount" parameterType="java.util.Map">
+      UPDATE honor_comment 
+      SET reply_count = reply_count + 1,
+      	  modify_time = #{modifyTime}
+      WHERE honor_award_comment_code = #{honorAwardCommentCode}
+      	AND is_delete = 0
+		AND is_disable = 0
+		AND tenant_code = #{tenantCode}
+  </update>
+  
+   <!-- 删除回复时减少回复数-->
+  <update id="updateDecreaseReplyCount" parameterType="java.util.Map">
+      UPDATE honor_comment 
+      SET reply_count = reply_count - 1,
+      	  modify_time = #{modifyTime}
+      WHERE honor_award_comment_code = (
+      		SELECT hcr.award_comment_code
+    		FROM honor_comment_reply hcr
+    		WHERE hcr.honor_comment_reply_code = #{honorCommentReplyCode}
+				AND hcr.is_disable = 0
+				AND hcr.tenant_code = #{tenantCode}
+      )
+      	AND is_delete = 0
+		AND is_disable = 0
+		AND tenant_code = #{tenantCode}
+  </update>
+  
+  
+  <!-- 查询评论列表 定位 -->
+  <select id="selectCommentListForLocation" parameterType = "java.util.Map" resultType="com.zssq.dao.pojo.HonorComment" >
+   	  SELECT 
+   	  	hc.id as id,
+   	  	hc.award_record_code as awardRecordCode,
+		hc.honor_award_comment_code as honorAwardCommentCode,
+		hc.commenter_code as commenterCode,
+		hc.content as content,
+		hc.create_time as createTime,
+		hc.reply_count as replyCount,
+		hc.praise_count as praiseCount,
+		hp.admirer_code as admirerCode
+ 	  FROM 
+ 	  	(SELECT * FROM honor_comment ha
+			WHERE ha.id <![CDATA[<=]]> (
+							SELECT hb.id 
+							FROM honor_comment hb
+								WHERE hb.honor_award_comment_code = #{honorAwardCommentCode}
+								AND hb.award_record_code = #{awardRecordCode}
+								AND hb.is_delete = 0
+								AND hb.is_disable = 0
+								AND hb.tenant_code = #{tenantCode}
+	     )
+      ) hc
+       LEFT JOIN honor_praise hp
+      ON hp.info_code = hc.honor_award_comment_code
+      	AND hp.info_type = #{infoType}
+    	AND hp.admirer_code = #{admierCode}
+    	AND hp.tenant_code = #{tenantCode}
+    	AND hp.is_delete = 0
+    	AND hp.is_disable = 0
+     WHERE hc.is_disable = 0
+   		AND hc.is_delete = 0
+   		AND hc.award_record_code = #{awardRecordCode}
+   		AND hc.tenant_code = #{tenantCode}
+    	<if test="id != null and id > 0">
+    	    AND hc.id <![CDATA[<]]>#{id}
+    	</if>
+      ORDER BY hc.id DESC
+      LIMIT #{limitStart},#{limitEnd}
+  </select>
+  
+  
+    <!-- 删除或撤销删除评论时 更新评论信息-->
+  <update id="updateHonorCommentForComplaintByComment" parameterType="java.util.Map">
+      UPDATE honor_comment 
+      SET modify_time = #{modifyTime},
+      	  is_delete = #{isDelete}
+      WHERE honor_award_comment_code = #{commentCode}
+		AND is_disable = 0
+  </update>
+  
+   <!-- 删除或撤销删除回复时 更新评论信息-->
+  <update id="updateHonorCommentForComplaintByReply" parameterType="java.util.Map">
+      UPDATE honor_comment 
+      SET reply_count = reply_count ${type},
+      	  modify_time = #{modifyTime}
+      WHERE honor_award_comment_code = (
+      		SELECT hcr.award_comment_code
+    		FROM honor_comment_reply hcr
+    		WHERE hcr.honor_comment_reply_code = #{replyCode}
+				AND hcr.is_disable = 0
+      )
+		AND is_disable = 0
+  </update>
+  
+  <!-- ============================================================================ -->
+    <!-- 查询评论数 -分页 -->
+   <select id="selectCommentCountWithPage" parameterType = "java.util.Map" resultType="java.lang.Integer" >
+   	  SELECT COUNT(1) 
+ 	  FROM 
+ 	  	honor_comment hc
+      	WHERE hc.is_disable = 0
+    		AND hc.is_delete = 0
+    	    AND hc.award_record_code = #{awardRecordCode}
+  </select>
+  
+  <!-- 查询评论列表 -分页-->
+  <select id="selectCommentListWithPage" parameterType = "java.util.Map" resultType="com.zssq.dao.pojo.HonorComment" >
+   	  SELECT 
+   	  	hc.`award_record_code` as awardRecordCode,
+		hc.`honor_award_comment_code` as honorAwardCommentCode,
+		hc.`commenter_code` as commenterCode,
+		hc.`content` as content,
+		hc.`create_time` as createTime,
+		hc.`reply_count` as replyCount,
+		hc.`praise_count`as praiseCount,
+		hp.`admirer_code` as admirerCode
+ 	  FROM 
+ 	  	honor_comment hc
+       LEFT JOIN honor_praise hp
+      ON hp.info_code = hc.honor_award_comment_code
+      	AND hp.info_type = #{infoType}
+    	AND hp.admirer_code = #{admierCode}
+      	WHERE hc.is_disable = 0
+    	AND hc.is_delete = 0
+    	AND hc.award_record_code = #{awardRecordCode}
+      LIMIT #{limitStart},#{limitEnd}
+  </select>
+   <!-- ============================================================================ -->
+  
+</mapper>

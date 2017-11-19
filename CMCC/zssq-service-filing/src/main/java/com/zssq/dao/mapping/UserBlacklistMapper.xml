@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.UserBlacklistMapper">
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.UserBlacklist">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="blacklist_code" property="blacklistCode" jdbcType="VARCHAR" />
+		<result column="user_code" property="userCode" jdbcType="VARCHAR" />
+		<result column="blacklist_user_code" property="blacklistUserCode" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+		<result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+		<result column="org_level" property="orgLevel" jdbcType="TINYINT" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, blacklist_code, user_code, blacklist_user_code, create_time,
+		modify_time, org_code,org_level
+	</sql>
+	
+	<select id="selectByCode" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select
+			<include refid="Base_Column_List" />
+		from 
+			user_blacklist
+		where blacklist_code = #{blacklistCode,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectByRecord" parameterType="com.zssq.dao.pojo.UserBlacklist" resultMap="BaseResultMap">
+		select
+			<include refid="Base_Column_List" />
+		from 
+			user_blacklist
+		where 1=1
+		<if test="userCode != null">
+			and user_code = #{userCode,jdbcType=VARCHAR}
+		</if>
+		<if test="blacklistUserCode != null">
+			and blacklist_user_code = #{blacklistUserCode,jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<delete id="deleteBlack" parameterType="java.util.Map">
+		DELETE 
+		FROM
+		  user_blacklist 
+		WHERE user_code = #{userCode,jdbcType=VARCHAR}
+		  AND blacklist_user_code = #{blacklistUserCode,jdbcType=VARCHAR} 
+	</delete>
+	
+	<select id="selectPage" parameterType="com.zssq.dao.pojo.UserBlacklist" resultMap="BaseResultMap">
+		SELECT 
+		  <include refid = "Base_Column_List" /> 
+		FROM
+		  user_blacklist 
+		WHERE user_code = #{userCode,jdbcType=VARCHAR}
+		ORDER BY create_time DESC 
+		<if test="limitStart != null">
+			limit #{limitStart,jdbcType=VARCHAR},#{limitEnd,jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<select id="selectCount" parameterType="java.lang.String" resultType="java.lang.Integer">
+		SELECT 
+		  COUNT(1) 
+		FROM
+		  user_blacklist 
+		WHERE user_code = #{userCode,jdbcType=VARCHAR} 
+	</select>
+	
+	<insert id="insertSelective" parameterType="com.zssq.dao.pojo.UserBlacklist">
+		insert into user_blacklist
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="blacklistCode != null">
+				blacklist_code,
+			</if>
+			<if test="userCode != null">
+				user_code,
+			</if>
+			<if test="blacklistUserCode != null">
+				blacklist_user_code,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+			<if test="modifyTime != null">
+				modify_time,
+			</if>
+			<if test="orgCode != null">
+				org_code,
+			</if>
+			<if test="orgLevel != null">
+				org_level,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=BIGINT},
+			</if>
+			<if test="blacklistCode != null">
+				#{blacklistCode,jdbcType=VARCHAR},
+			</if>
+			<if test="userCode != null">
+				#{userCode,jdbcType=VARCHAR},
+			</if>
+			<if test="blacklistUserCode != null">
+				#{blacklistUserCode,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=BIGINT},
+			</if>
+			<if test="modifyTime != null">
+				#{modifyTime,jdbcType=BIGINT},
+			</if>
+			<if test="orgCode != null">
+				#{orgCode,jdbcType=VARCHAR},
+			</if>
+			<if test="orgLevel != null">
+				#{orgLevel,jdbcType=TINYINT},
+			</if>
+		</trim>
+	</insert>
+	
+</mapper>

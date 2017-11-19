@@ -1,0 +1,163 @@
+package com.zssq.dao.mapper;
+
+import java.util.List;
+
+import com.zssq.dao.pojo.HonorTeam;
+import com.zssq.dao.pojo.MyManageTeam;
+import com.zssq.dao.pojo.RecommondTeam;
+import com.zssq.dao.pojo.TeamCourse;
+import com.zssq.dao.pojo.TeamInfo;
+import com.zssq.dao.pojo.TeamMember;
+import com.zssq.dao.pojo.TeamRecommend;
+
+public interface TeamInfoMapper {
+    
+
+    int insertSelective(TeamInfo record);
+
+    TeamInfo selectByCode(String code);
+
+    /**
+     * @Function updateByCodeSelective
+     * @Description 根据Code修改班组信息
+     * @param record
+     * @return
+     */
+    int updateByCodeSelective(TeamInfo record);
+
+    /**
+     * @Function selectPage
+     * @Description 班组管理查询
+     * @param record
+     * @return
+     */
+    List<TeamInfo> selectPage(TeamInfo record);
+    
+    /**
+     * @Function selectPageCount
+     * @Description 班组管理查询(数量)
+     * @param record
+     * @return
+     */
+    int selectPageCount(TeamInfo record);
+    
+    /**
+     * @Function selectMyManageList
+     * @Description 我管理的班组
+     * @param record
+     * @return
+     */
+    List<MyManageTeam> selectMyManageList(MyManageTeam record);
+    
+    
+    /**
+     * @Function selectMyManageCount
+     * @Description 我管理的班组(数量)
+     * @param record
+     * @return
+     */
+    int selectMyManageCount(MyManageTeam record);
+    
+    /**
+     * @Function selectMyRecommondList
+     * @Description 我推荐的班组/我收到的推荐
+     * @param record
+     * @return
+     */
+    List<RecommondTeam> selectMyRecommondList(TeamCourse record);
+    
+    /**
+     * @Function selectMyRecommondCount
+     * @Description 我推荐的班组/我收到的推荐(数量)
+     * @param record
+     * @return
+     */
+    int selectMyRecommondCount(TeamCourse record);
+
+    /**
+     * @Function selectByCode
+     * @Description 根据多个班组code查询
+     * @param teamCodes
+     * @return
+     */
+    List<TeamInfo> selectByCodes(List<String> teamCodes);
+    
+    /**
+     * @Function selectHeadInfo
+     * @Description 查询班组头信息
+     * @param record
+     * @return
+     */
+    TeamInfo selectHeadInfo(TeamMember record);
+    
+    
+    /**
+     * @Function selectMyTeam
+     * @Description 含有我的班组
+     * @param userCOde
+     * @return
+     */
+    List<TeamInfo> selectMyTeam(String userCOde);
+    
+    
+    /**
+     * @Function selectHonorTeamPage
+     * @Description 查询颁发荣誉百强班组
+     * @param record
+     * @return
+     */
+    List<HonorTeam> selectHonorTeamPage(TeamRecommend record);
+    
+    /**
+     * @Function selectHonorTeamCount
+     * @Description 查询颁发荣誉百强班组
+     * @param record
+     * @return
+     */
+    int selectHonorTeamCount(TeamRecommend record);
+    
+    /**
+     * @Function selectCodeByName
+     * @Description 根据name查询code
+     * @param name
+     * @return
+     */
+    List<String> selectCodeByName(String name);
+    
+    /**
+     * @Function selectByTeamCodes
+     * @Description 根据teamCodes返回多个对象(人数/班组orgCode/班组名称)
+     * @param teamCodes
+     * @return
+     */
+    List<TeamInfo> selectByTeamCodes(List<String> teamCodes);
+    
+    
+    /**
+     * @Function selectByOrgCode
+     * @Description 根据orgCode返回班组信息
+     * @param orgCode
+     * @return
+     */
+    List<TeamInfo> selectByOrgCode(TeamInfo record);
+    
+    /**
+     * @Function selectByOrgCodeCount
+     * @Description 根据orgCode返回班组信息(数量)
+     * @param record
+     * @return
+     */
+    int selectByOrgCodeCount(TeamInfo record);
+    
+    /**
+     * @Function selectRepeatName
+     * @Description 按班组名称查询
+     * @param record
+     * @return
+     */
+    int selectRepeatName(TeamInfo record);
+    
+    List<TeamInfo> selectByName(TeamInfo record);
+    
+    int selectByNameCount(TeamInfo record);
+}

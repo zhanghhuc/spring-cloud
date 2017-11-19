@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.RelationDynamicTeamRelMapper">
+
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.RelationDynamicTeamRel">
+		<id column="id" jdbcType="BIGINT" property="id" />
+		<result column="rel_code" jdbcType="VARCHAR" property="relCode" />
+		<result column="tenant_code" jdbcType="VARCHAR" property="tenantCode" />
+		<result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+		<result column="create_time" jdbcType="BIGINT" property="createTime" />
+		<result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+		<result column="remark" jdbcType="VARCHAR" property="remark" />
+		<result column="dynamic_code" jdbcType="VARCHAR" property="dynamicCode" />
+		<result column="team_code" jdbcType="VARCHAR" property="teamCode" />
+		<result column="team_is_excellent" jdbcType="TINYINT" property="teamIsExcellent" />
+		<result column="team_is_no_one" jdbcType="TINYINT" property="teamIsNoOne" />
+		<result column="team_is_dissolve" jdbcType="TINYINT" property="teamIsDissolve" />
+		<result column="rel_is_home_show" jdbcType="TINYINT" property="relIsHomeShow" />
+		<result column="rel_is_quality" jdbcType="TINYINT" property="relIsQuality" />
+		<result column="rel_is_recommend" jdbcType="TINYINT" property="relIsRecommend" />
+	</resultMap>
+	
+	<!-- 列列表 -->
+	<sql id="Base_Column_List">
+		id, rel_code, tenant_code, org_code, create_time, modify_time, remark,
+		dynamic_code, team_code, team_is_excellent, team_is_no_one, 
+		team_is_dissolve, rel_is_home_show, rel_is_quality, rel_is_recommend
+	</sql>
+	
+	<!-- 插入 -->
+	<insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.zssq.dao.pojo.RelationDynamicTeamRel">
+		INSERT INTO relation_dynamic_team_rel (
+			rel_code, 
+			tenant_code,
+			org_code,
+			create_time,
+			modify_time, 
+			remark, 
+			dynamic_code,
+			team_code, 
+			team_is_excellent, 
+			team_is_no_one, 
+			team_is_dissolve,
+			rel_is_home_show, 
+			rel_is_quality, 
+			rel_is_recommend
+		) VALUES (
+			#{relCode,jdbcType=VARCHAR},
+			#{tenantCode,jdbcType=VARCHAR},
+			#{orgCode,jdbcType=VARCHAR}, 
+			#{createTime,jdbcType=BIGINT},
+			#{modifyTime,jdbcType=BIGINT}, 
+			#{remark,jdbcType=VARCHAR},
+			#{dynamicCode,jdbcType=VARCHAR},
+			#{teamCode,jdbcType=VARCHAR}, 
+			#{teamIsExcellent,jdbcType=TINYINT},
+			#{teamIsNoOne,jdbcType=TINYINT},
+			#{teamIsDissolve,jdbcType=TINYINT},
+			#{relIsHomeShow,jdbcType=TINYINT}, 
+			#{relIsQuality,jdbcType=TINYINT}, 
+			#{relIsRecommend,jdbcType=TINYINT}
+		)
+	</insert>
+	
+	<!-- 班组设为百强班组 -->
+	<update id="setTeamExc" parameterType="map">
+		UPDATE relation_dynamic_team_rel SET 
+			modify_time = #{modifyTime,jdbcType=BIGINT},
+			team_is_excellent = #{teamIsExcellent,jdbcType=TINYINT}
+		WHERE team_code IN 
+		<foreach collection="teamCodeList" open="(" close=")" item="teamCode1" index="index" separator=",">
+			#{teamCode1,jdbcType=VARCHAR}
+		</foreach>
+	</update>
+	
+	<!-- 班组取消百强班组 -->
+	<update id="removeTeamExc" parameterType="map">
+		UPDATE relation_dynamic_team_rel SET 
+			modify_time = #{modifyTime,jdbcType=BIGINT},
+			team_is_excellent = #{teamIsExcellent,jdbcType=TINYINT}
+		WHERE team_code NOT IN 
+		<foreach collection="teamCodeList" open="(" close=")" item="teamCode1" index="index" separator=",">
+			#{teamCode1,jdbcType=VARCHAR}
+		</foreach>
+	</update>
+	
+	<!-- 班组设为/取消一号班组 -->
+	<update id="updateTeamNoOne" parameterType="map">
+		UPDATE relation_dynamic_team_rel SET 
+			modify_time = #{modifyTime,jdbcType=BIGINT},
+			team_is_no_one = #{teamIsNoOne,jdbcType=TINYINT}
+		WHERE team_code = #{teamCode,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 解散班组 -->
+	<update id="updateTeamStatus" parameterType="map">
+		UPDATE relation_dynamic_team_rel SET 
+			modify_time = #{modifyTime,jdbcType=BIGINT},
+			team_is_dissolve = #{teamIsDissolve,jdbcType=TINYINT}
+		WHERE team_code = #{teamCode,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 查询动态班组关系信息 -->
+	<select id="getDynamicTeamRel" parameterType="map" resultMap="BaseResultMap">
+		SELECT 
+			rel_code, 
+			tenant_code,
+			org_code,
+			create_time,
+			modify_time, 
+			remark, 
+			dynamic_code,
+			team_code, 
+			team_is_excellent, 
+			team_is_no_one, 
+			team_is_dissolve,
+			rel_is_home_show, 
+			rel_is_quality, 
+			rel_is_recommend
+		FROM relation_dynamic_team_rel
+		WHERE dynamic_code = #{dynamicCode,jdbcType=VARCHAR}
+		AND team_code = #{teamCode,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 更改首页展示状态 -->
+	<update id="updateTeamFrontStatus" parameterType="map">
+		UPDATE relation_dynamic_team_rel SET 
+			modify_time = #{modifyTime,jdbcType=BIGINT},
+			rel_is_home_show = #{relIsHomeShow,jdbcType=TINYINT}
+		WHERE dynamic_code = #{dynamicCode,jdbcType=VARCHAR}
+		AND team_code = #{teamCode,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 更改置精状态 -->
+	<update id="updateTeamQulityStatus" parameterType="map">
+		UPDATE relation_dynamic_team_rel SET 
+			modify_time = #{modifyTime,jdbcType=BIGINT},
+			rel_is_quality = #{relIsQuality,jdbcType=TINYINT}
+		WHERE dynamic_code = #{dynamicCode,jdbcType=VARCHAR}
+		AND team_code = #{teamCode,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 更改推荐状态 -->
+	<update id="updateTeamRecStatus" parameterType="map">
+		UPDATE relation_dynamic_team_rel SET 
+			modify_time = #{modifyTime,jdbcType=BIGINT},
+			rel_is_recommend = #{relIsRecommend,jdbcType=TINYINT}
+		WHERE dynamic_code = #{dynamicCode,jdbcType=VARCHAR}
+		AND team_code = #{teamCode,jdbcType=VARCHAR}
+	</update>
+
+</mapper>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.team.dao.mapper.TeamRecommendMapper">
+	<resultMap id="BaseResultMap" type="com.zssq.team.pojo.TeamRecommend">
+		<id column="id" jdbcType="BIGINT" property="id" />
+		<result column="team_recommend_code" jdbcType="VARCHAR" property="teamRecommendCode" />
+		<result column="team_elect_code" jdbcType="VARCHAR" property="teamElectCode" />
+		<result column="team_code" jdbcType="VARCHAR" property="teamCode" />
+		<result column="recommend_reason" jdbcType="VARCHAR" property="recommendReason" />
+		<result column="is_excellent" jdbcType="TINYINT" property="isExcellent" />
+		<result column="user_code" jdbcType="VARCHAR" property="userCode" />
+		<result column="elect_time" jdbcType="BIGINT" property="electTime" />
+		<result column="is_honor" jdbcType="TINYINT" property="isHonor" />
+		<result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+	</resultMap>
+	
+	<sql id="Base_Column_List"> id, team_recommend_code, team_elect_code, team_code,
+		recommend_reason, is_excellent, user_code, elect_time, is_honor,
+		org_code
+	</sql>
+	
+	<delete id="deleteByElectCode" parameterType="java.lang.String">
+		delete from team_recommend where team_elect_code = #{value,jdbcType=VARCHAR}
+	</delete>
+	
+	
+	<insert id="batchInsert" parameterType="java.util.List" useGeneratedKeys="true" >
+		insert into team_recommend
+				(team_recommend_code,
+				team_elect_code,
+				team_code,
+				recommend_reason,
+				is_excellent,
+				user_code,
+				elect_time,
+				is_honor,
+				org_code) values
+		<foreach collection="list" item="item" index="index" separator="," >
+				(
+					#{item.teamRecommendCode,jdbcType=VARCHAR},
+					#{item.teamElectCode,jdbcType=VARCHAR},
+					#{item.teamCode,jdbcType=VARCHAR},
+					#{item.recommendReason,jdbcType=VARCHAR},
+					#{item.isExcellent,jdbcType=TINYINT},
+					#{item.userCode,jdbcType=VARCHAR},
+					#{item.electTime,jdbcType=BIGINT},
+					#{item.isHonor,jdbcType=TINYINT},
+					#{item.orgCode,jdbcType=VARCHAR}
+				)
+		</foreach>		
+	</insert>
+</mapper>

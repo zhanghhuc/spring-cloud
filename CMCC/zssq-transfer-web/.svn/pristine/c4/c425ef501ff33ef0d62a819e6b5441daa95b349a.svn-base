@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.relation.dao.mapper.RelationSubjectInfoMapper">
+
+	
+	
+	<!-- 插入 推荐博客 -->
+	<insert id="insertBlog" useGeneratedKeys="true" keyProperty="id">
+		INSERT IGNORE INTO relation_subject_info (
+			subject_code, 
+			tenant_code,
+			org_code, 
+			create_time, 
+			modify_time,
+			remark, 
+			dynamic_code,
+			subject_class, 
+			subject_depend,
+			team_code, 
+			user_code, 
+			subject_publish_time,
+			subject_title, 
+			source_depend, 
+			source_team_code,
+			subject_url, 
+			subject_source, 
+			source_code,
+			source_user_code, 
+			source_publish_time, 
+			source_is_delete,
+			source_is_shield, 
+			subject_is_delete, 
+			subject_is_shield,
+			subject_status, 
+			subject_begin_time, 
+			subject_end_time,
+			subject_digest, 
+			content_tips
+		) select 
+			bi.blog_code as subject_code,
+			bi.tenant_code as tenant_code,
+			bi.org_code as org_code, 
+			bi.create_time AS create_time,
+			bi.modify_time AS modify_time,
+			bi.remark as remark, 
+			bi.dynamic_code as dynamic_code, 
+			2 as subject_class,
+			bi.blog_depend as subject_depend,
+			bi.team_code as team_code, 
+			bi.user_code as user_code, 
+			bi.blog_publish_time as subject_publish_time,
+			bi.blog_title as subject_title, 
+			bi.source_blog_depend as source_depend,
+			bi.source_team_code as source_team_code,
+			'' as subject_url, 
+			bi.blog_source as subject_source, 
+			bi.source_blog_code as source_code,
+			bi.source_user_code as source_user_code,
+			0 as source_publish_time,
+			0 as source_is_delete,
+			0 as source_is_shield,
+			0 as subject_is_delete,
+			0 as subject_is_shield,
+			0 as subject_status,
+			0 as subject_begin_time,
+			0 as subject_end_time,
+			bi.blog_digest as subject_digest,
+			bi.blog_tips as content_tips
+			from relation_recommend rr 
+			left join blog_info bi on rr.subject_code = bi.blog_code
+			where rr.subject_class = 2 and bi.blog_code is not null
+			
+	</insert>
+	
+	<!-- 插入 推荐微博 -->
+	<insert id="insertMBlog" useGeneratedKeys="true" keyProperty="id">
+		INSERT IGNORE INTO relation_subject_info (
+			subject_code, 
+			tenant_code,
+			org_code, 
+			create_time, 
+			modify_time,
+			remark, 
+			dynamic_code,
+			subject_class, 
+			subject_depend,
+			team_code, 
+			user_code, 
+			subject_publish_time,
+			subject_title, 
+			source_depend, 
+			source_team_code,
+			subject_url, 
+			subject_source, 
+			source_code,
+			source_user_code, 
+			source_publish_time, 
+			source_is_delete,
+			source_is_shield, 
+			subject_is_delete, 
+			subject_is_shield,
+			subject_status, 
+			subject_begin_time, 
+			subject_end_time,
+			subject_digest, 
+			content_tips
+		) select 
+			bi.mblog_code as subject_code,
+			bi.tenant_code as tenant_code,
+			bi.org_code as org_code, 
+			bi.create_time AS create_time,
+			bi.modify_time AS modify_time,
+			bi.remark as remark, 
+			bi.dynamic_code as dynamic_code, 
+			1 as subject_class,
+			bi.mblog_depend as subject_depend,
+			bi.team_code as team_code, 
+			bi.user_code as user_code, 
+			bi.publish_time as subject_publish_time,
+			'' as subject_title, 
+			0 as source_depend,
+			'' as source_team_code,
+			'' as subject_url, 
+			1 as subject_source, 
+			bi.source_mblog_code as source_code,
+			bi.source_user_code as source_user_code,
+			0 as source_publish_time,
+			0 as source_is_delete,
+			0 as source_is_shield,
+			0 as subject_is_delete,
+			0 as subject_is_shield,
+			0 as subject_status,
+			0 as subject_begin_time,
+			0 as subject_end_time,
+			(select GROUP_CONCAT(content SEPARATOR '') as content from mblog_resource where mblog_code = bi.mblog_code and res_type=1 ) as subject_digest,
+			'' as content_tips
+			from relation_recommend rr 
+			left join mblog_info bi on rr.subject_code = bi.mblog_code
+			where rr.subject_class = 1 and bi.mblog_code is not null
+			
+	</insert>
+	
+</mapper>

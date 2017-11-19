@@ -1,0 +1,70 @@
+package com.zssq.news.noticevo;
+
+import com.zssq.annotation.validation.IntType;
+
+/**
+ * @author SharlaCheung
+ * @ClassName: NewsInfoContentVo
+ * @Description: 新闻审计参数类
+ * @date 2017年04月02日
+ */
+public class NewsNoticeMoveVo extends NoticeBaseVo {
+
+    @IntType(expression = ">=0")
+    private String moveType;
+    @IntType(expression = "<=0")
+    private String noticeSort;
+
+    private String noticeTitle ;
+    private String noticeStatus ;
+    private String startTime ;
+    private String endTime ;
+
+    public String getMoveType() {
+        return moveType;
+    }
+
+    public void setMoveType(String moveType) {
+        this.moveType = moveType;
+    }
+
+    public String getNoticeSort() {
+        return noticeSort;
+    }
+
+    public void setNoticeSort(String noticeSort) {
+        this.noticeSort = noticeSort;
+    }
+
+    public String getNoticeTitle() {
+        return noticeTitle;
+    }
+
+    public void setNoticeTitle(String noticeTitle) {
+        this.noticeTitle = noticeTitle;
+    }
+
+    public String getNoticeStatus() {
+        return noticeStatus;
+    }
+
+    public void setNoticeStatus(String noticeStatus) {
+        this.noticeStatus = noticeStatus;
+    }
+
+    public String getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(String startTime) {
+        this.startTime = startTime;
+    }
+
+    public String getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(String endTime) {
+        this.endTime = endTime;
+    }
+}

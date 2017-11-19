@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.credit.dao.mapper.GoldTeamStaMapper">
+	<resultMap id="BaseResultMap" type="com.zssq.credit.pojo.GoldTeamSta">
+		<result column="ID" property="id" jdbcType="VARCHAR" />
+		<result column="TEAM_ID" property="teamId" jdbcType="INTEGER" />
+		<result column="POINT_NUM" property="pointNum" jdbcType="DECIMAL" />
+		<result column="CREATE_TIME" property="createTime" jdbcType="VARCHAR" />
+		<result column="UPDATE_TIME" property="updateTime" jdbcType="VARCHAR" />
+		<result column="DEL_FALG" property="delFalg" jdbcType="INTEGER" />
+		<result column="CITY_ID" property="cityId" jdbcType="INTEGER" />
+		<result column="PROVINCE_ID" property="provinceId" jdbcType="INTEGER" />
+		<result column="GOLD_COIN" property="goldCoin" jdbcType="DECIMAL" />
+		<result column="LEVEL" property="level" jdbcType="INTEGER" />
+		<result column="ATTEND_NUM" property="attendNum" jdbcType="INTEGER" />
+	</resultMap>
+	
+	<sql id="Base_Column_List">
+		ID, TEAM_ID, POINT_NUM, CREATE_TIME, UPDATE_TIME, DEL_FALG,
+		CITY_ID, PROVINCE_ID, GOLD_COIN, LEVEL, ATTEND_NUM
+	</sql>
+	
+	<select id="selectPage" parameterType="hashmap" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List"/>
+		from gold_team_sta
+		limit ${limitStart}, ${limitEnd} 
+	</select>
+	
+	<select id="selectPageCount" resultType="java.lang.Integer">
+		select count(1) from gold_team_sta
+	</select>
+	
+</mapper>

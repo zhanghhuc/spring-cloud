@@ -1,0 +1,246 @@
+package com.zssq.service.impl;
+
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.constants.VoteConstants;
+import com.zssq.dao.mapper.VoteCommentMapper;
+import com.zssq.dao.mapper.VoteCommentReplyMapper;
+import com.zssq.dao.mapper.VoteInfoMapper;
+import com.zssq.dao.pojo.VoteComment;
+import com.zssq.dao.pojo.VoteCommentExample;
+import com.zssq.dao.pojo.VoteCommentReply;
+import com.zssq.dao.pojo.VoteCommentReplyExample;
+import com.zssq.dao.pojo.VoteInfo;
+import com.zssq.dao.pojo.VoteInfoExample;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.service.CommonService;
+import com.zssq.service.IVoteThirdService;
+import com.zssq.utils.DateUtils;
+import com.zssq.utils.StringTools;
+/**
+ * 投票模块提供给其他模块的接口实现类
+ * @ClassName VoteThirdServiceImpl
+ * @Description 
+ * @author liurong
+ * @date 2017年4月7日 下午6:38:29
+ * @version 1.0
+ * @since JDK 1.7
+ */
+@Service("voteThirdService")
+public class VoteThirdServiceImpl extends CommonService implements IVoteThirdService {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private VoteInfoMapper voteInfoMapper;
+	@Autowired
+	private VoteCommentMapper voteCommentMapper;
+	@Autowired
+	private VoteCommentReplyMapper voteCommentReplyMapper;
+	
+	@Override
+	public boolean deleteOrNot(String tenantCode, String subjectCode, Byte subjectType, Byte isDelete)
+			throws BusinessException {
+		int effectCnt = 0;
+		try {
+			// 校验输入参数
+			if (StringTools.isEmpty(tenantCode)) {
+				throw BusinessException.build("COMMON_402", "tenantCode");
+			}
+			if (StringTools.isEmpty(subjectCode)) {
+				throw BusinessException.build("COMMON_402", "subjectCode");
+			}
+			if (subjectType == null || (subjectType != VoteConstants.HANDLE_INFO_TYPE_1
+					&& subjectType != VoteConstants.HANDLE_INFO_TYPE_2
+					&& subjectType != VoteConstants.HANDLE_INFO_TYPE_3)) {
+				throw BusinessException.build("COMMON_402", "subjectType");
+			}
+			if (isDelete == null || (isDelete != VoteConstants.NO && isDelete != VoteConstants.YES)) {
+				throw BusinessException.build("COMMON_402", "isDelete");
+			}
+			// 判断调用接口的类型
+			if (subjectType == VoteConstants.HANDLE_INFO_TYPE_1) {
+				// 恢复投票信息
+				if (isDelete == VoteConstants.NO) {
+					effectCnt = deleteOrNotVote(tenantCode, Operate.RECOVERY, subjectCode);
+				}
+				// 删除投票信息
+				if (isDelete == VoteConstants.YES) {
+					effectCnt = deleteOrNotVote(tenantCode, Operate.DELETE, subjectCode);
+				}
+			}
+			if (subjectType == VoteConstants.HANDLE_INFO_TYPE_2) {
+				// 恢复投票的评论信息
+				if (isDelete == VoteConstants.NO) {
+					effectCnt = deleteOrNotComment(tenantCode, Operate.RECOVERY, subjectCode);
+				}
+				// 删除投票的评论信息
+				if (isDelete == VoteConstants.YES) {
+					effectCnt = deleteOrNotComment(tenantCode, Operate.DELETE, subjectCode);
+				}
+			}
+			if (subjectType == VoteConstants.HANDLE_INFO_TYPE_3) {
+				// 恢复投票的评论回复信息
+				if (isDelete == VoteConstants.NO) {
+					effectCnt = deleteOrNotReply(tenantCode, Operate.RECOVERY, subjectCode);
+				}
+				// 删除投票的评论回复信息
+				if (isDelete == VoteConstants.YES) {
+					effectCnt = deleteOrNotReply(tenantCode, Operate.DELETE, subjectCode);
+				}
+			}
+			if (effectCnt > 0) {
+				return true;
+			} else {
+				return false;
+			}
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteThirdServiceImpl.deleteOrNot", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	@Override
+	public int deleteOrNotVote(String tenantCode, Operate opt, String code) throws BusinessException {
+		try {
+			VoteInfoExample example = new VoteInfoExample();
+			VoteInfoExample.Criteria criteria = example.createCriteria();
+			
+			criteria.andTenantCodeEqualTo(tenantCode);
+			criteria.andCodeEqualTo(code);
+			
+			VoteInfo record = new VoteInfo();
+			if (opt == Operate.DELETE) {
+				criteria.andIsDeleteEqualTo(VoteConstants.NO);
+				record.setIsDelete(VoteConstants.YES);
+			} else if (opt == Operate.RECOVERY) {
+				criteria.andIsDeleteEqualTo(VoteConstants.YES);
+				record.setIsDelete(VoteConstants.NO);
+			}
+			record.setModifyTime(DateUtils.getFormatDateLong());
+			
+			return voteInfoMapper.updateByExampleSelective(record, example);
+		} catch (Exception e) {
+			log.error("VoteThirdServiceImpl.deleteOrNotVote", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public int deleteOrNotComment(String tenantCode, Operate opt, String code) throws BusinessException {
+		try {
+			/** 1、删除/恢复评论 */
+			VoteCommentExample example = new VoteCommentExample();
+			VoteCommentExample.Criteria criteria = example.createCriteria();
+			// 更新条件
+			criteria.andTenantCodeEqualTo(tenantCode);
+			criteria.andCodeEqualTo(code);
+			criteria.andIsDisableEqualTo(VoteConstants.NO);
+			
+			VoteComment comment = new VoteComment();
+			comment.setModifyTime(DateUtils.getFormatDateLong());
+			if (opt == Operate.DELETE) {
+				criteria.andIsDeleteEqualTo(VoteConstants.NO);
+				comment.setIsDelete(VoteConstants.YES);
+			} else if (opt == Operate.RECOVERY) {
+				criteria.andIsDeleteEqualTo(VoteConstants.YES);
+				comment.setIsDelete(VoteConstants.NO);
+			}
+			int effectCnt = voteCommentMapper.updateByExampleSelective(comment, example);
+
+			if (effectCnt > 0) {
+				/** 2、 更新投票主信息表中的评论数 */
+				example = new VoteCommentExample();
+				criteria = example.createCriteria();
+				criteria.andTenantCodeEqualTo(tenantCode);
+				criteria.andCodeEqualTo(code);
+				
+				List<VoteComment> list = voteCommentMapper.selectByExample(example);
+				if (list.size() > 0) {
+					if (opt == Operate.DELETE) {
+						super.updateCommentNumForVoteInfo(list.get(0).getVoteInfoCode(), Operator.SUB, effectCnt);
+					}
+					if (opt == Operate.RECOVERY) {
+						super.updateCommentNumForVoteInfo(list.get(0).getVoteInfoCode(), Operator.ADD,  effectCnt);
+					}
+				}
+			}
+			return effectCnt;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteThirdServiceImpl.deleteOrNotComment", e);
+			throw BusinessException.build("COMMON_400");
+		}
+
+	}
+
+	@Override
+	public int deleteOrNotReply(String tenantCode, Operate opt, String code) throws BusinessException {
+		try {
+			/** 1、删除/恢复评论回复 */
+			VoteCommentReplyExample example = new VoteCommentReplyExample();
+			VoteCommentReplyExample.Criteria criteria = example.createCriteria();
+			// 更新条件
+			criteria.andTenantCodeEqualTo(tenantCode);
+			criteria.andCodeEqualTo(code);
+			criteria.andIsDisableEqualTo(VoteConstants.NO);
+			
+			VoteCommentReply commentReply = new VoteCommentReply();
+			commentReply.setModifyTime(DateUtils.getFormatDateLong());
+			if (opt == Operate.DELETE) {
+				criteria.andIsDeleteEqualTo(VoteConstants.NO);
+				commentReply.setIsDelete(VoteConstants.YES);
+			}
+			if (opt == Operate.RECOVERY) {
+				criteria.andIsDeleteEqualTo(VoteConstants.YES);
+				commentReply.setIsDelete(VoteConstants.NO);
+			}
+			int effectCnt = voteCommentReplyMapper.updateByExampleSelective(commentReply, example);
+			if (effectCnt > 0) {
+				/**2.减少/增加评论表中的回复数*/
+				example = new VoteCommentReplyExample();
+				criteria = example.createCriteria();
+				criteria.andTenantCodeEqualTo(tenantCode);
+				criteria.andCodeEqualTo(code);
+				List<VoteCommentReply> list = voteCommentReplyMapper.selectByExample(example);
+				if (list.size() > 0) {
+					String voteInfoCode = list.get(0).getVoteInfoCode();
+					String commentCode = list.get(0).getCommentCode();
+					if (opt == Operate.DELETE) {
+						super.updateReplyCountForVoteComment(voteInfoCode, commentCode, Operator.SUB, effectCnt);
+					}
+					if (opt == Operate.RECOVERY) {
+						super.updateReplyCountForVoteComment(voteInfoCode, commentCode, Operator.ADD, effectCnt);
+					}
+				}
+			}
+			return effectCnt;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.deleteOrNotReply", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public void updateDecreaseShareNumByCode(String code, int count) throws BusinessException {
+		try {
+			super.updateShareNumForVoteInfo(code, Operator.SUB, count);
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.updateDecreaseShareNumByCode", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+		
+	}
+}

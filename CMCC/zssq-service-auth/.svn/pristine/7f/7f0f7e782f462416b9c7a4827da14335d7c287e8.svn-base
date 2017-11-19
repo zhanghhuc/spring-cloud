@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.SmapUserMapper">
+
+	<!-- smap_user 表字段实体映射 -->
+	<resultMap id="BaseResultMap" type="com.mdcl.smap.bean.UserInfo">
+		<result column="synId" property="synId" jdbcType="VARCHAR" />
+		<result column="synKind" property="synKind" jdbcType="VARCHAR" />
+		<result column="changeType" property="changeType" jdbcType="VARCHAR" />
+		<result column="appStatus" property="appStatus" jdbcType="VARCHAR" />
+		<result column="uid" property="uid" jdbcType="VARCHAR" />
+		<result column="cn" property="cn" jdbcType="VARCHAR" />
+		<result column="areaId" property="areaId" jdbcType="VARCHAR" />
+		<result column="birthday" property="birthday" jdbcType="VARCHAR" />
+		<result column="c" property="c" jdbcType="VARCHAR" />
+		<result column="description" property="description" jdbcType="VARCHAR" />
+		<result column="displayOrder" property="displayOrder" jdbcType="VARCHAR" />
+		<result column="employeeType" property="employeeType" jdbcType="VARCHAR" />
+		<result column="endTime" property="endTime" jdbcType="VARCHAR" />
+		<result column="entryTime" property="entryTime" jdbcType="VARCHAR" />
+		<result column="facsimiletelephonenumber" property="facsimiletelephonenumber" jdbcType="VARCHAR" />
+		<result column="gender" property="gender" jdbcType="VARCHAR" />
+		<result column="idcardNumber" property="idcardNumber" jdbcType="VARCHAR" />
+		<result column="duty" property="duty" jdbcType="VARCHAR" />
+		<result column="email" property="email" jdbcType="VARCHAR" />
+		<result column="employeeNumber" property="employeeNumber" jdbcType="VARCHAR" />
+		<result column="l" property="l" jdbcType="VARCHAR" />
+		<result column="level" property="level" jdbcType="VARCHAR" />
+		<result column="levelName" property="levelName" jdbcType="VARCHAR" />
+		<result column="preferredMobile" property="preferredMobile" jdbcType="VARCHAR" />
+		<result column="mobile" property="mobile" jdbcType="VARCHAR" />
+		<result column="nation" property="nation" jdbcType="VARCHAR" />
+		<result column="o" property="o" jdbcType="VARCHAR" />
+		<result column="photo" property="photo" jdbcType="VARCHAR" />
+		<result column="positionLevel" property="positionLevel" jdbcType="VARCHAR" />
+		<result column="postalAddress" property="postalAddress" jdbcType="VARCHAR" />
+		<result column="postalCode" property="postalCode" jdbcType="VARCHAR" />
+		<result column="religion" property="religion" jdbcType="VARCHAR" />
+		<result column="sn" property="sn" jdbcType="VARCHAR" />
+		<result column="startTime" property="startTime" jdbcType="VARCHAR" />
+		<result column="telephoneNumber" property="telephoneNumber" jdbcType="VARCHAR" />
+		<result column="workOrg" property="workOrg" jdbcType="VARCHAR" />
+		<result column="password" property="password" jdbcType="VARCHAR" />
+		<result column="status" property="status" jdbcType="VARCHAR" />
+		<result column="supporterCorpName" property="supporterCorpName" jdbcType="VARCHAR" />
+		<result column="supporterDept" property="supporterDept" jdbcType="VARCHAR" />
+		<result column="supporterCorpContact" property="supporterCorpContact" jdbcType="VARCHAR" />
+		<result column="superviseDept" property="superviseDept" jdbcType="VARCHAR" />
+		<result column="supervisor" property="supervisor" jdbcType="VARCHAR" />
+		<result column="category" property="category" jdbcType="VARCHAR" />
+		<result column="changeTime" property="changeTime" jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<!-- smap_user 表字段列表 -->
+	<sql id="Base_Column_List">
+		synId, synKind, changeType, appStatus, uid, cn, areaId, birthday, c,
+		description,
+		displayOrder, employeeType, endTime, entryTime, facsimiletelephonenumber, 
+		gender, idcardNumber, duty, email, employeeNumber, l, level,
+		levelName, preferredMobile,
+		mobile, nation, o, photo, positionLevel, postalAddress, postalCode, religion,
+		sn,
+		startTime, telephoneNumber, workOrg, password, status, supporterCorpName,
+		supporterDept,
+		supporterCorpContact, superviseDept, supervisor, category, changeTime
+	</sql>
+	
+	<!-- 根据员工uid查询用户信息 -->
+	<select id="selectByUid" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select 
+			<include refid="Base_Column_List" />
+		from 
+			smap_user
+		where uid = #{value}
+	</select>
+	
+	<!-- 根据组织编码查询用户信息 -->
+	<select id="selectByOrgCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select 
+			<include refid="Base_Column_List" />
+		from 
+			smap_user
+		where o = #{value}
+	</select>
+
+	<!-- 新增 SMAP 同步用户信息 -->
+	<insert id="insert" parameterType="com.mdcl.smap.bean.UserInfo">
+		insert into smap_user (synId, synKind,
+		changeType, appStatus, uid,
+		cn, areaId, birthday,
+		c, description, displayOrder,
+		employeeType, endTime, entryTime,
+		facsimiletelephonenumber, gender,
+		idcardNumber, duty, email,
+		employeeNumber, l, level,
+		levelName, preferredMobile, mobile,
+		nation, o, photo, positionLevel,
+		postalAddress, postalCode, religion,
+		sn, startTime, telephoneNumber,
+		workOrg, password, status,
+		supporterCorpName, supporterDept, supporterCorpContact,
+		superviseDept, supervisor, category,
+		changeTime)
+		values (#{synId,jdbcType=VARCHAR},
+		#{synKind,jdbcType=VARCHAR},
+		#{changeType,jdbcType=VARCHAR}, #{appStatus,jdbcType=VARCHAR}, #{uid,jdbcType=VARCHAR},
+		#{cn,jdbcType=VARCHAR}, #{areaId,jdbcType=VARCHAR},
+		#{birthday,jdbcType=VARCHAR},
+		#{c,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{displayOrder,jdbcType=VARCHAR},
+		#{employeeType,jdbcType=VARCHAR}, #{endTime,jdbcType=VARCHAR},
+		#{entryTime,jdbcType=VARCHAR},
+		#{facsimiletelephonenumber,jdbcType=VARCHAR},
+		#{gender,jdbcType=VARCHAR},
+		#{idcardNumber,jdbcType=VARCHAR}, #{duty,jdbcType=VARCHAR},
+		#{email,jdbcType=VARCHAR},
+		#{employeeNumber,jdbcType=VARCHAR}, #{l,jdbcType=VARCHAR}, #{level,jdbcType=VARCHAR},
+		#{levelName,jdbcType=VARCHAR}, #{preferredMobile,jdbcType=VARCHAR},
+		#{mobile,jdbcType=VARCHAR},
+		#{nation,jdbcType=VARCHAR}, #{o,jdbcType=VARCHAR}, #{photo,jdbcType=VARCHAR},
+		#{positionLevel,jdbcType=VARCHAR},
+		#{postalAddress,jdbcType=VARCHAR}, #{postalCode,jdbcType=VARCHAR}, #{religion,jdbcType=VARCHAR},
+		#{sn,jdbcType=VARCHAR}, #{startTime,jdbcType=VARCHAR},
+		#{telephoneNumber,jdbcType=VARCHAR},
+		#{workOrg,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR},
+		#{supporterCorpName,jdbcType=VARCHAR},
+		#{supporterDept,jdbcType=VARCHAR},
+		#{supporterCorpContact,jdbcType=VARCHAR},
+		#{superviseDept,jdbcType=VARCHAR}, #{supervisor,jdbcType=VARCHAR},
+		#{category,jdbcType=VARCHAR},
+		#{changeTime,jdbcType=VARCHAR})
+	</insert>
+	
+	<!-- 新增 SMAP 同步用户信息 -->
+	<insert id="insertStatic" parameterType="com.mdcl.smap.bean.UserInfo">
+		insert into smap_user_static (synId, synKind,
+		changeType, appStatus, uid,
+		cn, areaId, birthday,
+		c, description, displayOrder,
+		employeeType, endTime, entryTime,
+		facsimiletelephonenumber, gender,
+		idcardNumber, duty, email,
+		employeeNumber, l, level,
+		levelName, preferredMobile, mobile,
+		nation, o, photo, positionLevel,
+		postalAddress, postalCode, religion,
+		sn, startTime, telephoneNumber,
+		workOrg, password, status,
+		supporterCorpName, supporterDept, supporterCorpContact,
+		superviseDept, supervisor, category,
+		changeTime)
+		values (#{synId,jdbcType=VARCHAR},
+		#{synKind,jdbcType=VARCHAR},
+		#{changeType,jdbcType=VARCHAR}, #{appStatus,jdbcType=VARCHAR}, #{uid,jdbcType=VARCHAR},
+		#{cn,jdbcType=VARCHAR}, #{areaId,jdbcType=VARCHAR},
+		#{birthday,jdbcType=VARCHAR},
+		#{c,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{displayOrder,jdbcType=VARCHAR},
+		#{employeeType,jdbcType=VARCHAR}, #{endTime,jdbcType=VARCHAR},
+		#{entryTime,jdbcType=VARCHAR},
+		#{facsimiletelephonenumber,jdbcType=VARCHAR},
+		#{gender,jdbcType=VARCHAR},
+		#{idcardNumber,jdbcType=VARCHAR}, #{duty,jdbcType=VARCHAR},
+		#{email,jdbcType=VARCHAR},
+		#{employeeNumber,jdbcType=VARCHAR}, #{l,jdbcType=VARCHAR}, #{level,jdbcType=VARCHAR},
+		#{levelName,jdbcType=VARCHAR}, #{preferredMobile,jdbcType=VARCHAR},
+		#{mobile,jdbcType=VARCHAR},
+		#{nation,jdbcType=VARCHAR}, #{o,jdbcType=VARCHAR}, #{photo,jdbcType=VARCHAR},
+		#{positionLevel,jdbcType=VARCHAR},
+		#{postalAddress,jdbcType=VARCHAR}, #{postalCode,jdbcType=VARCHAR}, #{religion,jdbcType=VARCHAR},
+		#{sn,jdbcType=VARCHAR}, #{startTime,jdbcType=VARCHAR},
+		#{telephoneNumber,jdbcType=VARCHAR},
+		#{workOrg,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR},
+		#{supporterCorpName,jdbcType=VARCHAR},
+		#{supporterDept,jdbcType=VARCHAR},
+		#{supporterCorpContact,jdbcType=VARCHAR},
+		#{superviseDept,jdbcType=VARCHAR}, #{supervisor,jdbcType=VARCHAR},
+		#{category,jdbcType=VARCHAR},
+		#{changeTime,jdbcType=VARCHAR})
+	</insert>	
+
+	<update id="updateByPrimaryKey" parameterType="com.mdcl.smap.bean.UserInfo">
+		update smap_user
+		set synId = #{synid,jdbcType=VARCHAR},
+		synKind = #{synkind,jdbcType=VARCHAR},
+		changeType = #{changetype,jdbcType=VARCHAR},
+		appStatus = #{appstatus,jdbcType=VARCHAR},
+		uid = #{uid,jdbcType=VARCHAR},
+		cn = #{cn,jdbcType=VARCHAR},
+		areaId = #{areaid,jdbcType=VARCHAR},
+		birthday = #{birthday,jdbcType=VARCHAR},
+		c = #{c,jdbcType=VARCHAR},
+		description = #{description,jdbcType=VARCHAR},
+		displayOrder = #{displayorder,jdbcType=VARCHAR},
+		employeeType = #{employeetype,jdbcType=VARCHAR},
+		endTime = #{endtime,jdbcType=VARCHAR},
+		entryTime = #{entrytime,jdbcType=VARCHAR},
+		facsimiletelephonenumber = #{facsimiletelephonenumber,jdbcType=VARCHAR},
+		gender = #{gender,jdbcType=VARCHAR},
+		idcardNumber = #{idcardnumber,jdbcType=VARCHAR},
+		duty = #{duty,jdbcType=VARCHAR},
+		email = #{email,jdbcType=VARCHAR},
+		employeeNumber = #{employeenumber,jdbcType=VARCHAR},
+		l = #{l,jdbcType=VARCHAR},
+		level = #{level,jdbcType=VARCHAR},
+		levelName = #{levelname,jdbcType=VARCHAR},
+		preferredMobile = #{preferredmobile,jdbcType=VARCHAR},
+		mobile = #{mobile,jdbcType=VARCHAR},
+		nation = #{nation,jdbcType=VARCHAR},
+		o = #{o,jdbcType=VARCHAR},
+		photo = #{photo,jdbcType=VARCHAR},
+		positionLevel = #{positionlevel,jdbcType=VARCHAR},
+		postalAddress = #{postaladdress,jdbcType=VARCHAR},
+		postalCode = #{postalcode,jdbcType=VARCHAR},
+		religion = #{religion,jdbcType=VARCHAR},
+		sn = #{sn,jdbcType=VARCHAR},
+		startTime = #{starttime,jdbcType=VARCHAR},
+		telephoneNumber = #{telephonenumber,jdbcType=VARCHAR},
+		workOrg = #{workorg,jdbcType=VARCHAR},
+		password = #{password,jdbcType=VARCHAR},
+		status = #{status,jdbcType=VARCHAR},
+		supporterCorpName = #{supportercorpname,jdbcType=VARCHAR},
+		supporterDept = #{supporterdept,jdbcType=VARCHAR},
+		supporterCorpContact = #{supportercorpcontact,jdbcType=VARCHAR},
+		superviseDept = #{supervisedept,jdbcType=VARCHAR},
+		supervisor = #{supervisor,jdbcType=VARCHAR},
+		category = #{category,jdbcType=VARCHAR},
+		changeTime = #{changetime,jdbcType=VARCHAR}
+		where id = #{id,jdbcType=BIGINT}
+	</update>
+	
+	
+	
+	
+	
+	
+	
+	
+	<!-- ======================= 以下为测试代码 ======================= -->
+	
+	<select id="selectStaticAll" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from
+		smap_user_static
+	</select>
+</mapper>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.TeamMessageReplyMapper">
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.TeamMessageReply">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="reply_code" property="replyCode" jdbcType="VARCHAR" />
+		<result column="message_code" property="messageCode" jdbcType="VARCHAR" />
+		<result column="user_code" property="userCode" jdbcType="VARCHAR" />
+		<result column="reply_messaage" property="replyMessaage" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, reply_code, message_code, user_code, reply_messaage, create_time
+	</sql>
+	
+	<!-- 根据唯一标识查询 -->
+	<select id="selectByCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select 
+			<include refid="Base_Column_List" />
+		from 
+			team_message_reply
+		where reply_code = #{replyCode,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 根据留言标识查询 -->
+	<select id="selectByMesCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select 
+			<include refid="Base_Column_List" />
+		from 
+			team_message_reply
+		where message_code = #{messageCode,jdbcType=VARCHAR}
+		  and is_delete='0'
+	</select>
+	
+	<!-- 根据唯一标识删除 -->
+	<delete id="deleteByCode" parameterType="java.lang.String">
+		delete from team_message_reply where reply_code = #{value,jdbcType=VARCHAR}
+	</delete>
+	
+	<!-- 根据留言标识删除 -->
+	<delete id="deleteByMesCode" parameterType="java.lang.String">
+		delete from team_message_reply where message_code = #{messageCode,jdbcType=VARCHAR}
+	</delete>
+	
+	<!-- 根据留言标识查询 -->
+	<select id="selectByMesCodes" resultMap="BaseResultMap" parameterType="java.util.List">
+		select 
+			<include refid="Base_Column_List" />
+		from 
+			team_message_reply
+		where message_code in
+		<foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
+			#{item,jdbcType=VARCHAR}
+		</foreach>
+		  and is_delete='0'
+		order by message_code,create_time
+	</select>
+	
+	<!-- 动态插入 -->
+	<insert id="insertSelective" parameterType="com.zssq.dao.pojo.TeamMessageReply">
+		insert into team_message_reply
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="replyCode != null">
+				reply_code,
+			</if>
+			<if test="messageCode != null">
+				message_code,
+			</if>
+			<if test="userCode != null">
+				user_code,
+			</if>
+			<if test="replyMessaage != null">
+				reply_messaage,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=BIGINT},
+			</if>
+			<if test="replyCode != null">
+				#{replyCode,jdbcType=VARCHAR},
+			</if>
+			<if test="messageCode != null">
+				#{messageCode,jdbcType=VARCHAR},
+			</if>
+			<if test="userCode != null">
+				#{userCode,jdbcType=VARCHAR},
+			</if>
+			<if test="replyMessaage != null">
+				#{replyMessaage,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=BIGINT},
+			</if>
+		</trim>
+	</insert>
+	
+	<!-- 举报/取消举报 -->
+	<update id="complaintMessageReply" parameterType="com.zssq.dao.pojo.TeamMessageReply" >
+		update team_message_reply set is_delete = #{isDelete,jdbcType=TINYINT}
+		where reply_code = #{replyCode,jdbcType=VARCHAR}
+	</update>
+	
+</mapper>

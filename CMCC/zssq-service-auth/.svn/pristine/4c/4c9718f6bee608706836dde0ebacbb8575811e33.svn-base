@@ -1,0 +1,546 @@
+package com.zssq.service.impl;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSON;
+import com.zssq.common.cache.client.JedisClusterService;
+import com.zssq.config.AuthConfig;
+import com.zssq.constants.AuthConstants;
+import com.zssq.dao.mapper.SysMenuMapper;
+import com.zssq.dao.mapper.SysUserBaseMapper;
+import com.zssq.dao.mapper.SysUserInfoMapper;
+import com.zssq.dao.pojo.SysMenuInfo;
+import com.zssq.dao.pojo.SysOrgInfo;
+import com.zssq.dao.pojo.SysUserBase;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.dao.pojo.SysUserMenu;
+import com.zssq.dao.pojo.SysUserRole;
+import com.zssq.dao.pojo.UserInfoByName;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.service.ISysOrgService;
+import com.zssq.service.ISysUserService;
+import com.zssq.utils.DateUtils;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.utils.PropertiesUtil;
+import com.zssq.utils.StringTools;
+
+/**
+ * 员工信息管理业务组件，实现对员工信息的增删改查操作
+ * 
+ * @since  JDK 1.7
+ * @author 赵翊
+ */
+@Service("sysUserService")
+public class SysUserServiceImpl implements ISysUserService {
+	
+	/** 日志记录操作 */
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	/** Redis 缓存服务操作 */
+	@Autowired
+	private JedisClusterService jedisClusterService;
+	
+	/** 员工信息持久化操作接口 */
+	@Autowired
+	private SysUserInfoMapper sysUserInfoMapper;
+	
+	/** 菜单信息持久化操作接口 */
+	@Autowired
+	private SysMenuMapper sysMenuMapper;
+	
+	/** 用户信息 */
+	@Autowired
+	private SysUserBaseMapper sysUserBaseMapper;
+	
+	/** 组织机构信息业务组件 */
+	@Autowired
+	private ISysOrgService sysOrgService;
+	
+	/** 授权disconf */
+	@Autowired
+	private AuthConfig authConfig;
+	
+	@Override
+	public void refreshUserCache(String userCode) throws BusinessException {
+		
+		try {
+			jedisClusterService.del(userCode);
+			selectByCode(userCode);
+		} catch (Exception e) {
+			log.error("SysUserServiceImpl.refreshUserCache 刷新指定用户缓存出错", e);
+			throw new BusinessException("刷新指定用户缓存出错", e);
+		}
+	}
+	
+	@Override
+	public SysUserInfo selectByCode(String userCode) throws BusinessException {
+				
+		try {
+			SysUserInfo userInfo = null;
+			
+			// 从缓存服务器中获取员工信息 TODO 测试期不走缓存
+//			String userJson = jedisClusterService.get(userCode);
+			String userJson = "";
+			if(StringUtils.isNotBlank(userJson)) {
+				log.debug("SysUserServiceImpl.selectByCode：从缓存中获取到了用户信息" + userCode);
+				userInfo = JSON.parseObject(userJson, SysUserInfo.class);
+				//替换默认头像
+				if(StringTools.isEmpty(userInfo.getHeadPortrait())){
+					userInfo.setHeadPortrait(authConfig.getUserHead());
+				}
+				//替换角色
+				if(StringTools.isEmpty(userInfo.getRoleCode())){
+					userInfo.setRoleCode(AuthConstants.USER_ROLE_0);
+					userInfo.setRoleName(AuthConstants.ROLE_NAME_0);
+				}
+				return userInfo;
+			} else {
+				// 缓存中取不到时，从数据库中获取，并将获取到的信息存入缓存
+				userInfo = sysUserInfoMapper.selectByCode(userCode);				
+				if(userInfo != null) {
+					//替换角色
+					if(StringTools.isEmpty(userInfo.getRoleCode())){
+						userInfo.setRoleCode(AuthConstants.USER_ROLE_0);
+						userInfo.setRoleName(AuthConstants.ROLE_NAME_0);
+					}
+					
+					//替换默认头像
+					if(StringTools.isEmpty(userInfo.getHeadPortrait())){
+						userInfo.setHeadPortrait(authConfig.getUserHead());
+					}
+					
+					log.debug("SysUserServiceImpl.selectByCode：从数据库中获取到了用户信息" + userCode);
+					
+					// 用户可操作的接口资源
+					List<String> permissions = sysMenuMapper.selectUserPermissions(userCode);
+					userInfo.setPermissions(permissions);
+					
+					// 所属组织信息
+					SysOrgInfo orgInfo = sysOrgService.selectByCode(userInfo.getOrgCode());
+					userInfo.setOrgInfo(orgInfo);
+					
+					// 行政组织信息
+					SysOrgInfo manOrgInfo = sysOrgService.selectManageOrgByCode(userInfo.getOrgCode());
+					userInfo.setManageOrgInfo(manOrgInfo);
+					
+//					userJson = JSON.toJSONString(userInfo);
+//					jedisClusterService.set(userCode, userJson);					
+				}
+				return userInfo;
+			}
+		} catch (Exception e) {
+			log.error("SysUserServiceImpl.selectByCode 获取用户信息出错", e);
+			throw new BusinessException("获取用户信息出错", e);
+		}
+	}
+	
+	@Override
+	public List<SysUserInfo> selectByCodes(List<String> userCodes) throws BusinessException {
+		
+		try{
+			List<SysUserInfo> userList = new ArrayList<SysUserInfo>();
+			
+			for(String userCode : userCodes){
+				SysUserInfo userInfo = selectByCode(userCode);
+				userList.add(userInfo);
+			}			
+			return userList;
+		} catch (Exception e) {
+			log.error("SysUserServiceImpl.selectByCodes 获取多个用户信息出错", e);
+			throw new BusinessException("获取多个用户信息出错", e);
+		}
+	}
+	
+	@Override
+	public Map<String, Object> selectMapByCodes(List<String> userCodes) throws BusinessException {
+				
+		try{
+			Map<String, Object> resultMap = new HashMap<String, Object>();
+			
+			List<SysUserInfo> userList = this.selectByCodes(userCodes);
+			
+			for(SysUserInfo userInfo : userList){
+				resultMap.put(userInfo.getUserCode(), userInfo);
+			}			
+			return resultMap;
+		} catch (Exception e) {
+			log.error("SysUserServiceImpl.selectMapByCodes 获取员工信息映射出错", e);
+			throw new BusinessException("获取员工信息映射出错", e);
+		}
+	}
+	
+	@Override
+	public Map<String, Object> selectMapByCodes(Set<String> userCodes) throws BusinessException {
+		
+		try{
+			Map<String, Object> resultMap = new HashMap<String, Object>();
+			
+			//遍历userCodes查询用户信息并加入结果集
+			for (String userCode : userCodes) {
+				SysUserInfo userInfo = selectByCode(userCode);
+				if(null != userInfo){
+					resultMap.put(userInfo.getUserCode(), userInfo);
+				}
+			}
+			
+			return resultMap;
+		} catch (Exception e) {
+			log.error("SysUserServiceImpl.selectMapByCodes 获取员工信息映射出错", e);
+			throw new BusinessException("获取员工信息映射出错", e);
+		}
+	}
+
+	@Override
+	public PageBean selectAdminManagePage(PageParam pageParam,SysUserInfo record) throws BusinessException{
+		try{
+			record.setLimitStart(pageParam.getPageNo() * pageParam.getPageSize());
+			record.setLimitEnd(pageParam.getPageSize());
+			List<SysUserInfo> dataList = sysUserInfoMapper.selectPage(record);
+			int count = sysUserInfoMapper.selectPageCount(record);
+			return new PageBean(record.getLimitStart(), record.getLimitEnd(), count, dataList);
+		} catch (Exception e) {
+			log.error("SysUserServiceImpl.selectAdminManagePage 查询员工管理页面数据(超级管理员)异常", e);
+			throw new BusinessException("查询员工管理页面数据(超级管理员)异常", e);
+		}
+	}
+
+	@Override
+	public PageBean selectUserManagePage(PageParam pageParam,SysUserInfo record) throws BusinessException{
+		try{
+			record.setLimitStart(pageParam.getPageNo() * pageParam.getPageSize());
+			record.setLimitEnd(pageParam.getPageSize());
+			List<SysUserInfo> dataList = sysUserInfoMapper.selectUserByManOrg(record);
+			int count = sysUserInfoMapper.selectUserByManOrgCount(record);
+			return new PageBean(record.getLimitStart(), record.getLimitEnd(), count, dataList);
+		} catch (Exception e) {
+			log.error("SysUserServiceImpl.selectUserManagePage 查询员工管理页面数据(员工)异常", e);
+			throw new BusinessException("查询员工管理页面数据(员工)异常", e);
+		}
+	}
+
+	@Override
+	public List<SysUserInfo> selectUserByMenuOrg(String manOrgCode,String menuCode) throws BusinessException{
+		try{
+			Map<String,Object> map = new HashMap<String,Object>();
+			map.put("manOrgCode", manOrgCode);
+			map.put("menuCode", menuCode);
+			return sysUserInfoMapper.selectUserByMenuOrg(map);
+		} catch (Exception e) {
+			log.error("SysUserServiceImpl.selectUserByMenuOrg 通过行政组织编码与菜单权限查询员工", e);
+			throw new BusinessException("通过行政组织编码与菜单权限查询员工", e);
+		}
+	}
+
+	public List<SysUserInfo> selectUserByMenuOrgs(List<String> manOrgCodes,String menuCode) throws BusinessException{
+		try{
+			Map<String,Object> map = new HashMap<String,Object>();
+			map.put("manOrgCodes", manOrgCodes);
+			map.put("menuCode", menuCode);
+			return sysUserInfoMapper.selectUserByMenuOrg(map);
+		} catch (Exception e) {
+			log.error("SysUserServiceImpl.selectUserByMenuOrgs 通过行政组织编码与菜单权限查询员工", e);
+			throw new BusinessException("通过行政组织编码与菜单权限查询员工", e);
+		}
+	}
+	
+	@Override
+	public List<SysMenuInfo> selectMenus(String userCode) throws BusinessException {
+		
+		List<SysMenuInfo> menus = null;
+		try {
+			// 获取所有一级菜单
+			menus = sysMenuMapper.selectByParentCode("0");
+			
+			// 查询待设置权限的用户信息
+			SysUserInfo userInfo = selectByCode(userCode);
+			// 用户所属行政组织信息
+			SysOrgInfo manOrgInfo = userInfo.getManageOrgInfo();
+			
+			PropertiesUtil propertiesUtil = new PropertiesUtil("security.properties");
+			String excludePath = propertiesUtil.getProperty("excludeMenus");
+			String[] excludeArry = StringUtils.split(excludePath, ",");
+			List<String> excludeList = Arrays.asList(excludeArry);
+			
+			Map<String, String> searchParam = new HashMap<String, String>();
+			searchParam.put("userCode", userCode);			
+			
+			// 获取所有二级菜单
+			for (SysMenuInfo oneLevelMenu : menus) {
+				searchParam.put("menuCode", oneLevelMenu.getMenuCode());
+				List<SysMenuInfo> twoLevelMenus = sysMenuMapper.selectForAuth(searchParam);
+				
+				// 判断待设置权限的员工是否为非集团员工，是，则隐藏部分菜单的显示（基础敏感词、积分规则、颁发荣誉）
+				if(!StringUtils.equals(AuthConstants.ORG_TYPE_A, manOrgInfo.getSysOrgType())) {					
+					// 循环排除菜单列表，依次和获取到的系统菜单比对，如果相同，则从结果集中删除该菜单信息
+					for(String excludeMenuCode : excludeList) {
+						for(SysMenuInfo twoLevelMenu : twoLevelMenus) {
+							if(StringUtils.equals(excludeMenuCode, twoLevelMenu.getMenuCode())) {
+								twoLevelMenus.remove(twoLevelMenu);
+								break;
+							}
+						}
+					}
+				}
+				oneLevelMenu.setTwoLevelMenus(twoLevelMenus);
+			}
+			return menus;
+		} catch (Exception e) {
+			log.error("SysUserServiceImpl.selectMenus 获取系统菜单信息出错", e);
+			throw new BusinessException("获取系统菜单信息出错", e);
+		}		
+	}
+
+	@Override
+	public List<SysMenuInfo> selectUserMenus(String userCode) throws BusinessException {
+		List<SysMenuInfo> menus = null;
+		try {
+			Map<String,Object> map = new HashMap<String,Object>();
+			map.put("userCode", userCode);
+			map.put("parentCode", "0");
+			// 获取所有一级菜单
+			menus = sysMenuMapper.selectByUserParentCode(map);
+			
+			Map<String, String> searchParam = new HashMap<String, String>();
+			searchParam.put("userCode", userCode);
+			
+			// 获取所有二级菜单
+			for (SysMenuInfo oneLevelMenu : menus) {
+				searchParam.put("menuCode", oneLevelMenu.getMenuCode());
+				List<SysMenuInfo> twoLevelMenus = sysMenuMapper.selectForUserAuth(searchParam);
+				oneLevelMenu.setTwoLevelMenus(twoLevelMenus);
+			}
+			return menus;
+		} catch (Exception e) {
+			log.error("SysUserServiceImpl.selectMenus 获取系统菜单信息出错", e);
+			throw new BusinessException("获取系统菜单信息出错", e);
+		}	
+	}
+
+	@Override
+	public boolean setIsLeader(String userCodes, String isLeader) throws BusinessException {
+		try{
+			List<String> users = Arrays.asList(userCodes.split(","));
+			sysUserInfoMapper.deleteRoleByCodes(users);
+			
+			List<SysUserRole> userRoles = new ArrayList<SysUserRole>();
+			String roleCode = "";
+			if(AuthConstants.BOOLEAN_1.equals(isLeader)){
+				roleCode = AuthConstants.USER_ROLE_1;
+			}else{
+				roleCode = AuthConstants.USER_ROLE_0;
+			}
+			for (int i = 0; i < users.size(); i++) {
+				SysUserRole sysUserRole = new SysUserRole();
+				sysUserRole.setCreateTime(DateUtils.getFormatDateLong());
+				sysUserRole.setSysRoleCode(roleCode);
+				sysUserRole.setSysUserCode(users.get(i));
+				userRoles.add(sysUserRole);
+			}
+			sysUserInfoMapper.batchInsertRoles(userRoles);
+			for (int i = 0; i < users.size(); i++) {//更新缓存
+				String userJson = jedisClusterService.get(users.get(i));
+				SysUserInfo userInfo = JSON.parseObject(userJson, SysUserInfo.class);
+				userInfo.setRoleCode(roleCode);
+				if(roleCode.equals(AuthConstants.USER_ROLE_1)){
+					userInfo.setRoleName(AuthConstants.ROLE_NAME_1);
+				}else{
+					userInfo.setRoleName(AuthConstants.ROLE_NAME_0);
+				}
+				userJson = JSON.toJSONString(userInfo);
+				jedisClusterService.set(users.get(i), userJson);
+//				refreshUserCache(users.get(i));
+			}
+			return true;
+		}catch(Exception e){
+			log.error("SysUserServiceImpl.setIsLeader 设置领导/普通员工", e);
+			throw new BusinessException("设置领导/普通员工", e);
+		}
+	}
+
+	@Override
+	public boolean setUserStatus(String userCodes,Byte userStatus) throws BusinessException {
+		try{
+			List<String> users = Arrays.asList(userCodes.split(","));
+			Map<String,Object> map = new HashMap<String,Object>();
+			map.put("userCodes", users);
+			map.put("userStatus", userStatus);
+			return sysUserInfoMapper.setUserStatus(map) > 0;
+		}catch(Exception e){
+			log.error("SysUserServiceImpl.setIsLeader 设置领导/普通员工", e);
+			throw new BusinessException("设置领导/普通员工", e);
+		}
+	}
+
+	@Override
+	public List<SysUserInfo> selectDeputyUser(String orgCode, String isLeader,String userName) throws BusinessException {
+		try{
+			Map<String,Object> map = new HashMap<String,Object>();
+			if(AuthConstants.BOOLEAN_1.equals(isLeader)){
+				map.put("roleCode", AuthConstants.USER_ROLE_1);
+			}else{
+				map.put("roleCode", AuthConstants.USER_ROLE_0);
+			}
+			map.put("orgCode",orgCode);
+			if(StringTools.isNotEmpty(userName))
+				map.put("userName", userName);
+			return sysUserInfoMapper.selectDeputyUser(map);
+		}catch(Exception e){
+			log.error("SysUserServiceImpl.selectDeputyUser 查询代发领导/员工", e);
+			throw new BusinessException("查询代发领导/员工", e);
+		}
+	}
+
+	@Override
+	public List<SysUserInfo> selectByRecord(SysUserInfo record) throws BusinessException {
+		try{
+			return sysUserInfoMapper.selectByRecord(record);
+		}catch(Exception e){
+			log.error("SysUserServiceImpl.selectByRecord 根据条件查询用户集合", e);
+			throw new BusinessException("根据条件查询用户集合", e);
+		}
+	}
+
+	@Override
+	public int addUserMenuRelation(String userCode, String menuCodes) throws BusinessException {
+		
+		try {
+			sysMenuMapper.deleteUserMenuRelation(userCode);
+			
+			String[] menuCodeArry = StringUtils.split(menuCodes, ",");
+			List<SysUserMenu> userMenus = new ArrayList<SysUserMenu>();
+			for (String menuCode : menuCodeArry) {
+				SysUserMenu userMenu = new SysUserMenu();
+				userMenu.setUserCode(userCode);
+				userMenu.setMenuCode(menuCode);
+				userMenu.setCreateTime(DateUtils.getFormatDateLong());
+				userMenus.add(userMenu);
+			}
+			return sysMenuMapper.insertUserMenuRelation(userMenus);
+		} catch (Exception e) {
+			log.error("SysUserServiceImpl.addUserMenuRelation 设置用户与菜单的关联关系出错", e);
+			throw new BusinessException("设置用户与菜单的关联关系出错", e);
+		}
+	}
+
+	@Override
+	public boolean updateHead(String userCode, String head) throws BusinessException {
+		try{
+			//插入数据库
+			SysUserBase record = new SysUserBase();
+			record.setUserCode(userCode);
+			record.setHeadPortrait(head);
+			record.setModifyTime(DateUtils.getFormatDateLong());
+			boolean isSuccess = false;
+			if(sysUserBaseMapper.updateByCodeSelective(record) == 0){//更新不上插入
+				record.setCreateTime(DateUtils.getFormatDateLong());
+				record.setIntroduce("");
+				record.setEmail("");
+				record.setUserName("");
+				record.setNickName("");
+				isSuccess = sysUserBaseMapper.insertSelective(record) == 1;
+			}else{
+				SysUserInfo userInfo = new SysUserInfo();
+				// 从缓存服务器中获取员工信息
+				String userJson = jedisClusterService.get(userCode);
+				if(StringUtils.isNotBlank(userJson)) {
+					log.debug("SysUserServiceImpl.selectByCode：从缓存中获取到了用户信息" + userCode);
+					userInfo = JSON.parseObject(userJson, SysUserInfo.class);
+					userInfo.setHeadPortrait(head);
+					jedisClusterService.set(userCode, userJson);
+				}
+				isSuccess = true;
+			}
+			return isSuccess;
+		}catch(Exception e){
+			log.error("SysUserServiceImpl.updateHead 更新头像", e);
+			throw new BusinessException("更新头像", e);
+		}
+	}
+
+	@Override
+	public boolean updateIntro(String userCode, String intro) throws BusinessException {
+		try{
+			//插入数据库
+			SysUserBase record = new SysUserBase();
+			record.setUserCode(userCode);
+			record.setIntroduce(intro);
+			record.setModifyTime(DateUtils.getFormatDateLong());
+			boolean isSuccess = false;
+			if(sysUserBaseMapper.updateByCodeSelective(record) == 0){//更新不上插入
+				record.setCreateTime(DateUtils.getFormatDateLong());
+				record.setHeadPortrait("");
+				record.setEmail("");
+				record.setUserName("");
+				record.setNickName("");
+				isSuccess = sysUserBaseMapper.insertSelective(record) == 1;
+			}else{
+				SysUserInfo userInfo = new SysUserInfo();
+				// 从缓存服务器中获取员工信息
+				String userJson = jedisClusterService.get(userCode);
+				if(StringUtils.isNotBlank(userJson)) {
+					log.debug("SysUserServiceImpl.selectByCode：从缓存中获取到了用户信息" + userCode);
+					userInfo = JSON.parseObject(userJson, SysUserInfo.class);
+					userInfo.setIntroduce(intro);
+					jedisClusterService.set(userCode, userJson);
+				}
+				isSuccess = true;
+			}
+			return isSuccess;
+		}catch(Exception e){
+			log.error("SysUserServiceImpl.updateIntro 更新简介", e);
+			throw new BusinessException("更新简介", e);
+		}
+	}
+
+	@Override
+	public List<SysUserInfo> getUserListByOrgCode(String orgCode) throws BusinessException {
+		try{
+			Map<String,Object> param = new HashMap<String,Object>();
+			param.put("orgCode", orgCode);
+			List<SysUserInfo> list = new ArrayList<SysUserInfo>();
+			list = sysUserInfoMapper.getUserListByOrgCode(param);
+			
+			return list;
+		}catch(Exception e){
+			log.error("SysUserServiceImpl.updateIntro 组织编码查找员工", e);
+			throw new BusinessException("组织编码查找员工", e);
+		}
+	}
+
+	@Override
+	public List<String> selectCodeByName(String userName) throws BusinessException {
+		try{
+			return sysUserInfoMapper.selectCodeByName(userName);
+		}catch(Exception e){
+			log.error("SysUserServiceImpl.selectCodeByName 根据用户名获取用户code(模糊)", e);
+			throw new BusinessException("根据用户名获取用户code(模糊)", e);
+		}
+	}
+
+	@Override
+	public List<UserInfoByName> selectUserByUserName(String userName, PageParam page) throws BusinessException {
+		try{
+			Map<String,Object> param = new HashMap<String,Object>();
+			param.put("limitStart", page.getPageNo() * page.getPageSize());
+			param.put("limitEnd",page.getPageSize());
+			param.put("userName", userName);
+			return sysUserInfoMapper.selectInfoByName(param);
+		}catch(Exception e){
+			log.error("SysUserServiceImpl.selectCodeByName 根据用户名获取用户信息(模糊)", e);
+			throw new BusinessException("根据用户名获取用户信息模糊)", e);
+		}
+	}
+
+	
+}

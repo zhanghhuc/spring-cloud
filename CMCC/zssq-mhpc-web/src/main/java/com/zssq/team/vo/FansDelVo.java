@@ -1,0 +1,18 @@
+package com.zssq.team.vo;
+
+import org.hibernate.validator.constraints.NotBlank;
+
+public class FansDelVo {
+
+	/** 粉丝唯一标识 */
+	@NotBlank(message = "{empty.message}")
+	private String teamFansCode;
+
+	public String getTeamFansCode() {
+		return teamFansCode;
+	}
+
+	public void setTeamFansCode(String teamFansCode) {
+		this.teamFansCode = teamFansCode;
+	}
+}

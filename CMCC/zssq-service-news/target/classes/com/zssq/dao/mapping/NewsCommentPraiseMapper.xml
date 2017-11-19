@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.NewsCommentPraiseMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.news.dao.pojo.NewsCommentPraise" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="news_praise_code" property="newsPraiseCode" jdbcType="VARCHAR" />
+    <result column="news_code" property="newsCode" jdbcType="VARCHAR" />
+    <result column="comment_code" property="commentCode" jdbcType="VARCHAR" />
+    <result column="praise_people_code" property="praisePeopleCode" jdbcType="VARCHAR" />
+    <result column="praise_people_level" property="praisePeopleLevel" jdbcType="VARCHAR" />
+    <result column="praise_people_org" property="praisePeopleOrg" jdbcType="VARCHAR" />
+    <result column="revert_people_code" property="revertPeopleCode" jdbcType="VARCHAR" />
+    <result column="revert_people_level" property="revertPeopleLevel" jdbcType="VARCHAR" />
+    <result column="revert_people_org" property="revertPeopleOrg" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="org_level" property="orgLevel" jdbcType="TINYINT" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, news_praise_code, news_code, comment_code, praise_people_code, praise_people_level, 
+    praise_people_org, revert_people_code, revert_people_level, revert_people_org, create_time, 
+    modify_time, remark, tenant_code, org_level, org_code
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from news_comment_praise
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectByPraiseUser" resultMap="BaseResultMap"  >
+    select
+    <include refid="Base_Column_List" />
+    from news_comment_praise
+    where praise_people_code = #{0} AND comment_code=#{1}
+  </select>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from news_comment_praise
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+
+  <delete id="deleteNewsCommentGood" parameterType="com.zssq.news.model.NewsCommentPraiseModel" >
+    delete from news_comment_praise
+    where comment_code=#{commentCode} AND praise_people_code=#{praisePeopleCode}
+  </delete>
+
+  <insert id="insert" parameterType="com.zssq.news.dao.pojo.NewsCommentPraise" >
+    insert into news_comment_praise (id, news_praise_code, news_code, 
+      comment_code, praise_people_code, praise_people_level, 
+      praise_people_org, revert_people_code, revert_people_level, 
+      revert_people_org, create_time, modify_time, 
+      remark, tenant_code, org_level, 
+      org_code)
+    values (#{id,jdbcType=BIGINT}, #{newsPraiseCode,jdbcType=VARCHAR}, #{newsCode,jdbcType=VARCHAR}, 
+      #{commentCode,jdbcType=VARCHAR}, #{praisePeopleCode,jdbcType=VARCHAR}, #{praisePeopleLevel,jdbcType=VARCHAR}, 
+      #{praisePeopleOrg,jdbcType=VARCHAR}, #{revertPeopleCode,jdbcType=VARCHAR}, #{revertPeopleLevel,jdbcType=VARCHAR}, 
+      #{revertPeopleOrg,jdbcType=VARCHAR}, #{createTime,jdbcType=BIGINT}, #{modifyTime,jdbcType=BIGINT}, 
+      #{remark,jdbcType=VARCHAR}, #{tenantCode,jdbcType=VARCHAR}, #{orgLevel,jdbcType=TINYINT}, 
+      #{orgCode,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.news.dao.pojo.NewsCommentPraise" >
+    insert into news_comment_praise
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="newsPraiseCode != null" >
+        news_praise_code,
+      </if>
+      <if test="newsCode != null" >
+        news_code,
+      </if>
+      <if test="commentCode != null" >
+        comment_code,
+      </if>
+      <if test="praisePeopleCode != null" >
+        praise_people_code,
+      </if>
+      <if test="praisePeopleLevel != null" >
+        praise_people_level,
+      </if>
+      <if test="praisePeopleOrg != null" >
+        praise_people_org,
+      </if>
+      <if test="revertPeopleCode != null" >
+        revert_people_code,
+      </if>
+      <if test="revertPeopleLevel != null" >
+        revert_people_level,
+      </if>
+      <if test="revertPeopleOrg != null" >
+        revert_people_org,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="orgLevel != null" >
+        org_level,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="newsPraiseCode != null" >
+        #{newsPraiseCode,jdbcType=VARCHAR},
+      </if>
+      <if test="newsCode != null" >
+        #{newsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="commentCode != null" >
+        #{commentCode,jdbcType=VARCHAR},
+      </if>
+      <if test="praisePeopleCode != null" >
+        #{praisePeopleCode,jdbcType=VARCHAR},
+      </if>
+      <if test="praisePeopleLevel != null" >
+        #{praisePeopleLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="praisePeopleOrg != null" >
+        #{praisePeopleOrg,jdbcType=VARCHAR},
+      </if>
+      <if test="revertPeopleCode != null" >
+        #{revertPeopleCode,jdbcType=VARCHAR},
+      </if>
+      <if test="revertPeopleLevel != null" >
+        #{revertPeopleLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="revertPeopleOrg != null" >
+        #{revertPeopleOrg,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.news.dao.pojo.NewsCommentPraise" >
+    update news_comment_praise
+    <set >
+      <if test="newsPraiseCode != null" >
+        news_praise_code = #{newsPraiseCode,jdbcType=VARCHAR},
+      </if>
+      <if test="newsCode != null" >
+        news_code = #{newsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="commentCode != null" >
+        comment_code = #{commentCode,jdbcType=VARCHAR},
+      </if>
+      <if test="praisePeopleCode != null" >
+        praise_people_code = #{praisePeopleCode,jdbcType=VARCHAR},
+      </if>
+      <if test="praisePeopleLevel != null" >
+        praise_people_level = #{praisePeopleLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="praisePeopleOrg != null" >
+        praise_people_org = #{praisePeopleOrg,jdbcType=VARCHAR},
+      </if>
+      <if test="revertPeopleCode != null" >
+        revert_people_code = #{revertPeopleCode,jdbcType=VARCHAR},
+      </if>
+      <if test="revertPeopleLevel != null" >
+        revert_people_level = #{revertPeopleLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="revertPeopleOrg != null" >
+        revert_people_org = #{revertPeopleOrg,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        org_level = #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.news.dao.pojo.NewsCommentPraise" >
+    update news_comment_praise
+    set news_praise_code = #{newsPraiseCode,jdbcType=VARCHAR},
+      news_code = #{newsCode,jdbcType=VARCHAR},
+      comment_code = #{commentCode,jdbcType=VARCHAR},
+      praise_people_code = #{praisePeopleCode,jdbcType=VARCHAR},
+      praise_people_level = #{praisePeopleLevel,jdbcType=VARCHAR},
+      praise_people_org = #{praisePeopleOrg,jdbcType=VARCHAR},
+      revert_people_code = #{revertPeopleCode,jdbcType=VARCHAR},
+      revert_people_level = #{revertPeopleLevel,jdbcType=VARCHAR},
+      revert_people_org = #{revertPeopleOrg,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT},
+      org_code = #{orgCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

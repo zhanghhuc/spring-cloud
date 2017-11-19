@@ -1,0 +1,223 @@
+package com.zssq.util;
+
+import java.util.HashMap;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.common.cache.client.JedisClusterService;
+import com.zssq.utils.DateUtils;
+
+@Component
+public class RedisUtil {
+	
+	 private static final long expired = 1000;//1秒超时  
+	
+	@Autowired
+	private JedisClusterService jedis;
+	
+	private static final String lockStr="LockMsg-";
+	
+	private static final String msgStr="Msg-Number-";
+	
+	private static HashMap<String, String> keyMap;
+	
+	/**
+	 * 
+	 * @Title: addNumber  
+	 * @Description: 添加用户信息
+	 * @param userCode
+	 * @param type 类型 ：1AT  2评论   3赞  	 4留言墙   5私信   6订阅通知   7系统消息   8系统通知
+	 * @param num    添加数量
+	 * @return: void    返回类型
+	 */
+	public void addNumber(String userCode,int type,Integer num){
+		try {
+			
+			//初始化keyMap
+			if(keyMap==null){
+				this.initKeyMap();
+			}
+			
+			//对当前用户数据,循环等待拿锁  
+		     boolean lockFlag=true;  
+	         while(lockFlag){
+	             if (this.getLock(lockStr+userCode)) lockFlag=false;  
+	         }  
+			
+	         JSONObject json;
+	         //获取redis　中用户信息
+	         String str=jedis.get(msgStr+userCode);
+	         
+	         //判断是否有新用户
+	         if(str==null || str.equals("") ){
+	        	 //添加用户信息
+	        	 json=getNewUserJson();
+	         }else{
+	        	 json=JSONObject.parseObject(str);
+	         }
+	         
+	        //获取对应类型的str
+	  		String keyStr=RedisUtil.keyMap.get(type+"");
+	         //数量+1 
+	        Integer value=json.getInteger(keyStr)+(num==null||num==0?1:num);
+	        json.put(keyStr,value);
+	        jedis.set(msgStr+userCode,json.toJSONString());
+        
+      
+		} catch (Exception e) {
+			e.printStackTrace();
+		}finally {
+			  //释放锁
+	        releaseLock(lockStr+userCode);
+		}
+        
+	}
+	
+	
+	/**
+	 * 
+	 * @Title: delMsgNumber  
+	 * @Description: 删除消息数量
+	 * @param userCode
+	 * @param type    参数  type 类型 ：1AT  2评论   3赞  	 4留言墙   5私信   6订阅通知   7系统消息  8系统通知
+	 * @return: void    返回类型
+	 */
+	public void delMsgNumber(String userCode,int type){
+		try {
+		    //初始化keyMap
+			if(keyMap==null){
+				this.initKeyMap();
+			}
+			
+			//对当前用户数据,循环等待拿锁  
+		    boolean lockFlag=true;  
+	        while(lockFlag){
+	            if (this.getLock(lockStr+userCode)) lockFlag=false;  
+	        }  
+			//获取用户信息
+	        String userStr=jedis.get(msgStr+userCode);
+	        
+	        if(userStr==null){
+	 			jedis.set(msgStr+userCode, getNewUserJson().toJSONString());
+	        	return;
+	        }
+	        
+	        JSONObject json=new JSONObject();
+	        json=JSONObject.parseObject(userStr);
+	        //设置删除指定值的参数
+	        String strk=keyMap.get(type+"");
+	        json.put(strk,0);
+	        jedis.set(msgStr+userCode, json.toJSONString());
+	     
+		} catch (Exception e) {
+			//e.printStackTrace();
+		}finally {
+			   //释放锁
+	        releaseLock(lockStr+userCode);
+		}
+		
+	}
+	
+	
+	
+	/**
+	 * 
+	 * @Title: getUserNumber  
+	 * @Description: 获取用户消息数量
+	 * @param userCode
+	 * @return    参数  
+	 * @return: JSONObject    返回类型
+	 */
+	public JSONObject getUserNumber(String userCode){
+		 String userStr=jedis.get(msgStr+userCode);
+		 JSONObject json=new JSONObject();
+		 
+		 if(userStr==null){
+ 			 json=getNewUserJson();
+ 			 jedis.set(msgStr+userCode, json.toJSONString());
+ 			 return json;
+		 }
+	     json=JSONObject.parseObject(userStr);
+		
+		return json;
+	}
+	
+	
+	
+	
+	
+	/**
+	 * 
+	 * @Title: acquireLock  
+	 * @Description: 加锁
+	 * @param lock
+	 * @return    参数  
+	 * @return: boolean    返回类型
+	 */
+	 private  boolean getLock(String lock) {  
+	        // 1. 通过SETNX试图获取一个lock  
+	        boolean success = false;  
+	        long value =DateUtils.getTime() + expired + 1;        
+	        long acquired = jedis.setnx(lock, String.valueOf(value));  
+	        jedis.expire(lock, 1);//设置1秒超时  
+	        //SETNX成功，则成功获取一个锁  
+	        if (acquired == 1)  success = true;   
+	        return success;
+	    }  
+	 
+	 
+	 /**
+	  * 
+	  * @Title: releaseLock  
+	  * @Description: 释放锁
+	  * @param lock    参数  
+	  * @return: void    返回类型
+	  */
+	 private  void releaseLock(String lock) {      
+		 jedis.del(lock);   
+	 }  
+	 
+	 
+	 
+	 /**
+	  * 
+	  * @Title: initKeyMap  
+	  * @Description: 初始化map  
+	  * @return: void    返回类型
+	  */
+	 private void initKeyMap(){
+		 //1AT  2评论   3赞  	 4留言墙   5私信   6订阅通知   7系统消息  8系统通知
+		 keyMap=new HashMap<>();
+		 keyMap.put("1", "at");
+		 keyMap.put("2", "comment");
+		 keyMap.put("3", "praise");
+		 keyMap.put("4", "borad");
+		 keyMap.put("5", "privat");
+		 keyMap.put("6", "subscribe");
+		 keyMap.put("7", "system");
+		 keyMap.put("8", "notice");
+	 }
+	
+	 /**
+	  * 
+	  * @Title: getUserJson  
+	  * @Description: 获取一个新用户的json
+	  * @return    参数  
+	  * @return: JSONObject    返回类型
+	  */
+	 private JSONObject getNewUserJson(){
+		 JSONObject json=new JSONObject();
+		 json.put("at","0");
+		 json.put("comment","0");
+		 json.put("praise","0");
+		 json.put("borad","0");
+		 json.put("privat","0");
+		 json.put("subscribe","0");
+		 json.put("system","0");		 
+		 json.put("notice","0");
+		 return json;
+	 }
+	
+}

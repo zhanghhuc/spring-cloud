@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.MblogAtMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.MblogAt" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="mblog_at_code" property="mblogAtCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="TINYINT" />
+    <result column="at_site" property="atSite" jdbcType="TINYINT" />
+    <result column="mblog_code" property="mblogCode" jdbcType="VARCHAR" />
+    <result column="comment_code" property="commentCode" jdbcType="VARCHAR" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+  	<result column="reply_code" property="replyCode" jdbcType="VARCHAR"/>
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, mblog_at_code, create_time, modify_time, remark, org_code,  user_code, 
+    type, at_site, mblog_code, comment_code, tenant_code, reply_code
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from mblog_at
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from mblog_at
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.MblogAt" >
+    insert into mblog_at (id, mblog_at_code, create_time, 
+      modify_time, remark, org_code, 
+       user_code, type, 
+      at_site, mblog_code, comment_code, 
+      tenant_code,reply_code)
+    values (#{id,jdbcType=BIGINT}, #{mblogAtCode,jdbcType=VARCHAR}, #{createTime,jdbcType=BIGINT}, 
+      #{modifyTime,jdbcType=BIGINT}, #{remark,jdbcType=VARCHAR}, #{orgCode,jdbcType=VARCHAR}, 
+       #{userCode,jdbcType=VARCHAR}, #{type,jdbcType=TINYINT}, 
+      #{atSite,jdbcType=TINYINT}, #{mblogCode,jdbcType=VARCHAR}, #{commentCode,jdbcType=VARCHAR}, 
+      #{tenantCode,jdbcType=VARCHAR},#{replyCode,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.MblogAt" >
+    insert into mblog_at
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="mblogAtCode != null" >
+        mblog_at_code,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      
+      <if test="userCode != null" >
+        user_code,
+      </if>
+      <if test="type != null" >
+        type,
+      </if>
+      <if test="atSite != null" >
+        at_site,
+      </if>
+      <if test="mblogCode != null" >
+        mblog_code,
+      </if>
+      <if test="commentCode != null" >
+        comment_code,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="replyCode != null" >
+        reply_code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="mblogAtCode != null" >
+        #{mblogAtCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+     
+      <if test="userCode != null" >
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        #{type,jdbcType=TINYINT},
+      </if>
+      <if test="atSite != null" >
+        #{atSite,jdbcType=TINYINT},
+      </if>
+      <if test="mblogCode != null" >
+        #{mblogCode,jdbcType=VARCHAR},
+      </if>
+      <if test="commentCode != null" >
+        #{commentCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="replyCode != null" >
+        #{replyCode,jdbcType=VARCHAR}
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.MblogAt" >
+    update mblog_at
+    <set >
+      <if test="mblogAtCode != null" >
+        mblog_at_code = #{mblogAtCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      
+      <if test="userCode != null" >
+        user_code = #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        type = #{type,jdbcType=TINYINT},
+      </if>
+      <if test="atSite != null" >
+        at_site = #{atSite,jdbcType=TINYINT},
+      </if>
+      <if test="mblogCode != null" >
+        mblog_code = #{mblogCode,jdbcType=VARCHAR},
+      </if>
+      <if test="commentCode != null" >
+        comment_code = #{commentCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.MblogAt" >
+    update mblog_at
+    set mblog_at_code = #{mblogAtCode,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      
+      user_code = #{userCode,jdbcType=VARCHAR},
+      type = #{type,jdbcType=TINYINT},
+      at_site = #{atSite,jdbcType=TINYINT},
+      mblog_code = #{mblogCode,jdbcType=VARCHAR},
+      comment_code = #{commentCode,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  
+  <!-- 批处理 -->
+  <insert id="batchInsert" parameterType="com.zssq.dao.pojo.MblogAt">
+	insert into
+	mblog_at
+		(id, mblog_at_code, create_time, 
+      modify_time, remark, org_code, 
+       user_code, type, 
+      at_site, mblog_code, comment_code, 
+      tenant_code,reply_code)
+	values 
+	<foreach collection="list" item="item" index="index" separator=",">
+		(#{item.id,jdbcType=BIGINT}, #{item.mblogAtCode,jdbcType=VARCHAR}, #{item.createTime,jdbcType=BIGINT}, 
+      #{item.modifyTime,jdbcType=BIGINT}, #{item.remark,jdbcType=VARCHAR}, #{item.orgCode,jdbcType=VARCHAR}, 
+       #{item.userCode,jdbcType=VARCHAR}, #{item.type,jdbcType=TINYINT}, 
+      #{item.atSite,jdbcType=TINYINT}, #{item.mblogCode,jdbcType=VARCHAR}, #{item.commentCode,jdbcType=VARCHAR}, 
+      #{item.tenantCode,jdbcType=VARCHAR},#{item.replyCode,jdbcType=VARCHAR})
+	</foreach>
+  </insert>
+</mapper>

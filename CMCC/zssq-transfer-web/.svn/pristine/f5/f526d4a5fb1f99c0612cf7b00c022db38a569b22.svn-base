@@ -1,0 +1,156 @@
+package com.zssq.vote.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.vote.VoteTrConstants;
+import com.zssq.vote.dao.mapper.VoteCommentMapper;
+import com.zssq.vote.dao.mapper.VoteInfoMapper;
+import com.zssq.vote.dao.mapper.VoteJoinAuthMapper;
+import com.zssq.vote.dao.mapper.VoteJoinMapper;
+import com.zssq.vote.pojo.CountResult;
+import com.zssq.vote.pojo.VoteInfo;
+import com.zssq.vote.pojo.VoteInfoExample;
+import com.zssq.vote.pojo.VoteInfoExample.Criteria;
+import com.zssq.vote.pojo.VoteJoinAuth;
+import com.zssq.vote.service.IVoteCountService;
+
+@Transactional
+@Service("voteCountService")
+public class VoteCountServiceImpl implements IVoteCountService{
+
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private VoteCommentMapper voteCommentMapper;
+	@Autowired
+	private VoteJoinMapper voteJoinMapper;
+	@Autowired
+	private VoteInfoMapper voteInfoMapper;
+	@Autowired
+	private VoteJoinAuthMapper voteJoinAuthMapper;
+	
+	
+	@Override
+	@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = false, rollbackFor = Throwable.class)
+	public void countJoinAndComment() {
+		try {
+			log.debug("*********开始统计投票的参与数和评论数*********");
+			List<CountResult> commentList = voteCommentMapper.countComment();
+			
+			List<CountResult> joinList = voteJoinMapper.countJoin();
+			
+			Map<String,VoteInfo> map = new HashMap<String,VoteInfo>();
+			
+			for (CountResult join : joinList) {
+				VoteInfo info = new VoteInfo();
+				info.setCode(join.getCode());
+				info.setJoinNum(join.getCount());
+				map.put(join.getCode(), info);
+			}
+			for (CountResult comment : commentList) {
+				if(map.containsKey(comment.getCode())){
+					VoteInfo info = map.get(comment.getCode());
+					info.setCommentNum(comment.getCount());
+				}else{
+					VoteInfo info = new VoteInfo();
+					info.setCode(comment.getCode());
+					info.setCommentNum(comment.getCount());
+					map.put(comment.getCode(), info);
+				}
+			}
+			Set<String> set = map.keySet();
+			for (String code : set) {
+				VoteInfo info = map.get(code);
+				log.debug("正在处理voteCode="+info.getCode()+" 的投票数据");
+				VoteInfoExample example = new VoteInfoExample();
+				Criteria criteria = example.createCriteria();
+				criteria.andCodeEqualTo(info.getCode());
+				
+				voteInfoMapper.updateByExampleSelective(info, example);
+			}
+			
+//			if (commentList.size() > 0) {
+//				voteInfoMapper.batchUpdateCommentCount(commentList);
+//			}
+//			if (joinList.size() > 0) {
+//				voteInfoMapper.batchUpdateJoinCount(joinList);
+//			}
+			log.debug("*********结束*********");
+		} catch (Exception e) {
+			log.error("统计投票的参与数和评论数出错了", e);
+			throw e;
+		}
+	}
+
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = false, rollbackFor = Throwable.class)
+	public void addJoinAuth() {
+		try {
+			log.debug("*********开始添加参与权限数据*********");
+			/**分页处理*/
+			VoteInfoExample example = new VoteInfoExample();
+			//总共条数
+			int total = voteInfoMapper.countByExample(example);
+			log.debug("总共有 "+total+" 条投票数据");
+			//每页条数
+			int count = 1000;
+			log.debug("一页有 "+count+" 条数据");
+			//共有多少页数据
+			int totalPage = total % count == 0 ? total / count : total / count + 1;
+			log.debug("共有 "+totalPage+" 页数据");
+			int thisPage = 1;
+			
+			//List<VoteJoinAuth> authList = new ArrayList<VoteJoinAuth>();
+			while(thisPage <= totalPage){
+				log.debug("正在处理第 "+thisPage+" 页数据");
+				List<VoteInfo> voteList = voteInfoMapper.selectVoteInfoForAuth((thisPage-1)*count,count);
+				for (VoteInfo vote : voteList) {
+					log.debug("正在处理投票code="+vote.getCode());
+					VoteJoinAuth auth = new VoteJoinAuth();
+					auth.setCode(UUIDHelper.getUUID());
+					auth.setTenantCode(vote.getTenantCode());
+					auth.setOrgCode(vote.getOrgCode());
+					auth.setCreateTime(vote.getCreateTime());
+					auth.setModifyTime(vote.getModifyTime());
+					auth.setVoteInfoCode(vote.getCode());
+					auth.setRangeType((byte)1);
+					auth.setIsCascade((byte)1);
+					auth.setgRangeCode(VoteTrConstants.GROUP_CODE);
+					auth.setgRangeName(VoteTrConstants.GROUP_NAME);
+					
+					voteJoinAuthMapper.insertSelective(auth);
+					//authList.add(auth);
+				}
+				//批量插入
+//				if(authList.size()>0){
+//					log.debug("插入权限数据");
+//					//voteJoinAuthMapper.batchInsert(authList);
+//					for (VoteJoinAuth auth : authList) {
+//						log.debug("正在插入voteCode="+auth.getVoteInfoCode()+"的权限数据");
+//						voteJoinAuthMapper.insertSelective(auth);
+//					}
+//					authList.clear();
+//				}
+				thisPage = thisPage + 1;
+			}
+			
+			log.debug("*********结束*********");
+		} catch (Exception e) {
+			log.error("添加参与权限数据出错了", e);
+			throw e;
+		}
+	}
+
+}

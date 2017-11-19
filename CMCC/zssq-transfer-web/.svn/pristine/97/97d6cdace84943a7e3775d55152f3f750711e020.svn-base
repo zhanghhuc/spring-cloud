@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.forum.dao.mapper.ForumTeamInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.forum.pojo.ForumTeamInfo" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="team_code" property="teamCode" jdbcType="VARCHAR" />
+    <result column="team_name" property="teamName" jdbcType="VARCHAR" />
+    <result column="team_intro" property="teamIntro" jdbcType="VARCHAR" />
+    <result column="team_icon" property="teamIcon" jdbcType="VARCHAR" />
+    <result column="team_type" property="teamType" jdbcType="TINYINT" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="dissolve_time" property="dissolveTime" jdbcType="BIGINT" />
+    <result column="is_dissolve" property="isDissolve" jdbcType="TINYINT" />
+    <result column="is_record" property="isRecord" jdbcType="TINYINT" />
+    <result column="record_file_url" property="recordFileUrl" jdbcType="VARCHAR" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="team_id" property="teamId" jdbcType="INTEGER" />
+    <result column="org_id" property="orgId" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, team_code, team_name, team_intro, team_icon, team_type, create_time, dissolve_time, 
+    is_dissolve, is_record, record_file_url, user_code, org_code, tenant_code, team_id, 
+    org_id
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.zssq.forum.pojo.ForumTeamInfoExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from forum_team_info
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+    <if test="limitStart != null and limitStart>=0" >
+      limit #{limitStart} , #{limitEnd}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from forum_team_info
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from forum_team_info
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.zssq.forum.pojo.ForumTeamInfoExample" >
+    delete from forum_team_info
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.zssq.forum.pojo.ForumTeamInfo" >
+    insert into forum_team_info (id, team_code, team_name, 
+      team_intro, team_icon, team_type, 
+      create_time, dissolve_time, is_dissolve, 
+      is_record, record_file_url, user_code, 
+      org_code, tenant_code, team_id, 
+      org_id)
+    values (#{id,jdbcType=BIGINT}, #{teamCode,jdbcType=VARCHAR}, #{teamName,jdbcType=VARCHAR}, 
+      #{teamIntro,jdbcType=VARCHAR}, #{teamIcon,jdbcType=VARCHAR}, #{teamType,jdbcType=TINYINT}, 
+      #{createTime,jdbcType=BIGINT}, #{dissolveTime,jdbcType=BIGINT}, #{isDissolve,jdbcType=TINYINT}, 
+      #{isRecord,jdbcType=TINYINT}, #{recordFileUrl,jdbcType=VARCHAR}, #{userCode,jdbcType=VARCHAR}, 
+      #{orgCode,jdbcType=VARCHAR}, #{tenantCode,jdbcType=VARCHAR}, #{teamId,jdbcType=INTEGER}, 
+      #{orgId,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.forum.pojo.ForumTeamInfo" >
+    insert into forum_team_info
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="teamCode != null" >
+        team_code,
+      </if>
+      <if test="teamName != null" >
+        team_name,
+      </if>
+      <if test="teamIntro != null" >
+        team_intro,
+      </if>
+      <if test="teamIcon != null" >
+        team_icon,
+      </if>
+      <if test="teamType != null" >
+        team_type,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="dissolveTime != null" >
+        dissolve_time,
+      </if>
+      <if test="isDissolve != null" >
+        is_dissolve,
+      </if>
+      <if test="isRecord != null" >
+        is_record,
+      </if>
+      <if test="recordFileUrl != null" >
+        record_file_url,
+      </if>
+      <if test="userCode != null" >
+        user_code,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="teamId != null" >
+        team_id,
+      </if>
+      <if test="orgId != null" >
+        org_id,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="teamCode != null" >
+        #{teamCode,jdbcType=VARCHAR},
+      </if>
+      <if test="teamName != null" >
+        #{teamName,jdbcType=VARCHAR},
+      </if>
+      <if test="teamIntro != null" >
+        #{teamIntro,jdbcType=VARCHAR},
+      </if>
+      <if test="teamIcon != null" >
+        #{teamIcon,jdbcType=VARCHAR},
+      </if>
+      <if test="teamType != null" >
+        #{teamType,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="dissolveTime != null" >
+        #{dissolveTime,jdbcType=BIGINT},
+      </if>
+      <if test="isDissolve != null" >
+        #{isDissolve,jdbcType=TINYINT},
+      </if>
+      <if test="isRecord != null" >
+        #{isRecord,jdbcType=TINYINT},
+      </if>
+      <if test="recordFileUrl != null" >
+        #{recordFileUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="teamId != null" >
+        #{teamId,jdbcType=INTEGER},
+      </if>
+      <if test="orgId != null" >
+        #{orgId,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.zssq.forum.pojo.ForumTeamInfoExample" resultType="java.lang.Integer" >
+    select count(*) from forum_team_info
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update forum_team_info
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.teamCode != null" >
+        team_code = #{record.teamCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.teamName != null" >
+        team_name = #{record.teamName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.teamIntro != null" >
+        team_intro = #{record.teamIntro,jdbcType=VARCHAR},
+      </if>
+      <if test="record.teamIcon != null" >
+        team_icon = #{record.teamIcon,jdbcType=VARCHAR},
+      </if>
+      <if test="record.teamType != null" >
+        team_type = #{record.teamType,jdbcType=TINYINT},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.dissolveTime != null" >
+        dissolve_time = #{record.dissolveTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.isDissolve != null" >
+        is_dissolve = #{record.isDissolve,jdbcType=TINYINT},
+      </if>
+      <if test="record.isRecord != null" >
+        is_record = #{record.isRecord,jdbcType=TINYINT},
+      </if>
+      <if test="record.recordFileUrl != null" >
+        record_file_url = #{record.recordFileUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="record.userCode != null" >
+        user_code = #{record.userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orgCode != null" >
+        org_code = #{record.orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.tenantCode != null" >
+        tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.teamId != null" >
+        team_id = #{record.teamId,jdbcType=INTEGER},
+      </if>
+      <if test="record.orgId != null" >
+        org_id = #{record.orgId,jdbcType=INTEGER},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update forum_team_info
+    set id = #{record.id,jdbcType=BIGINT},
+      team_code = #{record.teamCode,jdbcType=VARCHAR},
+      team_name = #{record.teamName,jdbcType=VARCHAR},
+      team_intro = #{record.teamIntro,jdbcType=VARCHAR},
+      team_icon = #{record.teamIcon,jdbcType=VARCHAR},
+      team_type = #{record.teamType,jdbcType=TINYINT},
+      create_time = #{record.createTime,jdbcType=BIGINT},
+      dissolve_time = #{record.dissolveTime,jdbcType=BIGINT},
+      is_dissolve = #{record.isDissolve,jdbcType=TINYINT},
+      is_record = #{record.isRecord,jdbcType=TINYINT},
+      record_file_url = #{record.recordFileUrl,jdbcType=VARCHAR},
+      user_code = #{record.userCode,jdbcType=VARCHAR},
+      org_code = #{record.orgCode,jdbcType=VARCHAR},
+      tenant_code = #{record.tenantCode,jdbcType=VARCHAR},
+      team_id = #{record.teamId,jdbcType=INTEGER},
+      org_id = #{record.orgId,jdbcType=INTEGER}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.forum.pojo.ForumTeamInfo" >
+    update forum_team_info
+    <set >
+      <if test="teamCode != null" >
+        team_code = #{teamCode,jdbcType=VARCHAR},
+      </if>
+      <if test="teamName != null" >
+        team_name = #{teamName,jdbcType=VARCHAR},
+      </if>
+      <if test="teamIntro != null" >
+        team_intro = #{teamIntro,jdbcType=VARCHAR},
+      </if>
+      <if test="teamIcon != null" >
+        team_icon = #{teamIcon,jdbcType=VARCHAR},
+      </if>
+      <if test="teamType != null" >
+        team_type = #{teamType,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="dissolveTime != null" >
+        dissolve_time = #{dissolveTime,jdbcType=BIGINT},
+      </if>
+      <if test="isDissolve != null" >
+        is_dissolve = #{isDissolve,jdbcType=TINYINT},
+      </if>
+      <if test="isRecord != null" >
+        is_record = #{isRecord,jdbcType=TINYINT},
+      </if>
+      <if test="recordFileUrl != null" >
+        record_file_url = #{recordFileUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        user_code = #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="teamId != null" >
+        team_id = #{teamId,jdbcType=INTEGER},
+      </if>
+      <if test="orgId != null" >
+        org_id = #{orgId,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.forum.pojo.ForumTeamInfo" >
+    update forum_team_info
+    set team_code = #{teamCode,jdbcType=VARCHAR},
+      team_name = #{teamName,jdbcType=VARCHAR},
+      team_intro = #{teamIntro,jdbcType=VARCHAR},
+      team_icon = #{teamIcon,jdbcType=VARCHAR},
+      team_type = #{teamType,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      dissolve_time = #{dissolveTime,jdbcType=BIGINT},
+      is_dissolve = #{isDissolve,jdbcType=TINYINT},
+      is_record = #{isRecord,jdbcType=TINYINT},
+      record_file_url = #{recordFileUrl,jdbcType=VARCHAR},
+      user_code = #{userCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      team_id = #{teamId,jdbcType=INTEGER},
+      org_id = #{orgId,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  <!-- *************************************************** -->
+  <select id="queryOriginalForum" parameterType="java.util.Map" resultType="java.util.Map">
+  	SELECT 
+		fti.id AS id,
+		fti.team_code AS teamCode,
+		fti.team_name AS teamName,
+		fti.team_intro AS teamIntro,
+		fti.team_icon AS teamIcon,
+		fti.team_type AS teamType,
+		fti.create_time AS createTime,
+		fti.dissolve_time AS dissolveTime,
+		fti.is_dissolve AS idDissolve,
+		fti.is_record AS isRecord,
+		fti.record_file_url AS recordFileUrl,
+		fti.user_code AS userCode,
+		fti.org_code AS orgCode,
+		fti.tenant_code AS tenantCode,
+		fti.team_id AS teamId,
+		fti.org_id AS orgId
+	FROM forum_team_info AS fti
+	ORDER BY fti.id DESC 
+	<if test="limitStart != null and limitStart>=0" >
+      LIMIT #{limitStart} , #{limitEnd}
+    </if>
+  </select>
+  
+</mapper>

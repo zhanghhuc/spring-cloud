@@ -1,0 +1,29 @@
+package com.zssq.vo;
+
+import java.io.Serializable;
+
+public class RelationSharevO implements Serializable {
+	
+	
+	/**
+	 * serialVersionUID:TODO(用一句话描述这个变量表示什么).
+	 * @since JDK 1.6
+	 */
+	private static final long serialVersionUID = 1L;
+	private  String userCode; 
+	private  String queryTime;
+	
+	public String getUserCode() {
+		return userCode;
+	}
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
+	}
+	public String getQueryTime() {
+		return queryTime;
+	}
+	public void setQueryTime(String queryTime) {
+		this.queryTime = queryTime;
+	} 
+	
+}

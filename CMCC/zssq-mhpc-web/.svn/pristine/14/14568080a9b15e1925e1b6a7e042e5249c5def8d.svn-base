@@ -1,0 +1,50 @@
+package com.zssq.msg.vo;
+
+import org.hibernate.validator.constraints.NotBlank;
+
+/**
+ * 
+ * @ClassName: SubscribesJModel  
+ * @Description: TODO  
+ * @author YDB  
+ * @date 2017年3月31日  
+ *
+ */
+public class SubscribesModel {
+
+	@NotBlank(message = "{empty.message}")
+	private	String userCode;
+	//查询类型 0微博,1博客
+	@NotBlank(message = "{empty.message}")
+	private	Integer type;
+	@NotBlank(message = "{empty.message}")
+	private Integer pageSize;
+	@NotBlank(message = "{empty.message}")
+	private Integer pageNo;
+	
+	public String getUserCode() {
+		return userCode;
+	}
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
+	}
+	public Integer getType() {
+		return type;
+	}
+	public void setType(Integer type) {
+		this.type = type;
+	}
+	public Integer getPageSize() {
+		return pageSize;
+	}
+	public void setPageSize(Integer pageSize) {
+		this.pageSize = pageSize;
+	}
+	public Integer getPageNo() {
+		return pageNo;
+	}
+	public void setPageNo(Integer pageNo) {
+		this.pageNo = pageNo;
+	}
+	
+}

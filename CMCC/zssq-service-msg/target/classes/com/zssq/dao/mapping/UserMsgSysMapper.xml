@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.UserMsgSysMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.UserMsgSys" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="sys_code" property="sysCode" jdbcType="VARCHAR" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="show_org_code" property="showOrgCode" jdbcType="VARCHAR" />
+    <result column="title" property="title" jdbcType="VARCHAR" />
+    <result column="show_type" property="showType" jdbcType="INTEGER" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.zssq.dao.pojo.UserMsgSys" extends="BaseResultMap" >
+    <result column="content" property="content" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, sys_code, user_code, create_time, is_delete, tenant_code, org_code, show_org_code, 
+    title, show_type
+  </sql>
+  <sql id="Blob_Column_List" >
+    content
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from user_msg_sys
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from user_msg_sys
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.UserMsgSys" >
+    insert into user_msg_sys (id, sys_code, user_code, 
+      create_time, is_delete, tenant_code, 
+      org_code, show_org_code, title, 
+      show_type, content)
+    values (#{id,jdbcType=BIGINT}, #{sysCode,jdbcType=VARCHAR}, #{userCode,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=BIGINT}, #{isDelete,jdbcType=TINYINT}, #{tenantCode,jdbcType=VARCHAR}, 
+      #{orgCode,jdbcType=VARCHAR}, #{showOrgCode,jdbcType=VARCHAR}, #{title,jdbcType=VARCHAR}, 
+      #{showType,jdbcType=INTEGER}, #{content,jdbcType=LONGVARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.UserMsgSys" >
+    insert into user_msg_sys
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="sysCode != null" >
+        sys_code,
+      </if>
+      <if test="userCode != null" >
+        user_code,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="showOrgCode != null" >
+        show_org_code,
+      </if>
+      <if test="title != null" >
+        title,
+      </if>
+      <if test="showType != null" >
+        show_type,
+      </if>
+      <if test="content != null" >
+        content,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="sysCode != null" >
+        #{sysCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="showOrgCode != null" >
+        #{showOrgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="title != null" >
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="showType != null" >
+        #{showType,jdbcType=INTEGER},
+      </if>
+      <if test="content != null" >
+        #{content,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.UserMsgSys" >
+    update user_msg_sys
+    <set >
+      <if test="sysCode != null" >
+        sys_code = #{sysCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        user_code = #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="showOrgCode != null" >
+        show_org_code = #{showOrgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="title != null" >
+        title = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="showType != null" >
+        show_type = #{showType,jdbcType=INTEGER},
+      </if>
+      <if test="content != null" >
+        content = #{content,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.zssq.dao.pojo.UserMsgSys" >
+    update user_msg_sys
+    set sys_code = #{sysCode,jdbcType=VARCHAR},
+      user_code = #{userCode,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=BIGINT},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      show_org_code = #{showOrgCode,jdbcType=VARCHAR},
+      title = #{title,jdbcType=VARCHAR},
+      show_type = #{showType,jdbcType=INTEGER},
+      content = #{content,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.UserMsgSys" >
+    update user_msg_sys
+    set sys_code = #{sysCode,jdbcType=VARCHAR},
+      user_code = #{userCode,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=BIGINT},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      show_org_code = #{showOrgCode,jdbcType=VARCHAR},
+      title = #{title,jdbcType=VARCHAR},
+      show_type = #{showType,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  
+  
+    <!-- 分页查询  -->
+   <select id="selectPage" resultMap="BaseResultMap" parameterType="com.zssq.model.MessageSystemModel" >
+    select 
+    <include refid="Base_Column_List" />
+    from user_msg_sys
+    where 1 = 1
+    
+     <if test="userCode != null">
+      and  user_code = #{userCode,jdbcType=VARCHAR}
+   	</if>
+    and  is_delete=0
+    <if test="title != null" >
+		and title like CONCAT('%','${title}','%' )  
+		
+		
+		<!-- '%#{title,jdbcType=VARCHAR}%' -->
+    </if>
+    <if test="pageNo != null and pageSize >=0" >
+      limit #{pageNo} , #{pageSize}
+    </if>
+  </select>
+  
+  <!-- 总条数 -->
+   <select id="selectCount" resultType="int" parameterType="com.zssq.model.MessageSystemModel" >
+   select count(1)
+   from user_msg_sys
+   where 1 = 1 and is_delete=0
+    <if test="userCode != null">
+    and  user_code = #{userCode,jdbcType=VARCHAR}
+   </if>   
+   
+	<if test="title != null  and title != '' " >
+	  and   title like CONCAT('%','${title}','%' )  
+	</if>  
+  
+  </select>
+  
+  
+    <update id="delMessageSystem" parameterType="com.zssq.dao.pojo.UserMsgSys" >
+    update user_msg_sys
+    <set >
+        is_delete = #{isDelete,jdbcType=TINYINT}
+    </set>
+    where 
+       user_code = #{userCode,jdbcType=VARCHAR}
+       and sys_code = #{sysCode,jdbcType=VARCHAR}
+  </update>
+  
+  
+  
+    
+  <!--查询用户对应的消息信息 -->
+   <select id="selectUserMsg" resultMap="BaseResultMap" parameterType="list" >
+   
+   <!-- 原始SQL  -->
+   	<!-- SELECT * FROM user_msg_sys where  show_type = 3 or show_org_code=4 and org_code=''  -->
+   
+   select <include refid="Base_Column_List" />
+   from user_msg_sys
+   where 1 = 1 
+	  and is_delete=0 and show_type= 3
+	and org_code in
+	 <foreach item="item" index="index" collection="list" open="(" separator="," close=")">  
+ 		 #{item}  
+ 	</foreach> 
+  	ORDER BY create_time DESC  	  	
+  </select>
+  
+  
+  
+   <!--查询用消息详细信息 -->
+   <select id="selectUserMsgInfo" resultMap="BaseResultMap" parameterType="list" >
+   
+   select <include refid="Base_Column_List" />
+   from user_msg_sys
+   where 1 = 1 
+	and sys_code in
+	 <foreach item="item" index="index" collection="list" open="(" separator="," close=")">  
+ 		 #{item}  
+ 	</foreach> 
+  	ORDER BY create_time DESC  	  	
+  </select>
+  
+
+  
+     <!-- 消息详情 -->
+   <select id="getMsgSysInfo" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" /> ,
+    content
+    
+    
+    from user_msg_sys
+    where 
+    sys_code =#{msgCode}
+    
+  </select>
+</mapper>

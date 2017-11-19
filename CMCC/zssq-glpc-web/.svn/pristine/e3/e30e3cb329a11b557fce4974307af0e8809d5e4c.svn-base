@@ -1,0 +1,29 @@
+log4j.rootLogger=${log4j.level}
+
+log4j.appender.Console=org.apache.log4j.ConsoleAppender  
+log4j.appender.Console.Target=System.out  
+log4j.appender.Console.layout = org.apache.log4j.PatternLayout  
+log4j.appender.Console.layout.ConversionPattern=%d [%-5p] [%l] %m%n
+  
+log4j.appender.File = org.apache.log4j.RollingFileAppender  
+log4j.appender.File.File = ${log4j.logDir}zssq-glpc-web.log  
+log4j.appender.File.MaxFileSize = 100MB  
+log4j.appender.File.Threshold = debug
+log4j.appender.File.layout = org.apache.log4j.PatternLayout  
+log4j.appender.File.layout.ConversionPattern =%d [%-5p] [%l] %m%n
+
+# appender socket1
+log4j.appender.socket1=org.apache.log4j.net.SocketAppender
+log4j.appender.socket1.Port=${socket1.Port}
+log4j.appender.socket1.RemoteHost=${socket1.RemoteHost}
+log4j.appender.socket1.layout=org.apache.log4j.PatternLayout
+log4j.appender.socket1.layout.ConversionPattern=%d [%-5p] [%l] %m%n
+log4j.appender.socket1.ReconnectionDelay=10000
+
+# appender socket2
+log4j.appender.socket2=org.apache.log4j.net.SocketAppender
+log4j.appender.socket2.Port=${socket2.Port}
+log4j.appender.socket2.RemoteHost=${socket2.RemoteHost}
+log4j.appender.socket2.layout=org.apache.log4j.PatternLayout
+log4j.appender.socket2.layout.ConversionPattern=%d [%-5p] [%l] %m%n
+log4j.appender.socket2.ReconnectionDelay=10000

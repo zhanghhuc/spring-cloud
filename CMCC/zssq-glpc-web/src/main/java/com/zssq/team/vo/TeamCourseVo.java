@@ -1,0 +1,29 @@
+package com.zssq.team.vo;
+
+import org.hibernate.validator.constraints.NotBlank;
+
+public class TeamCourseVo {
+
+	@NotBlank(message = "{empty.message}")
+	private String teamCode;
+	
+	/** 评选编码 */
+	private String electCode;
+
+	public String getTeamCode() {
+		return teamCode;
+	}
+
+	public void setTeamCode(String teamCode) {
+		this.teamCode = teamCode;
+	}
+
+	public String getElectCode() {
+		return electCode;
+	}
+
+	public void setElectCode(String electCode) {
+		this.electCode = electCode;
+	}
+	
+}

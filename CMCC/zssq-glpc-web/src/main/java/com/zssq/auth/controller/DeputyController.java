@@ -1,0 +1,365 @@
+package com.zssq.auth.controller;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.annotation.RequireValid;
+import com.zssq.auth.vo.AwardLeadersVo;
+import com.zssq.auth.vo.DeputDelVo;
+import com.zssq.auth.vo.DeputInfoVo;
+import com.zssq.auth.vo.DeputModifyVo;
+import com.zssq.auth.vo.DeputSaveVo;
+import com.zssq.auth.vo.DeputSearchVo;
+import com.zssq.constants.AuthConstants;
+import com.zssq.dao.pojo.SysDeputyInfo;
+import com.zssq.dao.pojo.SysDictionary;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.pojo.Message;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.ISysDeputyService;
+import com.zssq.service.ISysDictionaryService;
+import com.zssq.service.ISysUserService;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.utils.PropertiesUtil;
+import com.zssq.utils.StringTools;
+
+@Controller  
+@RequestMapping("/deputy")
+public class DeputyController {
+	
+	private Logger logger = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private ISysDeputyService sysDeputyService;
+	
+	@Autowired
+	private ISysUserService sysUserService;
+	
+//	@Autowired
+//	private ISysOrgService sysOrgService;
+	
+	@Autowired
+	private ISysDictionaryService sysDictionaryService;
+	
+	/**
+	 * @Function save
+	 * @Description 代发配置保存
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/save")  
+	public ResultJSON save(@RequireValid DeputSaveVo param) throws BusinessException {
+		
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			boolean isSuccess = sysDeputyService.addDeputy(param.getLeaderCode(), param.getStaffCode(), param.getApps(), param.getUserCode());
+			JSONObject body = new JSONObject();
+			if(isSuccess){
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_200);
+			}else{
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			}
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "新增代发配置"));
+	        rj.setBody(body);
+			
+			return rj;
+		} catch(BusinessException e){
+			throw new BusinessException(e.getMessageCode(),e.getMessage()); 
+		} catch (Exception e) {
+			logger.error("新增代发配置", e);
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "新增代发配置"));
+		}
+	}
+	
+	/**
+	 * @Function modify
+	 * @Description 代发配置修改
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/modify")  
+	public ResultJSON modify(@RequireValid DeputModifyVo param) throws BusinessException {
+		
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			boolean isSuccess = sysDeputyService.modifyDeputy(param.getDeputyCode(),param.getApps());
+			JSONObject body = new JSONObject();
+			if(isSuccess){
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_200);
+			}else{
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			}
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "修改代发配置"));
+	        rj.setBody(body);
+			
+			return rj;
+		} catch (Exception e) {
+			logger.error("修改代发配置", e);
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "修改代发配置"));
+		}
+	}
+	
+	
+	/**
+	 * @Function delete
+	 * @Description 代发配置删除
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/delete")  
+	public ResultJSON delete(@RequireValid DeputDelVo param) throws BusinessException {
+		
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			boolean isSuccess = sysDeputyService.deleteDeputy(param.getDeputyCode());
+			JSONObject body = new JSONObject();
+			if(isSuccess){
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_200);
+			}else{
+				message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			}
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "删除代发配置"));
+	        rj.setBody(body);
+			
+			return rj;
+		} catch (Exception e) {
+			logger.error("删除代发配置", e);
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "删除代发配置"));
+		}
+	}
+	
+	/**
+	 * @Function getList
+	 * @Description 代发配置查询
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/list")  
+	public ResultJSON getList(@RequireValid DeputSearchVo param) throws BusinessException {
+		
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+        	PageParam pageParam = new PageParam(Integer.parseInt(param.getPageNo()),Integer.parseInt(param.getPageSize()));
+        	Map<String,Object> map = new HashMap<String,Object>();
+        	if(StringTools.isNotEmpty(param.getLeaderName())){
+        		map.put("leaderName", param.getLeaderName());
+        	}
+			if(StringTools.isNotEmpty(param.getStaffName())){
+				map.put("staffName", param.getStaffName());
+        	}
+			PageBean pageBean = sysDeputyService.getPageBean(map, pageParam);
+			List<SysDeputyInfo> deputyList = pageBean.getRecordList();
+			JSONObject body = new JSONObject();
+			JSONArray jsonArray = new JSONArray();
+			//查询当前登录人组织机构
+			SysUserInfo userInfo = sysUserService.selectByCode(param.getUserCode());
+			String manOrgCode = "";
+			if(userInfo != null && userInfo.getManageOrgInfo() != null){
+				manOrgCode = userInfo.getManageOrgInfo().getManOrgCode();
+			}
+			for (int i = 0; i < deputyList.size(); i++) {
+				JSONObject deputyInfo = new JSONObject();
+				SysDeputyInfo deputy = deputyList.get(i);
+				deputyInfo.put("deputyCode", StringTools.formatToString(deputy.getDeputyCode()));
+				deputyInfo.put("leaderName", StringTools.formatToString(deputy.getLeaderName()));
+				deputyInfo.put("leaderOrgName", StringTools.formatToString(deputy.getLeaderOrgName()));
+				deputyInfo.put("staffName", StringTools.formatToString(deputy.getStaffName()));
+				deputyInfo.put("staffOrgName", StringTools.formatToString(deputy.getLeaderOrgName()));
+				deputyInfo.put("staffPhone", StringTools.formatToString(deputy.getStaffPhone()));
+				List<String> appList = Arrays.asList(deputy.getDeputyAppCode().split(","));
+				String appNames = "";
+				for (int j = 0; j < appList.size(); j++) {
+					SysDictionary dictionary = sysDictionaryService.selectByCode(appList.get(j));
+					appNames += dictionary.getDictName() + ",";
+					if(j == appList.size() - 1)
+						appNames = appNames.substring(0,appNames.length() - 1);
+				}
+				deputyInfo.put("apps", StringTools.formatToString(appNames));
+				deputyInfo.put("modifytime", StringTools.formatToString(deputy.getCreateTime()));
+				//查询创建人
+				userInfo = sysUserService.selectByCode(deputy.getCreateUser());
+				if(userInfo != null && userInfo.getManageOrgInfo() != null){
+					if(manOrgCode.equals(userInfo.getManageOrgInfo().getManOrgCode())){
+						deputyInfo.put("isModify", AuthConstants.BOOLEAN_1);
+					}else{
+						deputyInfo.put("isModify", AuthConstants.BOOLEAN_0);
+					}
+				}else{
+					deputyInfo.put("isModify", AuthConstants.BOOLEAN_0);
+				}
+				jsonArray.add(deputyInfo);
+			}
+			body.put("totalCount", pageBean.getTotalCount());
+			body.put("dataList", jsonArray);
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_200);
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "获取代发配置列表"));
+	        rj.setBody(body);
+			return rj;
+		} catch (Exception e) {
+			logger.error("获取代发配置列表", e);
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "获取代发配置列表"));
+		}
+	}
+	
+	/**
+	 * @Function getAppList
+	 * @Description 获取代发应用
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/app/list")  
+	public ResultJSON getAppList() throws BusinessException {
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			SysDictionary record = new SysDictionary();
+			record.setParentCode(AuthConstants.DEPUTY_APP);
+			List<SysDictionary> dictList = sysDictionaryService.selectByRecord(record);
+			JSONObject body = new JSONObject();
+			JSONArray jsonArray = new JSONArray();
+			for (int i = 0; i < dictList.size(); i++) {
+				JSONObject dictInfo = new JSONObject();
+				dictInfo.put("appCode", StringTools.formatToString(dictList.get(i).getDictCode()));
+				dictInfo.put("appName", StringTools.formatToString(dictList.get(i).getDictName()));
+				jsonArray.add(dictInfo);
+			}
+			body.put("dataList", jsonArray);
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_200);
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "获取代发应用"));
+	        rj.setBody(body);
+			return rj;
+		} catch (Exception e) {
+			logger.error("获取代发应用", e);
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "获取代发应用"));
+		}
+	}
+	
+	
+	/**
+	 * @Function info
+	 * @Description 获取代发详细信息
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/info")  
+	public ResultJSON info(@RequireValid DeputInfoVo param) throws BusinessException {
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			SysDeputyInfo deputyInfo = sysDeputyService.selectByCode(param.getDeputyCode());
+			JSONObject body = new JSONObject();
+			SysUserInfo leader = sysUserService.selectByCode(deputyInfo.getDeputyLeaderCode());
+			SysUserInfo staff = sysUserService.selectByCode(deputyInfo.getDeputyUserCode());
+			body.put("leaderName", leader.getUserName());
+			body.put("staffName", staff.getUserName());
+			SysDictionary dictRecord = new SysDictionary();
+			dictRecord.setParentCode(AuthConstants.DEPUTY_APP);
+			List<SysDictionary> dictList = sysDictionaryService.selectByRecord(dictRecord);
+			JSONArray jsonArray = new JSONArray();
+			for (int i = 0; i < dictList.size(); i++) {
+				JSONObject dictJson = new JSONObject();
+				dictJson.put("appCode", StringTools.formatToString(dictList.get(i).getDictCode()));
+				dictJson.put("appName", StringTools.formatToString(dictList.get(i).getDictName()));
+				List<String> appCodes = Arrays.asList(deputyInfo.getDeputyAppCode().split(","));
+				dictJson.put("isSelected", "0");
+				for (int j = 0; j < appCodes.size(); j++) {
+					if(dictList.get(i).getDictCode().equals(appCodes.get(j))){
+						dictJson.put("isSelected", "1");
+						break;
+					}
+				}
+				jsonArray.add(dictJson);
+			}
+			body.put("dataList", jsonArray);
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_200);
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "获取代发详细信息"));
+	        rj.setBody(body);
+			return rj;
+		} catch (Exception e) {
+			logger.error("获取代发详细信息", e);
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "获取代发详细信息"));
+		}
+	}
+	
+	
+	
+	/**
+	 * @Function leaders
+	 * @Description 荣誉代发领导
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	@ResponseBody
+	@RequestMapping("/award/leaders")  
+	public ResultJSON awardLeaders(@RequireValid AwardLeadersVo param) throws BusinessException {
+		Message message = null;
+		ResultJSON rj = new ResultJSON();
+		try {
+			SysDeputyInfo record =new SysDeputyInfo(); 
+			record.setDeputyAppCode(AuthConstants.DEPUTY_RY);
+			record.setDeputyUserCode(param.getUserCode());
+			List<SysDeputyInfo> deputyInfos = sysDeputyService.selectByRecord(record);
+			JSONObject body = new JSONObject();
+			JSONArray jsonArray = new JSONArray();
+			for (int i = 0; i < deputyInfos.size(); i++) {
+				JSONObject deputyInfo = new JSONObject();
+				deputyInfo.put("leaderCode", StringTools.formatToString(deputyInfos.get(i).getDeputyLeaderCode()));
+				SysUserInfo leader = sysUserService.selectByCode(deputyInfos.get(i).getDeputyLeaderCode());
+				deputyInfo.put("leaderName", StringTools.formatToString(leader.getUserName()));
+				jsonArray.add(deputyInfo);
+			}
+			body.put("dataList", jsonArray);
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_200);
+			rj.setReturnCode(message.getCode());
+	        rj.setReturnTip(String.format(message.getTip(), "获取代发详细信息"));
+	        rj.setBody(body);
+			return rj;
+		} catch (Exception e) {
+			logger.error("获取代发详细信息", e);
+			message = PropertiesUtil.getMessage(AuthConstants.RETURNCODE_AUTH_10002);
+			throw new BusinessException(message.getCode(), String.format(message.getTip(), "获取代发详细信息"));
+		}
+	}
+	
+	
+}

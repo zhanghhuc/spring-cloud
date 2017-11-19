@@ -1,0 +1,31 @@
+package com.zssq.news.service;
+
+import com.zssq.exceptions.BusinessException;
+import com.zssq.news.dao.pojo.NewsInfoContent;
+import com.zssq.news.model.NewsArchiveModel;
+import com.zssq.news.model.NewsArchiveQuery;
+import com.zssq.news.model.NewsModel;
+import com.zssq.news.model.NewsQuery;
+import com.zssq.utils.PageBean;
+
+import java.util.List;
+
+public interface NewsArchiveService {
+	/**
+	 * 新闻归档列表接口
+	 * @param newsArchiveQuery
+	 * @return
+	 * @throws BusinessException
+	 */
+	public PageBean getNewsArchives(NewsArchiveQuery newsArchiveQuery) throws BusinessException;
+
+	/**
+	 * 新闻归档新增接口
+	 * @param newsArchiveModel
+	 * @return
+	 * @throws BusinessException
+	 */
+	public int addNewsArchives(NewsArchiveModel newsArchiveModel) throws BusinessException ;
+
+	NewsInfoContent generateNewsData(String newsCode);
+}

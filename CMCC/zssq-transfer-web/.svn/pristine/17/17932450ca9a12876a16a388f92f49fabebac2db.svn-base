@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.blog.dao.mapper.BlogClassMapper">
+
+	<!-- 查看old_id字段是否存在 -->
+	<select id="isColumnExists" resultType="string">
+		SELECT
+			table_name
+		FROM information_schema. COLUMNS
+		WHERE table_name = 'blog_class'
+			AND column_name = 'old_id';
+	</select>
+	
+	<!-- 添加字段 -->
+	<update id="addColumn">
+		ALTER TABLE blog_class ADD old_id INT
+	</update>
+	
+	<!-- 为old_id字段创建索引 -->
+	<update id="createIndex">
+		CREATE INDEX old_id ON blog_class (old_id)
+	</update>
+	
+	<!-- 查询原表中分类数据 -->
+	<select id="getSourceClassList" resultType="com.zssq.blog.pojo.SourceClassModel">
+		SELECT
+			tbc1.cata_id AS cataId,
+			CONCAT(
+				tbc2.cata_name,
+				' - ',
+				tbc1.cata_name
+			) AS cataName,
+			tbc1.create_time AS createTime
+		FROM source_blog_catalog tbc1
+		LEFT JOIN source_blog_catalog tbc2 
+			ON tbc1.PARENTS_ID = tbc2.CATA_ID
+		WHERE tbc1.del_flag = 0
+		AND tbc1.parents_id != 0
+		ORDER BY tbc1.cata_id
+	</select>
+	
+	<!-- 查询分类表中是否已经有数据 -->
+	<select id="getBlogClassCount" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM blog_class
+	</select>
+	
+	<!-- 插入人员分类数据 -->
+	<update id="insertUserClass" parameterType="map" statementType="CALLABLE">
+		INSERT INTO blog_class (
+			class_code,
+			tenant_code,
+			org_code,
+			create_time,
+			modify_time,
+			remark,
+			class_name,
+			user_code,
+			team_code,
+			class_depend,
+			class_blog_num,
+			old_id
+		) SELECT
+			REPLACE (UUID(), '-', '') AS class_code,
+			sui.saas_tenant_code AS tenant_code,
+			soi.man_org_code AS org_code,
+			#{createTime,jdbcType=BIGINT},
+			#{createTime,jdbcType=BIGINT},
+			#{remark,jdbcType=VARCHAR},
+			#{className,jdbcType=VARCHAR},
+			sui.user_code,
+			'',
+			1,
+			0,
+			#{oldId,jdbcType=INTEGER}
+		FROM sys_user_info sui
+		LEFT JOIN sys_org_info soi 
+			ON sui.org_code = soi.sys_org_code
+	</update>	
+	
+	<!-- 插入班组分类数据 -->
+	<update id="insertTeamClass" parameterType="map" statementType="CALLABLE">
+		INSERT INTO blog_class (
+			class_code,
+			tenant_code,
+			org_code,
+			create_time,
+			modify_time,
+			remark,
+			class_name,
+			user_code,
+			team_code,
+			class_depend,
+			class_blog_num,
+			old_id
+		) SELECT
+			REPLACE (UUID(), '-', '') AS class_code,
+			tenant_code,
+			org_code,
+			#{createTime,jdbcType=BIGINT},
+			#{createTime,jdbcType=BIGINT},
+			#{remark,jdbcType=VARCHAR},
+			#{className,jdbcType=VARCHAR},
+			'',
+			team_code,
+			2,
+			0,
+			#{oldId,jdbcType=INTEGER}
+		FROM team_info
+	</update>	
+	
+</mapper>

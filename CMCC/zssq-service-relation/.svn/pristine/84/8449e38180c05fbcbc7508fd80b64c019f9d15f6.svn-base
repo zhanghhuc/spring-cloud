@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.RelationHotHideMapper">
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.RelationHotHide">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="hot_hide_code" jdbcType="VARCHAR" property="hotHideCode" />
+    <result column="tenant_code" jdbcType="VARCHAR" property="tenantCode" />
+    <result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+    <result column="create_time" jdbcType="BIGINT" property="createTime" />
+    <result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="hot_code" jdbcType="VARCHAR" property="hotCode" />
+    <result column="subject_code" jdbcType="VARCHAR" property="subjectCode" />
+    <result column="subject_class" jdbcType="TINYINT" property="subjectClass" />
+    <result column="hot_hide_depend" jdbcType="TINYINT" property="hotHideDepend" />
+    <result column="team_code" jdbcType="VARCHAR" property="teamCode" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, hot_hide_code, tenant_code, org_code, create_time, modify_time, remark, hot_code, subject_code,subject_class,
+    hot_hide_depend, team_code
+  </sql>
+ 
+  
+  <!-- 通过班组编号，获取该班组隐藏热点个数 -->
+  <select id="getTeamHideHotCount" parameterType="map" resultType="int">
+  	SELECT
+		COUNT(1)
+	FROM
+		relation_hot_hide
+	WHERE
+		team_code=#{teamCode,jdbcType=VARCHAR}
+  </select>
+  
+  <!-- 通过班组编号，获取该班组隐藏热点列表 -->
+  <select id="getTeamHideHotList" parameterType="map" resultType="com.zssq.model.RelationTeamHideHotModel">
+  	
+  </select>
+  <!-- 查询隐藏列表  -->
+  <select id="selectCountByMap" parameterType="map" resultType="int">
+	  	select 
+	  		count(1)
+	  		from relation_hot_hide
+	  	where hot_code = #{hotCode}
+	  		and org_code = #{orgCode}
+	  		<if test="tenantCode!=null and tenantCode!=''">
+	  			and tenant_code = #{tenantCode}
+	  		</if>
+	  		<if test="teamCode!=null and teamCode!=''">
+	  			and team_code = #{teamCode}
+	  		</if>
+  </select>
+  <!-- 插入隐藏  -->
+  <insert id="insertHideHot" parameterType="map">
+    insert into relation_hot_hide (
+		hot_hide_code, 
+		tenant_code, 
+      	org_code,
+      	create_time, 
+      	modify_time,
+      	remark, 
+      	hot_code, 
+      	subject_code,
+      	subject_class,
+      	hot_hide_depend, 
+      	team_code)
+    values (
+		#{hotHideCode,jdbcType=VARCHAR}, 
+		#{tenantCode,jdbcType=VARCHAR}, 
+      	#{orgCode,jdbcType=VARCHAR}, 
+      	#{createTime,jdbcType=BIGINT}, 
+      	#{modifyTime,jdbcType=BIGINT}, 
+      	#{remark,jdbcType=VARCHAR}, 
+      	#{hotCode,jdbcType=VARCHAR}, 
+      	#{subjectCode,jdbcType=VARCHAR}, 
+      	#{subjectClass,jdbcType=TINYINT}, 
+      	#{hotHideDepend,jdbcType=TINYINT}, 
+      	#{teamCode,jdbcType=VARCHAR})
+  </insert>
+  <delete id="deleteHideHot" parameterType="map">
+  		delete 
+  			from relation_hot_hide
+	  	where hot_code = #{hotCode}
+	  		and org_code = #{orgCode}
+	  		<if test="tenantCode!=null and tenantCode!=''">
+	  			and tenant_code = #{tenantCode}
+	  		</if>
+	  		<if test="teamCode!=null and teamCode!=''">
+	  			and team_code = #{teamCode}
+	  		</if>
+	  		<if test="hotHideDepend!=null">
+	  			and hot_hide_depend = #{hotHideDepend}
+	  		</if>
+  </delete>
+  <delete id="deleteHideHotByHotSevenDay">
+  		delete from relation_hot_hide 
+		where hot_code in (
+			select rh.hot_code from relation_hot rh
+			where rh.create_time &lt; #{time}
+		)
+  </delete>
+  
+  <delete id="deleteHideHotSevenDay">
+  		delete from relation_hot_hide where create_time &lt; #{time}
+  </delete>
+</mapper>

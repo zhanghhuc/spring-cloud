@@ -1,0 +1,21 @@
+package com.zssq.vote.service;
+
+/**
+ * 投票统计评论数和参与数
+ * 添加默认的投票权限数据
+ * service接口
+ * @author POWER
+ *
+ */
+public interface IVoteCountService {
+
+	/**
+	 * 投票统计评论数和参与数
+	 */
+	void countJoinAndComment();
+	
+	/**
+	 * 添加默认的投票权限数据
+	 */
+	void addJoinAuth();
+}

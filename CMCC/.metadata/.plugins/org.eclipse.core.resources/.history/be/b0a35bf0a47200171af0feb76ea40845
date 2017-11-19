@@ -1,0 +1,120 @@
+package com.zssq.vote.thread;
+
+import org.apache.log4j.Logger;
+
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.constants.MsgTopicConstants;
+import com.zssq.constants.VoteConstants;
+import com.zssq.dao.pojo.VoteComment;
+import com.zssq.dao.pojo.VoteCommentReply;
+import com.zssq.dao.pojo.VoteInfo;
+import com.zssq.kafka.core.KafkaProducerTemplate;
+import com.zssq.model.MessagePraiseAddModel;
+import com.zssq.service.IVoteService;
+import com.zssq.util.SpringContextUtil;
+
+/**
+ * 发送（投票）点赞消息线程类
+ * 
+ * @ClassName SendPraiseMsgThread
+ * @Description
+ * @author liurong
+ * @date 2017年4月13日 下午4:26:15
+ * @version 1.0
+ * @since JDK 1.7
+ */
+public class SendPraiseMsgThread implements Runnable {
+
+	private Logger log = Logger.getLogger(this.getClass());
+
+	// 租户标识
+	private String tenantCode;
+	// 被点赞信息CODE
+	private String infoCode;
+	// 被点赞信息类型（1-应用(例如：投票)； 2-评论； 3-回复）
+	private Byte infoType;
+	// 点赞人CODE
+	private String admirerCode;
+	
+	public SendPraiseMsgThread() {
+		
+	}
+
+	public SendPraiseMsgThread(String tenantCode, String infoCode, Byte infoType, String admirerCode) {
+		this.tenantCode = tenantCode;
+		this.infoCode = infoCode;
+		this.infoType = infoType;
+		this.admirerCode = admirerCode;
+	}
+	
+	/**点赞类型：7-投票*/
+	public static final int PRAISE_TYPE_7 = 7;
+	/**点赞类型：8-投票-评论*/
+	public static final int PRAISE_TYPE_8 = 8;
+	/**点赞类型：9-投票-回复*/
+	public static final int PRAISE_TYPE_9 = 9;
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public void run() {
+		try {
+		  /*userCode	String	是	被点赞人用户code
+			praiseUserCode	String	是	点赞人code
+			praiseType	String	是	点赞类型：点赞类型：1微博,2微博-评论,3微博回复,4博客,5博客-评论,6博客-回复,7投票,8投票-评论,9投票-回复
+			originalCode	String	是	原文code
+			content	String	是	点赞时显示内容
+			tenantCode	String	是	租户Code
+			orgCode	String	是	组织机构编号
+			orgLeve	String	是	组织机构等级*/
+			JSONObject json = new JSONObject();
+			if (VoteConstants.HANDLE_INFO_TYPE_1.equals(infoType)) {
+				VoteInfo voteInfo = voteService.getVoteInfoByCode(infoCode, tenantCode);
+				if (voteInfo != null) {
+					json.put("userCode", voteInfo.getSponsorCode());
+					json.put("praiseUserCode", admirerCode);
+					json.put("praiseType", PRAISE_TYPE_7);
+					json.put("originalCode", infoCode);
+					json.put("content", voteInfo.getTitle());
+					json.put("tenantCode", tenantCode);
+					json.put("orgCode", voteInfo.getOrgCode());
+				}
+			}
+			if (VoteConstants.HANDLE_INFO_TYPE_2.equals(infoType)) {
+				VoteComment comment = voteService.getCommentByCode(infoCode,tenantCode);
+				if (comment != null) {
+					json.put("userCode", comment.getCommenterCode());
+					json.put("praiseUserCode", admirerCode);
+					json.put("praiseType", PRAISE_TYPE_7);
+					json.put("originalCode", infoCode);
+					json.put("content", comment.getContent());
+					json.put("tenantCode", tenantCode);
+					json.put("orgCode", comment.getOrgCode());
+				}
+			}
+			if (VoteConstants.HANDLE_INFO_TYPE_3.equals(infoType)) {
+				VoteCommentReply reply = voteService.getCommentReplyByCode(tenantCode,infoCode);
+				if (reply != null) {
+					json.put("userCode", reply.getReplierCode());
+					json.put("praiseUserCode", admirerCode);
+					json.put("praiseType", PRAISE_TYPE_7);
+					json.put("originalCode", infoCode);
+					json.put("content", reply.getContent());
+					json.put("tenantCode", tenantCode);
+					json.put("orgCode", reply.getOrgCode());
+				}
+			}
+			String data = json.toJSONString();
+			if (data != null) {
+				producerTeplate.send(MsgTopicConstants.TOPIC_PRAISE, data);
+			}
+		} catch (Exception e) {
+			log.error("SendPraiseMsgThread.run:发送点赞提醒消息出错：", e);
+		}
+
+	}
+
+	private IVoteService voteService = SpringContextUtil.getBean(IVoteService.class);
+	
+	@SuppressWarnings("rawtypes")
+	private KafkaProducerTemplate producerTeplate  = SpringContextUtil.getBean(KafkaProducerTemplate.class);
+}

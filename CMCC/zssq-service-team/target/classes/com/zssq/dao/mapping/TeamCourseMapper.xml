@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.TeamCourseMapper">
+	<!-- 推荐历程 -->
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.TeamCourse">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="team_course_code" property="teamCourseCode" jdbcType="VARCHAR" />
+		<result column="team_elect_code" property="teamElectCode" jdbcType="VARCHAR" />
+		<result column="team_code" property="teamCode" jdbcType="VARCHAR" />
+		<result column="current_recommend_reason" property="currentRecommendReason" jdbcType="VARCHAR" />
+		<result column="current_org_code" property="currentOrgCode" jdbcType="VARCHAR" />
+		<result column="current_org_type" property="currentOrgType" jdbcType="VARCHAR" />
+		<result column="is_recommend" property="isRecommend" jdbcType="TINYINT" />
+		<result column="user_code" property="userCode" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+	</resultMap>
+	<!-- 百强班组 -->
+	<resultMap id="HonorTeamResultMap" type="com.zssq.dao.pojo.HonorTeam">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="team_code" property="teamCode" jdbcType="VARCHAR" />
+		<result column="team_name" property="teamName" jdbcType="VARCHAR" />
+		<result column="team_intro" property="teamIntro" jdbcType="VARCHAR" />
+		<result column="team_icon" property="teamIcon" jdbcType="VARCHAR" />
+		<result column="team_type" property="teamType" jdbcType="TINYINT" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="dissolve_time" property="dissolveTime" jdbcType="BIGINT" />
+		<result column="is_dissolve" property="isDissolve" jdbcType="TINYINT" />
+		<result column="is_record" property="isRecord" jdbcType="TINYINT" />
+		<result column="record_file_url" property="recordFileUrl" jdbcType="VARCHAR" />
+		<result column="user_code" property="userCode" jdbcType="VARCHAR" />
+		<result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+		<result column="sumCount" property="sumCount" jdbcType="INTEGER" />
+		<result column="leaderCodes" property="leaderCodes" jdbcType="VARCHAR" />
+		<result column="elect_time" property="electTime" jdbcType="BIGINT" />
+		<result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+		<result column="current_recommend_reason" property="currentRecommendReason" jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, team_course_code, team_elect_code, team_code,
+		current_recommend_reason, current_org_code,
+		current_org_type, is_recommend, user_code, create_time
+	</sql>
+	
+	<!-- 动态插入 -->
+	<insert id="insertSelective" parameterType="com.zssq.dao.pojo.TeamCourse">
+		insert into team_course
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="teamCourseCode != null">
+				team_course_code,
+			</if>
+			<if test="teamElectCode != null">
+				team_elect_code,
+			</if>
+			<if test="teamCode != null">
+				team_code,
+			</if>
+			<if test="currentRecommendReason != null">
+				current_recommend_reason,
+			</if>
+			<if test="currentOrgCode != null">
+				current_org_code,
+			</if>
+			<if test="currentOrgType != null">
+				current_org_type,
+			</if>
+			<if test="superOrgCode != null">
+				super_org_code,
+			</if>
+			<if test="isRecommend != null">
+				is_recommend,
+			</if>
+			<if test="userCode != null">
+				user_code,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=BIGINT},
+			</if>
+			<if test="teamCourseCode != null">
+				#{teamCourseCode,jdbcType=VARCHAR},
+			</if>
+			<if test="teamElectCode != null">
+				#{teamElectCode,jdbcType=VARCHAR},
+			</if>
+			<if test="teamCode != null">
+				#{teamCode,jdbcType=VARCHAR},
+			</if>
+			<if test="currentRecommendReason != null">
+				#{currentRecommendReason,jdbcType=VARCHAR},
+			</if>
+			<if test="currentOrgCode != null">
+				#{currentOrgCode,jdbcType=VARCHAR},
+			</if>
+			<if test="currentOrgType != null">
+				#{currentOrgType,jdbcType=TINYINT},
+			</if>
+			<if test="superOrgCode != null">
+				#{superOrgCode,jdbcType=VARCHAR},
+			</if>
+			<if test="isRecommend != null">
+				#{isRecommend,jdbcType=TINYINT},
+			</if>
+			<if test="userCode != null">
+				#{userCode,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=BIGINT},
+			</if>
+		</trim>
+	</insert>
+	
+	<!-- 变更推荐标识 -->
+	<update id="updateByCode" parameterType="com.zssq.dao.pojo.TeamCourse">
+		update team_course
+		<set>
+			<if test="isRecommend != null">
+				is_recommend = #{isRecommend,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where team_course_code = #{teamCourseCode,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 根据条件查询班组推荐历程 -->
+	<select id="selectByRecord" parameterType="com.zssq.dao.pojo.TeamCourse" resultMap="BaseResultMap" >
+		select
+			<include refid="Base_Column_List" />
+		from 
+			team_course
+		where 1=1
+		<if test="teamElectCode != null and teamElectCode != ''">
+			and team_elect_code = #{teamElectCode,jdbcType=VARCHAR}
+		</if>
+		<if test="teamCode != null">
+			and team_code = #{teamCode,jdbcType=VARCHAR}
+		</if>
+		<if test="currentOrgCode != null">
+			and current_org_code = #{currentOrgCode,jdbcType=VARCHAR}
+		</if>
+		<if test="superOrgCode != null">
+			and super_org_code = #{superOrgCode,jdbcType=VARCHAR}
+		</if>
+		<if test="currentOrgType != null">
+			and current_org_type = #{currentOrgType,jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<!-- 在历程中删除百强班组 -->
+	<delete id="deleteHonorTeam" parameterType="com.zssq.dao.pojo.TeamCourse" >
+		DELETE 
+		FROM
+		  team_course 
+		WHERE team_elect_code = #{teamElectCode,jdbcType=VARCHAR}
+		  AND team_code = #{teamCode,jdbcType=VARCHAR}
+		  AND current_org_type = #{currentOrgType,jdbcType=VARCHAR} 
+	</delete>
+	
+	<!-- 查询历史百强班组 -->
+	<select id="selectHonorTeamHisPage" parameterType="com.zssq.dao.pojo.TeamCourse" resultMap="HonorTeamResultMap">
+		SELECT 
+		  ti.team_code,
+		  ti.team_name,
+		  ti.team_type,
+		  ti.org_code,
+		  tc.current_recommend_reason,
+		  t3.create_time modify_time,
+		  tm.sumCount,
+		  tl.leaderCodes 
+		FROM
+		  team_course tc 
+		  LEFT JOIN team_info ti 
+		    ON ti.team_code = tc.team_code 
+		  LEFT JOIN 
+		    (SELECT 
+		      COUNT(1) sumCount,
+		      team_code 
+		    FROM
+		      team_member 
+		    GROUP BY team_code) tm 
+		    ON ti.team_code = tm.team_code 
+		  LEFT JOIN 
+		    (SELECT 
+		      GROUP_CONCAT(user_code) leaderCodes,
+		      team_code 
+		    FROM
+		      team_member 
+		    WHERE is_leader = 1 
+		    GROUP BY team_code) tl 
+		    ON ti.team_code = tl.team_code 
+		    <if test="leaders != null">
+			  	JOIN 
+				  (SELECT DISTINCT 
+				    team_code 
+				  FROM
+				    team_member 
+				  WHERE is_leader = 1 
+				    AND user_code IN 
+					<foreach collection="leaders" item="item" index="index" separator="," open="(" close=")">
+						#{item,jdbcType=VARCHAR}
+					</foreach>) t2 
+				  ON t2.team_code = ti.team_code 
+		  	</if>
+		  	 LEFT JOIN 
+		    (SELECT 
+		      MAX(create_time) create_time,
+		      team_code,team_elect_code
+		    FROM
+		      team_course 
+		    GROUP BY team_code,team_elect_code) t3 
+		    ON t3.team_code = tc.team_code and t3.team_elect_code = tc.team_elect_code
+		WHERE 1 = 1 
+		<if test="teamElectCode != null">
+			and tc.team_elect_code = #{teamElectCode,jdbcType=VARCHAR}
+		</if>
+		<if test="currentOrgType != null">
+			and tc.current_org_type = #{currentOrgType,jdbcType=VARCHAR}
+		</if>
+		<if test="isRecommend != null">
+			and tc.is_recommend = #{isRecommend,jdbcType=VARCHAR}
+		</if>
+		<if test="teamName != null">
+			and ti.team_name like  concat('%',#{teamName,jdbcType=VARCHAR},'%')
+		</if>
+		<if test="teamType != null">
+			and ti.team_type = #{teamType,jdbcType=TINYINT}
+		</if>
+		<if test="teamOrgCode != null">
+			and ti.org_code = #{teamOrgCode,jdbcType=VARCHAR}
+		</if>
+		<if test="startDate != null">
+			and t3.create_time <![CDATA[  >=  ]]> #{startDate,jdbcType=BIGINT}
+		</if>
+		<if test="endDate != null">
+			and t3.create_time <![CDATA[   <=  ]]> #{endDate,jdbcType=BIGINT}
+		</if>
+		<if test="limitStart != null">
+			limit #{limitStart,jdbcType=BIGINT},#{limitEnd,jdbcType=BIGINT}
+		</if>
+	</select>
+	
+	<!-- 查询历史百强班组(总数) -->
+	<select id="selectHonorTeamHisCount" parameterType="com.zssq.dao.pojo.TeamCourse" resultType="java.lang.Integer">
+		select 
+			count(1)
+		from 
+			team_course tc
+		LEFT JOIN team_info ti 
+		    ON ti.team_code = tc.team_code 
+		<if test="leaders != null">
+			  	JOIN 
+				  (SELECT DISTINCT 
+				    team_code 
+				  FROM
+				    team_member 
+				  WHERE is_leader = 1 
+				    AND user_code IN 
+					<foreach collection="leaders" item="item" index="index" separator="," open="(" close=")">
+						#{item,jdbcType=VARCHAR}
+					</foreach>) t2 
+				  ON t2.team_code = ti.team_code 
+		  	</if>
+		  	 LEFT JOIN 
+		    (SELECT 
+		      MAX(create_time) create_time,
+		      team_code,team_elect_code
+		    FROM
+		      team_course 
+		    GROUP BY team_code,team_elect_code) t3 
+		    ON t3.team_code = tc.team_code and t3.team_elect_code = tc.team_elect_code
+		where 1=1 
+		<if test="teamElectCode != null">
+			and tc.team_elect_code = #{teamElectCode,jdbcType=VARCHAR}
+		</if>
+		<if test="currentOrgType != null">
+			and tc.current_org_type = #{currentOrgType,jdbcType=VARCHAR}
+		</if>
+		<if test="isRecommend != null">
+			and tc.is_recommend = #{isRecommend,jdbcType=VARCHAR}
+		</if>
+		<if test="teamName != null">
+			and ti.team_name like  concat('%',#{teamName,jdbcType=VARCHAR},'%')
+		</if>
+		<if test="teamType != null">
+			and ti.team_type = #{teamType,jdbcType=TINYINT}
+		</if>
+		<if test="teamOrgCode != null">
+			and ti.org_code = #{teamOrgCode,jdbcType=VARCHAR}
+		</if>
+		<if test="startDate != null">
+			and t3.create_time <![CDATA[  >=  ]]> #{startDate,jdbcType=BIGINT}
+		</if>
+		<if test="endDate != null">
+			and t3.create_time <![CDATA[   <=  ]]> #{endDate,jdbcType=BIGINT}
+		</if>
+	</select>
+	
+	<!-- 查询上一次评选的百强班组,用于推送 -->
+	<select id="selectLastHonorTeam" parameterType="java.lang.String" resultMap="HonorTeamResultMap" >
+		select 
+		  t1.`team_code`,
+		  t2.`team_name`,
+		  t2.`org_code` 
+		from
+		  team_recommend t1 
+		  left join team_info t2 
+		    on t1.`team_code` = t2.`team_code` 
+		where t1.`team_elect_code` = #{teamOrgCode,jdbcType=VARCHAR}
+		order by t2.`org_code` 
+	</select>
+	
+</mapper>

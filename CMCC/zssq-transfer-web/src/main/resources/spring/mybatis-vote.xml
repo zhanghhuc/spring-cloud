@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context-3.1.xsd
+    http://www.springframework.org/schema/mvc
+    http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+    http://www.springframework.org/schema/aop
+    http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+    http://www.springframework.org/schema/tx
+    http://www.springframework.org/schema/tx/spring-tx-3.0.xsd">
+    
+   	
+    <bean id="dataSourceVote" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+    
+        <property name="driverClassName" value="${driver}" />
+        <property name="url" value="${vote.url}" />
+        <property name="username" value="${vote.username}" />
+        <property name="password" value="${vote.password}" />
+
+
+        <!-- 初始化连接数量 -->
+        <property name="initialSize" value="30" />
+        <!-- 连接池最大的活跃的数量 -->
+        <property name="maxActive" value="400" />
+        <!-- 连接池最小空闲数量 -->
+        <property name="minIdle" value="30" />
+        <!-- 获取连接最长等待时间，单位是毫秒 -->
+        <property name="maxWait" value="60000" />
+        <property name="validationQuery" value="${validationQuery}"></property>
+        <!-- 这里建议配置为TRUE，防止取到的连接不可用(申请连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能) -->
+        <property name="testOnBorrow" value="true" />
+        <!-- 归还连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能 -->
+        <property name="testOnReturn" value="false" />
+        <!-- 建议配置为true，不影响性能，并且保证安全性。 申请连接的时候检测，如果空闲时间大于 timeBetweenEvictionRunsMillis， 执行validationQuery检测连接是否有效。 -->
+        <property name="testWhileIdle" value="true" />
+        <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 ,这里配置的是1分钟  -->
+        <property name="timeBetweenEvictionRunsMillis" value="60000" />
+        <!-- 配置一个连接在池中最小生存的时间，单位是毫秒 300000:300秒 -->
+        <property name="minEvictableIdleTimeMillis" value="300000" />
+        
+        <!-- 对于建立时间超过removeAbandonedTimeout的连接强制关闭 -->
+        <property name="removeAbandoned" value="true" />
+        <!-- 指定连接建立多长时间就需要被强制关闭，单位：秒 -->
+        <property name="removeAbandonedTimeout" value="86400" />
+        <!-- 指定发生removeabandoned的时候，是否记录当前线程的堆栈信息到日志中 -->
+        <property name="logAbandoned" value="true" />
+<!--         <property name="filters" value="mergeStat" /> -->
+    </bean>
+    
+  
+    <!-- spring和MyBatis完美整合，不需要mybatis的配置映射文件 -->  
+    <bean id="sqlSessionFactoryVote" class="org.mybatis.spring.SqlSessionFactoryBean">  
+        <property name="dataSource" ref="dataSourceVote" />  
+        <!-- 自动扫描mapping.xml文件 -->  
+        <property name="mapperLocations" value="classpath:com/zssq/vote/dao/mapping/*.xml"></property>  
+    </bean>  
+  
+    <!-- DAO接口所在包名，Spring会自动查找其下的类 -->  
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">  
+        <property name="basePackage" value="com.zssq.vote.dao.mapper" />  
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactoryVote"></property>  
+    </bean>  
+  
+    <!-- (事务管理)transaction manager, use JtaTransactionManager for global tx -->  
+    <bean id="transactionManagerVote" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">  
+        <property name="dataSource" ref="dataSourceVote" />  
+    </bean>  
+    
+    <!-- 声明使用注解式事务 -->
+	<tx:annotation-driven transaction-manager="transactionManagerVote" />
+	
+
+</beans>  

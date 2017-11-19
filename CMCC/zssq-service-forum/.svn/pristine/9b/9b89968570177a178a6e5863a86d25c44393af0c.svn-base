@@ -1,0 +1,282 @@
+package com.zssq.service;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.zssq.constants.ForumConstants;
+import com.zssq.dao.mapper.ForumCommentReplyMapper;
+import com.zssq.dao.mapper.ForumPlatesMapper;
+import com.zssq.dao.mapper.ForumTopicsFollowMapper;
+import com.zssq.dao.mapper.ForumTopicsMapper;
+import com.zssq.dao.mapper.ForumTopicsViewerMapper;
+import com.zssq.dao.pojo.ForumCommentReply;
+import com.zssq.dao.pojo.ForumCommentReplyExample;
+import com.zssq.dao.pojo.ForumPlates;
+import com.zssq.dao.pojo.ForumPlatesExample;
+import com.zssq.dao.pojo.ForumTopics;
+import com.zssq.dao.pojo.ForumTopicsExample;
+import com.zssq.dao.pojo.ForumTopicsFollow;
+import com.zssq.dao.pojo.ForumTopicsFollowExample;
+import com.zssq.dao.pojo.ForumTopicsViewer;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.DateUtils;
+import com.zssq.utils.PageInfo;
+import com.zssq.utils.StringTools;
+
+public class CommonService {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private ForumPlatesMapper forumPlatesMapper;
+	@Autowired
+	private ForumTopicsMapper forumTopicsMapper;
+	@Autowired
+	private ForumTopicsViewerMapper forumTopicsViewerMapper;
+	@Autowired
+	private ForumTopicsFollowMapper forumTopicsFollowMapper;
+	@Autowired
+	private ForumCommentReplyMapper forumCommentReplyMapper;
+	
+	// 加、减运算枚举
+	public enum Operator {
+		ADD, SUB
+	}
+	
+	/**
+	 * 查询论坛版块信息
+	 * @Function queryPlateByBelongCode
+	 * @Description 
+	 * @param belongCode 板块所属CODE（例如：班组CODE）
+	 * @param tenantCode 租户标识
+	 * @return
+	 * @throws BusinessException
+	 */
+	protected ForumPlates queryPlateByBelongCode(String belongCode, String tenantCode) throws BusinessException {
+		ForumPlates record = null;
+		try {
+			ForumPlatesExample example = new ForumPlatesExample();
+			ForumPlatesExample.Criteria criteria = example.createCriteria();
+			
+			// 是否禁用:0-否
+			criteria.andIsDisableEqualTo(ForumConstants.NO);
+			// 是否删除:0-否
+			criteria.andIsDeleteEqualTo(ForumConstants.NO);
+			// 租户标识
+			criteria.andTenantCodeEqualTo(tenantCode);
+			// 板块所属CODE
+			criteria.andBelongCodeEqualTo(belongCode);
+			
+			List<ForumPlates> list = forumPlatesMapper.selectByExample(example);
+			if (list.size() > 0) {
+				record = list.get(0);
+			}
+		} catch (Exception e) {
+			log.error("CommonService.queyrPlateByBelongCode", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		return record;
+	}
+	/**
+	 * 异步操作
+	 * 新增主帖的浏览记录信息&主帖浏览量+1
+	 * @Function saveVisitRecord
+	 * @Description 
+	 * @param tenantCode 租户标识
+	 * @param orgCode    组织机构编码
+	 * @param viewerCode 浏览人CODE
+	 * @param topicCode  主帖CODE
+	 * @throws BusinessException
+	 */
+	protected void saveVisitRecords(String tenantCode, String orgCode, String viewerCode, String topicCode)
+			throws BusinessException {
+		/** 1.新增主帖浏览记录信息 */
+		ForumTopicsViewer viewer = new ForumTopicsViewer();
+		viewer.setForumTopicsViewerCode(UUIDHelper.getUUID());
+		viewer.setTenantCode(tenantCode);// 租户标识
+		viewer.setOrgCode(orgCode);// 组织机构编码
+		viewer.setCreateTime(DateUtils.getFormatDateLong());// 创建时间
+		viewer.setModifyTime(DateUtils.getFormatDateLong());// 修改时间
+		viewer.setForumTopicsCode(topicCode);// 主帖CODE
+		viewer.setViewerCode(viewerCode);// 浏览人CODE
+		
+		int result = forumTopicsViewerMapper.insertSelective(viewer);
+		if (result > 0) {
+			/** 2.主帖浏览量+1 */
+			synchronized (this) {
+				forumTopicsMapper.updateIncreaseViewCount(topicCode);
+			}
+		}
+	}
+	/**
+	 * 更新主帖回复数，最后回复时间
+	 * @Function updateTopicReplyCountAndTime
+	 * @Description 
+	 * @param topicCode 主帖CODE
+	 * @param opt       ADD=加法；SUB=减法
+	 * @param count     加减变量
+	 * @throws BusinessException
+	 */
+	protected synchronized void updateTopicReplyCountAndTime(String topicCode, Operator opt, int count) throws BusinessException {
+		try {
+			long curTime = DateUtils.getFormatDateLong();
+			
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("forumTopicsCode", topicCode);// 主帖CODE
+			map.put("modifyTime", curTime);// 最后更新时间
+			if (opt == Operator.ADD) {
+				map.put("express", "+" + count);
+				map.put("lastReplyTime", curTime);// 最后回复时间
+			}
+			if (opt == Operator.SUB) {
+				map.put("express", "-" + count);
+			}
+			
+			forumTopicsMapper.updateReplyCountAndTime(map);
+		} catch (Exception e) {
+			log.error("CommonService.updateTopicReplyCountAndTime", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	/**
+	 * 1.加减跟帖回复数
+	 * 2.加减主帖回复数，更新主帖最后回复时间
+	 * @Function updateTopicFollowReplyProc
+	 * @Description 
+	 * @param topicCode        主帖CODE
+	 * @param followTopicCode  跟帖CODE
+	 * @param opt              ADD=加法；SUB=减法
+	 * @param count            加减变量
+	 * @throws BusinessException
+	 */
+	protected synchronized void updateTopicFollowReplyProc(String topicCode, String followTopicCode, Operator opt, int count) throws BusinessException {
+		try {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("followCode", followTopicCode);// 跟帖CODE
+			map.put("modifyTime", DateUtils.getFormatDateLong());// 最后更新时间
+			if (opt == Operator.ADD) {
+				map.put("express", "+" + count);
+			}
+			if (opt == Operator.SUB) {
+				map.put("express", "-" + count);
+			}
+			// 更新跟帖回复信息
+			int result = forumTopicsFollowMapper.updateFollowCount(map);
+			if (result > 0) {
+				// 更新主帖回复信息
+				//updateTopicReplyCountAndTime(topicCode, opt, count);
+			}
+		} catch (Exception e) {
+			log.error("CommonService.updateTopicFollowReplyProc", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	protected ForumTopics getTopicByCode(String tenantCode,String topicCode) throws BusinessException{
+		try {
+			ForumTopicsExample example = new ForumTopicsExample();
+			ForumTopicsExample.Criteria criteria = example.createCriteria();
+			
+			// 是否禁用:0-否
+			criteria.andIsDisableEqualTo(ForumConstants.NO);
+			// 是否删除:0-否
+			criteria.andIsDeleteEqualTo(ForumConstants.NO);
+			// 租户标识
+			criteria.andTenantCodeEqualTo(tenantCode);
+			//主贴code
+			criteria.andForumTopicsCodeEqualTo(topicCode);
+			
+			List<ForumTopics> list = forumTopicsMapper.selectByExample(example);
+			
+			if (list.size() == 0) {
+				return null;
+			} else {
+				return list.get(0);
+			}
+		} catch (Exception e) {
+			log.error("CommonService.getTopicByCode", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	public PageInfo getTopicFollowList(ForumTopicsFollow follow, PageInfo pageInfo) throws BusinessException {
+		List<ForumTopicsFollow> list = new ArrayList<ForumTopicsFollow>();
+		try {
+			ForumTopicsFollowExample example = new ForumTopicsFollowExample();
+			ForumTopicsFollowExample.Criteria criteria = example.createCriteria();
+			
+			// 是否禁用:0-否
+			criteria.andIsDisableEqualTo(ForumConstants.NO);
+			// 是否删除:0-否
+			criteria.andIsDeleteEqualTo(ForumConstants.NO);
+			// 租户标识
+			criteria.andTenantCodeEqualTo(follow.getTenantCode());
+			// 主帖CODE
+			criteria.andTopicCodeEqualTo(follow.getTopicCode());
+			// 跟帖发表人CODE
+			if (StringTools.isNotEmpty(follow.getFollowerCode())) {
+				criteria.andFollowerCodeEqualTo(follow.getFollowerCode());
+			}
+			
+			int total = forumTopicsFollowMapper.countByExample(example);
+			pageInfo.setTotalItem(total);
+			
+			if (total > 0) {
+				if(pageInfo.isPageFlag()){
+					example.setLimitStart(pageInfo.getStartRow());
+					example.setLimitEnd(pageInfo.getPerPageSize());
+				}
+				// 按照跟帖时间正序，即按照ID正序
+				example.setOrderByClause("id asc");
+				list = forumTopicsFollowMapper.selectByExampleWithBLOBs(example);
+			}
+			pageInfo.setList(list);
+			return pageInfo;
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.getTopicFollowList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	public PageInfo getTopicFollowReplyList(ForumCommentReply reply, PageInfo pageInfo) throws BusinessException {
+		List<ForumCommentReply> list = new ArrayList<ForumCommentReply>();
+		try {
+			ForumCommentReplyExample example = new ForumCommentReplyExample();
+			ForumCommentReplyExample.Criteria criteria = example.createCriteria();
+			
+			// 是否禁用:0-否
+			criteria.andIsDisableEqualTo(ForumConstants.NO);
+			// 是否删除:0-否
+			criteria.andIsDeleteEqualTo(ForumConstants.NO);
+			// 租户标识
+			criteria.andTenantCodeEqualTo(reply.getTenantCode());
+			// 主帖CODE
+			criteria.andTopicCodeEqualTo(reply.getTopicCode());
+			// 跟帖CODE
+			criteria.andTopicFollowCodeEqualTo(reply.getTopicFollowCode());
+			
+			int total = forumCommentReplyMapper.countByExample(example);
+			pageInfo.setTotalItem(total);
+			if (total > 0) {
+				if(pageInfo.isPageFlag()){
+					example.setLimitStart(pageInfo.getStartRow());
+					example.setLimitEnd(pageInfo.getPerPageSize());
+				}
+				// 按照评论或回复时间正序，即按照ID正序
+				example.setOrderByClause("id asc");
+				list = forumCommentReplyMapper.selectByExampleWithBLOBs(example);
+			}
+			pageInfo.setList(list);
+			return pageInfo;
+		} catch (Exception e) {
+			log.error("ForumServiceImpl.getTopicFollowReplyList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+}

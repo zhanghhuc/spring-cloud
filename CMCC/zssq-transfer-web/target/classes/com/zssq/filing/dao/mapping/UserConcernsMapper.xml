@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.filing.dao.mapper.UserConcernsMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.filing.pojo.UserConcerns" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="concerns_code" property="concernsCode" jdbcType="VARCHAR" />
+    <result column="concerns_user_code" property="concernsUserCode" jdbcType="VARCHAR" />
+    <result column="is_concerns_user_code" property="isConcernsUserCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="org_level" property="orgLevel" jdbcType="TINYINT" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, concerns_code, concerns_user_code, is_concerns_user_code, create_time, modify_time, 
+    org_code, org_level
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from user_concerns
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from user_concerns
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.filing.pojo.UserConcerns" >
+    insert into user_concerns (id, concerns_code, concerns_user_code, 
+      is_concerns_user_code, create_time, modify_time, 
+      org_code, org_level)
+    values (#{id,jdbcType=BIGINT}, #{concernsCode,jdbcType=VARCHAR}, #{concernsUserCode,jdbcType=VARCHAR}, 
+      #{isConcernsUserCode,jdbcType=VARCHAR}, #{createTime,jdbcType=BIGINT}, #{modifyTime,jdbcType=BIGINT}, 
+      #{orgCode,jdbcType=VARCHAR}, #{orgLevel,jdbcType=TINYINT})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.filing.pojo.UserConcerns" >
+    insert into user_concerns
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="concernsCode != null" >
+        concerns_code,
+      </if>
+      <if test="concernsUserCode != null" >
+        concerns_user_code,
+      </if>
+      <if test="isConcernsUserCode != null" >
+        is_concerns_user_code,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="orgLevel != null" >
+        org_level,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="concernsCode != null" >
+        #{concernsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="concernsUserCode != null" >
+        #{concernsUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isConcernsUserCode != null" >
+        #{isConcernsUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        #{orgLevel,jdbcType=TINYINT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.filing.pojo.UserConcerns" >
+    update user_concerns
+    <set >
+      <if test="concernsCode != null" >
+        concerns_code = #{concernsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="concernsUserCode != null" >
+        concerns_user_code = #{concernsUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isConcernsUserCode != null" >
+        is_concerns_user_code = #{isConcernsUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        org_level = #{orgLevel,jdbcType=TINYINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.filing.pojo.UserConcerns" >
+    update user_concerns
+    set concerns_code = #{concernsCode,jdbcType=VARCHAR},
+      concerns_user_code = #{concernsUserCode,jdbcType=VARCHAR},
+      is_concerns_user_code = #{isConcernsUserCode,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  <!-- 批量新增 -->
+  <insert id="bathInsert" parameterType="com.zssq.filing.pojo.UserConcerns">
+  	INSERT INTO user_concerns
+  		(
+  		concerns_code, 
+  		concerns_user_code, 
+  		is_concerns_user_code, 
+  		create_time, 
+  		modify_time, 
+    	org_code, 
+    	org_level
+  		)
+  	VALUES
+  		<foreach collection="list" index="index" item="item" separator=",">
+			(
+	  		#{item.concernsCode,jdbcType=VARCHAR}, 
+	  		#{item.concernsUserCode,jdbcType=VARCHAR}, 
+	  		#{item.isConcernsUserCode,jdbcType=VARCHAR}, 
+	  		#{item.createTime,jdbcType=BIGINT}, 
+	  		#{item.modifyTime,jdbcType=BIGINT}, 
+	  		#{item.orgCode,jdbcType=VARCHAR}, 
+	  		#{item.orgLevel,jdbcType=TINYINT} 
+	  		)
+	  	</foreach>
+  </insert>
+  
+</mapper>

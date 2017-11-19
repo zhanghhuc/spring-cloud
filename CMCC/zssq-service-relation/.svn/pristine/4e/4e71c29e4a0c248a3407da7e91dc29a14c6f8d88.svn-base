@@ -1,0 +1,702 @@
+package com.zssq.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.constants.RelationConstants;
+import com.zssq.dao.mapper.RelationDynamicMapper;
+import com.zssq.dao.mapper.RelationDynamicTeamRelMapper;
+import com.zssq.dao.mapper.RelationHotMapper;
+import com.zssq.dao.mapper.RelationShareByZKZMapper;
+import com.zssq.dao.mapper.RelationSubjectDataByZKZMapper;
+import com.zssq.dao.mapper.RelationSubjectInfoByZKZMapper;
+import com.zssq.dao.mapper.RelationSubjectResourceMapper;
+import com.zssq.dao.pojo.RelationDynamic;
+import com.zssq.dao.pojo.RelationDynamicTeamRel;
+import com.zssq.dao.pojo.RelationHot;
+import com.zssq.dao.pojo.RelationShare;
+import com.zssq.dao.pojo.RelationSubjectData;
+import com.zssq.dao.pojo.RelationSubjectInfo;
+import com.zssq.dao.pojo.RelationSubjectResource;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.service.RelationThirdDynamicService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.vo.RelationDynamicVO;
+
+/**
+ * 
+ * @ClassName: RelationThirdDynamicServiceImpl  
+ * @Description: 动态  
+ * @author ZKZ  
+ * @date 2017年3月18日  
+ *
+ */
+@Service("relationThirdDynamicService")
+public class RelationThirdDynamicServiceImpl implements RelationThirdDynamicService {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private RelationDynamicMapper relationDynamicMapper;
+	@Autowired
+	private RelationSubjectInfoByZKZMapper relationSubjectInfoByZKZMapper;
+	@Autowired
+	private RelationSubjectDataByZKZMapper relationSubjectDataByZKZMapper;
+	@Autowired
+	private RelationSubjectResourceMapper relationSubjectResourceMapper;
+	@Autowired
+	private RelationShareByZKZMapper relationShareByZKZMapper;
+	@Autowired
+	private RelationDynamicTeamRelMapper relationDynamicTeamRelMapper;
+	@Autowired
+	private RelationHotMapper relationHotMapper;
+
+	/**
+	 * 保存动态信息
+	 */
+	@Override
+	public boolean saveDynamic(RelationDynamic relationDynamic, RelationDynamicTeamRel relationDynamicTeamRel,
+			RelationSubjectInfo relationSubjectInfo, List<RelationSubjectResource> relationSubjectResourceList)
+					throws BusinessException {
+		try {
+			// 参数校验
+			if (relationDynamic == null) {
+				log.error("RelationThirdDynamicServiceImpl.saveDynamic：relationDynamic为空");
+				throw BusinessException.build("COMMON_402", "relationDynamic");
+			}
+			
+			// 获取参数
+			Byte dynamicClass = relationDynamic.getDynamicClass(); // 动态类型
+			Byte dynamicDepend = relationDynamic.getDynamicDepend(); // 从属关系
+			
+			// 参数校验
+			if (dynamicClass == null || dynamicClass == 0) {
+				log.error("RelationThirdDynamicServiceImpl.saveDynamic：dynamicClass为空");
+				throw BusinessException.build("COMMON_402", "dynamicClass");
+			}
+			if (dynamicDepend == null || (!RelationConstants.RELATION_DYNAMIC_DEPEND_USER.equals(dynamicDepend)
+					&& !RelationConstants.RELATION_DYNAMIC_DEPEND_TEAM.equals(dynamicDepend))) {
+				log.error("RelationThirdDynamicServiceImpl.saveDynamic：dynamicClass错误");
+				throw BusinessException.build("COMMON_402", "dynamicClass");
+			}
+			
+			// 插入动态信息
+			int insertDynamicNum = relationDynamicMapper.insert(relationDynamic);
+			if (insertDynamicNum != 1) {
+				log.error("RelationThirdDynamicServiceImpl.saveDynamic：插入" + insertDynamicNum + "条动态信息 ");
+				return false;
+			}
+			
+			// 判断是否需要插入关系信息
+			if (RelationConstants.RELATION_DYNAMIC_DEPEND_TEAM.equals(dynamicDepend)) {
+				// 参数校验
+				if (relationDynamicTeamRel == null) {
+					log.error("RelationThirdDynamicServiceImpl.saveDynamic：relationDynamicTeamRel错误");
+					throw BusinessException.build("COMMON_402", "relationDynamicTeamRel");
+				}
+				
+				// 插入动态班组关系信息
+				int insertDynamicTeamRelNum = relationDynamicTeamRelMapper.insert(relationDynamicTeamRel);
+				if (insertDynamicTeamRelNum != 1) {
+					log.error("RelationThirdDynamicServiceImpl.saveDynamic：插入" + insertDynamicTeamRelNum + "条动态班组关系信息 ");
+					return false;
+				}
+			}
+			
+			// 判断是否需要插入内容信息
+			if (RelationConstants.RELATION_DYNAMIC_SEND_MBLOG.equals(dynamicClass)
+					|| RelationConstants.RELATION_DYNAMIC_FORWARD_MBLOG.equals(dynamicClass)
+					|| RelationConstants.RELATION_DYNAMIC_SEND_BLOG.equals(dynamicClass)
+					|| RelationConstants.RELATION_DYNAMIC_FORWARD_BLOG.equals(dynamicClass)
+					|| RelationConstants.RELATION_DYNAMIC_SEND_VOTE.equals(dynamicClass)
+					|| RelationConstants.RELATION_DYNAMIC_SEND_TO_OD.equals(dynamicClass)
+					|| RelationConstants.RELATION_DYNAMIC_SEND_TO_KB.equals(dynamicClass)) {
+				// 校验内容信息
+				if (relationSubjectInfo == null) {
+					log.error("RelationThirdDynamicServiceImpl.saveDynamic：relationSubjectInfo为空");
+					throw BusinessException.build("COMMON_402", "relationSubjectInfo");
+				}
+
+				// 获取参数
+				String subjectCode = relationSubjectInfo.getSubjectCode(); // 内容编号
+				Byte subjectClass = relationSubjectInfo.getSubjectClass(); // 内容类型
+				
+				// 参数校验
+				if (StringUtils.isBlank(subjectCode)) {
+					log.error("RelationThirdDynamicServiceImpl.saveDynamic：subjectCode为空");
+					throw BusinessException.build("COMMON_402", "subjectCode");
+				}
+				if (subjectClass == null || subjectClass == 0) {
+					log.error("RelationThirdDynamicServiceImpl.saveDynamic：subjectClass为空");
+					throw BusinessException.build("COMMON_402", "subjectClass");
+				}
+				
+				// 插入内容信息
+				relationSubjectInfo.setDynamicCode(relationDynamic.getDynamicCode()); // 动态编号
+				int insertSubjectInfoNum = relationSubjectInfoByZKZMapper.insert(relationSubjectInfo);
+				if (insertSubjectInfoNum != 1) {
+					log.error("RelationThirdDynamicServiceImpl.saveDynamic：插入" + insertSubjectInfoNum + "条内容信息 ");
+					throw BusinessException.build("BLOG_13002", "保存");
+				}
+				
+				// 内容数据信息
+				RelationSubjectData relationSubjectData = new RelationSubjectData();
+				relationSubjectData.setSubjectDataCode(UUIDHelper.getUUID());
+				relationSubjectData.setTenantCode(relationSubjectInfo.getTenantCode());
+				relationSubjectData.setOrgCode(relationSubjectInfo.getOrgCode());
+				relationSubjectData.setCreateTime(relationSubjectInfo.getCreateTime());
+				relationSubjectData.setModifyTime(relationSubjectInfo.getModifyTime());
+				relationSubjectData.setSubjectCode(subjectCode);
+				relationSubjectData.setTeamQualityNum(0);
+				relationSubjectData.setGroupQualityNum(0);
+				relationSubjectData.setProvinceQualityNum(0);
+				relationSubjectData.setCityQualityNum(0);
+				relationSubjectData.setJoinNum(0);
+				relationSubjectData.setReadNum(0);
+				relationSubjectData.setLikeNum(0);
+				relationSubjectData.setCollectNum(0);
+				relationSubjectData.setForwardNum(0);
+				relationSubjectData.setCommentNum(0);
+				relationSubjectData.setShareNum(0);
+				
+				// 插入内容数据信息
+				int insertSubjectDataNum = relationSubjectDataByZKZMapper.insert(relationSubjectData);
+				if (insertSubjectDataNum != 1) {
+					log.error("RelationThirdDynamicServiceImpl.saveDynamic：插入" + insertSubjectDataNum + "条内容数据信息 ");
+					throw BusinessException.build("BLOG_13002", "保存");
+				}
+				
+				// 插入附件信息
+				if (relationSubjectResourceList != null && !relationSubjectResourceList.isEmpty()) {
+					int insertSubjectResourceNum = relationSubjectResourceMapper.batchInsert(relationSubjectResourceList);
+					if (insertSubjectResourceNum != relationSubjectResourceList.size()) {
+						log.error("RelationThirdDynamicServiceImpl.saveDynamic：插入" + insertSubjectResourceNum + "条内容资源信息，应插入"
+								+ relationSubjectResourceList.size() + "条");
+						throw BusinessException.build("BLOG_13002", "保存");
+					}
+				}
+				
+				// 判断是否需要插入热点信息
+				if (RelationConstants.RELATION_SUBJECT_MBLOG.equals(subjectClass)
+						|| RelationConstants.RELATION_SUBJECT_BLOG.equals(subjectClass)
+						|| RelationConstants.RELATION_SUBJECT_VOTE.equals(subjectClass)
+						|| RelationConstants.RELATION_SUBJECT_ACTIVITY.equals(subjectClass)
+						|| RelationConstants.RELATION_SUBJECT_NEWS.equals(subjectClass)) {
+					// 热点信息
+					RelationHot relationHot = new RelationHot();
+					relationHot.setHotCode(UUIDHelper.getUUID());
+					relationHot.setTenantCode(relationSubjectInfo.getTenantCode());
+					relationHot.setOrgCode(relationSubjectInfo.getOrgCode());
+					relationHot.setCreateTime(relationSubjectInfo.getCreateTime());
+					relationHot.setModifyTime(relationSubjectInfo.getModifyTime());
+					relationHot.setSubjectCode(subjectCode);
+					relationHot.setSubjectClass(subjectClass);
+					
+					// 插入
+					int insertHotNum = relationHotMapper.insert(relationHot);
+					if (insertHotNum != 1) {
+						log.error("RelationThirdDynamicServiceImpl.saveDynamic：插入" + insertHotNum + "条热点信息 ");
+						throw BusinessException.build("BLOG_13002", "保存");
+					}
+				}
+			}
+			
+			// 判断是否需要保存分享信息
+			if (RelationConstants.RELATION_DYNAMIC_SHARE_BLOG.equals(dynamicClass)
+					|| RelationConstants.RELATION_DYNAMIC_SHARE_VOTE.equals(dynamicClass)
+					|| RelationConstants.RELATION_DYNAMIC_SHARE_ACTIVITY.equals(dynamicClass)
+					|| RelationConstants.RELATION_DYNAMIC_SHARE_NEWS.equals(dynamicClass)
+					|| RelationConstants.RELATION_DYNAMIC_KB.equals(dynamicClass)
+					|| RelationConstants.RELATION_DYNAMIC_OD.equals(dynamicClass)) {
+				// 分享信息
+				RelationShare relationShare = new RelationShare();
+				relationShare.setShareCode(UUIDHelper.getUUID());
+				relationShare.setTenantCode(relationDynamic.getTenantCode());
+				relationShare.setOrgCode(relationDynamic.getOrgCode());
+				relationShare.setCreateTime(relationDynamic.getCreateTime());
+				relationShare.setModifyTime(relationDynamic.getModifyTime());
+				relationShare.setDynamicCode(relationDynamic.getDynamicCode());
+				relationShare.setSubjectCode(relationDynamic.getSubjectCode());
+				if (RelationConstants.RELATION_DYNAMIC_SHARE_BLOG.equals(dynamicClass)) {
+					relationShare.setSubjectClass(RelationConstants.RELATION_SHARE_BLOG);
+				} else if (RelationConstants.RELATION_DYNAMIC_SHARE_VOTE.equals(dynamicClass)) {
+					relationShare.setSubjectClass(RelationConstants.RELATION_SHARE_VOTE);
+				} else if (RelationConstants.RELATION_DYNAMIC_SHARE_ACTIVITY.equals(dynamicClass)) {
+					relationShare.setSubjectClass(RelationConstants.RELATION_SHARE_ACTIVITY);
+				} else if (RelationConstants.RELATION_DYNAMIC_SHARE_NEWS.equals(dynamicClass)) {
+					relationShare.setSubjectClass(RelationConstants.RELATION_SHARE_NEWS);
+				} else if (RelationConstants.RELATION_DYNAMIC_KB.equals(dynamicClass)) {
+					relationShare.setSubjectClass(RelationConstants.RELATION_SHARE_KB);
+				} else if (RelationConstants.RELATION_DYNAMIC_OD.equals(dynamicClass)) {
+					relationShare.setSubjectClass(RelationConstants.RELATION_SHARE_OD);
+				}
+				relationShare.setUserCode(relationDynamic.getUserCode());
+				
+				// 插入分享信息
+				int insertShareNum = relationShareByZKZMapper.insert(relationShare);
+				if (insertShareNum != 1) {
+					log.error("RelationThirdDynamicServiceImpl.saveDynamic：插入" + insertShareNum + "条分享信息 ");
+					throw BusinessException.build("BLOG_13002", "保存");
+				}
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+
+	/**
+	 * 删除动态
+	 */
+	@Override
+	public boolean deleteDynamic(RelationDynamicVO relationDynamicVO) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationDynamicVO == null) {
+				log.error("RelationThirdDynamicServiceImpl.deleteDynamic：relationDynamicVO为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicVO");
+			}
+			
+			// 获取参数
+			String dynamicCode = relationDynamicVO.getDynamicCode(); // 动态编号
+			Byte dynamicClass = relationDynamicVO.getDynamicClass(); // 动态类型
+			String subjectCode = relationDynamicVO.getSubjectCode(); // 内容编号
+			Byte subjectClass = relationDynamicVO.getSubjectClass(); // 内容类型
+			String userCode = relationDynamicVO.getUserCode(); // 动态所属人员编号
+			Long modifyTime = relationDynamicVO.getModifyTime(); // 修改时间
+			
+			// 参数校验
+			if (StringUtils.isBlank(dynamicCode)) {
+				log.error("RelationThirdDynamicServiceImpl.deleteDynamic：dynamicCode为空");
+				throw BusinessException.build("COMMON_402", "dynamicCode");
+			}
+			if (StringUtils.isBlank(userCode)) {
+				log.error("RelationThirdDynamicServiceImpl.deleteDynamic：userCode为空");
+				throw BusinessException.build("COMMON_402", "userCode");
+			}
+			if (modifyTime == null || modifyTime == 0) {
+				log.error("RelationThirdDynamicServiceImpl.deleteDynamic：modifyTime为空");
+				throw BusinessException.build("COMMON_402", "modifyTime");
+			}
+			
+			// 拼接参数
+			Map<String, Object> dynamicMap = new HashMap<String, Object>();
+			dynamicMap.put("dynamicCode", dynamicCode); // 动态编号
+			dynamicMap.put("dynamicIsDelete", RelationConstants.RELATION_YES); // 删除标识
+			dynamicMap.put("modifyTime", modifyTime); // 修改时间
+			
+			// 删除
+			int deleteDynamicNum = relationDynamicMapper.delete(dynamicMap);
+			if (deleteDynamicNum != 1) {
+				log.error("RelationThirdDynamicServiceImpl.deleteDynamic：删除" + deleteDynamicNum + "条动态信息 ");
+				return false;
+			}
+			
+			// 判断是否需要删除内容信息和分享信息
+			if (dynamicClass != null) {
+				// 参数校验
+				if (StringUtils.isBlank(subjectCode)) {
+					log.error("RelationThirdDynamicServiceImpl.deleteDynamic：subjectCode为空");
+					throw BusinessException.build("COMMON_402", "subjectCode");
+				}
+				if (subjectClass == null || subjectClass == 0) {
+					log.error("RelationThirdDynamicServiceImpl.deleteDynamic：subjectClass为空");
+					throw BusinessException.build("COMMON_402", "subjectClass");
+				}
+				
+				// 删除内容信息
+				if (RelationConstants.RELATION_DYNAMIC_SEND_MBLOG.equals(dynamicClass)
+						|| RelationConstants.RELATION_DYNAMIC_FORWARD_MBLOG.equals(dynamicClass)
+						|| RelationConstants.RELATION_DYNAMIC_SEND_BLOG.equals(dynamicClass)
+						|| RelationConstants.RELATION_DYNAMIC_FORWARD_BLOG.equals(dynamicClass)
+						|| RelationConstants.RELATION_DYNAMIC_SEND_VOTE.equals(dynamicClass)
+						|| RelationConstants.RELATION_DYNAMIC_SEND_TO_OD.equals(dynamicClass)
+						|| RelationConstants.RELATION_DYNAMIC_SEND_TO_KB.equals(dynamicClass)) {
+					// 拼接参数
+					Map<String, Object> subjectMap = new HashMap<String, Object>();
+					subjectMap.put("subjectCode", subjectCode); // 内容编号
+					subjectMap.put("subjectClass", subjectClass); // 内容类型
+					subjectMap.put("subjectIsDelete", RelationConstants.RELATION_YES); // 删除标识
+					subjectMap.put("modifyTime", modifyTime); // 修改时间
+					
+					// 删除
+					int deleteSubjectNum = relationSubjectInfoByZKZMapper.deleteSubject(subjectMap);
+					if (deleteSubjectNum ==0) {
+						log.error("RelationThirdDynamicServiceImpl.deleteDynamic：删除" + deleteSubjectNum + "条内容信息 ");
+						throw BusinessException.build("BLOG_13002", "删除");
+					}
+					
+					// 删除来源
+					if (RelationConstants.RELATION_DYNAMIC_SEND_MBLOG.equals(dynamicClass)
+							|| RelationConstants.RELATION_DYNAMIC_SEND_BLOG.equals(dynamicClass)) {
+						relationSubjectInfoByZKZMapper.deleteSource(subjectMap);
+					}
+				}
+				/*
+				// 删除分享信息
+				if (RelationConstants.RELATION_DYNAMIC_SHARE_BLOG.equals(dynamicClass)
+						|| RelationConstants.RELATION_DYNAMIC_SHARE_VOTE.equals(dynamicClass)
+						|| RelationConstants.RELATION_DYNAMIC_SHARE_ACTIVITY.equals(dynamicClass)
+						|| RelationConstants.RELATION_DYNAMIC_SHARE_NEWS.equals(dynamicClass)
+						|| RelationConstants.RELATION_DYNAMIC_KB.equals(dynamicClass)
+						|| RelationConstants.RELATION_DYNAMIC_OD.equals(dynamicClass)) {
+					// 拼接参数
+					Map<String, Object> shareMap = new HashMap<String, Object>();
+					shareMap.put("subjectCode", subjectCode); // 内容编号
+					shareMap.put("subjectClass", subjectClass); // 内容类型
+					shareMap.put("userCode", userCode); // 人员编号
+					
+					// 删除
+					int deleteShareNum = relationShareByZKZMapper.delete(shareMap);
+					if (deleteShareNum != 1) {
+						log.error("RelationThirdDynamicServiceImpl.deleteDynamic：删除" + deleteShareNum + "条分享信息 ");
+						throw BusinessException.build("BLOG_13002", "删除");
+					}
+				}*/
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * 批量删除动态
+	 */
+	@Override
+	public boolean deleteBatchDynamic(RelationDynamicVO relationDynamicVO) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationDynamicVO == null) {
+				log.error("RelationThirdDynamicServiceImpl.deleteBatchDynamic：relationDynamicVO为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicVO");
+			}
+			
+			// 获取参数
+			List<String> subjectCodeList = relationDynamicVO.getSubjectCodeList(); // 内容编号列表
+			Long modifyTime = relationDynamicVO.getModifyTime(); // 修改时间
+			
+			// 参数校验
+			if (subjectCodeList == null || subjectCodeList.isEmpty()) {
+				log.error("RelationThirdDynamicServiceImpl.deleteBatchDynamic：subjectCodeList为空");
+				throw BusinessException.build("COMMON_402", "subjectCodeList");
+			}
+			if (modifyTime == null || modifyTime == 0) {
+				log.error("RelationThirdDynamicServiceImpl.deleteBatchDynamic：modifyTime为空");
+				throw BusinessException.build("COMMON_402", "modifyTime");
+			}
+			
+			// 拼接参数
+			Map<String, Object> dynamicMap = new HashMap<String, Object>();
+			dynamicMap.put("subjectCodeList", subjectCodeList); // 内容编号列表
+			dynamicMap.put("dynamicClass", RelationConstants.RELATION_DYNAMIC_SEND_TO_KB); // 动态类型
+			dynamicMap.put("dynamicIsDelete", RelationConstants.RELATION_YES); // 删除标识
+			dynamicMap.put("modifyTime", modifyTime); // 修改时间
+			
+			// 删除
+			relationDynamicMapper.batchDelete(dynamicMap);
+			
+			// 拼接参数
+			Map<String, Object> subjectMap = new HashMap<String, Object>();
+			subjectMap.put("subjectCodeList", subjectCodeList); // 内容编号列表
+			subjectMap.put("subjectClass", RelationConstants.RELATION_SUBJECT_KB); // 内容类型
+			subjectMap.put("subjectIsDelete", RelationConstants.RELATION_YES); // 删除标识
+			subjectMap.put("modifyTime", modifyTime); // 修改时间
+			
+			// 删除内容信息
+			relationSubjectInfoByZKZMapper.batchDeleteSubject(subjectMap);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * 删除知识库动态
+	 */
+	@Override
+	public boolean deleteRepoDynamic(RelationDynamicVO relationDynamicVO) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationDynamicVO == null) {
+				log.error("RelationThirdDynamicServiceImpl.deleteRepoDynamic：relationDynamicVO为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicVO");
+			}
+			
+			// 获取参数
+			String repositoryCode = relationDynamicVO.getRepositoryCode(); // 知识库编号
+			Long modifyTime = relationDynamicVO.getModifyTime(); // 修改时间
+			
+			// 参数校验
+			if (StringUtils.isBlank(repositoryCode)) {
+				log.error("RelationThirdDynamicServiceImpl.deleteRepoDynamic：repositoryCode为空");
+				throw BusinessException.build("COMMON_402", "repositoryCode");
+			}
+			if (modifyTime == null || modifyTime == 0) {
+				log.error("RelationThirdDynamicServiceImpl.deleteRepoDynamic：modifyTime为空");
+				throw BusinessException.build("COMMON_402", "modifyTime");
+			}
+			
+			// 拼接参数
+			Map<String, Object> dynamicMap = new HashMap<String, Object>();
+			dynamicMap.put("remark", repositoryCode); // 知识库编号
+			dynamicMap.put("dynamicClass", RelationConstants.RELATION_DYNAMIC_SEND_TO_KB); // 动态类型
+			dynamicMap.put("dynamicIsDelete", RelationConstants.RELATION_YES); // 删除标识
+			dynamicMap.put("modifyTime", modifyTime); // 修改时间
+			
+			// 删除动态
+			relationDynamicMapper.deleteRepo(dynamicMap);
+			
+			// 拼接参数
+			Map<String, Object> subjectMap = new HashMap<String, Object>();
+			subjectMap.put("remark", repositoryCode); // 知识库编号
+			subjectMap.put("subjectClass", RelationConstants.RELATION_SUBJECT_KB); // 内容类型
+			subjectMap.put("subjectIsDelete", RelationConstants.RELATION_YES); // 删除标识
+			subjectMap.put("modifyTime", modifyTime); // 修改时间
+			
+			// 删除内容信息
+			relationSubjectInfoByZKZMapper.deleteRepo(subjectMap);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * 屏蔽/恢复动态
+	 */
+	@Override
+	public boolean updateShieldStatus(RelationDynamicVO relationDynamicVO) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationDynamicVO == null) {
+				log.error("RelationThirdDynamicServiceImpl.updateShieldStatus：relationDynamicVO为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicVO");
+			}
+			
+			// 获取参数
+			String dynamicCode = relationDynamicVO.getDynamicCode(); // 动态编号
+			String subjectCode = relationDynamicVO.getSubjectCode(); // 内容编号
+			Byte subjectClass = relationDynamicVO.getSubjectClass(); // 内容类型
+			Byte actionClass = relationDynamicVO.getActionClass(); // 操作类型
+			Long modifyTime = relationDynamicVO.getModifyTime(); // 修改时间
+			
+			// 参数校验
+			if (StringUtils.isBlank(dynamicCode)) {
+				log.error("RelationThirdDynamicServiceImpl.updateShieldStatus：dynamicCode为空");
+				throw BusinessException.build("COMMON_402", "dynamicCode");
+			}
+			if (StringUtils.isBlank(subjectCode)) {
+				log.error("RelationThirdDynamicServiceImpl.updateShieldStatus：subjectCode为空");
+				throw BusinessException.build("COMMON_402", "subjectCode");
+			}
+			if (subjectClass == null || subjectClass == 0) {
+				log.error("RelationThirdDynamicServiceImpl.updateShieldStatus：subjectClass为空");
+				throw BusinessException.build("COMMON_402", "subjectClass");
+			}
+			if (actionClass == null || actionClass == 0) {
+				log.error("RelationThirdDynamicServiceImpl.updateShieldStatus：actionClass为空");
+				throw BusinessException.build("COMMON_402", "actionClass");
+			}
+			if (modifyTime == null || modifyTime == 0) {
+				log.error("RelationThirdDynamicServiceImpl.updateShieldStatus：modifyTime为空");
+				throw BusinessException.build("COMMON_402", "modifyTime");
+			}
+			
+			// 获取屏蔽类型
+			Byte shieldStatus = null;
+			if (RelationConstants.RELATION_ACTION_YES.equals(actionClass)) {
+				// 恢复
+				shieldStatus = RelationConstants.RELATION_YES;
+			} else if (RelationConstants.RELATION_ACTION_NO.equals(actionClass)) {
+				// 屏蔽
+				shieldStatus = RelationConstants.RELATION_NO;
+			} else {
+				log.error("RelationThirdDynamicServiceImpl.updateShieldStatus：actionClass错误");
+				throw BusinessException.build("COMMON_402", "actionClass");
+			}
+			
+			// 修改动态屏蔽状态
+			Map<String, Object> dynamicMap = new HashMap<String, Object>();
+			dynamicMap.put("dynamicCode", dynamicCode); // 博客编号
+			dynamicMap.put("dynamicIsShield", shieldStatus); // 屏蔽状态
+			dynamicMap.put("modifyTime", modifyTime); // 修改时间
+			int shieldDynamicNum = relationDynamicMapper.shield(dynamicMap);
+			if (shieldDynamicNum != 1) {
+				log.error("RelationThirdDynamicServiceImpl.updateShieldStatus：屏蔽/恢复" + shieldDynamicNum + "条动态信息 ");
+				return false;
+			}
+			
+			// 修改内容屏蔽状态
+			Map<String, Object> subjectMap = new HashMap<String, Object>();
+			subjectMap.put("subjectCode", subjectCode); // 内容编号
+			subjectMap.put("subjectClass", subjectClass); // 内容类型
+			subjectMap.put("subjectIsShield", shieldStatus); // 屏蔽状态
+			subjectMap.put("modifyTime", modifyTime); // 修改时间
+			int shieldSubjectNum = relationSubjectInfoByZKZMapper.shieldSubject(subjectMap);
+			if (shieldSubjectNum == 0) {
+				log.error("RelationThirdDynamicServiceImpl.updateShieldStatus：屏蔽/恢复" + shieldSubjectNum + "条动态信息 ");
+				throw BusinessException.build("BLOG_13002", "操作");
+			}
+			
+			relationSubjectInfoByZKZMapper.shieldSource(subjectMap);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+
+	/**
+	 * 班组设为百强班组
+	 */
+	@Override
+	public boolean updateTeamExc(RelationDynamicVO relationDynamicVO) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationDynamicVO == null) {
+				log.error("RelationThirdDynamicServiceImpl.updateTeamExc：relationDynamicVO为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicVO");
+			}
+			
+			// 获取参数
+			List<String> teamCodeList = relationDynamicVO.getTeamCodeList(); // 班组编号列表
+			Long modifyTime = relationDynamicVO.getModifyTime(); // 修改时间
+			
+			// 参数校验
+			if (teamCodeList == null || teamCodeList.isEmpty()) {
+				log.error("RelationThirdDynamicServiceImpl.updateTeamExc：teamCodeList为空");
+				throw BusinessException.build("COMMON_402", "teamCodeList");
+			}
+			if (modifyTime == null || modifyTime == 0) {
+				log.error("RelationThirdDynamicServiceImpl.updateTeamExc：modifyTime为空");
+				throw BusinessException.build("COMMON_402", "modifyTime");
+			}
+			
+			// 设为百强班组
+			Map<String, Object> execMap = new HashMap<String, Object>();
+			execMap.put("teamCodeList", teamCodeList); // 班组编号
+			execMap.put("teamIsExcellent", RelationConstants.RELATION_YES); // 百强标识
+			execMap.put("modifyTime", modifyTime); // 修改时间
+			relationDynamicTeamRelMapper.setTeamExc(execMap);
+			
+			// 取消百强班组
+			Map<String, Object> notExecMap = new HashMap<String, Object>();
+			notExecMap.put("teamCodeList", teamCodeList); // 班组编号
+			notExecMap.put("teamIsExcellent", RelationConstants.RELATION_NO); // 百强标识
+			notExecMap.put("modifyTime", modifyTime); // 修改时间
+			relationDynamicTeamRelMapper.removeTeamExc(notExecMap);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * 班组设为一号班组
+	 */
+	@Override
+	public boolean updateTeamNoOne(RelationDynamicVO relationDynamicVO) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationDynamicVO == null) {
+				log.error("RelationThirdDynamicServiceImpl.updateTeamNoOne：relationDynamicVO为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicVO");
+			}
+			
+			// 获取参数
+			String teamCode = relationDynamicVO.getTeamCode(); // 班组编号
+			Byte actionClass = relationDynamicVO.getActionClass(); // 操作类型
+			Long modifyTime = relationDynamicVO.getModifyTime(); // 修改时间
+			
+			// 参数校验
+			if (StringUtils.isBlank(teamCode)) {
+				log.error("RelationThirdDynamicServiceImpl.updateTeamNoOne：teamCode为空");
+				throw BusinessException.build("COMMON_402", "teamCode");
+			}
+			if (actionClass == null) {
+				log.error("RelationThirdDynamicServiceImpl.updateTeamNoOne：actionClass为空");
+				throw BusinessException.build("COMMON_402", "actionClass");
+			}
+			if (modifyTime == null || modifyTime == 0) {
+				log.error("RelationThirdDynamicServiceImpl.updateTeamNoOne：modifyTime为空");
+				throw BusinessException.build("COMMON_402", "modifyTime");
+			}
+			
+			// 获取一号班组标识
+			Byte teamIsNoOne = null;
+			if (RelationConstants.RELATION_ACTION_YES.equals(actionClass)) {
+				teamIsNoOne = RelationConstants.RELATION_YES;
+			} else if (RelationConstants.RELATION_ACTION_NO.equals(actionClass)) {
+				teamIsNoOne = RelationConstants.RELATION_NO;
+			} else {
+				log.error("RelationThirdDynamicServiceImpl.updateTeamNoOne：actionClass错误");
+				throw BusinessException.build("COMMON_402", "actionClass");
+			}
+			
+			// 设为百强班组
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("teamCode", teamCode); // 班组编号
+			paramMap.put("teamIsNoOne", teamIsNoOne); // 百强标识
+			paramMap.put("modifyTime", modifyTime); // 修改时间
+			relationDynamicTeamRelMapper.updateTeamNoOne(paramMap);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+
+	/**
+	 * 解散班组
+	 */
+	@Override
+	public boolean updateTeamStatus(RelationDynamicVO relationDynamicVO) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationDynamicVO == null) {
+				log.error("RelationThirdDynamicServiceImpl.updateTeamStatus：relationDynamicVO为空");
+				throw BusinessException.build("COMMON_402", "relationDynamicVO");
+			}
+			
+			// 获取参数
+			String teamCode = relationDynamicVO.getTeamCode(); // 班组编号
+			Long modifyTime = relationDynamicVO.getModifyTime(); // 修改时间
+			
+			// 参数校验
+			if (StringUtils.isBlank(teamCode)) {
+				log.error("RelationThirdDynamicServiceImpl.updateTeamStatus：teamCode为空");
+				throw BusinessException.build("COMMON_402", "teamCode");
+			}
+			if (modifyTime == null || modifyTime == 0) {
+				log.error("RelationThirdDynamicServiceImpl.updateTeamStatus：modifyTime为空");
+				throw BusinessException.build("COMMON_402", "modifyTime");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("teamCode", teamCode); // 班组编号
+			paramMap.put("teamIsDissolve", RelationConstants.RELATION_YES); // 解散标识
+			paramMap.put("modifyTime", modifyTime); // 修改时间
+			
+			// 修改
+			relationDynamicTeamRelMapper.updateTeamStatus(paramMap);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+
+}

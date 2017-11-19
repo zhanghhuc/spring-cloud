@@ -1,0 +1,6 @@
+#\u4e0d\u9700\u8981\u8fdb\u884c\u6743\u9650\u9a8c\u8bc1\u7684\u63a5\u53e3
+excludePath=/zssq-glpc-web/sysOrg/linkList,/zssq-glpc-web/sysOrg/info,/zssq-glpc-web/sysUser/info,/zssq-glpc-web/sysUser/searchOtherUserInfo,/zssq-glpc-web/sysUser/menus,/zssq-glpc-web/sysUser/userMenus,/zssq-glpc-web/common/logout
+
+#\u975e\u96c6\u56e2\u5458\u5de5\u4e0d\u80fd\u88ab\u6388\u6743\u7684\u83dc\u5355\u7f16\u53f7			
+excludeMenus=4ceaa30ef64b469cba88eeb6563a3c8a,185dc31a5a0d41a0a07dc3c163cafcb1,b9cc2ad19643421ba3e30c729429a497
+						

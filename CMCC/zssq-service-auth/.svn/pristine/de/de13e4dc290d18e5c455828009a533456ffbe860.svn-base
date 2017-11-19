@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.SysOrgInfoMapper">
+	
+	<!-- sys_org_info 表字段实体映射 -->
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.SysOrgInfo">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="sys_org_code" property="sysOrgCode" jdbcType="VARCHAR" />
+		<result column="parent_code" property="parentCode" jdbcType="VARCHAR" />
+		<result column="man_org_code" property="manOrgCode" jdbcType="VARCHAR" />
+		<result column="src_code" property="srcCode" jdbcType="VARCHAR" />
+		<result column="sys_org_name" property="sysOrgName" jdbcType="VARCHAR" />
+		<result column="sys_org_fullname" property="sysOrgFullname" jdbcType="VARCHAR" />
+		<result column="sys_org_type" property="sysOrgType" jdbcType="TINYINT" />
+		<result column="sys_org_order" property="sysOrgOrder" jdbcType="VARCHAR" />
+		<result column="is_enable" property="isEnable" jdbcType="TINYINT" />
+		<result column="saas_tenant_code" property="saasTenantCode" jdbcType="TINYINT" />
+	</resultMap>
+	
+	<!-- sys_org_info 表字段列表 -->
+	<sql id="Base_Column_List">
+		id, sys_org_code, parent_code, man_org_code, src_code, sys_org_name, sys_org_fullname, sys_org_type, sys_org_order, is_enable, saas_tenant_code
+	</sql>
+	
+	<!-- 公用查询条件 -->
+	<sql id="Base_Condition">
+  		<if test="sysOrgCode !=null">
+  			and sys_org_info.sys_org_code = #{sysOrgCode,jdbcType=VARCHAR}
+  		</if>
+  		<if test="parentCode !=null">
+  			and sys_org_info.parent_code = #{parentCode,jdbcType=VARCHAR}
+  		</if>
+  		<if test="srcCode !=null">
+  			and sys_org_info.src_code = #{srcCode,jdbcType=VARCHAR}
+  		</if>
+  		<if test="sysOrgName !=null">
+  			and sys_org_info.sys_org_name = #{sysOrgName,jdbcType=VARCHAR}
+  		</if>
+  		<if test="sysOrgFullname !=null" >
+  			and sys_org_info.sys_org_fullname like concat('%',#{sysOrgFullname,jdbcType=VARCHAR},'%')
+  		</if>
+  		<if test="sysOrgType !=null" >
+  			and sys_org_info.sys_org_type = #{sysOrgType,jdbcType=VARCHAR}
+  		</if>
+  		<if test="sysOrgOrder !=null" >
+  			and sys_org_info.sys_org_order = #{sysOrgOrder,jdbcType=VARCHAR}
+  		</if>
+  		<if test="isEnable !=null" >
+  			and sys_org_info.is_enable = #{isEnable,jdbcType=TINYINT}
+  		</if>
+  	</sql>
+	
+	<!-- 根据编码查询详细信息 -->
+	<select id="selectByCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+		SELECT 
+		  t1.`id`,
+		  t1.`sys_org_code`,
+		  t1.`parent_code`,
+		  t1.`man_org_code`,
+		  t1.`src_code`,
+		  t1.`sys_org_name`,
+		  t1.`sys_org_fullname`,
+		  t1.`sys_org_order`,
+		  t1.`is_enable`,
+		  t1.`saas_tenant_code`,
+		  t2.`level` AS sys_org_type 
+		FROM
+		  sys_org_info t1 
+		  LEFT JOIN sys_org_level t2 
+		    ON t1.`sys_org_type` = t2.`level_code` 
+		WHERE sys_org_code = #{orgCode, jdbcType=VARCHAR}  
+	</select>
+	
+		<!-- 根据编码查询详细信息 -->
+	<select id="selectBySrcCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+		SELECT 
+		  <include refid="Base_Column_List" /> 
+		FROM
+		  sys_org_info 
+		WHERE src_code = #{value}  
+	</select>
+	
+	<!-- 新增组织机构信息 -->
+	<insert id="insert" parameterType="com.zssq.dao.pojo.SysOrgInfo">
+		insert into sys_org_info 
+		(
+			sys_org_code, 
+			parent_code,
+			man_org_code,
+			src_code,
+			sys_org_name, 
+			sys_org_fullname, 
+			sys_org_type,
+			sys_org_order, 
+			is_enable,
+			saas_tenant_code
+		)
+		values 
+		(
+			#{sysOrgCode,jdbcType=VARCHAR},
+			#{parentCode,jdbcType=VARCHAR},
+			#{manOrgCode,jdbcType=VARCHAR},
+			#{srcCode,jdbcType=VARCHAR},
+			#{sysOrgName,jdbcType=VARCHAR}, 
+			#{sysOrgFullname,jdbcType=VARCHAR}, 
+			#{sysOrgType,jdbcType=VARCHAR}, 
+			#{sysOrgOrder,jdbcType=VARCHAR}, 
+			#{isEnable,jdbcType=TINYINT},
+			#{saasTenantCode,jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<!-- 更新组织机构信息（SMAP同步） -->
+	<update id="updateByOrgCode" parameterType="com.zssq.dao.pojo.SysOrgInfo">
+		update sys_org_info set 
+			sys_org_code = #{sysOrgCode,jdbcType=VARCHAR},
+			parent_code = #{parentCode,jdbcType=VARCHAR},
+			sys_org_name = #{sysOrgName,jdbcType=VARCHAR},
+			sys_org_fullname = #{sysOrgFullname,jdbcType=VARCHAR},
+			sys_org_order = #{sysOrgOrder,jdbcType=VARCHAR},
+			is_enable = #{isEnable,jdbcType=TINYINT},
+			org_status = #{orgStatus,jdbcType=INTEGER},
+			update_time = #{updateTime,jdbcType=BIGINT}
+		where 
+			sys_org_code = #{sysOrgCode,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 根据条件查询,按org_order排序 -->
+	<select id="selectByRecord" parameterType="com.zssq.dao.pojo.SysOrgInfo" resultMap="BaseResultMap">
+		SELECT 
+		  t1.`id`,
+		  t1.`sys_org_code`,
+		  t1.`parent_code`,
+		  t1.`man_org_code`,
+		  t1.`src_code`,
+		  t1.`sys_org_name`,
+		  t1.`sys_org_fullname`,
+		  t1.`sys_org_order`,
+		  t1.`is_enable`,
+		  t1.`saas_tenant_code`,
+		  t2.`level` AS sys_org_type 
+		FROM
+		  sys_org_info t1 
+		  LEFT JOIN sys_org_level t2 
+		    ON t1.`sys_org_type` = t2.`level_code` 
+		where 1=1
+		<if test="isEnable != null">
+			and t1.is_enable = #{isEnable,jdbcType=TINYINT}
+		</if>
+		<if test="sysOrgType != null">
+			and t2.level = #{sysOrgType,jdbcType=VARCHAR}
+		</if>
+		<if test="sysOrgCode != null">
+			and t1.sys_org_code = #{sysOrgCode,jdbcType=VARCHAR}
+		</if>
+		<if test="parentCode != null">
+			and t1.parent_code = #{parentCode,jdbcType=VARCHAR}
+		</if>
+		<if test="saasTenantCode != null">
+			and t1.saas_tenant_code = #{saasTenantCode,jdbcType=VARCHAR}
+		</if>		
+		order by t1.sys_org_order
+	</select>
+	
+	<!-- 查询指定组织的下级行政组织 -->
+	<select id="selectSubManOrg" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select 
+			sys_org_info.sys_org_code, 
+			sys_org_info.parent_code, 
+			sys_org_info.man_org_code, 
+			sys_org_info.sys_org_name, 
+			sys_org_info.sys_org_fullname, 
+			sys_org_level.level as sys_org_type
+		from 
+			sys_org_info
+			join sys_org_level on sys_org_info.sys_org_type = sys_org_level.level_code
+		where 
+			parent_code = #{value} and sys_org_type is not null
+		  and
+		  	is_enable = 1
+	</select>
+	
+	<!-- 只返回组织code -->
+	<select id="selectCodesByRecord" parameterType="com.zssq.dao.pojo.SysOrgInfo" resultType="java.lang.String">
+		SELECT 
+			sys_org_code 
+		FROM
+			sys_org_info 
+		WHERE 1 = 1 
+		<if test="isEnable != null">
+			and is_enable = #{isEnable,jdbcType=TINYINT}
+		</if>
+		<if test="sysOrgCode != null">
+			and sys_org_code = #{sysOrgCode,jdbcType=VARCHAR}
+		</if>
+		<if test="parentCode != null">
+			and parent_code = #{parentCode,jdbcType=VARCHAR}
+		</if>
+	</select>
+	<select id="selectPage" parameterType="com.zssq.dao.pojo.SysOrgInfo" resultMap="BaseResultMap">
+		select 
+			<include refid="Base_Column_List" />
+		from 
+			sys_org_info
+		where 1=1
+		<include refid="Base_Condition"/>
+		order by sys_org_order
+		<if test="limitStart != null and limitStart>=0" >
+	    	limit #{limitStart} , #{limitEnd}
+	    </if>
+	</select>
+	
+	<select id="selectPageCount" parameterType="com.zssq.dao.pojo.SysOrgInfo" resultType="java.lang.Integer">
+		select 
+			count(1)
+		from 
+			sys_org_info
+		where 1=1 
+		<include refid="Base_Condition"/>
+	</select>
+	
+	<delete id="deleteByCode" parameterType="java.lang.String">
+		delete from sys_org_info where sys_org_code = #{value}
+	</delete>
+	
+	<!-- 根据orgName查询code(模糊) -->
+	<select id="selectManOrgCodeByOrgName" parameterType="java.util.Map" resultType="java.lang.String">
+		select 
+			man_org_code
+		from 
+			sys_org_info
+		where 
+			sys_org_fullname like concat('%',#{orgName},'%')
+		and
+			sys_org_code in
+		<foreach collection="orgCodes" item="item" index="index" separator="," open="(" close=")">
+			#{item}
+		</foreach>
+		<if test="isEnable != null">
+			and is_enable = #{isEnable,jdbcType=TINYINT}
+		</if>
+	</select>
+	
+	<!-- 组织机构启禁用 -->
+	<update id="setIsEnable" parameterType="com.zssq.dao.pojo.SysOrgInfo">
+		update 
+			sys_org_info 
+			set is_enable = #{isEnable,jdbcType=TINYINT}
+		where 
+		<if test="saasTenantCode != null"><!-- A -->
+			saas_tenant_code = #{saasTenantCode,jdbcType=VARCHAR}
+		</if>
+		<if test="parentCode != null"><!-- B -->
+			man_org_code = #{parentCode,jdbcType=VARCHAR} 
+		or man_org_code in
+			(SELECT 
+			    man_org_code 
+			  FROM
+			(select 
+				man_org_code 
+			from sys_org_info 
+			where parent_code = #{parentCode,jdbcType=VARCHAR}
+			group by man_org_code) t)
+		</if>
+		<if test="manOrgCode != null"><!-- C -->
+			man_org_code = #{manOrgCode,jdbcType=VARCHAR}
+		</if>
+	</update>
+</mapper>

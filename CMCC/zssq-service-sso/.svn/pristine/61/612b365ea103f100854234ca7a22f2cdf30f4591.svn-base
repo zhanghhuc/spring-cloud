@@ -1,0 +1,283 @@
+package com.zssq.service.impl;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.common.cache.client.JedisClusterService;
+import com.zssq.dao.mapper.SSOMapper;
+import com.zssq.dao.pojo.SSO;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.service.ISSOService;
+import com.zssq.utils.DateUtils;
+import com.zssq.utils.PropertiesUtil;
+
+import redis.clients.jedis.Jedis;
+
+import com.siemens.ct.its.smap2.client.XSmap2Client;
+import com.siemens.ct.its.smap2.client.XSmap2ClientFactory;
+import com.siemens.ct.its.smap2.client.XSmapClientLogger;
+
+@Service("ssoService")
+public class SSOServiceImpl implements ISSOService {
+
+	@Autowired
+	private SSOMapper ssoMapper;
+	
+	@Autowired
+	private JedisClusterService jedisClusterService;
+	
+	private Properties props = new PropertiesUtil("sso.properties");
+	private Properties propsRedis = new PropertiesUtil("ssoRedis.properties");
+
+	@Override
+	public String certification(String uid, String uidPassword, String app,String ticket) throws BusinessException {
+		Jedis redis = new Jedis(propsRedis.getProperty("ssoRedisIP"), Integer.valueOf(propsRedis.getProperty("ssoRedisPort")));  //sso的redis
+		
+		System.out.println("propsRedis.getProperty(\"ssoRedisPwd\"):" + propsRedis.getProperty("ssoRedisPwd"));
+		
+		redis.auth(propsRedis.getProperty("ssoRedisPwd"));
+		System.out.println("Server is running: " + redis.ping());
+    	
+    	String newTicket = "";
+    	String isExistData = ticket;
+    	String resultRedis = redis.get(isExistData); //查找sso的redis中是否有该用户信息
+    	
+//    	redis.del(isExistData); //测试使用，使用后删除
+    	
+//    	resultRedis = null; //测试使用，使用后删除
+    	
+    	if(resultRedis == null){
+    		SSO sso1 = new SSO();
+    		sso1.setUid(uid);
+    		sso1.setApp(app);
+    		List<SSO> s = ssoMapper.selectAll(sso1);
+    		if(s.size() > 0){
+	    		if(s.get(0).getIsCertification() == 0){ //认证成功，不需要去移动再次认证
+	    			newTicket = getTicket(uid,app);
+	    			
+	    			SSO sso2 = new SSO();
+	    			sso2.setId(s.get(0).getId());
+	    			sso2.setLogoutTime(DateUtils.getTime());
+	    			ssoMapper.updateByPrimaryKeySelective(sso2);
+	    			sso2 = new SSO();
+	    			sso2.setUid(uid);
+	    			sso2.setUidPassword(uidPassword);
+	    			sso2.setApp(app);
+	    			sso2.setTicket(newTicket);
+	    			sso2.setLoginTime(DateUtils.getTime());
+	    			sso2.setIsCertification(0);
+	    			sso2.setIsRenew(0);
+	    			sso2.setIsOver(0); //积分没有清算
+	    			sso2.setCreateTime(DateUtils.getTime());
+	    			ssoMapper.insertSelective(sso2);
+	    			System.out.println("=======>>>>>>1===="+newTicket);
+	    			redis.set(newTicket, uid + "-" + app + "-" + redis.get(uid));
+	    		}else{ //去移动认证
+	    			boolean yidong = true; //调用移动接口
+	    			
+	    			/*boolean yidong = smapAuthentification(uid,uidPassword,"static");*/
+	    			
+	    			if(yidong){
+	    				newTicket = getTicket(uid,app);
+	    				SSO sso2 = new SSO();
+	    				sso2.setUid(uid);
+		    			sso2.setUidPassword(uidPassword);
+		    			sso2.setApp(app);
+		    			sso2.setTicket(newTicket);
+		    			sso2.setLoginTime(DateUtils.getTime());
+		    			sso2.setIsCertification(0);
+		    			sso2.setIsRenew(1);
+		    			sso2.setIsOver(0); //积分没有清算
+		    			sso2.setCreateTime(DateUtils.getTime());
+		    			ssoMapper.insertSelective(sso2);
+		    			
+		    			redis.del(isExistData);
+		    			redis.set(newTicket, uid + "-" + app + "-" + uidPassword);
+	    			}else{
+	    				System.out.println("=======>>>>>>2");
+	    				newTicket = ""; //本地数据库验证没通过
+	    				return newTicket;
+	    			}
+	    		}
+    		}else{ //去移动认证 *
+    			boolean yidong = true; //调用移动接口
+    			
+//    			boolean yidong = smapAuthentification(uid,uidPassword,"static");
+    			
+    			if(yidong){
+    				newTicket = getTicket(uid,app);
+    				SSO sso2 = new SSO();
+    				sso2.setUid(uid);
+	    			sso2.setUidPassword(uidPassword);
+	    			sso2.setApp(app);
+	    			sso2.setTicket(newTicket);
+	    			sso2.setLoginTime(DateUtils.getTime());
+	    			sso2.setIsCertification(0);
+	    			sso2.setIsRenew(1);
+	    			sso2.setIsOver(0); //积分没有清算
+	    			sso2.setCreateTime(DateUtils.getTime());
+	    			ssoMapper.insertSelective(sso2);
+	    			System.out.println("=======>>>>>>3");
+	    			
+	    			String value = redis.get(isExistData);
+	    			if(value == null){
+	    				redis.del(uid); //删除旧密码
+	    				redis.set(uid,uidPassword); //保存登录人最后一次使用密码，供定时认证使用
+	    				redis.set(newTicket, uid + "-" + app + "-" + redis.get(uid)); //保存票据和登录人信息
+	    			}
+	    			System.out.println("=======>>>>>>4");
+    			}else{
+    				System.out.println("=======>>>>>>5");
+    				newTicket = "";
+    				return newTicket;
+    			}
+    		}
+    	}else{ //redis中已有信息
+    		SSO sso = new SSO();
+    		sso.setUid(uid);
+    		sso.setApp(app);
+    		List<SSO> s = ssoMapper.selectAll(sso);
+    		if(s.size() > 0){
+	    		sso = new SSO();
+	    		sso.setId(s.get(0).getId());
+				sso.setLogoutTime(DateUtils.getTime());
+				ssoMapper.updateByPrimaryKeySelective(sso);
+    		}
+    		newTicket = getTicket(uid,app);
+			
+			sso = new SSO();
+			sso.setUid(uid);
+			sso.setUidPassword(uidPassword);
+			sso.setApp(app);
+			sso.setTicket(newTicket);
+			sso.setLoginTime(DateUtils.getTime());
+			sso.setIsCertification(0);
+    		sso.setIsRenew(0);
+    		sso.setIsOver(0); //积分没有清算
+			
+			sso.setCreateTime(DateUtils.getTime());
+			ssoMapper.insertSelective(sso);
+			System.out.println("=======>>>>>>6");
+			redis.del(isExistData);
+			redis.set(newTicket, uid + "-" + app + "-" + redis.get(uid));
+    	}
+		
+    	System.out.println("=======>>>>>>000000000000000===="+newTicket);
+		return newTicket;
+	}
+
+	@Override
+	public boolean logout(String uid,String app,String ticket) throws BusinessException {
+		String isExistData = ticket;
+		Jedis redis = new Jedis(propsRedis.getProperty("ssoRedisIP"), Integer.valueOf(propsRedis.getProperty("ssoRedisPort")));  //sso的redis
+		redis.auth(propsRedis.getProperty("ssoRedisPwd"));
+		System.out.println("Server is running: " + redis.ping()); 
+    	redis.del(isExistData);
+    	
+    	SSO sso = new SSO();
+		sso.setUid(uid);
+		sso.setApp(app);
+		List<SSO> s = ssoMapper.selectAll(sso);
+		sso = new SSO();
+		sso.setId(s.get(0).getId());
+		sso.setLogoutTime(DateUtils.getTime());
+		sso.setIsCertification(1);
+		ssoMapper.updateByPrimaryKeySelective(sso);
+		
+		return true;
+	}
+	
+	/**
+	 * 获取票据
+	 * @param uid 员工账户
+	 * @param app 应用类型
+	 * @return
+	 */
+	public String getTicket(String uid, String app){
+		String ticket = "";
+		
+		ticket += String.valueOf(UUID.randomUUID()).replace("-", "") + "00" + uid + app + DateUtils.getTime() + DateUtils.addHour(new Date(), 3).getTime();
+		
+		return ticket;
+	}
+
+	@Override
+	public List<SSO> updateInfo() throws BusinessException {
+		List<SSO> ssos = ssoMapper.selectInfo();
+		
+		for (SSO sso : ssos) {
+			sso.setIsOver(1);
+		}
+		
+		ssoMapper.updateBatch(ssos);
+		
+		return ssos;
+	}
+
+	@Override
+	public boolean updateCertification(String uid,String app, String uidPassword,String key) throws BusinessException {
+		boolean yidong = true; //使用账户密码调用移动接口认证
+//		boolean yidong = smapAuthentification(uid,uidPassword,"static");
+		
+		if(yidong){
+			SSO sso = new SSO();
+    		sso.setUid(uid);
+    		sso.setApp(app);
+    		List<SSO> s = ssoMapper.selectAll(sso);
+    		if(s.size() > 0){
+	    		sso = new SSO();
+	    		sso.setId(s.get(0).getId());
+				sso.setLogoutTime(DateUtils.getTime());
+				ssoMapper.updateByPrimaryKeySelective(sso);
+    		}
+		}else{
+			SSO sso = new SSO();
+    		sso.setUid(uid);
+    		sso.setApp(app);
+    		List<SSO> s = ssoMapper.selectAll(sso);
+    		if(s.size() > 0){
+				sso = new SSO();
+				sso.setId(s.get(0).getId());
+				sso.setLogoutTime(DateUtils.getTime());
+				sso.setIsCertification(1);
+				ssoMapper.updateByPrimaryKeySelective(sso);
+    		}
+		}
+		Jedis redis = new Jedis(propsRedis.getProperty("ssoRedisIP"), Integer.valueOf(propsRedis.getProperty("ssoRedisPort")));  //sso的redis
+		redis.auth(propsRedis.getProperty("ssoRedisPwd"));
+		redis.del(key);
+		
+		return yidong;
+	}
+	
+	/**
+	 * 移动认证
+	 * @param uid 用户账户
+	 * @param uidPassword 用户密码
+	 * @param authType 认证类型:静态认证
+	 * @return
+	 */
+	public boolean smapAuthentification(String uid, String uidPassword, String authType){
+		int result = -1;
+		XSmapClientLogger.isDebug = true;
+		XSmap2ClientFactory.setLog4jClientLogger("smapClientLogger");
+		XSmap2Client client = XSmap2ClientFactory.getInstance(props.getProperty("localAppId"), props.getProperty("authenticateUrls"));
+		if (client != null) {
+			if (authType.equalsIgnoreCase("static")) //静态认证
+				result = client.authenticateUserByPassword(uid, uidPassword);
+		}
+		
+		if(result != 0){
+			return false;
+		}
+		
+		return true;
+	}
+
+	
+}

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.MblogNumMapper" >
+  <insert id="insert" parameterType="com.zssq.dao.pojo.MblogNum" >
+    insert into mblog_num (id, subject_code,
+      mblog_num_code, create_time, modify_time, remark, 
+      num_source, praise_num, comment_num, 
+      collect_num, recommend_num, report_num, 
+      forward_num,reply_num,team_essence_num,city_essence_num,
+      province_essence_num,group_essence_num)
+    values (#{id,jdbcType=BIGINT}, 
+    #{subjectCode,jdbcType=VARCHAR},
+    #{mblogNumCode,jdbcType=VARCHAR}, 
+    #{createTime,jdbcType=BIGINT}, 
+    #{modifyTime,jdbcType=BIGINT}, 
+    #{remark,jdbcType=VARCHAR}, 
+    #{numSource,jdbcType=TINYINT} ,
+    #{praiseNum,jdbcType=INTEGER},
+    #{commentNum,jdbcType=INTEGER},
+    #{collectNum,jdbcType=INTEGER},
+    #{recommendNum,jdbcType=INTEGER},
+    #{reportNum,jdbcType=INTEGER},
+    #{forwardNum,jdbcType=INTEGER},
+    #{replyNum,jdbcType=INTEGER},
+    #{teamEssenceNum,jdbcType=INTEGER},
+    #{cityEssenceNum,jdbcType=INTEGER},
+    #{provinceEssenceNum,jdbcType=INTEGER},
+    #{groupEssenceNum,jdbcType=INTEGER} )
+  </insert>
+   <!-- 查询回复数 -->
+  <select id="getReplyNumByCode" resultType="java.lang.Integer" parameterType="java.lang.String" >
+    SELECT 
+   		reply_num
+    FROM
+    	mblog_num
+    WHERE
+	    subject_code = #{subjectCode}
+  </select>
+  <!-- 更新评论数量字段 -->
+  <update id="updateComNumByCode" parameterType="java.util.Map" >
+    UPDATE mblog_num
+	SET
+		modify_time = #{modifyTime,jdbcType=BIGINT},
+        comment_num = comment_num+#{num}
+    WHERE 
+    	subject_code = #{subjectCode}
+  </update>
+
+  <!-- 更新收藏数量字段 -->
+  <update id="updateColNumByCode" parameterType="java.util.Map" >
+    UPDATE mblog_num
+	SET
+		modify_time = #{modifyTime,jdbcType=BIGINT},
+        collect_num = collect_num+#{num}
+    WHERE 
+    	subject_code = #{subjectCode}
+  </update>
+
+  <!-- 更新推荐数量字段 -->
+  <update id="updateRecNumByCode" parameterType="java.util.Map" >
+    UPDATE mblog_num
+    SET
+    	modify_time = #{modifyTime,jdbcType=BIGINT},
+        recommend_num = recommend_num+#{num}
+    WHERE 
+    	subject_code = #{subjectCode}
+  </update>
+
+  <!-- 更新举报数量字段 -->
+  <update id="updateRepNumByCode" parameterType="java.util.Map" >
+    UPDATE mblog_num
+    SET
+    	modify_time = #{modifyTime,jdbcType=BIGINT},
+        report_num = report_num+#{num}
+    WHERE 
+    	subject_code = #{subjectCode}
+  </update>
+  <!-- 更新回复数量字段 -->
+  <update id="updateReplyNumByCode" parameterType="java.util.Map" >
+    UPDATE mblog_num
+    SET
+    	modify_time = #{modifyTime,jdbcType=BIGINT},
+        reply_num = reply_num+#{num}
+    WHERE 
+    	subject_code = #{subjectCode}
+  </update>
+  <!-- 更新转发数量字段 -->
+  <update id="updateForNumByCode" parameterType="java.util.Map" >
+    UPDATE mblog_num
+    SET
+    	modify_time = #{modifyTime,jdbcType=BIGINT},
+        forward_num = forward_num+#{num}
+    WHERE 
+    	subject_code = #{subjectCode}
+  </update>
+   <!-- 更新转发数量字段 -->
+  <update id="batchUpdateForNumByCode" parameterType="java.util.Map" >
+    UPDATE mblog_num
+    SET
+    	modify_time = #{modifyTime,jdbcType=BIGINT},
+        forward_num = forward_num+1
+    WHERE 
+    	subject_code IN 
+	   	<foreach collection="subjectCodes" index="index" item="item" open="(" separator="," close=")" >    
+	       	#{item}    
+	   	</foreach>
+  </update>
+  <!-- 更新点赞数量字段 -->
+  <update id="updatePraNumByCode" parameterType="java.util.Map" >
+    UPDATE mblog_num
+    SET
+    	modify_time = #{modifyTime,jdbcType=BIGINT},
+        praise_num = praise_num+#{num}
+    WHERE 
+    	subject_code = #{subjectCode}
+  </update>
+
+  <!-- 更新班组置精数量字段 -->
+  <update id="updateTessNumByCode" parameterType="java.util.Map" >
+    UPDATE mblog_num
+    SET
+    	modify_time = #{modifyTime,jdbcType=BIGINT},
+        team_essence_num = team_essence_num+#{num}
+    WHERE 
+    	subject_code = #{subjectCode}
+  </update>
+
+  <!-- 更新市门户置精数量字段 -->
+  <update id="updateCessNumByCode" parameterType="java.util.Map" >
+    UPDATE mblog_num
+    SET
+    	modify_time = #{modifyTime,jdbcType=BIGINT},
+        city_essence_num = city_essence_num+#{num}
+    WHERE 
+    	subject_code = #{subjectCode}
+  </update>
+
+  <!-- 更新省门户置精数量字段 -->
+  <update id="updatePessNumByCode" parameterType="java.util.Map" >
+    UPDATE mblog_num
+    SET
+    	modify_time = #{modifyTime,jdbcType=BIGINT},
+        province_essence_num = province_essence_num+#{num}
+    WHERE 
+    	subject_code = #{subjectCode}
+  </update>
+
+  <!-- 更新集团置精数量字段 -->
+  <update id="updateGessNumByCode" parameterType="java.util.Map" >
+    UPDATE mblog_num
+    SET
+    	modify_time = #{modifyTime,jdbcType=BIGINT},
+        group_essence_num = group_essence_num+#{num}
+    WHERE 
+    	subject_code = #{subjectCode}
+  </update>
+</mapper>

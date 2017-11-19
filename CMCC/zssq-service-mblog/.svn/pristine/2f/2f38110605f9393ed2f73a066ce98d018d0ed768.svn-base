@@ -1,0 +1,154 @@
+package com.zssq.dao.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import com.zssq.dao.pojo.MblogReply;
+
+/**
+ * 
+    * @ClassName: MblogReplyMapper  
+    * @Description: 微博回复Mapper  
+    * @author Mr.B  
+    * @date 2017年3月20日  
+    *
+ */
+public interface MblogReplyMapper {
+	
+	/**
+	 * 
+	    * @Title: deleteByPrimaryKey  
+	    * @Description: 删除
+	    * @param id
+		* @return int    返回类型
+	 */
+    int deleteByPrimaryKey(Long id);
+
+    /**
+     * 
+        * @Title: insert  
+        * @Description: 添加
+        * @param record
+    	* @return int    返回类型
+     */
+    int insert(MblogReply record);
+
+    /**
+     * 
+        * @Title: insertSelective  
+        * @Description: 有选择性的添加
+        * @param record
+    	* @return int    返回类型
+     */
+    int insertSelective(MblogReply record);
+
+    /**
+     * 
+        * @Title: selectByPrimaryKey  
+        * @Description: 根据主键获取信息
+        * @param id
+    	* @return MblogReply    返回类型
+     */
+    MblogReply selectByPrimaryKey(Long id);
+
+    /**
+     * 
+        * @Title: updateByPrimaryKeySelective  
+        * @Description: 根据主键选择性的更新
+        * @param record
+    	* @return int    返回类型
+     */
+    int updateByPrimaryKeySelective(MblogReply record);
+
+    /**
+     * 
+        * @Title: updateByPrimaryKeyWithBLOBs  
+        * @Description: 根据主键更新大字段
+        * @param record
+    	* @return int    返回类型
+     */
+    int updateByPrimaryKeyWithBLOBs(MblogReply record);
+
+    /**
+     * 
+        * @Title: updateByPrimaryKey  
+        * @Description: 根据主键更新
+        * @param record
+    	* @return int    返回类型
+     */
+    int updateByPrimaryKey(MblogReply record);
+    
+    /**
+     * 
+        * @Title: queryReplyListByPage  
+        * @Description: 查询回复列表
+        * @param paramsMap
+    	* @return List<MblogReply>    返回类型
+     */
+    List<MblogReply> queryReplyListByPage(Map<String,Object> paramsMap);
+    
+    /**
+     * 
+        * @Title: queryReplyListByPageCount  
+        * @Description: 查询回复列表总数
+        * @param paramsMap
+    	* @return long    返回类型
+     */
+    long queryReplyListByPageCount(Map<String,Object> paramsMap);
+    
+    /**
+     * 
+        * @Title: deleteInfoByCode  
+        * @Description: 删除回复信息
+        * @param paramsMap
+    	* @return int    返回类型
+     */
+    int deleteInfoByCode(Map<String,Object> paramsMap);
+    
+    
+    /**
+     * 
+        * @Title: shieldInfoByCode  
+        * @Description: 屏蔽回复信息
+        * @param paramsMap
+    	* @return int    返回类型
+     */
+    int shieldInfoByCode(Map<String,Object> paramsMap);
+    
+    
+    /**
+     * 
+        * @Title: queryCountByCode  
+        * @Description: 查询某一条回复所在的位置
+        * @param paramsMap
+    	* @return long    返回类型
+     */
+    long queryCountByCode(Map<String,Object> paramsMap);
+    
+    /**
+     * 
+        * @Title: batchDeleteInfo  
+        * @Description: 批量删除
+        * @param paramsMap
+    	* @return int    返回类型
+     */
+    int batchDeleteInfo(Map<String,Object> paramsMap);
+    
+    /**
+     * 
+        * @Title: getInfoByCode  
+        * @Description: 获取一条回复信息
+        * @param replyCode
+    	* @return MblogReply    返回类型
+     */
+    MblogReply getInfoByCode(String replyCode);
+    
+    /**
+     * 
+        * @Title: getDetailByCode  
+        * @Description: 获取一条回复信息
+        * @param replyCode
+    	* @return MblogReply    返回类型
+     */
+    MblogReply getDetailByCode(Map<String,Object> paramsMap);
+}

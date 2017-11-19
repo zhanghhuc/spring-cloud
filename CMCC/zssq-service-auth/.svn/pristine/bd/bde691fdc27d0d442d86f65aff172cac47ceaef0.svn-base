@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.SysUserInfoMapper">
+	
+	<!-- sys_user_info 表字段实体映射 -->
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.SysUserInfo">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="user_code" property="userCode" jdbcType="VARCHAR" />
+		<result column="user_name" property="userName" jdbcType="VARCHAR" />
+		<result column="user_sex" property="userSex" jdbcType="TINYINT" />
+		<result column="user_office_phone" property="userOfficePhone" jdbcType="VARCHAR" />
+		<result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+		<result column="user_status" property="userStatus" jdbcType="TINYINT" />
+		<result column="nick_name" property="nickName" jdbcType="VARCHAR" />
+		<result column="head_portrait" property="headPortrait" jdbcType="VARCHAR" />
+		<result column="introduce" property="introduce" jdbcType="VARCHAR" />
+		<result column="saas_tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+		<result column="sys_role_code" property="roleCode" jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<!-- sys_user_info 表字段列表 -->
+	<sql id="Base_Column_List">
+		id, user_code, user_name, user_sex, user_office_phone, org_code, user_status, saas_tenant_code
+	</sql>
+	
+	<!-- 根据用户 uid 查询详细信息 -->
+	<select id="selectByCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+		SELECT 
+		  t1.*,
+		  t2.nick_name,
+		  t2.head_portrait,
+		  t2.introduce,
+		  t3.sys_role_code
+		FROM
+		  sys_user_info t1 
+		  LEFT JOIN sys_user_base t2 
+		    ON t1.user_code = t2.user_code
+		  left join sys_user_role t3
+		    on t3.sys_user_code = t1.user_code 
+		WHERE t1.user_code = #{userCode,jdbcType=VARCHAR} 
+	</select>
+	
+	<!-- 根据组织编码查询用户编码集合 -->
+	<select id="selectUserCodesByOrgCode" resultType="java.lang.String" parameterType="java.lang.String">
+		SELECT user_code FROM sys_user_info WHERE org_code = #{value} 
+	</select>
+	
+	<!-- 根据组织编码查询用户信息集合 -->
+	<select id="getUserListByOrgCode" parameterType="java.util.Map" resultMap="BaseResultMap">
+		select 
+			<include refid="Base_Column_List" />
+		from 
+			sys_user_info
+		where 
+			sys_user_info.org_code = #{orgCode,jdbcType=VARCHAR}
+	</select>	
+		
+	<!-- 根据用户名模糊查询用户 uid 集合 -->
+	<select id="selectCodeByName" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT 
+		  t.`user_code` 
+		FROM
+		  sys_user_info t 
+		WHERE t.`user_name` LIKE CONCAT('%',#{value},'%')
+	</select>	
+	
+	<!-- 根据指定筛选条件组合查询用户信息集合 -->
+	<select id="selectByRecord" parameterType="com.zssq.dao.pojo.SysUserInfo" resultMap="BaseResultMap">
+		select 
+			<include refid="Base_Column_List" />
+		from 
+			sys_user_info
+		where 1=1 
+		<if test="userCode != null">
+			and user_code = #{userCode,jdbcType=VARCHAR}
+		</if>
+		<if test="userName != null">
+			and user_name like concat('%',#{userName,jdbcType=VARCHAR},'%')
+		</if>
+		<if test="userSex != null">
+			and user_sex = #{userSex,jdbcType=TINYINT}
+		</if>
+		<if test="userOfficePhone != null">
+			and user_office_phone = #{userOfficePhone,jdbcType=VARCHAR}
+		</if>
+		<if test="orgCode != null">
+			and org_code = #{orgCode,jdbcType=VARCHAR}
+		</if>
+		<if test="userStatus != null">
+			and user_status = #{userStatus,jdbcType=TINYINT}
+		</if>
+	</select>
+	
+	<!-- 查询指定组织下的角色为“领导”或“普通员工”的员工信息，适用于“代发管理”操作 -->
+	<select id="selectDeputyUser" parameterType="java.util.Map" resultMap="BaseResultMap">
+		select 
+			<include refid="Base_Column_List" />
+		from 
+			sys_user_info
+		where 1=1 
+		<if test="userName != null">
+			and user_name = #{userName,jdbcType=VARCHAR}
+		</if>
+		<if test="orgCode != null">
+			and org_code = #{orgCode,jdbcType=VARCHAR}
+		</if>
+		<if test="roleCode != null">
+			and user_code in (select sys_user_code from sys_user_role where sys_role_code = #{roleCode,jdbcType=VARCHAR})
+		</if>
+	</select>		
+	
+	<!-- 分页查询员工信息，适用于超管的员工管理操作 -->
+	<select id="selectPage" parameterType="com.zssq.dao.pojo.SysUserInfo" resultMap="BaseResultMap">
+		select 
+			t1.*,t2.sys_role_code
+		from 
+			sys_user_info t1
+		left join sys_user_role t2
+		on t1.user_code = t2.sys_user_code
+		where 1=1 
+		<if test="userCode != null">
+			and user_code = #{userCode,jdbcType=VARCHAR}
+		</if>
+		<if test="userName != null">
+			and user_name like concat('%',#{userName,jdbcType=VARCHAR},'%')
+		</if>
+		<if test="userOfficePhone != null">
+			and user_office_phone = #{userOfficePhone,jdbcType=VARCHAR}
+		</if>
+		<if test="orgCode != null">
+			and org_code = #{orgCode,jdbcType=VARCHAR}
+		</if>
+		order by t1.user_code
+		<if test="limitStart != null and limitStart>=0" >
+	    	limit #{limitStart} , #{limitEnd}
+	    </if>
+	</select>
+	
+	<!-- 分页查询员工信息（数量统计），适用于超管的员工管理操作 -->
+	<select id="selectPageCount" parameterType="com.zssq.dao.pojo.SysUserInfo" resultType="java.lang.Integer">
+		select 
+			count(1)
+		from 
+			sys_user_info
+		where 1=1 
+		<if test="userCode != null">
+			and user_code = #{userCode,jdbcType=VARCHAR}
+		</if>
+		<if test="userName != null">
+			and user_name like concat('%',#{userName,jdbcType=VARCHAR},'%')
+		</if>
+		<if test="userOfficePhone != null">
+			and user_office_phone = #{userOfficePhone,jdbcType=VARCHAR}
+		</if>
+		<if test="orgCode != null">
+			and org_code = #{orgCode,jdbcType=VARCHAR}
+		</if>
+	</select>	
+	
+	<!-- 批量新增用户信息 -->
+	<insert id="insertValues" parameterType="java.util.List">
+		insert into sys_user_info
+		(
+			user_code,
+			user_name,
+			user_sex,
+			user_office_phone,
+			org_code,
+			user_status,
+			saas_tenant_code
+		)
+		values 
+		<foreach collection="list" item="item" index="index" separator=",">  
+	        (
+	        #{item.userCode,jdbcType=VARCHAR},
+			#{item.userName,jdbcType=VARCHAR},
+			#{item.userSex,jdbcType=TINYINT},
+			#{item.userOfficePhone,jdbcType=VARCHAR},
+			#{item.orgCode,jdbcType=VARCHAR},
+			#{item.userStatus,jdbcType=TINYINT},
+			#{item.tenantCode,jdbcType=VARCHAR}
+			)
+	    </foreach>				
+	</insert>
+		
+	<!-- 新增用户信息，SMAP同步 -->
+	<insert id="insert" parameterType="com.zssq.dao.pojo.SysUserInfo">
+		insert into sys_user_info
+		(
+			user_code,
+			user_name,
+			user_sex,
+			user_office_phone,
+			org_code,
+			user_status,
+			saas_tenant_code
+		)
+		values 
+		(
+			#{userCode,jdbcType=VARCHAR},
+			#{userName,jdbcType=VARCHAR},
+			#{userSex,jdbcType=TINYINT},
+			#{userOfficePhone,jdbcType=VARCHAR},
+			#{orgCode,jdbcType=VARCHAR},
+			#{userStatus,jdbcType=TINYINT},
+			#{tenantCode,jdbcType=VARCHAR}
+		)						
+	</insert>
+	
+	<insert id="insertSelective" parameterType="com.zssq.dao.pojo.SysUserInfo">
+		insert into sys_user_info
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="userCode != null">
+				user_code,
+			</if>
+			<if test="userName != null">
+				user_name,
+			</if>
+			<if test="userSex != null">
+				user_sex,
+			</if>
+			<if test="userOfficePhone != null">
+				user_office_phone,
+			</if>
+			<if test="orgCode != null">
+				org_code,
+			</if>
+			<if test="userStatus != null">
+				user_status,
+			</if>
+			<if test="saas_tenant_code != null">
+				saas_tenant_code,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=BIGINT},
+			</if>
+			<if test="userCode != null">
+				#{userCode,jdbcType=VARCHAR},
+			</if>
+			<if test="userName != null">
+				#{userName,jdbcType=VARCHAR},
+			</if>
+			<if test="userSex != null">
+				#{userSex,jdbcType=TINYINT},
+			</if>
+			<if test="userOfficePhone != null">
+				#{userOfficePhone,jdbcType=VARCHAR},
+			</if>
+			<if test="orgCode != null">
+				#{orgCode,jdbcType=VARCHAR},
+			</if>
+			<if test="userStatus != null">
+				#{userStatus,jdbcType=TINYINT},
+			</if>
+			<if test="saas_tenant_code != null">
+				#{tenantCode,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+	
+	<!-- 设置员工启禁用 -->
+	<update id="setUserStatus" parameterType="java.util.Map">
+		UPDATE 
+		  sys_user_info
+		SET
+		  user_status = #{userStatus}
+		WHERE user_code IN 
+		<foreach collection="userCodes" item="item" index="index" separator="," open="(" close=")">  
+	        #{item,jdbcType=VARCHAR}
+	    </foreach>
+	</update>
+	
+	<!-- 批量删除用户角色关系表,用于角色变更的全删全导之全删 -->
+	<delete id="deleteRoleByCodes" parameterType="java.util.List">
+		delete from sys_user_role
+		where sys_user_code IN 
+		<foreach collection="list" item="item" index="index" separator="," open="(" close=")">  
+	        #{item,jdbcType=VARCHAR}
+	    </foreach>
+	</delete>
+	
+	<!-- 根据组织编码删除用户 -->
+	<delete id="deleteByOrgCode" parameterType="java.lang.String">
+		delete from sys_user_info where org_code = #{value}
+	</delete>
+	
+	<!-- 批量删除用户角色关系表,用于角色变更的全删全导之全导 -->
+	<insert id="batchInsertRoles" useGeneratedKeys="true" parameterType="java.util.List">  
+	   INSERT INTO sys_user_role (
+		  id,
+		  sys_user_code,
+		  sys_role_code,
+		  create_time
+		) 
+		VALUES 
+	    <foreach collection="list" item="item" index="index" separator="," >  
+	        (#{item.id,jdbcType=BIGINT}, 
+	        #{item.sysUserCode,jdbcType=VARCHAR},
+	        #{item.sysRoleCode,jdbcType=VARCHAR},
+			#{item.createTime,jdbcType=BIGINT})
+	    </foreach>  
+	</insert>
+	
+	<!-- 通过行政组织编码与菜单权限查询员工 -->
+	<select id="selectUserByMenuOrg" parameterType="java.util.Map" resultMap="BaseResultMap">
+		select
+			t1.*,t2.man_org_code manOrgCode
+		from 
+			 sys_user_info t1
+	    JOIN sys_user_menu t3
+	    	ON t3.`sys_user_code`= t1.`user_code` and t3.`sys_menu_code`=#{menuCode,jdbcType=VARCHAR}
+		LEFT JOIN sys_org_info t2 
+	    	ON t1.`org_code` = t2.`sys_org_code`
+	    WHERE 1=1
+	    <if test="manOrgCode != null">
+	    	and t2.man_org_code=#{manOrgCode,jdbcType=VARCHAR}
+	    </if>
+		<if test="manOrgCodes != null">
+	    	and t2.man_org_code in
+	    	<foreach collection="manOrgCodes" index="index" item="item" open="(" close=")" separator=",">
+	    		#{item,jdbcType=VARCHAR}
+	    	</foreach>
+	    </if>
+	    order by t2.`sys_org_code`
+	</select>
+	
+	<!-- 通过行政组织编码查询员工/员工管理(user) -->
+	<select id="selectUserByManOrg" parameterType="com.zssq.dao.pojo.SysUserInfo" resultMap="BaseResultMap">
+		select 
+		  t1.*,
+		  t3.sys_role_code 
+		from
+		  sys_user_info t1 
+		  JOIN sys_org_info t2 
+		    ON t1.`org_code` = t2.`sys_org_code` 
+		    AND t2.man_org_code = #{orgCode,jdbcType=VARCHAR}
+		  left join sys_user_role t3 
+		    on t3.sys_user_code = t1.user_code 
+		where 1 = 1 
+		<if test="userCode != null">
+			and user_code = #{userCode,jdbcType=VARCHAR}
+		</if>
+		<if test="userOfficePhone != null">
+			and user_office_phone = #{userOfficePhone,jdbcType=VARCHAR}
+		</if>
+		<if test="userName != null">
+			and user_name like concat('%',#{userName,jdbcType=VARCHAR},'%')
+		</if>
+		ORDER BY t1.user_code
+		<if test="limitStart != null">
+			limit #{limitStart,jdbcType=VARCHAR},#{limitEnd,jdbcType=VARCHAR}
+		</if>
+	</select>
+	<!-- 通过行政组织编码查询员工 总数/员工管理(user) -->
+	<select id="selectUserByManOrgCount" parameterType="com.zssq.dao.pojo.SysUserInfo" resultType="java.lang.Integer">
+		select
+			count(1)
+		from 
+			 sys_user_info t1
+		JOIN sys_org_info t2 
+	    	ON t1.`org_code` = t2.`sys_org_code`
+		   and t2.man_org_code=#{orgCode,jdbcType=VARCHAR}
+		where 1=1
+		<if test="userCode != null">
+			and user_code = #{userCode,jdbcType=VARCHAR}
+		</if>
+		<if test="userOfficePhone != null">
+			and user_office_phone = #{userOfficePhone,jdbcType=VARCHAR}
+		</if>
+		<if test="userName != null">
+			and user_name like concat('%',#{userName,jdbcType=VARCHAR},'%')
+		</if>
+	</select>
+	<!-- 根据userName查询用户信息 -->
+	<select id="selectInfoByName" parameterType="java.util.Map" resultType="com.zssq.dao.pojo.UserInfoByName">
+		SELECT 
+		  t1.`user_code` userCode,
+		  t1.`user_name` userName,
+		  t2.`head_portrait` headPortrait,
+		  t2.`introduce` introduce,
+		  t3.`sys_org_fullname`  fullName
+		FROM
+		  sys_user_info t1 
+		  left join sys_user_base t2 
+		    on t2.user_code = t1.user_code
+		  left join sys_org_info t3 
+		    on t3.sys_org_code = t1.org_code
+		WHERE 1=1 
+		<if test="userName != null">
+			and t1.`user_name` LIKE CONCAT('%',#{userName},'%')
+		 </if>	
+		<if test="limitStart != null and limitStart>=0" >
+	    	limit #{limitStart} , #{limitEnd}
+	    </if> 
+	</select>
+</mapper>

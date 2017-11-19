@@ -1,0 +1,7 @@
+driver=com.mysql.jdbc.Driver
+validationQuery=SELECT 1
+
+#\u5fae\u535a\u6570\u636e\u5e93\u8fde\u63a5\u4fe1\u606f
+mblog.url=jdbc:mysql://172.16.126.180:3306/zssq_mblog_1?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
+mblog.username=root
+mblog.password=123456

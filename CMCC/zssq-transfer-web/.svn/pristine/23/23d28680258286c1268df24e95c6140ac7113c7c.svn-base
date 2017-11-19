@@ -1,0 +1,25 @@
+log4j.rootLogger=DEBUG,Console,logDailyFile
+
+log4j.appender.Console=org.apache.log4j.ConsoleAppender  
+log4j.appender.Console.Target=System.out  
+log4j.appender.Console.layout = org.apache.log4j.PatternLayout  
+log4j.appender.Console.layout.ConversionPattern=%d [%-5p] [%l] %m%n
+  
+#log4j.appender.File = org.apache.log4j.RollingFileAppender
+#log4j.appender.File.File = ../logs/transfer.log
+#log4j.appender.File.File = D:\\logs\\transfer.log
+#log4j.appender.File.MaxFileSize = 100MB
+#log4j.appender.File.Threshold = ALL
+#log4j.appender.File.layout = org.apache.log4j.PatternLayout
+#log4j.appender.File.layout.ConversionPattern =%d [%-5p] [%l] %m%n
+
+#\u6309DatePattern\u8f93\u51fa\u5230\u6587\u4ef6 
+log4j.appender.logDailyFile = org.apache.log4j.DailyRollingFileAppender
+log4j.appender.logDailyFile.layout = org.apache.log4j.PatternLayout
+log4j.appender.logDailyFile.layout.ConversionPattern = [%-5p][%-22d{yyyy/MM/dd HH:mm:ssS}][%l]%n%m%n
+log4j.appender.logDailyFile.Threshold = DEBUG
+log4j.appender.logDailyFile.ImmediateFlush = TRUE
+log4j.appender.logDailyFile.Append = TRUE
+log4j.appender.logDailyFile.File = D:\\logs\\transfer_vote.log
+log4j.appender.logDailyFile.DatePattern = '.'yyyy-MM-dd'.log'
+log4j.appender.logDailyFile.Encoding = UTF-8

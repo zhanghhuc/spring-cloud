@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.filing.dao.mapper.KcFriendGroupMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.filing.pojo.KcFriendGroup" >
+    <result column="ID" property="id" jdbcType="INTEGER" />
+    <result column="GROUP_NAME" property="groupName" jdbcType="VARCHAR" />
+    <result column="CREATE_DATE" property="createDate" jdbcType="TIMESTAMP" />
+    <result column="CREATE_USER" property="createUser" jdbcType="VARCHAR" />
+    <result column="MODIFY_DATE" property="modifyDate" jdbcType="TIMESTAMP" />
+    <result column="IS_DEFAULT" property="isDefault" jdbcType="VARCHAR" />
+  </resultMap>
+  <insert id="insert" parameterType="com.zssq.filing.pojo.KcFriendGroup" >
+    insert into kc_friend_group (ID, GROUP_NAME, CREATE_DATE, 
+      CREATE_USER, MODIFY_DATE, IS_DEFAULT
+      )
+    values (#{id,jdbcType=INTEGER}, #{groupName,jdbcType=VARCHAR}, #{createDate,jdbcType=TIMESTAMP}, 
+      #{createUser,jdbcType=VARCHAR}, #{modifyDate,jdbcType=TIMESTAMP}, #{isDefault,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.filing.pojo.KcFriendGroup" >
+    insert into kc_friend_group
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        ID,
+      </if>
+      <if test="groupName != null" >
+        GROUP_NAME,
+      </if>
+      <if test="createDate != null" >
+        CREATE_DATE,
+      </if>
+      <if test="createUser != null" >
+        CREATE_USER,
+      </if>
+      <if test="modifyDate != null" >
+        MODIFY_DATE,
+      </if>
+      <if test="isDefault != null" >
+        IS_DEFAULT,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="groupName != null" >
+        #{groupName,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null" >
+        #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createUser != null" >
+        #{createUser,jdbcType=VARCHAR},
+      </if>
+      <if test="modifyDate != null" >
+        #{modifyDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isDefault != null" >
+        #{isDefault,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  
+  <!-- 查询非默认分组记录总数 -->
+  <select id="selectCount" resultType="java.lang.Integer">
+  	SELECT count(1) FROM kc_friend_group WHERE is_default != 1
+  </select>
+  
+  <select id="selectPage" parameterType="java.util.Map" resultType="com.zssq.filing.pojo.KcFriendGroup">
+  	SELECT
+  		a.id AS id, 
+  		a.group_name AS groupName, 
+  		a.create_date AS createDate, 
+  		a.create_user AS createUser, 
+  		a.modify_date AS modifyDate, 
+  		a.is_default AS idDefault,
+  	    b.user_code AS userCode
+  	FROM kc_friend_group a
+  	JOIN sys_user_info b
+  	ON a.create_user = b.user_id
+  	WHERE is_default = 0
+  	ORDER BY a.id
+  	LIMIT #{startRowNum},#{executeSize}
+  </select>
+  
+</mapper>

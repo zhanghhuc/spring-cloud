@@ -1,0 +1,23 @@
+package com.zssq.news.noticevo;
+
+import com.zssq.annotation.validation.IntType;
+
+/**
+ * @author SharlaCheung
+ * @ClassName: NewsInfoContentVo
+ * @Description: 新闻撤销参数类
+ * @date 2017年04月02日
+ */
+public class NewsNoticeRepealVo extends NoticeBaseVo {
+
+    @IntType(expression = ">=0")
+    private String noticeStatus ;
+
+    public String getNoticeStatus() {
+        return noticeStatus;
+    }
+
+    public void setNoticeStatus(String noticeStatus) {
+        this.noticeStatus = noticeStatus;
+    }
+}

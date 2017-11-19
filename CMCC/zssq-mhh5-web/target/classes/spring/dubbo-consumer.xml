@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
+	http://www.springframework.org/schema/jee
+	http://www.springframework.org/schema/jee/spring-jee-3.1.xsd
+	http://code.alibabatech.com/schema/dubbo
+	http://code.alibabatech.com/schema/dubbo/dubbo.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-3.1.xsd"
+	default-lazy-init="false">
+
+	<!-- 消费方应用名，用于计算依赖关系，不是匹配条件，不要与提供方一样 -->
+	<dubbo:application name="zssq-mhh5-web"></dubbo:application>
+	<!-- 使用zookeeper注册中心暴露服务地址 -->
+	<dubbo:registry file="C:\\Users\\POWER/dubbo/mhh5.cache" protocol="zookeeper" address="${dubbo.registry.address.cluster}"/>
+	<!-- 要引用的服务 -->
+	<!-- <dubbo:reference interface="com.zssq.service.ISSOService" id="ssoService" /> -->
+	
+	<!-- 备案引入的服务   -->
+	<dubbo:reference interface="com.zssq.service.IUserRelationService" id="userRelationService" check="false" timeout="20000"/>
+	
+	<!-- 授权引入的服务   -->
+	<dubbo:reference interface="com.zssq.service.ISysUserService" id="sysUserService" check="false" timeout="20000"/>
+	<dubbo:reference interface="com.zssq.service.ISysOrgService" id="sysOrgService" check="false" timeout="20000"/>
+	<dubbo:reference interface="com.zssq.service.ISaasTenantService" id="saasTenantService" timeout="20000" check="false" />
+	<dubbo:reference interface="com.zssq.service.ISysDeputyService" id="sysDeputyService" timeout="20000" check="false" />
+	<dubbo:reference interface="com.zssq.service.IMapOrgRelationService" id="mapOrgRelationService" timeout="20000" check="false" />
+	
+	
+	<!-- 班组 -->
+	<dubbo:reference interface="com.zssq.service.ITeamInfoService" id="teamInfoService" check="false" timeout="20000"/>
+	<dubbo:reference interface="com.zssq.service.ITeamMemberService" id="teamMemberService" check="false" timeout="20000"/>
+	<dubbo:reference interface="com.zssq.service.ITeamElectService" id="teamElectService" check="false" timeout="20000"/>
+	
+	<!-- 举报引入的服务   -->
+	<dubbo:reference interface="com.zssq.service.ComplaintService" id="complaintService" check="false" timeout="20000" />
+	
+	<!-- 论坛引入的服务   -->
+	<dubbo:reference interface="com.zssq.service.IForumService" id="forumService" check="false" timeout="20000" version="0.0.1"/>
+	<dubbo:reference interface="com.zssq.service.IForumAuthService" id="forumAuthService" check="false" timeout="20000" version="0.0.1"/>
+	<dubbo:reference interface="com.zssq.service.IForumManageService" id="forumManageService" check="false" timeout="20000" version="0.0.1"/>
+
+	<!-- 微博 -->
+	<dubbo:reference interface = "com.zssq.service.MblogInfoService" id = "mblogInfoService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.MblogCommentService" id = "mblogCommentService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.MblogReplyService" id = "mblogReplyService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.MblogTopicService" id = "mblogTopicService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.MblogThridService" id = "mblogThridService" timeout="20000" check="false"/>
+	<!-- 微博 -->
+	
+	<!-- 投票 -->
+	<dubbo:reference interface = "com.zssq.service.IVoteService" id = "voteService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.IVoteAuthService" id = "voteAuthService" timeout="20000" check="false" />
+	
+	<!-- 关系 -->
+	<dubbo:reference interface = "com.zssq.service.RelationDynamicService" id = "relationDynamicService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.RelationHotService" id = "relationHotService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.RelationQualityService" id = "relationQualityService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.RelationRecService" id = "relationRecService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.RelationShareService" id = "relationShareService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.RelationSubjectService" id = "relationSubjectService" timeout="20000" check="false"/>	
+	<dubbo:reference interface = "com.zssq.service.RelationThirdDataService" id = "relationThirdDataService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.RelationThirdDynamicService" id = "relationThirdDynamicService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.RelationThirdOperateService" id = "relationThirdOperateService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.RelationThirdSubjectService" id = "relationThirdSubjectService" timeout="20000" check="false"/>
+	
+	<!-- 博客 -->
+	<dubbo:reference interface = "com.zssq.service.BlogClassService" id = "blogClassService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.BlogCommentService" id = "blogCommentService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.BlogDraftService" id = "blogDraftService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.BlogOperateService" id = "blogOperateService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.BlogService" id = "blogService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.BlogSubService" id = "blogSubService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.BlogThirdDataService" id = "blogThirdDataService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.BlogThirdService" id = "blogThirdService" timeout="20000" check="false"/>
+	
+	<!-- 活动 -->
+	<dubbo:reference interface="com.zssq.service.IActivityManageService" id="activityManageService" timeout="20000" check="false"/>
+	
+	<!-- 积分金币经验值 -->
+	<dubbo:reference interface = "com.zssq.service.IIntegralActionService" id = "integralActionService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.IIntegralAccountDetailService" id = "integralAccountDetailService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.IIntegralAccountService" id = "integralAccountService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.ICoinAccountService" id = "coinAccountService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.IExpAccountService" id = "expAccountService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.ICoinAccountDetailService" id = "coinAccountDetailService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.IExpAccountDetailService" id = "expAccountDetailService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.IUserLevelConfigService" id = "userLevelConfigService" timeout="20000" check="false"/>
+	<dubbo:reference interface="com.zssq.service.ICoinAccountAndDetailService" id="coinAccountAndDetailService" timeout="20000" check="false" />
+	
+	<!-- 统计 -->
+	<dubbo:reference interface = "com.zssq.service.IStatisticService" id = "statisticService" timeout="20000" check="false" version="0.0.1"/>
+	
+	<!-- 荣誉 -->
+	<dubbo:reference interface = "com.zssq.service.HonorService" id = "honorService" timeout="20000" check="false" />
+	<dubbo:reference interface = "com.zssq.service.HonorThirdService" id = "honorThirdService" timeout="20000" check="false" />
+
+	<!--  新闻  -->
+	<dubbo:reference interface="com.zssq.news.service.NewsCollectService" id="newsCollectServiceImpl" timeout="20000" check="false" />
+	<dubbo:reference interface="com.zssq.news.service.NewsCommentService" id="newsCommentServiceImpl" timeout="20000" check="false"/>
+	<dubbo:reference interface="com.zssq.news.service.NewsInfoContentService" id="newsInfoContentServiceImpl" timeout="20000" check="false" />
+	<dubbo:reference interface="com.zssq.news.service.NewsInfoHistoryService" id="newsInfoHistoryServiceImpl" timeout="20000" check="false" />
+	<dubbo:reference interface="com.zssq.news.service.NewsInfoInformService" id="newsInfoInformServiceImpl" timeout="20000" check="false" />
+	<dubbo:reference interface="com.zssq.news.service.NewsNoticeContentService" id="newsNoticeContentServiceImpl" timeout="20000" check="false" />
+	<dubbo:reference interface = "com.zssq.news.service.NewsReplyService" id = "newsReplyService" timeout="20000" check="false"/>
+	<dubbo:reference interface="com.zssq.news.service.NewsReplyService" id="newsReplyServiceImpl" timeout="20000" check="false" />
+
+	<!-- 知识库 -->
+	<dubbo:reference interface = "com.zssq.service.RepositoryCollectService" id = "repositoryCollectService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.RepositoryShareService" id = "repositoryShareService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.RepositoryInfoService" id = "repositoryInfoService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.RepositoryKnowledgeAppendService" id = "repositoryKnowledgeAppendService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.RepositoryKnowledgeContentService" id = "repositoryKnowledgeContentService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.RepositoryKnowledgeService" id = "repositoryKnowledgeService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.RepositoryPraiseService" id = "repositoryPraiseService" timeout="20000" check="false"/>
+	
+	<!--消息接口服务  -->
+	<dubbo:reference interface = "com.zssq.service.MessagePraiseService" id = "messagePraiseService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.MessageATService" id = "messageATService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.MessageNumberService" id = "messageNumberService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.MessagerBoradReplyService" id = "messagerBoradReplyService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.MessagerBoradService" id = "messagerBoradService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.MessageSubscribeService" id = "messageSubscribeService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.MessageSystemService" id = "messageSystemService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.MessageCommentService" id = "messageCommentService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.MessagePrivateLetterService" id = "messagePrivateLetterService" timeout="20000" check="false"/>
+	<dubbo:reference interface = "com.zssq.service.MessageSystemNoticeService" id = "messageSystemNoticeSerice" timeout="20000" check="false"/>
+	
+	<!-- 网盘服务 -->
+	<dubbo:reference interface = "com.zssq.service.DiskFileService" id = "diskFileService" timeout="20000" check="false"/>
+	
+	<!-- 搜索服务 -->
+	<dubbo:reference interface = "com.zssq.search.service.SolrQueryService" id = "solrQueryService" timeout="20000" check="false"/>
+</beans>  
+	

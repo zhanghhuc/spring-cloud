@@ -1,0 +1,62 @@
+package com.zssq.forum.thread;
+
+import org.apache.log4j.Logger;
+
+import com.zssq.constants.ForumConstants;
+import com.zssq.constants.StatisticConstants;
+import com.zssq.dao.pojo.StatisticCommon;
+import com.zssq.dao.pojo.TeamInfo;
+import com.zssq.service.IStatisticService;
+import com.zssq.service.ITeamInfoService;
+import com.zssq.util.SpringContextUtil;
+import com.zssq.utils.DateUtils;
+public class StatisticsForumThread implements Runnable {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+
+	private IStatisticService statisticService = SpringContextUtil.getBean(IStatisticService.class);
+	
+	private ITeamInfoService teamInfoService = SpringContextUtil.getBean(ITeamInfoService.class);
+	
+	// 待统计对象类型
+	private Byte statisticsObjectType;
+	// 公司code
+	private String orgCode;
+	// 班组code
+	private String teamCode;
+	// 个人code
+	private String peopleCode;
+	// 个人名称
+	private String peopleName;
+	
+	public StatisticsForumThread() {
+
+	}
+	
+	public StatisticsForumThread(String orgCode, String peopleCode, String peopleName, String teamCode) {
+		this.orgCode = orgCode;
+		this.peopleCode = peopleCode;
+		this.peopleName = peopleName;
+		this.teamCode = teamCode;
+	}
+
+	@Override
+	public void run() {
+		try {
+			StatisticCommon record = new StatisticCommon();
+			TeamInfo teamInfo = teamInfoService.selectByCode(teamCode);
+			record.setOrgCode(orgCode);
+			record.setPeopleCode(peopleCode);
+			record.setPeopleName(peopleName);
+			record.setTeamCode(teamInfo.getTeamCode());
+			record.setTeamName(teamInfo.getTeamName());
+			record.setPost(StatisticConstants.POST);
+			record.setCreateTime(DateUtils.nowTimeMillis());
+			statisticService.addRecord(record);
+		} catch (Exception e) {
+			log.error("StatisticForumThread.run:调用统计接口出错：", e);
+		}
+	}
+
+}

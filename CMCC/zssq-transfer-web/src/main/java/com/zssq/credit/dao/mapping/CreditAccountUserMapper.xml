@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.credit.dao.mapper.CreditAccountUserMapper">
+	<resultMap id="BaseResultMap" type="com.zssq.credit.pojo.CreditAccountUser">
+		<result column="user_id" property="userId" jdbcType="INTEGER" />
+		<result column="point_num" property="pointNum" jdbcType="DOUBLE" />
+		<result column="gold_coin" property="goldCoin" jdbcType="DOUBLE" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+		<result column="user_code" property="userCode" jdbcType="VARCHAR" />
+		<result column="man_org_code" property="manOrgCode" jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<select id="selectPage" parameterType="hashmap" resultMap="BaseResultMap">
+		select gold.user_id,gold.point_num,gold.gold_coin,
+		gold.create_time,gold.update_time,user.user_code,org.man_org_code
+		from gold_user_sta gold 
+		left join sys_user_info user
+		on gold.user_id = user.user_id
+		left join sys_org_info org
+		on user.org_code = org.sys_org_code 
+		limit ${limitStart}, ${limitEnd}
+	</select>
+	
+</mapper>

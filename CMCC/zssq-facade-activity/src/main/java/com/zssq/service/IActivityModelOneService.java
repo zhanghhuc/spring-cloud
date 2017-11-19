@@ -1,0 +1,86 @@
+package com.zssq.service;
+
+import java.util.List;
+
+import com.zssq.dao.pojo.ActivityInfo;
+import com.zssq.dao.pojo.ActivityInfoWithBLOBs;
+import com.zssq.dao.pojo.ActivityJoinAuth;
+import com.zssq.dao.pojo.ActivityPrize;
+import com.zssq.dao.pojo.ActivityResource;
+import com.zssq.dao.pojo.ActivityTemplate;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.utils.PageInfo;
+
+public interface IActivityModelOneService {
+	
+	/**
+	 * 查询模板列表
+	 * @param template 查询条件实体
+	 * @param page 分页对象
+	 * @return
+	 * @throws BusinessException
+	 */
+	PageInfo selectTemplateList(ActivityTemplate template, PageInfo page)throws BusinessException;
+	
+	/**
+	 * 上架/下架活动模板
+	 * @param template 查询条件实体
+	 * @throws BusinessException
+	 */
+	void updateOnOffTemplate(ActivityTemplate template)throws BusinessException;
+	
+	/**
+	 * 创建文章征集活动
+	 * @param activityInfo 活动基本信息实体
+	 * @param joinAuth 活动参与权限对象
+	 * @param prizeList 活动奖项集合
+	 * @param resourceList 活动资源集合
+	 * @return 
+	 * @throws BusinessException
+	 */
+	String insertCreateActivityOne(ActivityInfoWithBLOBs activityInfo, ActivityJoinAuth joinAuth,
+			List<ActivityPrize> prizeList, List<ActivityResource> resourceList) throws BusinessException;
+	
+	/**
+	 * 查询活动列表
+	 * @param info 查询条件实体
+	 * @param page 分页对象
+	 * @return
+	 * @throws BusinessException
+	 */
+	PageInfo selectActivityList(ActivityInfo info, PageInfo page,List<Byte> statusList)throws BusinessException;
+	
+	/**
+	 * 查询文章征集活动详情
+	 * @param info 查询条件实体
+	 * @return
+	 * @throws BusinessException
+	 */
+	ActivityInfoWithBLOBs selectActivityDetail(ActivityInfo info)throws BusinessException;
+	
+	/**
+	 * 修改文章征集活动
+	 * @param activityInfo 活动实体
+	 * @param joinAtuh 参与范围对象
+	 * @param prizeList 奖项实体
+	 * @param resourceList 资源实体
+	 * @throws BusinessException
+	 */
+	void updateActivityOne(ActivityInfoWithBLOBs activityInfo, ActivityJoinAuth joinAtuh, List<ActivityPrize> prizeList,
+			List<ActivityResource> resourceList) throws BusinessException;
+	
+	/**
+	 * 删除活动
+	 * @param info 查询条件实体
+	 * @throws BusinessException
+	 */
+	void deleteActivity(ActivityInfo info)throws BusinessException;
+	
+	/**
+	 * 根据code查询活动基本信息
+	 * @param info
+	 * @return
+	 * @throws BusinessException
+	 */
+	public ActivityInfo selectActivityByCode(ActivityInfo info)throws BusinessException;
+}

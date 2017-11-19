@@ -1,0 +1,26 @@
+package com.zssq.dao.mapper;
+
+import java.util.List;
+
+import com.zssq.dao.pojo.TeamFriend;
+
+public interface TeamFriendMapper {
+	
+	/** 根据唯一标识删除 */
+    int deleteByCode(String code);
+
+    /** 动态插入 */
+    int insertSelective(TeamFriend record);
+
+    /** 根据唯一标识查询 */
+    TeamFriend selectByCode(Long id);
+
+    /** 查询友好班组 */
+    List<TeamFriend> selectPage(TeamFriend record);
+    
+    /** 查询友好班组(数量) */
+    int selectCount(TeamFriend record);
+    
+    /** 查询友好班组是这个班组的班组集合 */
+    List<String> selectTeamCode(String friendTeamCode);
+}

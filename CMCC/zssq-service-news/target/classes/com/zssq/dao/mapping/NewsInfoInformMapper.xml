@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.NewsInfoInformMapper">
+  <resultMap id="BaseResultMap" type="com.zssq.news.dao.pojo.NewsInfoInform">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="inform_code" jdbcType="VARCHAR" property="informCode" />
+    <result column="news_code" jdbcType="VARCHAR" property="newsCode" />
+    <result column="publish_user_code" jdbcType="VARCHAR" property="publishUserCode" />
+    <result column="inform_type" jdbcType="INTEGER" property="informType" />
+    <result column="inform_people_code" jdbcType="VARCHAR" property="informPeopleCode" />
+    <result column="org_level" jdbcType="INTEGER" property="orgLevel" />
+    <result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+    <result column="processor_user_code" jdbcType="VARCHAR" property="processorUserCode" />
+    <result column="create_time" jdbcType="BIGINT" property="createTime" />
+    <result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="tenant_code" jdbcType="VARCHAR" property="tenantCode" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, inform_code, news_code, publish_user_code, inform_type, inform_people_code, org_level, 
+    org_code, processor_user_code, create_time, modify_time, remark, tenant_code
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from news_info_inform
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from news_info_inform
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.news.dao.pojo.NewsInfoInform">
+    insert into news_info_inform (id, inform_code, news_code, 
+      publish_user_code, inform_type, inform_people_code, 
+      org_level, org_code, processor_user_code, 
+      create_time, modify_time, remark, 
+      tenant_code)
+    values (#{id,jdbcType=BIGINT}, #{informCode,jdbcType=VARCHAR}, #{newsCode,jdbcType=VARCHAR}, 
+      #{publishUserCode,jdbcType=VARCHAR}, #{informType,jdbcType=INTEGER}, #{informPeopleCode,jdbcType=VARCHAR}, 
+      #{orgLevel,jdbcType=INTEGER}, #{orgCode,jdbcType=VARCHAR}, #{processorUserCode,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=BIGINT}, #{modifyTime,jdbcType=BIGINT}, #{remark,jdbcType=VARCHAR}, 
+      #{tenantCode,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.news.dao.pojo.NewsInfoInform">
+    insert into news_info_inform
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="informCode != null">
+        inform_code,
+      </if>
+      <if test="newsCode != null">
+        news_code,
+      </if>
+      <if test="publishUserCode != null">
+        publish_user_code,
+      </if>
+      <if test="informType != null">
+        inform_type,
+      </if>
+      <if test="informPeopleCode != null">
+        inform_people_code,
+      </if>
+      <if test="orgLevel != null">
+        org_level,
+      </if>
+      <if test="orgCode != null">
+        org_code,
+      </if>
+      <if test="processorUserCode != null">
+        processor_user_code,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="modifyTime != null">
+        modify_time,
+      </if>
+      <if test="remark != null">
+        remark,
+      </if>
+      <if test="tenantCode != null">
+        tenant_code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="informCode != null">
+        #{informCode,jdbcType=VARCHAR},
+      </if>
+      <if test="newsCode != null">
+        #{newsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="publishUserCode != null">
+        #{publishUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="informType != null">
+        #{informType,jdbcType=INTEGER},
+      </if>
+      <if test="informPeopleCode != null">
+        #{informPeopleCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null">
+        #{orgLevel,jdbcType=INTEGER},
+      </if>
+      <if test="orgCode != null">
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="processorUserCode != null">
+        #{processorUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null">
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null">
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null">
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.news.dao.pojo.NewsInfoInform">
+    update news_info_inform
+    <set>
+      <if test="informCode != null">
+        inform_code = #{informCode,jdbcType=VARCHAR},
+      </if>
+      <if test="newsCode != null">
+        news_code = #{newsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="publishUserCode != null">
+        publish_user_code = #{publishUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="informType != null">
+        inform_type = #{informType,jdbcType=INTEGER},
+      </if>
+      <if test="informPeopleCode != null">
+        inform_people_code = #{informPeopleCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null">
+        org_level = #{orgLevel,jdbcType=INTEGER},
+      </if>
+      <if test="orgCode != null">
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="processorUserCode != null">
+        processor_user_code = #{processorUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null">
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null">
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null">
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.news.dao.pojo.NewsInfoInform">
+    update news_info_inform
+    set inform_code = #{informCode,jdbcType=VARCHAR},
+      news_code = #{newsCode,jdbcType=VARCHAR},
+      publish_user_code = #{publishUserCode,jdbcType=VARCHAR},
+      inform_type = #{informType,jdbcType=INTEGER},
+      inform_people_code = #{informPeopleCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=INTEGER},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      processor_user_code = #{processorUserCode,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+
+</mapper>

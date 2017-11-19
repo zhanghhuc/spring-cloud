@@ -1,0 +1,80 @@
+package com.zssq.service.impl.kafka;
+
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.dao.mapper.UserMsgCommentMapper;
+import com.zssq.dao.pojo.UserMsgComment;
+import com.zssq.kafka.KafkaService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.util.RedisUtil;
+import com.zssq.utils.DateUtils;
+
+/**
+ * 
+ * @ClassName: MsgAddCommentServiceImpl  
+ * @Description: 评论回复添加消息  
+ * @author YDB  
+ * @date 2017年4月12日  
+ *
+ */
+@Service("msgAddCommentService")
+public class MsgAddCommentServiceImpl implements KafkaService{
+
+	private Logger logger = LoggerFactory.getLogger(this.getClass());	
+
+	
+	@Autowired
+	private UserMsgCommentMapper userMsgCommentMapper;
+	@Autowired
+	private RedisUtil redisUtil;
+	
+	
+	
+	@Override
+	public void invokeService(ConsumerRecord record) throws Exception {
+		
+		String value=(String) record.value();
+		try {
+		
+			JSONObject json=JSONObject.parseObject(value);
+			
+			UserMsgComment  userMsgComment=new UserMsgComment();
+			userMsgComment.setCreateTime(DateUtils.getTime());
+			userMsgComment.setIsDelete((byte)0);
+			userMsgComment.setMsgCode(UUIDHelper.getUUID());
+			
+			
+			userMsgComment.setCommentCode(json.getString("commentCode"));
+			userMsgComment.setCommentUserCode(json.getString("commentUserCode"));
+			userMsgComment.setOrgCode(json.getString("orgCode"));
+			//userMsgComment.setOrgLevel(Byte.parseByte(json.getString("orgLeve")));
+			userMsgComment.setOriginalCode(json.getString("originalCode"));
+			userMsgComment.setOriginalContent(json.getString("originalContent"));
+			userMsgComment.setTenantCode(json.getString("tenantCode"));
+			userMsgComment.setCommetType(Byte.parseByte(json.getString("type")));
+			userMsgComment.setUserCode(json.getString("userCode"));
+			userMsgComment.setCommentcontent(json.getString("commentContent"));
+			userMsgComment.setPublicCode(json.getString("publicCode"));
+			userMsgCommentMapper.insert(userMsgComment);
+			//添加消息数量
+			redisUtil.addNumber(json.getString("userCode"), 2, 1);
+		
+		} catch (Exception e) {
+			logger.error("MsgKafka-添加评论回复失败-参数:"+value,e);
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+
+}

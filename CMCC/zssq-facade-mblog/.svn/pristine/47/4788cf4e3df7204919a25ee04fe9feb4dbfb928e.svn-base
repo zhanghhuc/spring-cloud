@@ -1,0 +1,92 @@
+package com.zssq.service;
+
+import java.util.List;
+
+import com.zssq.dao.pojo.MblogComment;
+import com.zssq.dao.pojo.MblogModel;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.pojo.RssReturnPo;
+
+/**
+ * 
+    * @ClassName: MblogThridService  
+    * @Description: 第三方使用  
+    * @author Mr.B  
+    * @date 2017年3月24日  
+    *
+ */
+public interface MblogThridService {
+
+	/**
+	 * 
+	    * @Title: modifyShield  
+	    * @Description: 屏蔽信息 
+	    * @param subjectCode	被屏蔽的主体CODE
+	    * @param subjectType	被屏蔽的主体分类：1：微博，2：评论，3：回复
+	    * @param isShield  		是否屏蔽：0：取消，1：是
+	    * @param userCode		用户CODE
+		* @throws BusinessException
+		* @return boolean    返回类型
+	 */
+	public boolean modifyShield(String subjectCode,Byte subjectType,Byte isShield,String userCode)throws BusinessException;
+	
+	/**
+	 * 
+	    * @Title: modifyEssenceNum  
+	    * @Description: 修改置精次数
+	    * @param mblogCode	被置精微博CODE
+	    * @param scope		置精的范围 ：1：集团，2：省级，3：市级，4：班组
+	    * @param isEssence  置精动作：0：否，1：是
+	    * @param userCode 	用户CODE
+		* @throws BusinessException
+		* @return boolean    返回类型
+	 */
+	public boolean modifyEssenceNum(String mblogCode,Byte scope,Byte isEssence,String userCode)throws BusinessException;
+	
+	/**
+	 * 
+	    * @Title: getMblogList  
+	    * @Description: 获取微博列表
+	    * @param mblogCodes	微博CODE列表
+	    * @param userCode 	用户CODE
+		* @throws BusinessException
+		* @return List<MblogModel>    返回类型
+	 */
+	public List<MblogModel> getMblogList(List<String> mblogCodes,String userCode)throws BusinessException;
+	
+	/**
+	 * 
+	    * @Title: getRssMblogList  
+	    * @Description: 获取订阅的微博列表
+	    * @param userCode	用户CODE
+	    * @param teamCode	班组CODE
+	    * @param depend		所属类型：1：个人，2：班组
+	    * @param pageSize	条数
+	    * @throws BusinessException
+		* @return List<RssReturnPo>    返回类型
+	 */
+	public 	List<RssReturnPo> getRssMblogList(String userCode,String teamCode,Byte depend,Integer pageSize)throws BusinessException;
+
+	/**
+	 * 
+	    * @Title: updateUserSubscribe  
+	    * @Description: 更新订阅关系
+	    * @param userCode	用户CODE
+	    * @param otherUserCode	被订阅用户CODE
+		* @return boolean    返回类型
+	 */
+	public boolean updateUserSubscribe(String userCode,String otherUserCode)throws BusinessException;
+	
+	
+	/**
+	 * 
+	    * @Title: getMblogList  
+	    * @Description: 获取班组微博列表
+	    * @param teamCode	班组code
+		* @throws BusinessException
+		* @return List<MblogModel>    返回类型
+	 */
+	public List<MblogModel> getTeamMblogList(String teamCode,Integer limitStart,Integer limitSize)  throws BusinessException;
+	
+	
+}

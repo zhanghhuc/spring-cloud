@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.UserLevelConfigMapper">
+
+	<!-- user_level_config 表字段实体映射 -->
+	<resultMap type="com.zssq.dao.pojo.UserLevelConfig" id="BaseResultMap">
+		<id column="id" property="id" jdbcType="BIGINT"/>
+		<result column="level_code" property="levelCode" jdbcType="VARCHAR"/>
+		<result column="level_no" property="levelNo" jdbcType="TINYINT"/>
+		<result column="exp_value" property="expValue" jdbcType="INTEGER"/>
+		<result column="level_title" property="levelTitle" jdbcType="INTEGER"/>
+		<result column="saas_tenant_code" property="saasTenantCode" jdbcType="VARCHAR"/>
+		<result column="exp_value_start" property="expValueStart" jdbcType="INTEGER"/>
+	</resultMap>
+	
+	<!-- user_level_config 表字段列表 -->
+	<sql id="Base_Column_List">
+		id, level_code, level_no, exp_value, 
+		level_title, saas_tenant_code, exp_value_start
+	</sql>
+	
+	<!-- 根据等级编号查询经验值等级配置信息 -->
+	<select id="selectByCode" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List"/>
+		from user_level_config
+		where level_code = #{levelCode, jdbcType=VARCHAR} 
+	</select>
+	
+	<!-- 查询最小等级 -->
+	<select id="selectMinLevelNo" resultType="java.lang.Byte">
+		select min(level_no) from user_level_config
+	</select>
+	
+	<!-- 查询经验值等级配置信息列表，并按照等级升序 -->
+	<select id="selectAll" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List"/>
+		from user_level_config
+		order by level_no asc
+	</select>
+	
+	<!-- 查询用户最高等级的配置信息 -->
+	<select id="selectMaxLevelConfig" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List"/>
+		from user_level_config
+		where level_no = (select max(level_no) from user_level_config)
+	</select>
+	
+</mapper>

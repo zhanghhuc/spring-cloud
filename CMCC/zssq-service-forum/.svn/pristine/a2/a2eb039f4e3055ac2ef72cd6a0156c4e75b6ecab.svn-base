@@ -1,0 +1,223 @@
+package com.zssq.service.impl;
+
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.constants.ForumConstants;
+import com.zssq.dao.mapper.ForumCommentReplyMapper;
+import com.zssq.dao.mapper.ForumTopicsFollowMapper;
+import com.zssq.dao.mapper.ForumTopicsMapper;
+import com.zssq.dao.pojo.ForumCommentReply;
+import com.zssq.dao.pojo.ForumCommentReplyExample;
+import com.zssq.dao.pojo.ForumTopics;
+import com.zssq.dao.pojo.ForumTopicsExample;
+import com.zssq.dao.pojo.ForumTopicsFollow;
+import com.zssq.dao.pojo.ForumTopicsFollowExample;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.service.CommonService;
+import com.zssq.service.IForumThirdService;
+import com.zssq.utils.DateUtils;
+import com.zssq.utils.StringTools;
+@Service("forumThirdService")
+public class ForumThirdServiceImpl extends CommonService implements IForumThirdService {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private ForumTopicsMapper forumTopicsMapper;
+	@Autowired
+	private ForumTopicsFollowMapper forumTopicsFollowMapper;
+	@Autowired
+	private ForumCommentReplyMapper forumCommentReplyMapper;
+
+	@Override
+	public boolean deleteOrNot(String tenantCode, String subjectCode, Byte subjectType, Byte isDelete)
+			throws BusinessException {
+		int effectCnt = 0;
+		try {
+			// 校验输入参数
+			if (StringTools.isEmpty(tenantCode)) {
+				throw BusinessException.build("COMMON_402", "tenantCode");
+			}
+			if (StringTools.isEmpty(subjectCode)) {
+				throw BusinessException.build("COMMON_402", "subjectCode");
+			}
+			if (subjectType == null || (subjectType != ForumConstants.HANDLE_INFO_TYPE_1
+					&& subjectType != ForumConstants.HANDLE_INFO_TYPE_2
+					&& subjectType != ForumConstants.HANDLE_INFO_TYPE_3)) {
+				throw BusinessException.build("COMMON_402", "subjectType");
+			}
+			if (isDelete == null || (isDelete != ForumConstants.NO && isDelete != ForumConstants.YES)) {
+				throw BusinessException.build("COMMON_402", "isDelete");
+			}
+			// 判断调用接口的类型
+			if (subjectType == ForumConstants.HANDLE_INFO_TYPE_1) {
+				// 恢复主帖信息
+				if (isDelete == ForumConstants.NO) {
+					effectCnt = deleteOrNotTopic(tenantCode, Operate.RECOVERY, subjectCode);
+				}
+				// 删除主帖信息
+				if (isDelete == ForumConstants.YES) {
+					effectCnt = deleteOrNotTopic(tenantCode, Operate.DELETE, subjectCode);
+				}
+			}
+			if (subjectType == ForumConstants.HANDLE_INFO_TYPE_2) {
+				// 恢复主帖的跟帖信息
+				if (isDelete == ForumConstants.NO) {
+					effectCnt = deleteOrNotFollow(tenantCode, Operate.RECOVERY, subjectCode);
+				}
+				// 删除主帖的跟帖信息
+				if (isDelete == ForumConstants.YES) {
+					effectCnt = deleteOrNotFollow(tenantCode, Operate.DELETE, subjectCode);
+				}
+			}
+			if (subjectType == ForumConstants.HANDLE_INFO_TYPE_3) {
+				// 恢复主帖的评论回复信息
+				if (isDelete == ForumConstants.NO) {
+					effectCnt = deleteOrNotCommentReply(tenantCode, Operate.RECOVERY, subjectCode);
+				}
+				// 删除主帖的评论回复信息
+				if (isDelete == ForumConstants.YES) {
+					effectCnt = deleteOrNotCommentReply(tenantCode, Operate.DELETE, subjectCode);
+				}
+			}
+			if (effectCnt > 0) {
+				return true;
+			} else {
+				return false;
+			}
+		} catch (BusinessException e) {
+			log.error("ForumThirdServiceImpl.deleteOrNot", e);
+			throw e;
+		} catch (Exception e) {
+			log.error("ForumThirdServiceImpl.deleteOrNot", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	@Override
+	public int deleteOrNotTopic(String tenantCode, Operate opt, String code) throws BusinessException {
+		try {
+			ForumTopicsExample example = new ForumTopicsExample();
+			ForumTopicsExample.Criteria criteria = example.createCriteria();
+			
+			criteria.andTenantCodeEqualTo(tenantCode);
+			criteria.andForumTopicsCodeEqualTo(code);
+			
+			ForumTopics record = new ForumTopics();
+			if (opt == Operate.DELETE) {
+				criteria.andIsDeleteEqualTo(ForumConstants.NO);
+				record.setIsDelete(ForumConstants.YES);
+			} else if (opt == Operate.RECOVERY) {
+				criteria.andIsDeleteEqualTo(ForumConstants.YES);
+				record.setIsDelete(ForumConstants.NO);
+			}
+			record.setModifyTime(DateUtils.getFormatDateLong());
+			
+			return forumTopicsMapper.updateByExampleSelective(record, example);
+		} catch (Exception e) {
+			log.error("ForumThirdServiceImpl.deleteOrNotTopic", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+	}
+
+	@Override
+	public int deleteOrNotFollow(String tenantCode, Operate opt, String code) throws BusinessException {
+		try {
+			/** 1、删除/恢复跟帖 */
+			ForumTopicsFollowExample example = new ForumTopicsFollowExample();
+			ForumTopicsFollowExample.Criteria criteria = example.createCriteria();
+			
+			criteria.andTenantCodeEqualTo(tenantCode);
+			criteria.andForumTopicsFollowCodeEqualTo(code);
+			ForumTopicsFollow record = new ForumTopicsFollow();
+			record.setModifyTime(DateUtils.getFormatDateLong());
+			if (opt == Operate.DELETE) {
+				criteria.andIsDeleteEqualTo(ForumConstants.NO);
+				record.setIsDelete(ForumConstants.YES);
+			} else if (opt == Operate.RECOVERY) {
+				criteria.andIsDeleteEqualTo(ForumConstants.YES);
+				record.setIsDelete(ForumConstants.NO);
+			}
+			int effectCnt = forumTopicsFollowMapper.updateByExampleSelective(record, example);
+			if (effectCnt > 0) {
+				/**2.减少/增加主帖回复数*/
+				example = new ForumTopicsFollowExample();
+				criteria = example.createCriteria();
+				criteria.andTenantCodeEqualTo(tenantCode);
+				criteria.andForumTopicsFollowCodeEqualTo(code);
+				
+				List<ForumTopicsFollow> list = forumTopicsFollowMapper.selectByExample(example);
+				if (list.size() > 0) {
+					if (opt == Operate.DELETE) {
+						super.updateTopicReplyCountAndTime(list.get(0).getTopicCode(), Operator.SUB, effectCnt);
+					}
+					if (opt == Operate.RECOVERY) {
+						super.updateTopicReplyCountAndTime(list.get(0).getTopicCode(), Operator.ADD, effectCnt);
+					}
+				}
+			}
+			return effectCnt;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ForumThirdServiceImpl.deleteOrNotFollow", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+	}
+
+	@Override
+	public int deleteOrNotCommentReply(String tenantCode, Operate opt, String code) throws BusinessException {
+		try {
+			/** 1、删除/恢复评论或回复 */
+			ForumCommentReplyExample example = new ForumCommentReplyExample();
+			ForumCommentReplyExample.Criteria criteria = example.createCriteria();
+			
+			criteria.andTenantCodeEqualTo(tenantCode);
+			criteria.andForumCommentReplyCodeEqualTo(code);
+			
+			ForumCommentReply record = new ForumCommentReply();
+			record.setModifyTime(DateUtils.getFormatDateLong());
+			if (opt == Operate.DELETE) {
+				criteria.andIsDeleteEqualTo(ForumConstants.NO);
+				record.setIsDelete(ForumConstants.YES);
+			} else if (opt == Operate.RECOVERY) {
+				criteria.andIsDeleteEqualTo(ForumConstants.YES);
+				record.setIsDelete(ForumConstants.NO);
+			}
+			
+			int effectCnt = forumCommentReplyMapper.updateByExampleSelective(record, example);
+			if (effectCnt > 0) {
+				example = new ForumCommentReplyExample();
+				criteria = example.createCriteria();
+				criteria.andTenantCodeEqualTo(tenantCode);
+				criteria.andForumCommentReplyCodeEqualTo(code);
+				
+				List<ForumCommentReply> list = forumCommentReplyMapper.selectByExample(example);
+				if (list.size() > 0) {
+					String topicCode = list.get(0).getTopicCode();
+					String followTopicCode = list.get(0).getTopicFollowCode();
+					if (opt == Operate.DELETE) {
+						super.updateTopicFollowReplyProc(topicCode, followTopicCode, Operator.SUB, effectCnt);
+					}
+					if (opt == Operate.RECOVERY) {
+						super.updateTopicFollowReplyProc(topicCode, followTopicCode, Operator.ADD, effectCnt);
+					}
+				}
+			}
+			return effectCnt;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ForumThirdServiceImpl.deleteOrNotCommentReply", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+	}
+
+}

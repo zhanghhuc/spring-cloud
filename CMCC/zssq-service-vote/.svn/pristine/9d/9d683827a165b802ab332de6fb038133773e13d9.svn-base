@@ -1,0 +1,1036 @@
+package com.zssq.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.constants.VoteConstants;
+import com.zssq.dao.mapper.VoteCollectionMapper;
+import com.zssq.dao.mapper.VoteCommentMapper;
+import com.zssq.dao.mapper.VoteCommentReplyMapper;
+import com.zssq.dao.mapper.VoteInfoMapper;
+import com.zssq.dao.mapper.VoteJoinMapper;
+import com.zssq.dao.mapper.VoteOptionsMapper;
+import com.zssq.dao.mapper.VotePraiseMapper;
+import com.zssq.dao.mapper.VoteUserActionsMapper;
+import com.zssq.dao.pojo.GetMyJoinVoteListEntity;
+import com.zssq.dao.pojo.GetVoteInfoEntity;
+import com.zssq.dao.pojo.JoinVoteEntity;
+import com.zssq.dao.pojo.VoteCollection;
+import com.zssq.dao.pojo.VoteComment;
+import com.zssq.dao.pojo.VoteCommentExample;
+import com.zssq.dao.pojo.VoteCommentReply;
+import com.zssq.dao.pojo.VoteCommentReplyExample;
+import com.zssq.dao.pojo.VoteDetailModel;
+import com.zssq.dao.pojo.VoteInfo;
+import com.zssq.dao.pojo.VoteInfoExample;
+import com.zssq.dao.pojo.VoteJoin;
+import com.zssq.dao.pojo.VoteJoinAuth;
+import com.zssq.dao.pojo.VoteJoinExample;
+import com.zssq.dao.pojo.VoteOptions;
+import com.zssq.dao.pojo.VoteOptionsExample;
+import com.zssq.dao.pojo.VotePraise;
+import com.zssq.dao.pojo.VoteUserActions;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.service.CommonService;
+import com.zssq.service.IVoteAuthService;
+import com.zssq.service.IVoteService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.DateUtils;
+import com.zssq.utils.PageInfo;
+import com.zssq.utils.StringTools;
+
+/**
+ * 投票服务接口实现
+ * @ClassName VoteServiceImpl
+ * @Description 
+ * @author liurong
+ * @date 2017年3月30日 上午10:57:46
+ * @version 1.0
+ * @since JDK 1.7
+ */
+@Service("voteService")
+public class VoteServiceImpl extends CommonService implements IVoteService {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private VoteInfoMapper voteInfoMapper;
+	@Autowired
+	private VoteOptionsMapper voteOptionsMapper;
+	@Autowired
+	private VoteUserActionsMapper voteUserActionsMapper;
+	@Autowired
+	private VoteJoinMapper voteJoinMapper;
+	@Autowired
+	private IVoteAuthService voteAuthService;
+	@Autowired
+	private VoteCollectionMapper voteCollectionMapper;
+	@Autowired
+	private VoteCommentMapper voteCommentMapper;
+	@Autowired
+	private VoteCommentReplyMapper voteCommentReplyMapper;
+	@Autowired
+	private VotePraiseMapper votePraiseMapper;
+	
+	
+
+	@Override
+	public String insertVoteInfo(VoteInfo voteInfo, List<VoteOptions> options, VoteJoinAuth joinAuth) throws BusinessException {
+		try {
+			Long currentTime = DateUtils.getFormatDateLong();
+			if (StringTools.isEmpty(voteInfo.getCode())) {
+				//设置投票CODE
+				voteInfo.setCode(UUIDHelper.getUUID());
+			}
+			if (voteInfo.getCreateTime() == null) {
+				voteInfo.setCreateTime(currentTime);
+			}
+			if (voteInfo.getModifyTime() == null) {
+				voteInfo.setModifyTime(currentTime);
+			}
+			if (voteInfo.getStartTime() == null) {
+				voteInfo.setStartTime(currentTime);
+			}
+			//1.插入投票主表信息
+			voteInfoMapper.insertSelective(voteInfo);
+			
+			if(options.size()>0){
+				for (VoteOptions o : options) {
+					//设置投票选项信息
+					o.setCode(UUIDHelper.getUUID());
+					o.setCreateTime(currentTime);
+					o.setModifyTime(currentTime);
+					o.setVoteInfoCode(voteInfo.getCode());
+				}
+				//2.批量插入选项数据
+				voteOptionsMapper.batchInsertOptions(options);
+			}
+			
+			//3.插入权限数据
+			joinAuth.setVoteInfoCode(voteInfo.getCode());
+			voteAuthService.insertAuthInfo(joinAuth);
+			
+			//4.如果是个人发起的投票则记录该信息
+			if (VoteConstants.SPONSOR_TYPE_PERSON.equals(voteInfo.getSponsorType())) {
+				VoteUserActions action = new VoteUserActions();
+				action.setCode(UUIDHelper.getUUID());
+				action.setTenantCode(voteInfo.getTenantCode());
+				action.setOrgCode(voteInfo.getOrgCode());
+				action.setOrgLevel(voteInfo.getOrgLevel());
+				action.setCreateTime(currentTime);
+				action.setModifyTime(currentTime);
+				action.setUserCode(voteInfo.getSponsorCode());
+				action.setActionType(VoteConstants.ACTION_CREATE);
+				action.setVoteInfoCode(voteInfo.getCode());
+				action.setTitle(voteInfo.getTitle());
+
+				voteUserActionsMapper.insertSelective(action);
+			}
+			return voteInfo.getCode();
+		} catch(BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("IVoteService.insertVoteInfo", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public String insertJoinVote(JoinVoteEntity entity) throws BusinessException {
+		String joinVoteCode = "";
+		try {
+			/**1.查询此投票信息*/
+			VoteInfoExample example = new VoteInfoExample();
+			VoteInfoExample.Criteria criteria = example.createCriteria();
+			
+			criteria.andIsDeleteEqualTo(VoteConstants.NO);
+			criteria.andIsDisableEqualTo(VoteConstants.NO);
+			criteria.andIsHideEqualTo(VoteConstants.NO);
+			criteria.andTenantCodeEqualTo(entity.getTenantCode());
+			criteria.andCodeEqualTo(entity.getVoteInfoCode());
+			
+			List<VoteInfo> voteList = voteInfoMapper.selectByExample(example);
+			if (voteList.size() == 0) {
+				throw BusinessException.build("VOTE_18002", "投票信息");
+			}
+			// 判断投票是不是已经结束
+			VoteInfo voteInfo = voteList.get(0);
+			long currentTime = DateUtils.getFormatDateLong();// 当前系统时间
+			long endTime = voteInfo.getEndTime();// 投票结束时间
+			if (currentTime > endTime) {
+				// 投票已经结束
+				throw BusinessException.build("VOTE_18003");
+			}
+			// 判断用户是否已经参加过此次投票
+			VoteJoinExample joinExample = new VoteJoinExample();
+			VoteJoinExample.Criteria joinCriteria = joinExample.createCriteria();
+			
+			joinCriteria.andIsDeleteEqualTo(VoteConstants.NO);
+			joinCriteria.andIsDisableEqualTo(VoteConstants.NO);
+			joinCriteria.andJoinUserCodeEqualTo(entity.getUserCode());
+			joinCriteria.andVoteInfoCodeEqualTo(entity.getVoteInfoCode());
+			
+			int exist = voteJoinMapper.countByExample(joinExample);
+			if (exist > 0) {
+				throw BusinessException.build("VOTE_18005");
+			}
+			/**2.insert用户参与投票的动作信息*/
+			VoteUserActions action = new VoteUserActions();
+			action.setCode(UUIDHelper.getUUID());
+			action.setTenantCode(entity.getTenantCode());
+			action.setOrgCode(entity.getOrgCode());
+			action.setCreateTime(currentTime);
+			action.setModifyTime(currentTime);
+			action.setUserCode(entity.getUserCode());
+			action.setActionType(VoteConstants.ACTION_JOIN);
+			action.setVoteInfoCode(entity.getVoteInfoCode());
+			action.setTitle(voteInfo.getTitle());
+			int result = voteUserActionsMapper.insertSelective(action);
+			
+			if (result > 0) {
+				/**3.insert用户参与投票记录*/
+				joinVoteCode = UUIDHelper.getUUID();
+				VoteJoin join = new VoteJoin();
+				join.setCode(joinVoteCode);
+				join.setTenantCode(entity.getTenantCode());
+				join.setOrgCode(entity.getOrgCode());
+				join.setCreateTime(currentTime);
+				join.setModifyTime(currentTime);
+				join.setJoinUserCode(entity.getUserCode());
+				join.setVoteInfoCode(entity.getVoteInfoCode());
+				join.setSelectedNumber(entity.getOptionsCode());
+				
+				result = voteJoinMapper.insertSelective(join);
+				if (result > 0) {
+					/**4.投票主表参与人数+1，选中的选项选择人数+1*/
+					updateJoinNum(entity.getVoteInfoCode(), entity.getOptionsCodeList(), currentTime);
+				}
+			}
+			return joinVoteCode;
+		} catch(BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.insertJoinVote", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	/**
+	 * 投票主表和选项表的参与人数加一
+	 * @param tenantCode 租户code
+	 * @param infoCode 投票code
+	 * @param optOrders 投票选中选项集合
+	 * @param currentTime 当前时间
+	 * @throws BusinessException 
+	 */
+	public void updateJoinNum(String infoCode, List<Integer> optOrders, Long currentTime)
+			throws BusinessException {
+		try {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("infoCode", infoCode);
+			map.put("modifyTime", currentTime);
+
+			// 1.投票主表参加人数+1
+			voteInfoMapper.updateJoinNum(map);
+
+			// 2.选项表选中人数加一
+			map.put("orders", optOrders);
+			voteOptionsMapper.batchUpdateSelectedNum(map);
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.updateJoinNum", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public PageInfo selectPublishVoteList(VoteInfo info, PageInfo page) throws BusinessException {
+		try {
+			Map<String,Object> map = new HashMap<String,Object>();
+			map.put("tenantCode", info.getTenantCode());
+			map.put("sponsorType", info.getSponsorType());
+			map.put("pageSize", page.getPerPageSize());
+			if (info.getVoteStatus() != null) {
+				map.put("voteStatus", info.getVoteStatus());
+			}
+			map.put("userCode", info.getUserCode());
+			if (VoteConstants.SPONSOR_TYPE_PERSON.equals(info.getSponsorType())) {
+				// 查询个人发起的投票
+				map.put("sponsorCode", info.getSponsorCode());
+				map.put("sponsorOrgCode", null);
+			}
+			if (VoteConstants.SPONSOR_TYPE_CLASS.equals(info.getSponsorType())
+					|| VoteConstants.SPONSOR_TYPE_MANAGER.equals(info.getSponsorType())) {
+				// 查询班组或门户发起的投票
+				if (StringTools.isNotEmpty(info.getSponsorCode())) {
+					map.put("sponsorCode", info.getSponsorCode());
+				}
+				map.put("sponsorOrgCode", info.getSponsorOrgCode());
+			}
+			map.put("id", page.getId());
+			
+			List<VoteInfo> list = voteInfoMapper.selectPublishVoteList(map);
+			
+			page.setList(list);
+			return page;
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.selectPublishVoteList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public PageInfo getMyJoinVoteList(GetMyJoinVoteListEntity entity) throws BusinessException {
+		try {
+			
+			List<VoteJoin> list = voteJoinMapper.selectMyJoinVoteList(entity);
+
+			PageInfo info = new PageInfo();
+			info.setList(list);
+
+			return info;
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.getMyJoinVoteList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public PageInfo getGatewayVoteList(String tenantCode, String sponsorOrgCode, String userCode, Integer perPage) throws BusinessException {
+		List<VoteInfo> list = new ArrayList<VoteInfo>();
+		try {
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("tenantCode", tenantCode);
+			paramMap.put("userCode", userCode);
+			paramMap.put("sponsorOrgCode", sponsorOrgCode);
+			paramMap.put("sponsorType", VoteConstants.SPONSOR_TYPE_MANAGER);// 发起人类型：3 管理员
+			paramMap.put("pageSize", perPage);
+			
+			list = voteInfoMapper.selectPublishVoteList(paramMap);
+			
+			PageInfo page = new PageInfo();
+			page.setList(list);
+			return page;
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.getGatewayVoteList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public VoteDetailModel selectVoteInfoDetail(GetVoteInfoEntity entity) throws BusinessException {
+		VoteDetailModel model = new VoteDetailModel();
+		try {
+			/**1.查询投票主详情信息*/
+			VoteInfo vote = voteInfoMapper.selectVoteDetail(entity.getTenantCode(), entity.getUserCode(), entity.getVoteInfoCode());
+			if (vote == null) {
+				return model;
+			}
+			model.setVoteInfo(vote);
+			
+			/**2.查询投票选项信息*/
+			VoteOptionsExample optionsExample = new VoteOptionsExample();
+			VoteOptionsExample.Criteria optionsCriteria = optionsExample.createCriteria();
+			
+			optionsCriteria.andIsDeleteEqualTo(VoteConstants.NO);
+			optionsCriteria.andIsDisableEqualTo(VoteConstants.NO);
+			optionsCriteria.andVoteInfoCodeEqualTo(entity.getVoteInfoCode());
+			// 按照选项序号正序排列
+			optionsExample.setOrderByClause("order_number asc");
+			
+			List<VoteOptions> optionsList = voteOptionsMapper.selectByExample(optionsExample);
+			model.setOptions(optionsList);
+			
+			/**3.统计投票选项总被选择人树*/
+			model.setTotalSelectedNum(voteOptionsMapper.countTotalSelectedNum(entity.getVoteInfoCode()));
+			
+			/**4.查询用户参与记录*/
+			VoteJoinExample joinExample = new VoteJoinExample();
+			VoteJoinExample.Criteria joinCriteria = joinExample.createCriteria();
+			
+			joinCriteria.andIsDeleteEqualTo(VoteConstants.NO);
+			joinCriteria.andIsDisableEqualTo(VoteConstants.NO);
+			joinCriteria.andJoinUserCodeEqualTo(entity.getUserCode());
+			joinCriteria.andVoteInfoCodeEqualTo(entity.getVoteInfoCode());
+			joinExample.setOrderByClause("id desc");
+			
+			List<VoteJoin> joinList = voteJoinMapper.selectByExample(joinExample);
+			VoteJoin voteJoin = null;
+			if (joinList.size() > 0) {
+				voteJoin = joinList.get(0);
+			}
+			model.setVoteJoin(voteJoin);
+			
+			return model;
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.selectVoteInfoDetail", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public int deleteVoteInfo(String tenantCode, String voteInfoCode) throws BusinessException {
+		try {
+			VoteInfoExample example = new VoteInfoExample();
+			VoteInfoExample.Criteria criteria = example.createCriteria();
+			
+			criteria.andTenantCodeEqualTo(tenantCode);
+			criteria.andCodeEqualTo(voteInfoCode);
+			
+			VoteInfo record = new VoteInfo();
+			record.setIsDelete(VoteConstants.YES);
+			record.setModifyTime(DateUtils.getFormatDateLong());
+			
+			return voteInfoMapper.updateByExampleSelective(record, example);
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.deleteVoteInfo", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	@Override
+	public Integer updateCollectionStatus(VoteCollection voteCollection) throws BusinessException {
+			
+		Integer collectionNum = 0;
+		try{
+			Long time = DateUtils.getFormatDateLong();
+			/** 1、收藏操作 */
+			if (voteCollection.getOperating().equals(VoteConstants.COLLECTION_TYPE_1)) {
+				/** 1.1、添加收藏 */
+				String code = UUIDHelper.getUUID();
+				voteCollection.setCreateTime(time);
+				voteCollection.setModifyTime(time);
+				voteCollection.setCode(code);
+				int result = 0;
+				try {
+					result = voteCollectionMapper.insertSelective(voteCollection);
+				} catch (org.springframework.dao.DuplicateKeyException e) {
+					// 您已%s过该信息，不可重复操作。
+					throw BusinessException.build("VOTE_18011", "收藏");
+				}
+				
+				/** 1.2、更改投票主信息表收藏数 */
+				if (result > 0) {
+					Map<String, Object> paramMap = new HashMap<>();
+					paramMap.put("code", voteCollection.getVoteInfoCode());
+					paramMap.put("type", "+1");
+					paramMap.put("modifyTime", time);
+					paramMap.put("tenantCode", voteCollection.getTenantCode());
+					voteInfoMapper.updateCollectionNum(paramMap);
+				}
+			}
+			
+			/** 2、取消收藏收藏操作 */
+			if(voteCollection.getOperating().equals(VoteConstants.COLLECTION_TYPE_0)){
+				/** 2.1、删除收藏表中的信息 */
+				Map<String,Object> paramMap = new HashMap<>();
+				paramMap.put("voteInfoCode", voteCollection.getVoteInfoCode()); 
+				paramMap.put("tenantCode", voteCollection.getTenantCode());
+				paramMap.put("collectorCode",voteCollection.getCollectorCode());
+				int count = voteCollectionMapper.deleteVoteCollection(paramMap);
+				
+				/** 2.2、更新 投票主信息表中的收藏数*/
+				if(count > 0){
+					paramMap.put("type", "-1");
+					paramMap.put("code", voteCollection.getVoteInfoCode());
+					paramMap.put("modifyTime", time);
+					paramMap.put("tenantCode", voteCollection.getTenantCode());
+					voteInfoMapper.updateCollectionNum(paramMap);
+				}else{
+					throw BusinessException.build("VOTE_18011", "取消收藏");
+				}
+			}
+			/** 3、查询最新收藏数 */
+			VoteInfoExample example = new VoteInfoExample();
+			VoteInfoExample.Criteria criteria = example.createCriteria();
+			criteria.andCodeEqualTo(voteCollection.getVoteInfoCode());
+			criteria.andTenantCodeEqualTo(voteCollection.getTenantCode());
+			criteria.andIsDeleteEqualTo(VoteConstants.NO);
+			criteria.andIsDisableEqualTo(VoteConstants.NO);
+			List<VoteInfo> list = voteInfoMapper.selectByExample(example);
+			if (list.size() > 0) {
+				collectionNum = list.get(0).getCollectionNum();
+			}
+			
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.updateCollectionStatus", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		return collectionNum;
+	}
+
+	@Override
+	public boolean updateVoteInfoStatus(VoteInfo voteInfo) throws BusinessException {
+		try {
+			VoteInfo vote = getVoteInfoByCode(voteInfo.getCode(), voteInfo.getTenantCode());
+			if (vote != null) {
+				if (vote.getSponsorCode().equals(voteInfo.getUserCode())) {
+					if (vote.getEndTime() < DateUtils.getFormatDateLong()) {
+						// 投票已经结束
+						throw BusinessException.build("VOTE_18003");
+					} else {
+						VoteInfoExample example = new VoteInfoExample();
+						VoteInfoExample.Criteria criteria = example.createCriteria();
+						// 封装条件
+						criteria.andIsDeleteEqualTo(VoteConstants.NO);
+						criteria.andIsDisableEqualTo(VoteConstants.NO);
+						criteria.andCodeEqualTo(voteInfo.getCode());
+						criteria.andTenantCodeEqualTo(voteInfo.getTenantCode());
+						
+						if (voteInfo.getModifyTime() == null) {
+							voteInfo.setModifyTime(DateUtils.getFormatDateLong());
+						}
+						if (voteInfo.getEndTime() == null) {
+							voteInfo.setEndTime(DateUtils.getFormatDateLong());
+						}
+						voteInfo.setVoteStatus(VoteConstants.STATUS_5);
+						
+						return voteInfoMapper.updateByExampleSelective(voteInfo, example) >= 0 ? true : false;
+					}
+				} else {
+					// 您不是此投票的发起人，无权终止此投票。
+					throw BusinessException.build("VOTE_18007");
+				}
+			} else {
+				// 不存在该条投票记录
+				throw BusinessException.build("VOTE_18002", "投票信息");
+			}
+		} catch(BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.updateVoteInfoStatus", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public String addComment(VoteComment voteComment) throws BusinessException {
+		try {
+			String commentCode = UUIDHelper.getUUID();
+			Long time = DateUtils.getFormatDateLong();
+			// 获取投票详情
+			VoteInfo voteInfo = getVoteInfoByCode(voteComment.getVoteInfoCode(), voteComment.getTenantCode());
+			if (null != voteInfo) {
+				Byte isEnableComment = voteInfo.getIsEnableComment();
+				/** 1、查询该投票是否有评论的权限 */
+				if (isEnableComment.equals(VoteConstants.NO)) {
+					// 该投票不允许评论
+					throw BusinessException.build("VOTE_18006");
+				} else {
+					/** 2、插入评论数据 */
+					voteComment.setCode(commentCode);
+					voteComment.setCreateTime(time);
+					voteComment.setModifyTime(time);
+					int result = voteCommentMapper.insertSelective(voteComment);
+					if (result > 0) {
+						/** 3、更新投票主信息表评论数 */
+						updateCommentNumForVoteInfo(voteComment.getVoteInfoCode(), Operator.ADD, result);
+					}
+				}
+			} else {
+				// 不存在该条投票记录
+				throw BusinessException.build("VOTE_18002", "投票信息");
+			}
+			return commentCode;
+		} catch(BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.addComment", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public String addReply(VoteCommentReply voteCommentReply) throws BusinessException {
+		try {
+			VoteInfo voteInfo = getVoteInfoByCode(voteCommentReply.getVoteInfoCode(), voteCommentReply.getTenantCode());
+			if (null != voteInfo) {
+				Byte isEnableComment = voteInfo.getIsEnableComment();
+				if (isEnableComment.equals(VoteConstants.NO)) {
+					// 该投票不允许评论
+					throw BusinessException.build("VOTE_18006");
+				}
+			} else {
+				// 不存在该条投票记录
+				throw BusinessException.build("VOTE_18002", "投票信息");
+			}
+			int result = 0;
+			String replyCode = UUIDHelper.getUUID();
+			Long time = DateUtils.getFormatDateLong();
+			/** 1、评论回复表中插入数据 */
+			voteCommentReply.setCode(replyCode);
+			voteCommentReply.setCreateTime(time);
+			voteCommentReply.setModifyTime(time);
+			result = voteCommentReplyMapper.insertSelective(voteCommentReply);
+			
+			if (result > 0) {
+				/** 2、增加评论表中的回复数 */
+				updateReplyCountForVoteComment(voteCommentReply.getVoteInfoCode(), voteCommentReply.getCommentCode(),
+						Operator.ADD, result);
+			}
+			return replyCode;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.addReply", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public PageInfo getVoteCommentList(VoteComment voteComment) throws BusinessException {
+		PageInfo pageInfo = new PageInfo();
+		try{
+			/** 1、查询投票 是否能被评论 */
+			VoteInfo voteInfo = getVoteInfoByCode(voteComment.getVoteInfoCode(),voteComment.getTenantCode());
+			if (null != voteInfo) {
+				Byte isEnableComment = voteInfo.getIsEnableComment();
+				if (isEnableComment.equals(VoteConstants.NO)) {
+					pageInfo.setList(new ArrayList<VoteComment>());
+					pageInfo.setTotalItem(0);
+					return pageInfo;
+				} else {
+					/** 2、查询总评论数 */
+					pageInfo.setTotalItem(voteInfo.getCommentNum());
+				}
+			} else {
+				// 投票信息不存在
+				throw BusinessException.build("VOTE_18002", "投票信息");
+			}
+			
+			/** 3、查询列表集合 */
+			Map<String, Object> paramMap = new HashMap<>();
+			paramMap.put("voteInfoCode", voteComment.getVoteInfoCode());
+			paramMap.put("infoType", VoteConstants.INFO_TYPE_2);// 类型：评论
+			paramMap.put("tenantCode", voteComment.getTenantCode());
+			paramMap.put("admirerCode", voteComment.getAdmirerCode());
+			paramMap.put("id", voteComment.getId());
+			paramMap.put("limitStart", 0);
+			paramMap.put("limitEnd", voteComment.getPageSize());
+			
+			List<VoteComment> commentList = voteCommentMapper.getCommentList(paramMap);
+			pageInfo.setList(commentList);
+			return pageInfo;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.getVoteCommentList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public PageInfo getVoteCommentReplyList(VoteCommentReply voteCommentReply) throws BusinessException {
+		PageInfo pageInfo = new PageInfo();
+		int surplusCount = 0;
+		try {
+			Map<String, Object> paramMap = new HashMap<>();
+			paramMap.put("voteInfoCode", voteCommentReply.getVoteInfoCode());
+			paramMap.put("commentCode", voteCommentReply.getCommentCode());
+			paramMap.put("infoType", VoteConstants.INFO_TYPE_3);
+			paramMap.put("tenantCode", voteCommentReply.getTenantCode());
+			paramMap.put("admirerCode", voteCommentReply.getAdmirerCode());
+			paramMap.put("id", voteCommentReply.getId());
+			paramMap.put("limitStart", 0);
+			paramMap.put("limitEnd", voteCommentReply.getPageSize());
+			/** 1、查询评论回复列表 */
+			List<VoteCommentReply> commentList = voteCommentReplyMapper.getCommentReplyList(paramMap);
+			if (commentList.size() > 0) {
+				paramMap.put("id", commentList.get(commentList.size() - 1).getId());
+				/** 2、查询评论回复 剩余记录数 */
+				surplusCount = voteCommentReplyMapper.getCommentReplySurplusCount(paramMap);
+			}
+
+			pageInfo.setList(commentList);
+			pageInfo.setTotalItem(surplusCount);
+			return pageInfo;
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.getVoteCommentReplyList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public int deleteVoteComment(String infoCode, String voteInfoCode, String tenantCode) throws BusinessException {
+		try {
+			/** 1、删除评论 */
+			VoteCommentExample example = new VoteCommentExample();
+			VoteCommentExample.Criteria criteria = example.createCriteria();
+			// 查询条件
+			criteria.andTenantCodeEqualTo(tenantCode);
+			criteria.andCodeEqualTo(infoCode);
+			criteria.andIsDeleteEqualTo(VoteConstants.NO);
+			criteria.andIsDisableEqualTo(VoteConstants.NO);
+
+			VoteComment comment = new VoteComment();
+			comment.setModifyTime(DateUtils.getFormatDateLong());
+			comment.setIsDelete(VoteConstants.YES);
+			int delCount = voteCommentMapper.updateByExampleSelective(comment, example);
+
+			if (delCount > 0) {
+				/** 2、 更新投票主信息表中的评论数 */
+				// 减少投票主表中的评论和回复数
+				super.updateCommentNumForVoteInfo(voteInfoCode, Operator.SUB, delCount);
+			}
+			return delCount;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.deleteVoteComment", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public void deleteVoteCommentReply(String infoCode, String userCode, String tenantCode) throws BusinessException {
+		try {
+			/** 1、查询回复信息 */
+			VoteCommentReplyExample example = new VoteCommentReplyExample();
+			VoteCommentReplyExample.Criteria criteria = example.createCriteria();
+			// 查询条件
+			criteria.andTenantCodeEqualTo(tenantCode);
+			criteria.andCodeEqualTo(infoCode);
+			criteria.andIsDeleteEqualTo(VoteConstants.NO);
+			criteria.andIsDisableEqualTo(VoteConstants.NO);
+			
+			List<VoteCommentReply> list = voteCommentReplyMapper.selectByExample(example);
+			VoteCommentReply vcr = null;
+			if (list.size() > 0) {
+				vcr = list.get(0);
+				if (!vcr.getReplierCode().equals(userCode)) {
+					// 您不是此评论或回复的发布人，无权操作。
+					throw BusinessException.build("COMMON_403");
+				}
+			} else {
+				// 回复信息不存在
+				throw BusinessException.build("VOTE_18002", "回复信息");
+			}
+			
+			/** 2、删除评论回复 */
+			VoteCommentReply commentReply = new VoteCommentReply();
+			commentReply.setModifyTime(DateUtils.getFormatDateLong());
+			commentReply.setIsDelete(VoteConstants.YES);
+			int delCount = voteCommentReplyMapper.updateByExampleSelective(commentReply, example);
+			if (delCount > 0) {
+				Map<String, Object> paramMap = new HashMap<>();
+				paramMap.put("tenantCode", tenantCode);
+				paramMap.put("modifyTime", DateUtils.getFormatDateLong());
+				paramMap.put("commentReplyCode", infoCode);
+				
+				/**3.减少评论表中的回复数 ；减少投票主表中的评论和回复数*/
+				super.updateReplyCountForVoteComment(vcr.getVoteInfoCode(), vcr.getCommentCode(), Operator.SUB, delCount);
+			}
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.deleteVoteCommentReply", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	@Override
+	public VoteInfo getVoteInfoByCode(String code, String tenantCode) throws BusinessException {
+	    VoteInfo voteInfo = null;
+		try {
+			VoteInfoExample example = new VoteInfoExample();
+			VoteInfoExample.Criteria criteria = example.createCriteria();
+			criteria.andCodeEqualTo(code);
+			criteria.andTenantCodeEqualTo(tenantCode);
+			criteria.andIsDeleteEqualTo(VoteConstants.NO);
+			criteria.andIsDisableEqualTo(VoteConstants.NO);
+			List<VoteInfo> list = voteInfoMapper.selectByExampleWithBLOBs(example);
+			if (list.size() > 0) {
+				voteInfo = list.get(0);
+			}
+			return voteInfo;
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.getVoteInfoByCode", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	@Override
+	public void deleteVote(String tenantCode, String voteInfoCode) throws BusinessException {
+		try {
+			VoteInfoExample example = new VoteInfoExample();
+			VoteInfoExample.Criteria criteria = example.createCriteria();
+			criteria.andTenantCodeEqualTo(tenantCode);
+			criteria.andCodeEqualTo(voteInfoCode);
+			criteria.andIsDeleteEqualTo(VoteConstants.NO);
+			criteria.andIsDisableEqualTo(VoteConstants.NO);
+
+			VoteInfo voteInfo = new VoteInfo();
+			voteInfo.setIsDelete(VoteConstants.YES);
+			voteInfo.setModifyTime(DateUtils.getFormatDateLong());
+			voteInfoMapper.updateByExampleSelective(voteInfo, example);
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.deleteVote", e);
+			throw BusinessException.build("COMMON_400");
+		}
+
+	}
+
+	@Override
+	public Integer updatePraiseStatus(VotePraise votePraise) throws BusinessException {
+		Integer praiseNum = 0;
+		try {
+			Long time = DateUtils.getFormatDateLong();
+			/** 1、判断是否是点赞 **/
+			if (VoteConstants.OPERAT_TYPE_1.equals(votePraise.getOperating())) {
+				String praiseCode = UUIDHelper.getUUID();
+				votePraise.setCreateTime(time);
+				votePraise.setModifyTime(time);
+				votePraise.setCode(praiseCode);
+
+				/** 1.1、新增点赞信息 **/
+				int addCount = 0;
+				try {
+					addCount = votePraiseMapper.insertSelective(votePraise);
+				} catch (org.springframework.dao.DuplicateKeyException e) {
+					// 您已%s过该信息，不可重复操作。
+					throw BusinessException.build("VOTE_18011", "点赞");
+				}
+				/** 1.2、增加相应点赞数 **/
+				if (addCount > 0) {
+					Map<String, Object> paramMap = new HashMap<>();
+					paramMap.put("tenantCode", votePraise.getTenantCode());
+					paramMap.put("code", votePraise.getInfoCode());
+					paramMap.put("modifyTime", time);
+					paramMap.put("type", "+1");
+					praiseNum = selectCommonMethodForPraise(votePraise, paramMap);
+				}
+
+			}
+			
+			/** 2、判断是否是取消点赞 **/
+			if (VoteConstants.OPERAT_TYPE_0.equals(votePraise.getOperating())) {
+				/** 2.1、删除点赞信息 **/
+				Map<String, Object> delMap = new HashMap<>();
+				//设置查询条件
+				delMap.put("admirerCode", votePraise.getAdmirerCode());//点赞人Code
+				delMap.put("infoType", votePraise.getInfoType());
+				delMap.put("infoCode", votePraise.getInfoCode());
+				delMap.put("tenantCode", votePraise.getTenantCode());
+				int delCount = votePraiseMapper.deleteVotePraise(delMap);
+				/** 2.2、减少相应点赞数 **/
+				if (delCount > 0) {
+					Map<String, Object> paramMap = new HashMap<>();
+					paramMap.put("tenantCode", votePraise.getTenantCode());
+					paramMap.put("code", votePraise.getInfoCode());
+					paramMap.put("modifyTime", time);
+					paramMap.put("type", "-1");
+					praiseNum = selectCommonMethodForPraise(votePraise, paramMap);
+				}else{
+					throw BusinessException.build("VOTE_18011", "取消点赞");
+				}
+			}
+			return praiseNum;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.updatePraiseStatus", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+	}
+	
+	
+	
+	/**
+	 * @Function commonMethodForPraise
+	 * @Description 用于点赞/取消点赞的通用方法
+	 * @param votePraise 点赞实体
+	 * @param paramMap    查询条件
+	 * @param String 最新的当前项被点赞数
+	 * @throws BusinessException
+	 */
+	public Integer selectCommonMethodForPraise(VotePraise votePraise, Map<String, Object> paramMap)
+			throws BusinessException {
+		Integer praiseNum = 0;
+		/** 1、判断是否更新投票相关点赞  **/
+		if (VoteConstants.INFO_TYPE_1.equals(votePraise.getInfoType().toString())) {
+			/** 1.1、更新投票主信息表中点赞数 **/
+			System.out.println("aaa");
+			synchronized (this) {
+				voteInfoMapper.updatePraiseCountByVI(paramMap);
+			}
+			/** 1.2、查询投票主信息表中最新的点赞数 **/
+			VoteInfoExample example = new VoteInfoExample();
+			VoteInfoExample.Criteria criteria = example.createCriteria();
+			criteria.andCodeEqualTo(votePraise.getInfoCode());
+			criteria.andTenantCodeEqualTo(votePraise.getTenantCode());
+			List<VoteInfo> list = voteInfoMapper.selectByExample(example);
+			if (null != list && list.size() > 0) {
+				praiseNum = list.get(0).getPraiseNum();
+			}
+		}
+		
+		/** 2、判断是否更新投票评论相关点赞  **/
+		if (VoteConstants.INFO_TYPE_2.equals(votePraise.getInfoType().toString())) {
+			/** 2.1、更新投票评论表中点赞数 **/
+			synchronized (this) {
+				voteCommentMapper.updatePraiseCountByComment(paramMap);
+			}
+			/** 2.2、查询评论表中最新的点赞数 **/
+			VoteCommentExample example = new VoteCommentExample();
+			VoteCommentExample.Criteria criteria = example.createCriteria();
+			criteria.andCodeEqualTo(votePraise.getInfoCode());
+			criteria.andTenantCodeEqualTo(votePraise.getTenantCode());
+			List<VoteComment> list = voteCommentMapper.selectByExample(example);
+			if (list.size() > 0) {
+				praiseNum = list.get(0).getPraiseCount();
+			}
+		}
+		
+		/** 3、判断是否更新投票评论回复相关点赞 **/
+		if (VoteConstants.INFO_TYPE_3.equals(votePraise.getInfoType().toString())) {
+			/** 3.1、更新投票评论回复表中点赞数 **/
+			synchronized (this) {
+				voteCommentReplyMapper.updatePraiseCountByReply(paramMap);
+			}
+			/** 3.2、查询最新评论回复点赞数 **/
+			VoteCommentReplyExample example = new VoteCommentReplyExample();
+			VoteCommentReplyExample.Criteria criteria = example.createCriteria();
+			criteria.andCodeEqualTo(votePraise.getInfoCode());
+			criteria.andTenantCodeEqualTo(votePraise.getTenantCode());
+			List<VoteCommentReply> list = voteCommentReplyMapper.selectByExample(example);
+			if (list.size() > 0) {
+				praiseNum = list.get(0).getPraiseCount();
+			}
+		}
+		return praiseNum;
+	}
+
+	@Override
+	public VoteComment getCommentByCode(String code,String tenantCode) throws BusinessException {
+		VoteComment record = null;
+		try {
+			VoteCommentExample example = new VoteCommentExample();
+			VoteCommentExample.Criteria criteria = example.createCriteria();
+			
+			criteria.andTenantCodeEqualTo(tenantCode);
+			criteria.andCodeEqualTo(code);
+			criteria.andIsDeleteEqualTo(VoteConstants.NO);
+			criteria.andIsDisableEqualTo(VoteConstants.NO);
+			
+			List<VoteComment> list = voteCommentMapper.selectByExampleWithBLOBs(example);
+			if (list.size() > 0) {
+				record = list.get(0);
+			}
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.getCommentByCode", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		return record;
+	}
+
+	@Override
+	public VoteCommentReply getCommentReplyByCode(String tenantCode, String code) throws BusinessException {
+		VoteCommentReply record = null;
+		try {
+			VoteCommentReplyExample example = new VoteCommentReplyExample();
+			VoteCommentReplyExample.Criteria criteria = example.createCriteria();
+			
+			criteria.andTenantCodeEqualTo(tenantCode);
+			criteria.andCodeEqualTo(code);
+			criteria.andIsDeleteEqualTo(VoteConstants.NO);
+			criteria.andIsDisableEqualTo(VoteConstants.NO);
+			
+			List<VoteCommentReply> list = voteCommentReplyMapper.selectByExampleWithBLOBs(example);
+			if (list.size() > 0) {
+				record = list.get(0);
+			}
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.getCommentReplyByCode", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		return record;
+	}
+
+	@Override
+	public void updateIncreaseShareNumByCode(String code, int count) throws BusinessException {
+		try {
+			super.updateShareNumForVoteInfo(code, Operator.ADD, count);
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.updateIncreaseShareNumByCode", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public VoteComment selectCommentInfo(String commentCode) throws BusinessException {
+		
+		try {
+			VoteComment comment = new VoteComment();
+			
+			VoteCommentExample example = new VoteCommentExample();
+			VoteCommentExample.Criteria criteria = example.createCriteria();
+			
+			criteria.andCodeEqualTo(commentCode);
+			criteria.andIsDeleteEqualTo(VoteConstants.NO);
+			criteria.andIsDisableEqualTo(VoteConstants.NO);
+			
+			List<VoteComment> list = voteCommentMapper.selectByExampleWithBLOBs(example);
+			if (list.size() > 0) {
+				comment = list.get(0);
+			}
+			return comment;
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.selectCommentInfo", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public VoteCommentReply selectReply(String replyCode) throws BusinessException {
+		try {
+			VoteCommentReply reply = new VoteCommentReply();
+			
+			VoteCommentReplyExample example = new VoteCommentReplyExample();
+			VoteCommentReplyExample.Criteria criteria = example.createCriteria();
+			
+			criteria.andCodeEqualTo(replyCode);
+			criteria.andIsDeleteEqualTo(VoteConstants.NO);
+			criteria.andIsDisableEqualTo(VoteConstants.NO);
+			
+			List<VoteCommentReply> list = voteCommentReplyMapper.selectByExampleWithBLOBs(example);
+			if(list.size()>0){
+				reply = list.get(0);
+			}
+			
+			return reply;
+		} catch (Exception e) {
+			log.error("VoteServiceImpl.selectReply", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	
+	@Override
+	public List<VoteInfo> getMyCollectionList(VoteCollection voteCollection) throws BusinessException {
+		List<VoteInfo> collectionList = null;
+		try{
+			Map<String,Object> paramMap = new HashMap<>();
+			paramMap.put("id", voteCollection.getId());
+			paramMap.put("userCode", voteCollection.getCollectorCode());
+			paramMap.put("pageSize", voteCollection.getPageSize());
+			paramMap.put("tenantCode", voteCollection.getTenantCode());
+			collectionList = voteCollectionMapper.selectCollectionList(paramMap);
+			return collectionList;
+		}catch(Exception e){
+			log.error("VoteServiceImpl.getMyCollectionList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+	}
+
+}

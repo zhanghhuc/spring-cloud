@@ -1,0 +1,136 @@
+package com.zssq.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.constants.ActivityConstants;
+import com.zssq.dao.mapper.ActivityHistoryMapper;
+import com.zssq.dao.mapper.ActivityInfoMapper;
+import com.zssq.dao.pojo.ActivityHistory;
+import com.zssq.dao.pojo.ActivityInfo;
+import com.zssq.dao.pojo.ActivityInfoExample;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.service.CommonService;
+import com.zssq.service.IActivityTimeTaskService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.DateUtils;
+
+@Service("activityTimeTaskService")
+public class ActivityTimeTaskServiceImpl implements IActivityTimeTaskService {
+	
+	@Autowired
+	private ActivityInfoMapper activityInfoMapper;
+	@Autowired
+	private ActivityHistoryMapper activityHistoryMapper;
+
+	@Override
+	public void updateActivityStatusTiming() throws BusinessException {
+		ActivityInfoExample example = new ActivityInfoExample();
+		ActivityInfoExample.Criteria criteria = example.createCriteria();
+		//查询条件
+		criteria.andIsDisableEqualTo(ActivityConstants.NO);// 是否禁用(0-否  1-是)
+		criteria.andIsDeleteEqualTo(ActivityConstants.NO);// 是否删除(0-否  1-是)
+		List<Byte> statusList = new ArrayList<Byte>();
+		statusList.add(ActivityConstants.ADOPT);
+		statusList.add(ActivityConstants.PREHEAT);
+		statusList.add(ActivityConstants.HAVE_IN_HAND);
+		statusList.add(ActivityConstants.END);
+		criteria.andActivityStatusIn(statusList);
+		//查询数据
+		List<ActivityInfo> activityList = activityInfoMapper.selectByExample(example);
+		//当前时间
+		Long now = DateUtils.getFormatDateLong();
+		//操作数据列表
+		List<ActivityInfo> preheatList = new ArrayList<ActivityInfo>();//预热列表
+		List<ActivityInfo> haveInHandList = new ArrayList<ActivityInfo>();//进行中列表
+		List<ActivityInfo> endList = new ArrayList<ActivityInfo>();//结束列表
+		List<ActivityInfo> offlineList = new ArrayList<ActivityInfo>();//下线列表
+		ActivityInfo updateActivity = new ActivityInfo();
+		updateActivity.setModifyTime(now);
+		updateActivity.setLastOperationTime(now);
+		updateActivity.setLastOperationUserCode(ActivityConstants.TIME_TASK_USER_CODE);
+		for(ActivityInfo activity : activityList){
+			if(ActivityConstants.ADOPT.equals(activity.getActivityStatus())){//审核通过的数据
+				//预热时间小于当前时间并且开始时间大于当前时间
+				if(activity.getPreheatTime() != null && activity.getPreheatTime() < now && activity.getStartTime() > now){
+					preheatList.add(activity);
+				} else if(activity.getStartTime() < now){//开始时间小于当前时间
+					haveInHandList.add(activity);
+				}
+			} else if(ActivityConstants.PREHEAT.equals(activity.getActivityStatus())){//预热中
+				if(activity.getStartTime() < now){//开始时间小于当前时间
+					haveInHandList.add(activity);
+				}
+			} else if(ActivityConstants.HAVE_IN_HAND.equals(activity.getActivityStatus())){//进行中
+				if(activity.getEndTime() < now){//结束时间小于当前时间
+					endList.add(activity);
+				}
+			} else if(ActivityConstants.END.equals(activity.getActivityStatus())){//已经结束
+				if(activity.getOfflineTime() < now){//下线时间小于当前时间
+					offlineList.add(activity);
+				}
+			}
+		}
+		updateActivity.setActivityStatus(ActivityConstants.PREHEAT);
+		updateActivityStatus(updateActivity, preheatList);
+		updateActivity.setActivityStatus(ActivityConstants.HAVE_IN_HAND);
+		updateActivityStatus(updateActivity, haveInHandList);
+		updateActivity.setActivityStatus(ActivityConstants.END);
+		updateActivityStatus(updateActivity, endList);
+		updateActivity.setActivityStatus(ActivityConstants.OFFLINE);
+		updateActivityStatus(updateActivity, offlineList);
+	}
+
+	/**
+	 * 
+	 * @Title: updateActivityStatus
+	 * @Description: 更新活动状态并记录历程
+	 * @param info
+	 * @param list
+	 */
+	private void updateActivityStatus(ActivityInfo info, List<ActivityInfo> list){
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("status", info.getActivityStatus());
+		map.put("modifyTime", info.getModifyTime());
+		map.put("lastOperationTime", info.getLastOperationTime());
+		map.put("lastOperationUserCode", info.getLastOperationUserCode());
+		map.put("codeList", list);
+		if(list.size() > 0){
+			activityInfoMapper.updateActivityListStatus(map);
+			List<ActivityHistory> historyList = new ArrayList<ActivityHistory>();
+			Long time = DateUtils.getFormatDateLong();
+			String operation = "";
+			//判断历程说明
+			if(ActivityConstants.PREHEAT.equals(info.getActivityStatus())){
+				operation = CommonService.map.get("preheat");
+			} else if(ActivityConstants.HAVE_IN_HAND.equals(info.getActivityStatus())){
+				operation = CommonService.map.get("begin");
+			} else if(ActivityConstants.END.equals(info.getActivityStatus())){
+				operation = CommonService.map.get("end");
+			} else if(ActivityConstants.OFFLINE.equals(info.getActivityStatus())){
+				operation = CommonService.map.get("normaloffline");
+			}
+			for(ActivityInfo activity : list){
+				ActivityHistory history = new ActivityHistory();
+				history.setCode(UUIDHelper.getUUID());
+				history.setIsDisable(ActivityConstants.NO);
+				history.setIsDelete(ActivityConstants.NO);
+				history.setTenantCode(activity.getTenantCode());
+				history.setOrgCode(activity.getOrgCode());
+				history.setCreateTime(time);
+				history.setModifyTime(time);
+				history.setActivityCode(activity.getCode());
+				history.setOperationUserCode(ActivityConstants.TIME_TASK_USER_CODE);
+				history.setOperationUserName(ActivityConstants.TIME_TASK_USER_CODE);
+				history.setOperation(operation);
+				historyList.add(history);
+			}
+			activityHistoryMapper.insertHistoryList(historyList);
+		}
+	}
+}

@@ -1,0 +1,675 @@
+package com.zssq.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.constants.RelationConstants;
+import com.zssq.dao.mapper.RelationDynamicMapper;
+import com.zssq.dao.mapper.RelationQualityMapper;
+import com.zssq.dao.mapper.RelationRecommendMapper;
+import com.zssq.dao.pojo.RelationDynamic;
+import com.zssq.dao.pojo.RelationQuality;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.model.RelationQualityModel;
+import com.zssq.service.RelationQualityService;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.vo.RelationQualityVO;
+import com.zssq.vo.RelationRecVO;
+
+/**
+ * 
+ * @ClassName: RelationQualityServiceImpl  
+ * @Description: 精华  
+ * @author ZKZ  
+ * @date 2017年3月18日  
+ *
+ */
+@Service("relationQualityService")
+public class RelationQualityServiceImpl implements RelationQualityService {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private RelationQualityMapper relationQualityMapper;
+	@Autowired
+	private RelationRecommendMapper relationRecommendMapper;
+	@Autowired
+	private RelationDynamicMapper relationDynamicMapper;
+	
+	/**
+	 * 查询个人精华列表
+	 */
+	@Override
+	public PageBean getUserQualityPageBean(PageParam pageParam, RelationQualityVO relationQualityVO)
+			throws BusinessException {
+		//返回值
+		PageBean pageBean = null;
+		
+		try {
+			// 参数校验
+			if (pageParam == null || relationQualityVO == null) {
+				log.error("RelationQualityServiceImpl.getUserQualityPageBean：参数为空");
+				throw BusinessException.build("COMMON_402","参数");
+			}
+			
+			// 获取参数
+			Integer pageSize = pageParam.getPageSize(); // 每页记录数
+			Integer pageNo = pageParam.getPageNo(); // 当前页数
+			String qualityUserCode = relationQualityVO.getQualityUserCode(); // 精华所属人员编号
+			String userCode = relationQualityVO.getUserCode(); // 人员编号
+			Long queryTime = relationQualityVO.getQueryTime(); // 首次查询时间
+			
+			// 参数校验
+			if (pageSize == null || pageNo == null) {
+				log.error("relationQualityService.getUserQualityPageBean：分页信息为空");
+				throw BusinessException.build("COMMON_402","分页信息");
+			}
+			if (queryTime == null) {
+				log.error("relationQualityService.getUserQualityPageBean：queryTime为空");
+				throw BusinessException.build("COMMON_402","queryTime");
+			}
+			if (StringUtils.isBlank(userCode)) {
+				log.error("relationQualityService.getUserQualityPageBean：userCode为空");
+				throw BusinessException.build("COMMON_402","userCode");
+			}
+			if (StringUtils.isBlank(qualityUserCode)) {
+				log.error("relationQualityService.getUserQualityPageBean：qualityUserCode为空");
+				throw BusinessException.build("COMMON_402","qualityUserCode");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("limitStart", pageNo*pageSize); // 查询开始条数
+			paramMap.put("limitCount", pageSize); // 查询结果条数
+			paramMap.put("queryTime", queryTime); // 首次查询时间
+			paramMap.put("userCode", userCode); // 用户编号
+			paramMap.put("qualityUserCode", qualityUserCode); // 精华所属人员编号
+			
+			// 查询列表总数
+			int count = relationQualityMapper.selectUserQualityCount(paramMap);
+			
+			// 查询列表内容
+			List<RelationQualityModel> qualityList = relationQualityMapper.selectUserQualityList(paramMap);
+			
+			// 返回值
+			pageBean= new PageBean(pageNo, pageSize, count, qualityList);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return pageBean;
+	}
+	
+	/**
+	 * 获取班组精华列表
+	 */
+	@Override
+	public PageBean getTeamQualityList(PageParam pageParam, RelationQualityVO relationQualityVO)
+			throws BusinessException {
+		// 返回值
+		PageBean pageBean = null;
+		
+		try {
+			// 参数校验
+			if (pageParam == null || relationQualityVO == null) {
+				log.error("RelationQualityServiceImpl.getTeamQualityList：参数为空");
+				throw BusinessException.build("COMMON_402","参数");
+			}
+			
+			// 获取参数
+			Integer pageSize = pageParam.getPageSize(); // 每页记录数
+			Integer pageNo = pageParam.getPageNo(); // 当前页数
+			String teamCode = relationQualityVO.getTeamCode(); // 班组编号
+			String userCode = relationQualityVO.getUserCode(); // 人员编号
+			Long queryTime = relationQualityVO.getQueryTime(); // 首次查询时间
+			
+			// 参数校验
+			if (pageSize == null || pageNo == null) {
+				log.error("relationQualityService.getTeamQualityList：分页信息为空");
+				throw BusinessException.build("COMMON_402","分页信息");
+			}
+			if (queryTime == null) {
+				log.error("relationQualityService.getTeamQualityList：queryTime为空");
+				throw BusinessException.build("COMMON_402","queryTime");
+			}
+			if (StringUtils.isBlank(teamCode)) {
+				log.error("relationQualityService.getTeamQualityList:TeamCode为空");
+				throw BusinessException.build("COMMON_402","TeamCode");
+			}
+			if (StringUtils.isBlank(userCode)) {
+				log.error("relationQualityService.getTeamQualityList：userCode为空");
+				throw BusinessException.build("COMMON_402","userCode");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("limitStart", pageParam.getPageNo() * pageParam.getPageSize()); // 查询开始条数
+			paramMap.put("limitCount", pageParam.getPageSize()); // 查询结果条数
+			paramMap.put("queryTime", relationQualityVO.getQueryTime()); // 首次查询时间
+			paramMap.put("teamCode", relationQualityVO.getTeamCode()); // 班组编号
+			paramMap.put("userCode", relationQualityVO.getUserCode()); // 人员编号
+			
+			// 查询列表总数
+			int count = relationQualityMapper.selectTeamQualityCount(paramMap);
+			
+			// 查询列表内容
+			List<RelationQualityModel> qualityList = relationQualityMapper.selectTeamQualityList(paramMap);
+			
+			// 返回值
+			pageBean = new PageBean(pageNo, pageSize, count, qualityList);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return pageBean;
+	}
+	
+	/**
+	 * 获取门户精华列表
+	 */
+	@Override
+	public PageBean getPortalQualityList(PageParam pageParam, RelationQualityVO relationQualityVO)
+			throws BusinessException {
+		// 返回值
+		PageBean pageBean = null;
+		
+		try {
+			// 参数校验
+			if (pageParam == null || relationQualityVO == null) {
+				log.error("RelationQualityServiceImpl.getPortalQualityList：参数为空");
+				throw BusinessException.build("COMMON_402","参数");
+			}
+			
+			// 获取参数
+			Integer pageSize = pageParam.getPageSize(); // 每页记录数
+			Integer pageNo = pageParam.getPageNo(); // 当前页数
+			String orgCode = relationQualityVO.getOrgCode(); // 门户编号
+			String userCode = relationQualityVO.getUserCode(); // 人员编号
+			Byte subjectClass = relationQualityVO.getSubjectClass(); // 内容类型
+			Long queryTime = relationQualityVO.getQueryTime(); // 首次查询时间
+			
+			// 参数校验
+			if (pageSize == null || pageNo == null) {
+				log.error("relationQualityService.getPortalQualityList：分页信息为空");
+				throw BusinessException.build("COMMON_402","分页信息");
+			}
+			if (queryTime == null) {
+				log.error("relationQualityService.getPortalQualityList：queryTime为空");
+				throw BusinessException.build("COMMON_402","queryTime");
+			}
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("relationQualityService.getPortalQualityList:orgCode为空");
+				throw BusinessException.build("COMMON_402","orgCode");
+			}
+			if (StringUtils.isBlank(userCode)) {
+				log.error("relationQualityService.getPortalQualityList：userCode为空");
+				throw BusinessException.build("COMMON_402","userCode");
+			}
+			if (subjectClass != null && !RelationConstants.RELATION_QUALITY_SUBJECT_BLOG.equals(subjectClass)
+					&& !RelationConstants.RELATION_QUALITY_SUBJECT_MBLOG.equals(subjectClass)) {
+				log.error("relationQualityService.getPortalQualityList：subjectClass错误");
+				throw BusinessException.build("COMMON_402","subjectClass");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("limitStart", pageNo*pageSize); // 查询开始条数
+			paramMap.put("limitCount", pageSize); // 查询结果条数
+			paramMap.put("queryTime", queryTime); // 首次查询时间
+			paramMap.put("orgCode", orgCode); // 门户编号
+			paramMap.put("userCode", userCode); // 人员编号
+			paramMap.put("subjectClass", subjectClass); // 内容类型
+			
+			// 查询列表总数
+			int count = relationQualityMapper.selectPortalQualityCount(paramMap);
+			
+			// 查询列表内容
+			List<RelationQualityModel> qualityList = relationQualityMapper.selectPortalQualityList(paramMap);
+			
+			// 返回值
+			pageBean= new PageBean(pageNo, pageSize, count, qualityList);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return pageBean;
+	}
+
+	/**
+	 * 查询门户首页展示精华列表
+	 */
+	@Override
+	public List<RelationQualityModel> getPortalFrontQualityList(RelationQualityVO relationQualityVO)
+			throws BusinessException {
+		// 返回值
+		List<RelationQualityModel> qualityList = null;
+		
+		try {
+			// 参数校验
+			if (relationQualityVO == null) {
+				log.error("relationQualityService.getPortalFrontQualityList：参数为空");
+				throw BusinessException.build("COMMON_402","参数");
+			}
+			
+			// 获取参数
+			Integer showSize = relationQualityVO.getShowSize(); // 显示条数
+			String orgCode = relationQualityVO.getOrgCode(); // 门户编号
+			
+			// 参数校验
+			if (showSize == null) {
+				log.error("relationQualityService.getPortalQualityList：showSize为空");
+				throw BusinessException.build("COMMON_402","showSize");
+			}
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("relationQualityService.getPortalQualityList:orgCode为空");
+				throw BusinessException.build("COMMON_402","orgCode");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("showSize", showSize); // 显示条数
+			paramMap.put("orgCode", orgCode); // 门户编号
+			
+			// 查询列表
+			qualityList= relationQualityMapper.selectPortalFrontQualityList(paramMap);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return qualityList;
+	}
+	
+	/**
+	 * 判断是否已被置精
+	 */
+	/*@Override
+	public boolean getQualityStatus(RelationQualityVO relationQualityVO) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationQualityVO == null) {
+				log.error("RelationQualityServiceImpl.getQualityStatus：getQualityStatus为空");
+				throw BusinessException.build("COMMON_402","getQualityStatus");
+			}
+			
+			// 获取参数
+			String subjectCode = relationQualityVO.getSubjectCode(); // 内容编号
+			String orgCode = relationQualityVO.getOrgCode(); // 组织编号
+			
+			// 参数校验
+			if (StringUtils.isBlank(subjectCode)) {
+				log.error("relationQualityService.getQualityStatus：subjectCode为空");
+				throw BusinessException.build("COMMON_402","subjectCode");
+			}
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("relationQualityService.getQualityStatus：orgCode为空");
+				throw BusinessException.build("COMMON_402","orgCode");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("subjectCode", subjectCode);
+			paramMap.put("orgCode", orgCode);
+			
+			// 获取推荐数量
+			int recNum = relationQualityMapper.getQualityStatus(paramMap);
+			if (recNum > 0) {
+				return true;
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return false;
+	}*/
+	
+	/**
+	 * 获取精华信息
+	 */
+	@Override
+	public RelationQuality getQualityInfo(RelationQualityVO relationQualityVO) throws BusinessException  {
+		// 返回值
+		RelationQuality relationQuality = null;
+		try {
+			// 参数校验
+			if (relationQualityVO == null) {
+				log.error("RelationQualityServiceImpl.getQualityInfo：getQualityStatus为空");
+				throw BusinessException.build("COMMON_402","getQualityStatus");
+			}
+			
+			// 获取参数
+			String qualityCode = relationQualityVO.getQualityCode(); // 精华编号
+			
+			// 参数校验
+			if (StringUtils.isBlank(qualityCode)) {
+				log.error("relationQualityService.getQualityInfo：qualityCode为空");
+				throw BusinessException.build("COMMON_402","qualityCode");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("qualityCode", qualityCode);
+			
+			// 获取精华信息
+			relationQuality = relationQualityMapper.getQualityInfo(paramMap);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return relationQuality;
+	}
+	
+	/**
+	 * 置精（门户）
+	 */
+	@Override
+	public boolean saveQuality(RelationRecVO relationRecVO, RelationQuality relationQuality,
+			RelationDynamic relationDynamic) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationRecVO == null || relationQuality == null || relationDynamic == null) {
+				log.error("relationQualityService.saveQuality：参数为空");
+				throw BusinessException.build("COMMON_402","参数");
+			}
+			
+			// 获取参数
+			String recCode = relationRecVO.getRecCode(); // 推荐编号
+			
+			// 参数校验
+			if (StringUtils.isBlank(recCode)) {
+				log.error("relationQualityService.saveQuality：recCode为空");
+				throw BusinessException.build("COMMON_402","recCode");
+			}
+			
+			// 修改推荐状态
+			Map<String, Object> recMap = new HashMap<String, Object>();
+			recMap.put("recCode", recCode); // 推荐编号
+			recMap.put("orgCode", relationQuality.getOrgCode()); // 组织编号
+			recMap.put("recStatus", RelationConstants.RELATION_REC_STATUS_SHOW); // 推荐状态
+			recMap.put("recQualityTime", relationQuality.getCreateTime()); // 置精时间
+			recMap.put("qualityCode", relationQuality.getQualityCode()); // 精华编号
+			recMap.put("modifyTime", relationQuality.getCreateTime()); // 修改时间
+			int updateRecNum = relationRecommendMapper.updateStatus(recMap);
+			if (updateRecNum != 1) {
+				log.error("relationQualityService.saveQuality：修改" + updateRecNum + "条推荐信息 ");
+				return false;
+			}
+			
+			// 保存精华信息
+			int insertQualityNum = relationQualityMapper.insert(relationQuality);
+			if (insertQualityNum != 1) {
+				log.error("relationQualityService.saveQuality：插入" + insertQualityNum + "条精华信息 ");
+				throw BusinessException.build("BLOG_13002", "操作");
+			}
+			
+			// 修改精华排序
+			Map<String, Object> qualityMap = new HashMap<String, Object>();
+			qualityMap.put("qualityCode", relationQuality.getQualityCode()); // 精华编号
+			qualityMap.put("orgCode", relationQuality.getOrgCode()); // 组织编号
+			qualityMap.put("modifyTime", relationQuality.getCreateTime()); // 修改时间
+			int updateSortNum = relationQualityMapper.updateMaxSortNum(qualityMap);
+			if (updateSortNum != 1) {
+				log.error("relationQualityService.saveQuality：修改" + updateSortNum + "条精华排序信息 ");
+				throw BusinessException.build("BLOG_13002", "操作");
+			}
+			
+			// 保存动态信息
+			int insertDynamicNum = relationDynamicMapper.insert(relationDynamic);
+			if (insertDynamicNum != 1) {
+				log.error("relationQualityService.saveQuality：插入" + insertDynamicNum + "条动态信息 ");
+				throw BusinessException.build("BLOG_13002", "操作");
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+
+		return true;
+	}
+	
+	/**
+	 * 取消置精（门户）
+	 */
+	@Override
+	public boolean deleteQuality(RelationQualityVO relationQualityVO) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationQualityVO == null) {
+				log.error("relationQualityService.deleteQuality：relationQualityVO为空");
+				throw BusinessException.build("COMMON_402","relationQualityVO");
+			}
+			
+			// 获取参数
+			String recCode = relationQualityVO.getRecCode(); // 推荐编号
+			String qualityCode = relationQualityVO.getQualityCode(); // 精华编号
+			String orgCode = relationQualityVO.getOrgCode(); // 组织编号
+			
+			// 参数校验
+			if (StringUtils.isBlank(recCode)) {
+				log.error("relationQualityService.deleteQuality：recCode为空");
+				throw BusinessException.build("COMMON_402","recCode");
+			}
+			if (StringUtils.isBlank(qualityCode)) {
+				log.error("relationQualityService.deleteQuality：qualityCode为空");
+				throw BusinessException.build("COMMON_402","qualityCode");
+			}
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("relationQualityService.deleteQuality：orgCode为空");
+				throw BusinessException.build("COMMON_402","recCode");
+			}
+			
+			// 删除精华信息
+			Map<String, Object> qualityMap = new HashMap<String, Object>();
+			qualityMap.put("qualityCode", qualityCode);
+			qualityMap.put("orgCode", orgCode);
+			int deleteQualityNum = relationQualityMapper.deletePortalQuality(qualityMap);
+			if (deleteQualityNum != 1) {
+				log.error("relationQualityService.deleteQuality：删除" + deleteQualityNum + "条精华信息 ");
+				return false;
+			}
+			
+			// 修改推荐状态
+			Map<String, Object> recMap = new HashMap<String, Object>();
+			recMap.put("recCode", recCode); // 推荐编号
+			recMap.put("orgCode", orgCode); // 组织编号
+			recMap.put("recStatus", RelationConstants.RELATION_REC_STATUS_CANCEL); // 推荐状态
+			recMap.put("recQualityTime", 0); // 置精时间
+			recMap.put("qualityCode", ""); // 精华编号
+			recMap.put("modifyTime", relationQualityVO.getModifyTime()); // 修改时间
+			int updateRecNum = relationRecommendMapper.updateStatus(recMap);
+			if (updateRecNum != 1) {
+				log.error("relationQualityService.saveQuality：修改" + updateRecNum + "条推荐信息 ");
+				return false;
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * 修改精华置顶状态
+	 */
+	@Override
+	public boolean updateQualityTop(RelationQualityVO relationQualityVO) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationQualityVO == null) {
+				log.error("relationQualityService.updateQualityTop：relationQualityVO为空");
+				throw BusinessException.build("COMMON_402","relationQualityVO");
+			}
+
+			// 获取参数
+			String qualityCode = relationQualityVO.getQualityCode(); // 精华编号
+			Byte actionClass = relationQualityVO.getActionClass(); // 操作类型
+			String orgCode = relationQualityVO.getOrgCode(); // 组织编号
+			
+			// 参数校验
+			if (StringUtils.isBlank(qualityCode)) {
+				log.error("relationQualityService.updateQualityTop：qualityCode为空");
+				throw BusinessException.build("COMMON_402","qualityCode");
+			}
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("relationQualityService.updateQualityTop：orgCode为空");
+				throw BusinessException.build("COMMON_402","orgCode");
+			}
+			
+			if(RelationConstants.RELATION_ACTION_YES.equals(actionClass)) {
+				/* 置顶操作 */
+				// 拼接参数
+				Map<String, Object> paramMap = new HashMap<String, Object>();
+				paramMap.put("qualityCode", qualityCode);
+				paramMap.put("orgCode", orgCode);
+				paramMap.put("qualityIsTop", RelationConstants.RELATION_YES);
+				paramMap.put("modifyTime", relationQualityVO.getModifyTime());
+				paramMap.put("qualityTopTime", relationQualityVO.getModifyTime());
+				
+				// 置顶
+				int updateNum = relationQualityMapper.updateQualityTop(paramMap);
+				if (updateNum != 1) {
+					log.error("relationQualityService.updateQualityTop：修改" + updateNum + "条精华信息 ");
+					return false;
+				}
+			} else if(RelationConstants.RELATION_ACTION_NO.equals(actionClass)) {
+				/* 取消置顶操作 */
+				// 拼接参数
+				Map<String, Object> paramMap = new HashMap<String, Object>();
+				paramMap.put("qualityCode", qualityCode);
+				paramMap.put("orgCode", orgCode);
+				paramMap.put("qualityIsTop", RelationConstants.RELATION_NO);
+				paramMap.put("modifyTime", relationQualityVO.getModifyTime());
+				paramMap.put("qualityTopTime", relationQualityVO.getModifyTime());
+				
+				// 取消置顶
+				int updateNum = relationQualityMapper.updateQualityTop(paramMap);
+				if (updateNum != 1) {
+					log.error("relationQualityService.updateQualityTop：修改" + updateNum + "条精华信息 ");
+					return false;
+				}
+			} else {
+				log.error("relationQualityService.updateQualityTop：actionClass错误");
+				throw BusinessException.build("COMMON_402","actionClass");
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+
+	/**
+	 * 精华排序
+	 */
+	@Override
+	public boolean updateQualitySeq(RelationQualityVO relationQualityVO) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationQualityVO == null) {
+				log.error("relationQualityService.updateQualitySeq：参数为空");
+				throw BusinessException.build("COMMON_402","参数");
+			}
+			
+			// 获取参数
+			String qualityCode = relationQualityVO.getQualityCode(); // 精华编号
+			String orgCode = relationQualityVO.getOrgCode(); // 组织编号
+			Integer qualitySeqNum = relationQualityVO.getQualitySeqNum(); // 排序值
+			Byte actionClass = relationQualityVO.getActionClass(); // 操作类型
+			Long queryTime = relationQualityVO.getQueryTime(); // 首次查询时间
+			Long modifyTime = relationQualityVO.getModifyTime(); // 修改时间
+			
+			String subjectTitle = relationQualityVO.getSubjectTitle(); // 标题
+			Byte subjectClass = relationQualityVO.getSubjectClass(); // 应用类型
+			Long beginTime = relationQualityVO.getBeginTime(); // 推荐开始时间
+			Long endTime = relationQualityVO.getEndTime(); // 推荐结束时间
+			
+			// 参数校验
+			if (StringUtils.isBlank(qualityCode)) {
+				log.error("relationQualityService.updateQualitySeq：qualityCode为空");
+				throw BusinessException.build("COMMON_402","qualityCode");
+			}
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("relationQualityService.updateQualitySeq：orgCode为空");
+				throw BusinessException.build("COMMON_402","orgCode");
+			}
+			if (qualitySeqNum == null || qualitySeqNum <= 0) {
+				log.error("relationQualityService.updateQualitySeq：qualitySeqNum错误");
+				throw BusinessException.build("COMMON_402","qualitySeqNum");
+			}
+			if (!RelationConstants.RELATION_ACTION_YES.equals(actionClass)
+					&& !RelationConstants.RELATION_ACTION_NO.equals(actionClass)) {
+				log.error("relationQualityService.updateQualitySeq：actionClass错误");
+				throw BusinessException.build("COMMON_402", "actionClass");
+			}
+			if (queryTime == null || queryTime <= 0) {
+				log.error("relationQualityService.updateQualitySeq：queryTime为空");
+				throw BusinessException.build("COMMON_402","queryTime");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("qualitySeqNum", qualitySeqNum); // 排序值
+			paramMap.put("queryTime", queryTime); // 首次查询时间
+			paramMap.put("orgCode", orgCode); // 组织编号
+			paramMap.put("actionClass", actionClass); // 操作类型
+			paramMap.put("subjectTitle", subjectTitle); // 标题
+			paramMap.put("subjectClass", subjectClass); // 应用类型
+			paramMap.put("beginTime", beginTime); // 推荐开始时间
+			paramMap.put("endTime", endTime); // 推荐结束时间
+			
+			// 获取受影响精华信息
+			RelationQuality relationQuality = relationQualityMapper.getAffectedQuality(paramMap);
+			if (relationQuality == null) {
+				log.error("relationQualityService.updateQualitySeq：获取受影响精华信息失败");
+				throw BusinessException.build("BLOG_13002","操作");
+			}
+			
+			// 判断是否还能移动
+			if (StringUtils.isBlank(relationQuality.getQualityCode())) {
+				if(RelationConstants.RELATION_ACTION_YES.equals(actionClass)){
+					// 已经上移到最顶部
+					log.error("relationQualityService.updateQualitySeq：已经上移到最顶部");
+					throw BusinessException.build("RELATION_19202");
+				}else if(RelationConstants.RELATION_ACTION_NO.equals(actionClass)){
+					// 已经下移到最底部
+					log.error("relationQualityService.updateQualitySeq：已经下移到最底部");
+					throw BusinessException.build("RELATION_19203");
+				}
+			}
+			
+			// 修改原精华排序
+			Map<String, Object> originalMap = new HashMap<String, Object>();
+			originalMap.put("qualityCode", qualityCode); // 精华编号
+			originalMap.put("orgCode", orgCode); // 组织编号
+			originalMap.put("qualitySeqNum", relationQuality.getQualitySeqNum()); // 排序值
+			originalMap.put("modifyTime", modifyTime); // 修改时间
+			int updateOriginalFlag = relationQualityMapper.updateQualitySeq(originalMap);
+			if (updateOriginalFlag != 1) {
+				log.error("relationQualityService.updateQualitySeq：修改" + updateOriginalFlag + "条精华信息 ");
+				throw BusinessException.build("BLOG_13002","操作");
+			}
+			
+			// 修改受影响精华排序
+			Map<String, Object> affectedMap = new HashMap<String, Object>();
+			affectedMap.put("qualityCode", relationQuality.getQualityCode()); // 精华编号
+			affectedMap.put("orgCode", orgCode); // 组织编号
+			affectedMap.put("qualitySeqNum", qualitySeqNum); // 排序值
+			affectedMap.put("modifyTime", modifyTime); // 修改时间
+			int updateAffectedFlag = relationQualityMapper.updateQualitySeq(affectedMap);
+			if (updateAffectedFlag != 1) {
+				log.error("relationQualityService.updateQualitySeq：修改" + updateAffectedFlag + "条精华信息 ");
+				throw BusinessException.build("BLOG_13002","操作");
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+
+}

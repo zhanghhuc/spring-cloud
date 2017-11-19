@@ -1,0 +1,914 @@
+package com.zssq.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.stereotype.Service;
+
+import com.zssq.constants.HonorConstants;
+import com.zssq.dao.mapper.HonorAwardRecordMapper;
+import com.zssq.dao.mapper.HonorCommentMapper;
+import com.zssq.dao.mapper.HonorCommentReplyMapper;
+import com.zssq.dao.mapper.HonorDefinitionMapper;
+import com.zssq.dao.mapper.HonorPraiseMapper;
+import com.zssq.dao.pojo.HonorAwardRecord;
+import com.zssq.dao.pojo.HonorAwardRecordExample;
+import com.zssq.dao.pojo.HonorComment;
+import com.zssq.dao.pojo.HonorCommentExample;
+import com.zssq.dao.pojo.HonorCommentReply;
+import com.zssq.dao.pojo.HonorCommentReplyExample;
+import com.zssq.dao.pojo.HonorDefinition;
+import com.zssq.dao.pojo.HonorDefinitionExample;
+import com.zssq.dao.pojo.HonorPraise;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.service.HonorService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.DateUtils;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.utils.StringTools;
+
+/**
+ * @ClassName HonorServiceImpl
+ * @Description 荣誉管理模块实现
+ * @author LiuYunLong
+ * @date 2017年3月17日 下午4:28:54
+ * @version 1.0
+ * @since JDK 1.7
+ */
+@Service("honorService")
+public class HonorServiceImpl implements HonorService{
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private HonorDefinitionMapper honorDefinitionMapper;
+	
+	@Autowired
+	private HonorAwardRecordMapper honorAwardRecordMapper;
+	
+	@Autowired
+	private HonorCommentMapper honorCommentMapper;
+	
+	@Autowired
+	private HonorCommentReplyMapper honorCommentReplyMapper;
+	
+	@Autowired
+	private HonorPraiseMapper honorPraiseMapper;
+	
+	@Override
+	public PageBean getHonorList(PageParam pageParam,HonorDefinition honorDefinition) throws BusinessException {
+		
+		PageBean pageBean = new PageBean();
+		List<HonorDefinition> list = new ArrayList<>();
+		try{
+			HonorDefinitionExample example = new HonorDefinitionExample();
+			HonorDefinitionExample.Criteria criteria = example.createCriteria();
+			// 是否禁用(0-否  1-是)
+			criteria.andIsDisableEqualTo(HonorConstants.NO);
+			// 是否删除(0-否  1-是)
+			criteria.andIsDeleteEqualTo(HonorConstants.NO);
+			//设置租户信息 及用户组织机构
+			criteria.andTenantCodeEqualTo(honorDefinition.getTenantCode());
+			criteria.andOrgCodeEqualTo(honorDefinition.getOrgCode());
+			//封装查询条件
+			if (StringTools.isNotEmpty(honorDefinition.getHonorName())) {
+				criteria.andHonorNameEqualTo(honorDefinition.getHonorName());
+			}
+			if(null != honorDefinition.getHonorType()){
+				criteria.andHonorTypeEqualTo(honorDefinition.getHonorType());
+			}
+			example.setOrderByClause("create_time desc");
+			//查询总记录数
+			int count = honorDefinitionMapper.countByExample(example);
+			if(count > 0){
+				example.setLimitStart(pageParam.getPageNo() * pageParam.getPageSize());
+				example.setLimitEnd(pageParam.getPageSize());
+				//查询列表
+				list = honorDefinitionMapper.selectByExample(example);
+			}
+			pageBean.setTotalCount(count);
+			pageBean.setRecordList(list);
+			return pageBean;
+		} catch (Exception e) {
+			log.error("HonorServiceImpl.getHonorList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+	}
+
+	@Override
+	public void updateHonor(HonorDefinition honorDefinition) throws BusinessException {
+		
+		try{
+			HonorDefinitionExample example = new HonorDefinitionExample();
+			HonorDefinitionExample.Criteria criteria = example.createCriteria();
+			//查询条件
+			criteria.andHonorDefinitionCodeEqualTo(honorDefinition.getHonorDefinitionCode());
+			// 是否禁用(0-否  1-是)
+			criteria.andIsDisableEqualTo(HonorConstants.NO);
+			// 是否删除(0-否  1-是)
+			criteria.andIsDeleteEqualTo(HonorConstants.NO);
+			//设置租户信息 
+			criteria.andTenantCodeEqualTo(honorDefinition.getTenantCode());
+			criteria.andOrgCodeEqualTo(honorDefinition.getOrgCode());
+			//更新条件
+			honorDefinition.setModifyTime(DateUtils.getFormatDateLong());
+			honorDefinitionMapper.updateByExampleSelective(honorDefinition, example);
+		} catch (Exception e) {
+			log.error("HonorServiceImpl.updateHonor", e);
+			throw BusinessException.build("COMMON_400");
+		}
+
+	}
+
+	@Override
+	public String addHonor(HonorDefinition honorDefinition) throws BusinessException {
+		try {
+			String honorCode = UUIDHelper.getUUID();
+			honorDefinition.setHonorDefinitionCode(honorCode);
+			honorDefinition.setCreateTime(DateUtils.getFormatDateLong());
+			honorDefinition.setModifyTime(DateUtils.getFormatDateLong());
+			honorDefinitionMapper.insertSelective(honorDefinition);
+			return honorCode;
+		} catch (Exception e) {
+			log.error("HonorServiceImpl.addHonor", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public List<String> addAwardingHonor(HonorAwardRecord honorAwardRecord) throws BusinessException {
+		
+		List<HonorAwardRecord> awardList = new ArrayList<>();
+		List<String> awardCodeList = new ArrayList<>();
+		try {
+			String honoreeCodes = honorAwardRecord.getHonoreeCode();
+			String[] codes = honoreeCodes.split("\\|");
+			for (int i = 0; i < codes.length; i++) {
+				HonorAwardRecord ha = new HonorAwardRecord();
+				//设置领奖对象code
+				String honorAwardRecordCode = UUIDHelper.getUUID();
+				ha.setHonorAwardRecordCode(honorAwardRecordCode);
+				ha.setTenantCode(honorAwardRecord.getTenantCode());
+				ha.setOrgCode(honorAwardRecord.getOrgCode());
+				ha.setOrgLevel(honorAwardRecord.getOrgLevel());
+				ha.setCreateTime(DateUtils.getFormatDateLong());
+				ha.setModifyTime(DateUtils.getFormatDateLong());
+				ha.setRemark(honorAwardRecord.getRemark());
+				ha.setHonorCode(honorAwardRecord.getHonorCode());
+				ha.setHonorName(honorAwardRecord.getHonorName());
+				ha.setHonorUrl(honorAwardRecord.getHonorUrl());
+				ha.setAgentCode(honorAwardRecord.getAgentCode());
+				ha.setAwarderCode(honorAwardRecord.getAwarderCode());
+				ha.setAwarderName(honorAwardRecord.getAwarderName());
+				ha.setAwarderPosition(honorAwardRecord.getAwarderPosition());
+				ha.setHonoreeType(honorAwardRecord.getHonoreeType());
+				ha.setHonoreeCode(codes[i]); 
+				ha.setAwardReason(honorAwardRecord.getAwardReason());
+				//用于数据库批量插入
+				awardList.add(ha);
+				awardCodeList.add(honorAwardRecordCode);
+			}
+			Map<String,Object> paramMap = new HashMap<>();
+			paramMap.put("awardList", awardList);
+			//执行批量插入
+			honorAwardRecordMapper.batchInsert(paramMap);
+			return awardCodeList;
+		} catch (Exception e) {
+			log.error("HonorServiceImpl.addAwardingHonor", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+	}
+
+	@Override
+	public PageBean getAwardRecordList(PageParam pageParam, HonorAwardRecord honorAwardRecord)
+			throws BusinessException {
+		
+		PageBean pageBean = new PageBean();
+		List<HonorAwardRecord> list = new ArrayList<>();
+		try{
+			HonorAwardRecordExample example = new HonorAwardRecordExample();
+			HonorAwardRecordExample.Criteria criteria = example.createCriteria();
+			//设置查询条件
+			criteria.andTenantCodeEqualTo(honorAwardRecord.getTenantCode());
+			if(StringTools.isNotEmpty(honorAwardRecord.getAgentCode())){
+				criteria.andAgentCodeEqualTo(honorAwardRecord.getAgentCode());
+			}
+			criteria.andIsDeleteEqualTo(HonorConstants.NO);
+			criteria.andIsDisableEqualTo(HonorConstants.NO);
+			criteria.andAwarderCodeEqualTo(honorAwardRecord.getAwarderCode());
+			criteria.andOrgCodeEqualTo(honorAwardRecord.getOrgCode());
+			if(null != honorAwardRecord.getIsRevoked()){
+				criteria.andIsRevokedEqualTo(honorAwardRecord.getIsRevoked());
+			}
+			int honorCount = honorAwardRecordMapper.countByExample(example);
+			if (honorCount > 0) {
+				example.setLimitStart(pageParam.getPageNo() * pageParam.getPageSize());
+				example.setLimitEnd(pageParam.getPageSize());
+				// 查询列表信息
+				list = honorAwardRecordMapper.selectByExample(example);
+			}
+			pageBean.setTotalCount(honorCount);
+			pageBean.setRecordList(list);
+			return pageBean;
+		}catch(Exception e){
+			log.error("HonorServiceImpl.getAwardRecordList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+	}
+
+	@Override
+	public boolean updateAwardStatus(String awardCode,String tenantCode,String userCode) throws BusinessException {
+		try {
+			boolean flag = false;
+			HonorAwardRecord awardRecord = getAwardHonorRecordInfoByCode(awardCode,tenantCode);
+			if (null != awardRecord) {
+				// 是领导
+				if (awardRecord.getAwarderCode().equals(userCode)) {
+					flag = true;
+				} else {
+					//不是领导  并且代发人为空 
+					if (StringTools.isEmpty(awardRecord.getAgentCode())) {
+						flag = false;
+					} else {
+						//不是领导 是代发人
+						if (userCode.equals(awardRecord.getAgentCode())) {
+							flag = true;
+						// 不是领导 不是代发人
+						} else {
+							flag = false;
+						}
+					}
+				}
+			} else {
+				throw BusinessException.build("HONOR_21002", "荣誉授予记录");
+			}
+				
+			//如果有权限  则可执行撤销
+			if (flag) {
+				HonorAwardRecordExample example = new HonorAwardRecordExample();
+				HonorAwardRecordExample.Criteria criteria = example.createCriteria();
+				//设置查询条件
+				criteria.andHonorAwardRecordCodeEqualTo(awardCode);
+				// 是否禁用(0-否  1-是)
+				criteria.andIsDisableEqualTo(HonorConstants.NO);
+				// 是否删除(0-否  1-是)
+				criteria.andIsDeleteEqualTo(HonorConstants.NO);
+				//设置租户信息 
+				criteria.andTenantCodeEqualTo(tenantCode);
+				//设置更新实体
+				HonorAwardRecord honorAwardRecord = new HonorAwardRecord();
+				honorAwardRecord.setIsRevoked(HonorConstants.YES);
+				Long time = DateUtils.getFormatDateLong();
+				honorAwardRecord.setModifyTime(time);
+				honorAwardRecord.setRevokedTime(time);
+				return honorAwardRecordMapper.updateByExampleSelective(honorAwardRecord, example) > 0 ? true : false;
+			} else {
+				throw BusinessException.build("COMMON_403");
+			}
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("HonorServiceImpl.updateAwardStatus", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public PageBean getAwardWall(PageParam pageParam, HonorAwardRecord honorAwardRecord) throws BusinessException {
+		PageBean pageBean = new PageBean();
+		List<HonorAwardRecord> list = new ArrayList<>();
+		try {
+			Map<String,Object> paramMap = new HashMap<>();
+			paramMap.put("tenantCode", honorAwardRecord.getTenantCode());
+			paramMap.put("admierCode", honorAwardRecord.getAdmirerCode());
+			paramMap.put("honoreeCode", honorAwardRecord.getHonoreeCode());
+			paramMap.put("infoType", HonorConstants.INFO_TYPE_1);
+			paramMap.put("isRevoked",HonorConstants.NO);
+			//查询荣誉总数
+			int honorCount = honorAwardRecordMapper.selectHonorCountForWall(paramMap);
+			if(honorCount > 0){
+				//查询列表信息
+				paramMap.put("limitStart", pageParam.getPageNo() * pageParam.getPageSize());
+				paramMap.put("limitEnd", pageParam.getPageSize());
+				list = honorAwardRecordMapper.selectHonorlistForWall(paramMap);
+			}
+			pageBean.setTotalCount(honorCount);
+			pageBean.setRecordList(list);
+			return pageBean;
+		} catch (Exception e) {
+			log.error("HonorServiceImpl.getAwardWall", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	
+
+	@Override
+	public int updatePraiseStatus(HonorPraise honorPraise) throws BusinessException {
+		int praiseCount = 0;
+		try{
+			Long time = DateUtils.getFormatDateLong();
+			/** 1、判断是否是点赞 **/
+			if(HonorConstants.OPERAT_TYPE_1.equals(honorPraise.getOperating())){
+				String praiseCode = UUIDHelper.getUUID();
+				honorPraise.setCreateTime(time);
+				honorPraise.setModifyTime(time);
+				honorPraise.setHonorPraiseCode(praiseCode);
+				/** 1.1、新增点赞信息**/
+				int addCount = honorPraiseMapper.insertSelective(honorPraise);
+				/** 1.2、增加相应点赞数**/
+				if(addCount > 0){
+					Map<String,Object> paramMap = new HashMap<>();
+					paramMap.put("modifyTime", time);
+					paramMap.put("type", "+1");
+					paramMap.put("tenantCode", honorPraise.getTenantCode());
+					praiseCount = selectCommonMethodForPraise(honorPraise,paramMap);
+				}
+				
+			}
+			
+			/** 2、判断是否是取消点赞 **/
+			if(HonorConstants.OPERAT_TYPE_0.equals(honorPraise.getOperating())){
+				/** 2.1、删除点赞信息 **/
+				Map<String,Object> delMap = new HashMap<>();
+				//设置查询条件
+				delMap.put("admirerCode", honorPraise.getAdmirerCode());//点赞人Code
+				delMap.put("infoType", honorPraise.getInfoType());
+				delMap.put("infoCode", honorPraise.getInfoCode());
+				delMap.put("tenantCode", honorPraise.getTenantCode());
+				int delCount = honorPraiseMapper.deleteHonorPraise(delMap);
+				/** 2.2、减少相应点赞数 **/
+				if(delCount > 0){
+					Map<String,Object> paramMap = new HashMap<>();
+					paramMap.put("modifyTime", time);
+					paramMap.put("type", "-1");
+					paramMap.put("tenantCode", honorPraise.getTenantCode());
+					praiseCount = selectCommonMethodForPraise(honorPraise,paramMap);
+				}
+			}
+			return praiseCount;
+		} catch (DuplicateKeyException e) {
+			log.error("HonorServiceImpl.updatePraiseStatus --> 对同一个对象重复点赞", e);
+			throw BusinessException.build("HONOR_21003");
+		} catch (Exception e) {
+			log.error("HonorServiceImpl.updatePraiseStatus", e);
+			throw BusinessException.build("COMMON_400");
+		}
+		
+	}
+	
+	@Override
+	public PageBean getCommentList(HonorComment honorComment) throws BusinessException {
+		PageBean pageBean = new PageBean();
+		List<HonorComment> list = new ArrayList<>();
+		try {
+			Map<String,Object> paramMap = new HashMap<>();
+			paramMap.put("tenantCode", honorComment.getTenantCode());
+			paramMap.put("admierCode", honorComment.getAdmirerCode());
+			paramMap.put("awardRecordCode", honorComment.getAwardRecordCode());
+			paramMap.put("infoType", HonorConstants.INFO_TYPE_2);
+			paramMap.put("id", honorComment.getId());
+			
+			//查询列表信息
+			paramMap.put("limitStart", 0);
+			paramMap.put("limitEnd", Integer.valueOf(honorComment.getPageSize()));
+			list = honorCommentMapper.selectCommentList(paramMap);
+			
+			//查询总的评论数
+			Integer commontCount = honorCommentMapper.selectCommentCount(paramMap);
+			pageBean.setRecordList(list);
+			pageBean.setTotalCount(commontCount);
+			return pageBean;
+		} catch (Exception e) {
+			log.error("HonorServiceImpl.getCommentList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	@Override
+	public PageBean getCommentReplyList(HonorCommentReply honorCommentReply)throws BusinessException {
+		
+		PageBean pageBean = new PageBean();	
+		List<HonorCommentReply> list = new ArrayList<>();
+		int surplusCount = 0;
+		try {
+			Map<String,Object> paramMap = new HashMap<>();
+			paramMap.put("tenantCode", honorCommentReply.getTenantCode());
+			paramMap.put("admierCode", honorCommentReply.getAdmirerCode());
+			paramMap.put("awardRecordCode", honorCommentReply.getAwardRecordCode());
+			paramMap.put("awardCommentCode", honorCommentReply.getAwardCommentCode());
+			paramMap.put("infoType", HonorConstants.INFO_TYPE_3);
+			paramMap.put("id", honorCommentReply.getId());
+			//查询列表信息
+			paramMap.put("limitStart", 0);
+			paramMap.put("limitEnd", Integer.valueOf(honorCommentReply.getPageSize()));
+			list = honorCommentReplyMapper.selectCommentReplyList(paramMap);
+			if(list.size() > 0){
+				paramMap.put("id", list.get(list.size() -1).getId());
+				surplusCount = honorCommentReplyMapper.selectCommentReplyCount(paramMap);
+			}
+			pageBean.setTotalCount(surplusCount);
+			pageBean.setRecordList(list);
+			return pageBean;
+		} catch (Exception e) {
+			log.error("HonorServiceImpl.getCommentReplyList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	
+	@Override
+	public String addComment(HonorComment honorComment) throws BusinessException {
+		try {
+			String commentCode = UUIDHelper.getUUID();
+			Long time = DateUtils.getFormatDateLong();
+			honorComment.setCreateTime(time);
+			honorComment.setModifyTime(time);
+			honorComment.setHonorAwardCommentCode(commentCode);
+			/** 1、向荣誉评论表中添加一条信息  */
+			honorCommentMapper.insertSelective(honorComment);
+			
+			/** 2、更新荣誉授予记录表中评论数  */
+			Map<String,Object> paramMap = new HashMap<>();
+			paramMap.put("tenantCode", honorComment.getTenantCode());
+			paramMap.put("honorAwardRecordCode", honorComment.getAwardRecordCode());
+			paramMap.put("modifyTime", time);
+			honorAwardRecordMapper.updateIncreaseCommentCount(paramMap);
+			return commentCode;
+		} catch (Exception e) {
+			log.error("HonorServiceImpl.addComment", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+
+	@Override
+	public String addCommentReply(HonorCommentReply honorCommentReply) throws BusinessException {
+
+		try {
+			/** 1、向评论回复表中插入一条数据 **/
+			String replyCode = UUIDHelper.getUUID();
+			Long time = DateUtils.getFormatDateLong();
+			honorCommentReply.setHonorCommentReplyCode(replyCode);
+			honorCommentReply.setCreateTime(time);
+			honorCommentReply.setModifyTime(time);
+			honorCommentReplyMapper.insertSelective(honorCommentReply);
+			
+			/** 2、更新荣誉评论表中回复数 **/
+			Map<String,Object> paramMap = new HashMap<>();
+			paramMap.put("tenantCode", honorCommentReply.getTenantCode());
+			paramMap.put("honorAwardCommentCode", honorCommentReply.getAwardCommentCode());
+			paramMap.put("modifyTime", time);
+			honorCommentMapper.updateIncreaseReplyCount(paramMap);
+			return replyCode;
+		} catch (Exception e) {
+			log.error("HonorServiceImpl.addCommentReply", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public void deleteComment(HonorComment honorComment) throws BusinessException {
+		try {
+			/** 1、查询荣誉评论信息 **/
+			HonorCommentExample exampleGet = new HonorCommentExample();
+			HonorCommentExample.Criteria criteriaGet = exampleGet.createCriteria();
+			criteriaGet.andHonorAwardCommentCodeEqualTo(honorComment.getHonorAwardCommentCode());
+			criteriaGet.andIsDeleteEqualTo(HonorConstants.NO);
+			criteriaGet.andIsDisableEqualTo(HonorConstants.NO);
+			criteriaGet.andTenantCodeEqualTo(honorComment.getTenantCode());
+			List<HonorComment> commentList = honorCommentMapper.selectByExampleWithBLOBs(exampleGet);
+			if(commentList.size() > 0){
+				HonorComment hc = commentList.get(0);
+				if(!hc.getCommenterCode().equals(honorComment.getCommenterCode())){
+					//您不是此评论或回复的发布人，无权操作
+					throw BusinessException.build("HONOR_21004");
+				}
+			}else{
+				throw BusinessException.build("HONOR_21002", "评论信息");
+			}
+			/** 2、删除荣誉评论记录表中数据 **/
+			Long time = DateUtils.getFormatDateLong();
+			HonorCommentExample example = new HonorCommentExample();
+			HonorCommentExample.Criteria criteria = example.createCriteria();
+			//设置查询条件 校验待删除评论是否被该作者删除
+			criteria.andHonorAwardCommentCodeEqualTo(honorComment.getHonorAwardCommentCode());
+			criteria.andCommenterCodeEqualTo(honorComment.getCommenterCode());
+			criteria.andIsDeleteEqualTo(HonorConstants.NO);
+			criteria.andIsDisableEqualTo(HonorConstants.NO);
+			criteria.andTenantCodeEqualTo(honorComment.getTenantCode());
+			HonorComment comment = new HonorComment();
+			comment.setIsDelete(HonorConstants.YES);
+			comment.setModifyTime(time);
+			int delCount = honorCommentMapper.updateByExampleSelective(comment, example);
+			
+			if(delCount > 0){
+				Map<String,Object> paramMap = new HashMap<>();
+				paramMap.put("tenantCode", honorComment.getTenantCode());
+				paramMap.put("modifyTime", time);
+				paramMap.put("honorAwardCommentCode", honorComment.getHonorAwardCommentCode());
+				paramMap.put("decreaseCount", 1);
+				/** 3、减少荣誉记录表中的下评论数 **/
+				honorAwardRecordMapper.updateDecreaseCommentCountByComment(paramMap);
+			}
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("HonorServiceImpl.deleteComment", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public void deleteCommentReply(HonorCommentReply honorCommentReply) throws BusinessException {
+		try {
+
+			/** 1、查询荣誉评论信息 **/
+			HonorCommentReplyExample exampleGet = new HonorCommentReplyExample();
+			HonorCommentReplyExample.Criteria criteriaGet = exampleGet.createCriteria();
+			criteriaGet.andHonorCommentReplyCodeEqualTo(honorCommentReply.getHonorCommentReplyCode());
+			criteriaGet.andIsDeleteEqualTo(HonorConstants.NO);
+			criteriaGet.andIsDisableEqualTo(HonorConstants.NO);
+			criteriaGet.andTenantCodeEqualTo(honorCommentReply.getTenantCode());
+			List<HonorCommentReply> replyList = honorCommentReplyMapper.selectByExampleWithBLOBs(exampleGet);
+			if(replyList.size() > 0){
+				HonorCommentReply hcr = replyList.get(0);
+				if(!hcr.getReplierCode().equals(honorCommentReply.getReplierCode())){
+					//您不是此评论或回复的发布人，无权操作
+					throw BusinessException.build("HONOR_21004");
+				}
+			}else{
+				throw BusinessException.build("HONOR_21002", "回复信息");
+			}
+			/** 2、删除荣誉评论回复表中数据 **/
+			Long time = DateUtils.getFormatDateLong();
+			HonorCommentReplyExample example = new HonorCommentReplyExample();
+			HonorCommentReplyExample.Criteria criteria = example.createCriteria();
+			//设置查询条件 校验待删除评论回复是否被该作者删除
+			criteria.andHonorCommentReplyCodeEqualTo(honorCommentReply.getHonorCommentReplyCode());
+			criteria.andReplierCodeEqualTo(honorCommentReply.getReplierCode());
+			criteria.andTenantCodeEqualTo(honorCommentReply.getTenantCode());
+			HonorCommentReply commentReply = new HonorCommentReply();
+			commentReply.setIsDelete(HonorConstants.YES);
+			commentReply.setModifyTime(time);
+			int delCount = honorCommentReplyMapper.updateByExampleSelective(commentReply, example);
+			
+			if(delCount > 0){
+				Map<String,Object> paramMap = new HashMap<>();
+				paramMap.put("tenantCode", honorCommentReply.getTenantCode());
+				paramMap.put("modifyTime", time);
+				paramMap.put("honorCommentReplyCode", honorCommentReply.getHonorCommentReplyCode());
+				/** 3、减少荣誉评论表中回复数 **/
+				honorCommentMapper.updateDecreaseReplyCount(paramMap);
+			}
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("HonorServiceImpl.deleteCommentReply", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	@Override
+	public PageBean getCommentListForLocation(HonorComment honorComment) throws BusinessException {
+		PageBean pageBean = new PageBean();
+		List<HonorComment> list = new ArrayList<>();
+		try {
+			Map<String,Object> paramMap = new HashMap<>();
+			paramMap.put("tenantCode", honorComment.getTenantCode());
+			paramMap.put("admierCode", honorComment.getAdmirerCode());
+			paramMap.put("awardRecordCode", honorComment.getAwardRecordCode());
+			paramMap.put("honorAwardCommentCode", honorComment.getHonorAwardCommentCode());
+			paramMap.put("infoType", HonorConstants.INFO_TYPE_2);
+			paramMap.put("id", honorComment.getId());
+			
+			//查询列表信息
+			paramMap.put("limitStart", 0);
+			paramMap.put("limitEnd", Integer.valueOf(honorComment.getPageSize()));
+			list = honorCommentMapper.selectCommentListForLocation(paramMap);
+			pageBean.setRecordList(list);
+			return pageBean;
+		} catch (Exception e) {
+			log.error("HonorServiceImpl.getCommentListForLocation", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public PageBean getCommentReplyListForLocation(HonorCommentReply honorCommentReply) throws BusinessException {
+		PageBean pageBean = new PageBean();	
+		List<HonorCommentReply> list = new ArrayList<>();
+		int surplusCount = 0;
+		try {
+			Map<String,Object> paramMap = new HashMap<>();
+			paramMap.put("tenantCode", honorCommentReply.getTenantCode());
+			paramMap.put("admierCode", honorCommentReply.getAdmirerCode());
+			paramMap.put("awardRecordCode", honorCommentReply.getAwardRecordCode());
+			paramMap.put("awardCommentCode", honorCommentReply.getAwardCommentCode());
+			paramMap.put("honorCommentReplyCode", honorCommentReply.getHonorCommentReplyCode());
+			paramMap.put("infoType", HonorConstants.INFO_TYPE_3);
+			paramMap.put("id", honorCommentReply.getId());
+			//查询列表信息
+			paramMap.put("limitStart", 0);
+			paramMap.put("limitEnd", Integer.valueOf(honorCommentReply.getPageSize()));
+			list = honorCommentReplyMapper.selectCommentReplyListForLocation(paramMap);
+			if(list.size() > 0){
+				paramMap.put("id", list.get(list.size() -1).getId());
+				surplusCount = honorCommentReplyMapper.selectCommentReplyCountForLocation(paramMap);
+			}
+			pageBean.setTotalCount(surplusCount);
+			pageBean.setRecordList(list);
+			return pageBean;
+		} catch (Exception e) {
+			log.error("HonorServiceImpl.getCommentReplyListForLocation", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	
+	@Override
+	public HonorAwardRecord getAwardRecordDetail(HonorAwardRecord honorAwardRecord) throws BusinessException {
+		try {
+			Map<String, Object> paramMap = new HashMap<>();
+			paramMap.put("awardCode", honorAwardRecord.getHonorAwardRecordCode());
+			paramMap.put("admirerCode", honorAwardRecord.getAdmirerCode());
+			paramMap.put("tenantCode", honorAwardRecord.getTenantCode());
+			return honorAwardRecordMapper.getAwardRecordDetail(paramMap);
+		} catch (Exception e) {
+			log.error("HonorServiceImpl.getAwardRecordDetail", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	@Override
+	public void deleteAwardRecord(String tenantCode, String code) throws BusinessException {
+		try {
+			HonorAwardRecordExample example = new HonorAwardRecordExample();
+			HonorAwardRecordExample.Criteria criteria = example.createCriteria();
+			criteria.andTenantCodeEqualTo(tenantCode);
+			criteria.andHonorAwardRecordCodeEqualTo(code);
+			criteria.andIsDeleteEqualTo(HonorConstants.NO);
+			criteria.andIsDisableEqualTo(HonorConstants.NO);
+			HonorAwardRecord honorAwardRecord = new HonorAwardRecord();
+			honorAwardRecord.setIsDelete(HonorConstants.YES);
+			honorAwardRecord.setModifyTime(DateUtils.getFormatDateLong());
+			honorAwardRecordMapper.updateByExampleSelective(honorAwardRecord, example);
+		} catch (Exception e) {
+			log.error("HonorServiceImpl.deleteAwardRecord", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	@Override
+	public HonorAwardRecord getAwardHonorRecordInfoByCode(String code, String tenantCode) throws BusinessException {
+		HonorAwardRecord honorAwardRecord = null;
+		try {
+			HonorAwardRecordExample example = new HonorAwardRecordExample();
+			HonorAwardRecordExample.Criteria criteria = example.createCriteria();
+			criteria.andTenantCodeEqualTo(tenantCode);
+			criteria.andHonorAwardRecordCodeEqualTo(code);
+			criteria.andIsDeleteEqualTo(HonorConstants.NO);
+			criteria.andIsDisableEqualTo(HonorConstants.NO);
+			List<HonorAwardRecord> list = honorAwardRecordMapper.selectByExample(example);
+			if (list.size() > 0) {
+				honorAwardRecord = list.get(0);
+			}
+			return honorAwardRecord;
+		} catch (Exception e) {
+			log.error("HonorServiceImpl.getAwardHonorRecordInfoByCode", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+
+	
+	
+	/**
+	 * @Function commonMethodForPraise
+	 * @Description 用于点赞/取消点赞的通用方法
+	 * @param honorPraise 点赞实体
+	 * @param paramMap    查询条件
+	 * @param String 最新的当前项被点赞数
+	 * @throws BusinessException
+	 */
+	public int selectCommonMethodForPraise(HonorPraise honorPraise,Map<String,Object> paramMap) throws BusinessException{
+		int praiseCount = 0;
+		/** 1、判断是否更新荣誉相关点赞  **/
+		if(HonorConstants.INFO_TYPE_1.equals(honorPraise.getInfoType())){
+			/** 1.1、更新荣誉授予记录表中点赞数  **/
+			paramMap.put("honorAwardRecordCode", honorPraise.getInfoCode());
+			honorAwardRecordMapper.updatePraiseCountByHR(paramMap);
+			/** 1.2、查询荣誉授予记录表中最新的点赞数  **/
+			HonorAwardRecordExample example = new HonorAwardRecordExample();
+			HonorAwardRecordExample.Criteria criteria = example.createCriteria();
+			criteria.andHonorAwardRecordCodeEqualTo(honorPraise.getInfoCode());
+			criteria.andTenantCodeEqualTo((String)paramMap.get("tenantCode"));
+			List<HonorAwardRecord> list = honorAwardRecordMapper.selectByExample(example);
+			if(list.size() > 0){
+				praiseCount = list.get(0).getPraiseCount();
+			}
+		}
+		
+		/** 2、判断是否更新荣誉评论相关点赞  **/
+		if(HonorConstants.INFO_TYPE_2.equals(honorPraise.getInfoType())){
+			/** 2.1、更新荣誉评论表中点赞数 **/
+			paramMap.put("honorAwardCommentCode", honorPraise.getInfoCode());
+			honorCommentMapper.updatePraiseCountByComment(paramMap);
+			/** 2.2、查询评论表中最新的点赞数 **/ 
+			HonorCommentExample example = new HonorCommentExample();
+			HonorCommentExample.Criteria criteria = example.createCriteria();
+			criteria.andHonorAwardCommentCodeEqualTo(honorPraise.getInfoCode());
+			criteria.andTenantCodeEqualTo((String)paramMap.get("tenantCode"));
+			List<HonorComment> list = honorCommentMapper.selectByExampleWithBLOBs(example);
+			if(list.size() > 0){
+				praiseCount = list.get(0).getPraiseCount();
+			}
+				
+		}
+		
+		/** 3、判断是否更新荣誉评论回复相关点赞  **/
+		if(HonorConstants.INFO_TYPE_3.equals(honorPraise.getInfoType())){
+			paramMap.put("honorCommentReplyCode", honorPraise.getInfoCode());
+			/** 3.1、更新荣誉评论回复表中点赞数 **/
+			honorCommentReplyMapper .updatePraiseCountByReply(paramMap);
+			/** 3.2、查询评论回复表中最新的点赞数 **/
+			HonorCommentReplyExample example = new HonorCommentReplyExample();
+			HonorCommentReplyExample.Criteria criteria = example.createCriteria();
+			criteria.andHonorCommentReplyCodeEqualTo(honorPraise.getInfoCode());
+			criteria.andTenantCodeEqualTo((String)paramMap.get("tenantCode"));
+			List<HonorCommentReply> list = honorCommentReplyMapper.selectByExampleWithBLOBs(example);
+			if(list.size() > 0){
+				praiseCount = list.get(0).getPraiseCount();
+			}
+		}
+		return praiseCount;
+	}
+	
+	@Override
+	public HonorDefinition getHonorInfo(HonorDefinition honorDefinition) throws BusinessException {
+		HonorDefinition hd = null;
+		try{
+			HonorDefinitionExample example = new HonorDefinitionExample();
+			HonorDefinitionExample.Criteria criteria = example.createCriteria();
+			//查询条件
+			criteria.andHonorDefinitionCodeEqualTo(honorDefinition.getHonorDefinitionCode());
+			// 是否禁用(0-否  1-是)
+			criteria.andIsDisableEqualTo(HonorConstants.NO);
+			// 是否删除(0-否  1-是)
+			criteria.andIsDeleteEqualTo(HonorConstants.NO);
+			//设置租户信息 
+			criteria.andTenantCodeEqualTo(honorDefinition.getTenantCode());
+			//更新条件
+			List<HonorDefinition> list = honorDefinitionMapper.selectByExample(example);
+			
+			if(null != list && list.size() > 0 ){
+				hd = list.get(0);
+			}
+			return hd;
+		} catch (Exception e) {
+			log.error("HonorServiceImpl.getHonorInfo", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	@Override
+	public HonorComment getCommentInfo(String commentCode, String tenantCode) throws BusinessException {
+		HonorComment honorCommentInfo = null;
+		try{
+			HonorCommentExample example = new HonorCommentExample();
+			HonorCommentExample.Criteria criteria = example.createCriteria();
+			
+			criteria.andHonorAwardCommentCodeEqualTo(commentCode);
+			criteria.andTenantCodeEqualTo(tenantCode);
+			criteria.andIsDeleteEqualTo(HonorConstants.NO);
+			criteria.andIsDisableEqualTo(HonorConstants.NO);
+			
+			List<HonorComment> list = honorCommentMapper.selectByExampleWithBLOBs(example);
+			if(null != list && list.size() > 0){
+				honorCommentInfo = list.get(0);
+			}
+			return honorCommentInfo;
+		} catch (Exception e) {
+			log.error("HonorServiceImpl.getCommentInfo", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public HonorCommentReply getCommentReplyInfo(String replyCode, String tenantCode) throws BusinessException {
+		HonorCommentReply commentReplyInfo = null;
+		try{
+			HonorCommentReplyExample example = new HonorCommentReplyExample();
+			HonorCommentReplyExample.Criteria criteria = example.createCriteria();
+			
+			criteria.andHonorCommentReplyCodeEqualTo(replyCode);
+			criteria.andTenantCodeEqualTo(tenantCode);
+			criteria.andIsDeleteEqualTo(HonorConstants.NO);
+			criteria.andIsDisableEqualTo(HonorConstants.NO);
+			
+			List<HonorCommentReply> list = honorCommentReplyMapper.selectByExampleWithBLOBs(example);
+			if(null != list && list.size() > 0){
+				commentReplyInfo = list.get(0);
+			}
+			return commentReplyInfo;
+		} catch (Exception e) {
+			log.error("HonorServiceImpl.getCommentReplyInfo", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	
+	
+
+	@Override
+	public List<HonorAwardRecord> getAwardWallForH5(HonorAwardRecord honorAwardRecord) throws BusinessException {
+		
+		try{
+			Map<String,Object> paramMap = new HashMap<>();
+			paramMap.put("tenantCode", honorAwardRecord.getTenantCode());
+			paramMap.put("admierCode", honorAwardRecord.getAdmirerCode());
+			paramMap.put("honoreeCode", honorAwardRecord.getHonoreeCode());
+			paramMap.put("infoType", HonorConstants.INFO_TYPE_1);
+			paramMap.put("isRevoked",HonorConstants.NO);
+			paramMap.put("id", honorAwardRecord.getId());
+			paramMap.put("pageSize", honorAwardRecord.getPageSize());
+			return honorAwardRecordMapper.selectHonorlistForH5Wall(paramMap);
+		}catch(Exception e){
+			log.error("HonorServiceImpl.getAwardWallForH5", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	
+
+
+	
+	
+	
+	/*=============================================================================================================== */
+	@Override
+	public PageBean getCommentListWithPage(PageParam pageParam, HonorComment honorComment) throws BusinessException {
+		PageBean pageBean = new PageBean();
+		List<HonorComment> list = new ArrayList<>();
+		try{
+			Map<String,Object> paramMap = new HashMap<>();
+			paramMap.put("admierCode", honorComment.getAdmirerCode());
+			paramMap.put("awardRecordCode", honorComment.getAwardRecordCode());
+			paramMap.put("infoType", "2");
+			
+			int commentCount = honorCommentMapper.selectCommentCountWithPage(paramMap);
+			pageBean.setTotalCount(commentCount);
+			if(commentCount > 0){
+				//查询列表信息
+				paramMap.put("limitStart", pageParam.getPageNo() * pageParam.getPageSize());
+				paramMap.put("limitEnd", pageParam.getPageSize());
+				list = honorCommentMapper.selectCommentListWithPage(paramMap);
+			}
+			pageBean.setRecordList(list);
+			return pageBean;
+		}catch(Exception e){
+			throw BusinessException.build("COMMON_400");
+		}
+		
+	}
+	
+	@Override
+	public PageBean getCommentReplyListWithPage(PageParam pageParam, HonorCommentReply honorCommentReply)
+			throws BusinessException {
+		PageBean pageBean = new PageBean();
+		List<HonorCommentReply> list = new ArrayList<>();
+		try{
+			Map<String,Object> paramMap = new HashMap<>();
+			paramMap.put("admierCode", honorCommentReply.getAdmirerCode());
+			paramMap.put("awardRecordCode", honorCommentReply.getAwardRecordCode());
+			paramMap.put("awardCommentCode", honorCommentReply.getAwardCommentCode());
+			paramMap.put("infoType", "3");
+			
+			int replyCount = honorCommentReplyMapper.selectCommentReplyCountWithPage(paramMap);
+			pageBean.setTotalCount(replyCount);
+			if(replyCount > 0){
+				//查询列表信息
+				paramMap.put("limitStart", pageParam.getPageNo() * pageParam.getPageSize());
+				paramMap.put("limitEnd", pageParam.getPageSize());
+				list = honorCommentReplyMapper.selectCommentReplyListWithPage(paramMap);
+			}
+			pageBean.setRecordList(list);
+			return pageBean;
+		}catch(Exception e){
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	/*=============================================================================================================== */
+
+	
+
+}

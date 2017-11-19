@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.BlogClassMapper">
+	
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.BlogClass">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="class_code" property="classCode" jdbcType="VARCHAR" />
+		<result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+		<result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+		<result column="remark" property="remark" jdbcType="VARCHAR" />
+		<result column="class_name" property="className" jdbcType="VARCHAR" />
+		<result column="user_code" property="userCode" jdbcType="VARCHAR" />
+		<result column="class_depend" property="classDepend" jdbcType="TINYINT" />
+		<result column="team_code" property="teamCode" jdbcType="VARCHAR" />
+		<result column="class_blog_num" property="classBlogNum" jdbcType="INTEGER" />
+	</resultMap>
+
+	<!-- 列列表 -->
+	<sql id="Base_Column_List">
+		id, class_code, tenant_code, org_code, create_time, modify_time, 
+		remark, class_name, user_code, class_depend, team_code, class_blog_num
+	</sql>
+	
+	<!-- 查询列表 -->
+	<select id="listAll" parameterType="map" resultMap="BaseResultMap">
+		SELECT 
+			class_code,
+			class_name,
+			class_blog_num,
+			remark
+		FROM blog_class
+		WHERE class_depend = #{classDepend,jdbcType=TINYINT}
+	 	<choose>
+		    <when test="classDepend == 1">
+		        AND team_code = ''
+		        AND user_code = #{userCode,jdbcType=VARCHAR}
+		    </when>
+		    <when test="classDepend == 2">
+		        AND team_code = #{teamCode,jdbcType=VARCHAR}
+		    </when>
+		    <otherwise>
+		    </otherwise>
+		</choose>
+		ORDER BY remark DESC
+	</select>
+	
+	<!-- 查询指定分类下博文数量 -->
+	<select id="getBlogNum" parameterType="map" resultType="int">
+		SELECT
+			class_blog_num
+		FROM blog_class
+		WHERE class_code = #{classCode,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 查询拥有的分类个数 -->
+	<select id="getClassNum" parameterType="map" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM blog_class
+		WHERE class_depend = #{classDepend,jdbcType=TINYINT}
+		<choose>
+		    <when test="classDepend == 1">
+		        AND team_code = ''
+		        and user_code = #{userCode,jdbcType=VARCHAR}
+		    </when>
+		    <when test="classDepend == 2">
+		        and team_code = #{teamCode,jdbcType=VARCHAR}
+		    </when>
+		    <otherwise>
+		    </otherwise>
+		</choose>
+	</select>
+		
+	<!-- 插入 -->
+	<insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.zssq.dao.pojo.BlogClass">
+		INSERT INTO blog_class (
+			class_code, 
+			tenant_code, 
+			org_code, 
+			create_time, 
+			modify_time, 
+			remark, 
+			class_name, 
+			user_code, 
+			class_depend,
+			team_code, 
+			class_blog_num
+		) VALUES (
+			#{classCode,jdbcType=VARCHAR},
+			#{tenantCode,jdbcType=VARCHAR}, 
+			#{orgCode,jdbcType=VARCHAR}, 
+			#{createTime,jdbcType=BIGINT},
+			#{modifyTime,jdbcType=BIGINT}, 
+			#{remark,jdbcType=VARCHAR},
+			#{className,jdbcType=VARCHAR}, 
+			#{userCode,jdbcType=VARCHAR}, 
+			#{classDepend,jdbcType=TINYINT}, 
+			#{teamCode,jdbcType=VARCHAR}, 
+			#{classBlogNum,jdbcType=INTEGER}
+		)
+	</insert>
+	
+	<!-- 删除 -->
+	<delete id="delete" parameterType="map">
+		DELETE FROM blog_class 
+		WHERE class_depend = #{classDepend,jdbcType=TINYINT}
+		<choose>
+		    <when test="classDepend == 1">
+		        AND team_code = ''
+		        AND user_code = #{userCode,jdbcType=VARCHAR}
+		    </when>
+		    <when test="classDepend == 2">
+		        AND team_code = #{teamCode,jdbcType=VARCHAR}
+		    </when>
+		    <otherwise>
+		    </otherwise>
+		</choose>
+		AND class_code = #{classCode,jdbcType=VARCHAR}
+		AND remark = '' 
+	</delete>
+	
+	<!-- 修改数量 -->
+	<update id="updateData" parameterType="map">
+		UPDATE blog_class SET
+			modify_time = #{modifyTime,jdbcType=BIGINT},
+			class_blog_num = class_blog_num + #{updateNumber,jdbcType=INTEGER}
+		WHERE class_code = #{classCode,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 修改分类下博客数量 -->
+	<update id="updateBlogNum" parameterType="map">
+		UPDATE blog_class SET
+			modify_time = #{modifyTime,jdbcType=BIGINT},
+			class_blog_num = #{classBlogNum,jdbcType=INTEGER}
+		WHERE class_code = #{classCode,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 查询默认分类 -->
+	<select id="getDefaultClassCode" parameterType="map" resultType="string">
+		SELECT 
+			class_code
+		FROM blog_class
+		WHERE class_depend = #{classDepend,jdbcType=TINYINT}
+		<choose>
+		    <when test="classDepend == 1">
+		        AND team_code = ''
+		        AND user_code = #{userCode,jdbcType=VARCHAR}
+		    </when>
+		    <when test="classDepend == 2">
+		        AND team_code = #{teamCode,jdbcType=VARCHAR}
+		    </when>
+		    <otherwise>
+		    </otherwise>
+		</choose>
+		AND remark = '1'
+	</select>
+	
+</mapper>

@@ -1,0 +1,184 @@
+package com.zssq.service;
+
+import java.util.List;
+
+import com.zssq.dao.pojo.OrgLinkList;
+import com.zssq.dao.pojo.SysOrgInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+
+/**
+ * 组织信息业务操作接口
+ * 
+ * @since  JDK 1.7
+ * @author 赵翊
+ */
+public interface ISysOrgService {
+
+	/**
+	 * 根据指定的组织机构编号，获取其详细信息；优先从缓存服务中获取
+	 * 
+	 * @param orgCode 组织机构编号，必须
+	 * @return 组织机构详细信息
+	 */
+	public SysOrgInfo selectByCode(String orgCode) throws BusinessException;
+	
+	/**
+	 * 根据 SMAP 同步组织编码查询组织信息
+	 * 
+	 * @param srcCode
+	 * 			SMAP 组织编码
+	 * @return 组织详细信息
+	 */	
+	SysOrgInfo selectBySrcCode(String srcCode) throws BusinessException;
+	
+	/**
+	 * 根据where条件查询,返回组织Code集合
+	 * 
+	 * @param orgCode 组织机构编号，必须
+	 * @return 组织机构详细信息
+	 */
+	public List<String> selectOrgCodes(SysOrgInfo record) throws BusinessException;
+	
+	/**
+	 * 根据指定的行政组织编码，级联向上查询行政组织信息
+	 * 
+	 * @param manOrgCode
+	 * 			行政组织编码
+	 * @return 行政组织信息集合
+	 * @throws BusinessException
+	 */
+	public List<SysOrgInfo> selectCascadeUpManOrg(String manOrgCode) throws BusinessException;
+	
+	/**
+	 * 获取指定组织的下级行政组织
+	 * 
+	 * @param orgCode
+	 * 			组织编码
+	 * @return 指定组织的下级行政组织
+	 * @throws BusinessException
+	 */
+	public List<SysOrgInfo> selectSubManOrg(String orgCode) throws BusinessException;
+	
+	/**
+	 * @Function getOrgLinkList
+	 * @Description 根据userCode返回三级列表
+	 * @return
+	 */
+	public OrgLinkList getOrgLinkList(SysOrgInfo param) throws BusinessException;
+	
+	/**
+	 * @Function selectByRecode
+	 * @Description 根据record查询
+	 * @param param
+	 * @return
+	 * @throws BusinessException
+	 */
+	public List<SysOrgInfo> selectByRecord(SysOrgInfo record) throws BusinessException;
+	
+	/**
+	 * @Function selectManageOrgByCode
+	 * @Description 查询行政机构
+	 * @param orgCode
+	 * @return
+	 * @throws BusinessException
+	 */
+	public SysOrgInfo selectManageOrgByCode(String orgCode) throws BusinessException;
+	
+	
+	/**
+	 * @Function selectByCodes
+	 * @Description 根据传入的code集合  返回org对象集合
+	 * @param orgCode
+	 * @return
+	 * @throws BusinessException
+	 */
+	public List<SysOrgInfo> selectByCodes(List<String> orgCodes) throws BusinessException;
+	
+	/**
+	 * @Function selectPage
+	 * @Description 获取组织分页信息
+	 * @param pageParam 分页参数
+	 * @param vo 组织机构
+	 * @return
+	 * @throws BusinessException
+	 */
+	public PageBean selectPage(PageParam pageParam,SysOrgInfo vo)throws BusinessException;
+	
+	/**
+	 * 组织数据清洗，从SMAP同步到的组织中选取源数据，以下级组织的形式添加到指定组织节点
+	 * 
+	 * @param smapOrgCode
+	 * 			SMAP同步到的组织编码
+	 * @param parentOrgCode
+	 * 			清洗后内部系统使用的组织编码，将向该组织下添加下级组织
+	 * @param isManager
+	 * 			是否为行政组织；0：否；1：是
+	 * @return 新添加的组织
+	 * @throws BusinessException
+	 */
+	public SysOrgInfo addSubOrg(String smapOrgCode, String parentOrgCode, String isManager) throws BusinessException;
+	
+	/**
+	 * 组织数据清洗：删除组织
+	 * 
+	 * @param orgCode
+	 * 			组织编码
+	 * @return 删除成功时返回删除记录数，失败时返回0
+	 * @throws BusinessException
+	 */
+	public int deleteByCode(String orgCode) throws BusinessException;
+	
+	
+	/**
+	 * @Function selectManOrgCodeByOrgName
+	 * @Description 根据orgName查询code(模糊)
+	 * @param orgName
+	 * @return
+	 * @throws BusinessException
+	 */
+	public List<String> selectManOrgCodeByOrgName(String orgName,List<String> orgCodes) throws BusinessException;
+	
+	
+	/**
+	 * @Function setIsEnable
+	 * @Description 组织机构启禁用
+	 * @param orgCode 父级orgCode,以下全部启禁用
+	 * @param isEnable 1启用 0禁用
+	 * @param tenantCode 租户code
+	 * @throws BusinessException
+	 */
+	public void setIsEnable(String orgCode,Byte isEnable, String tenantCode) throws BusinessException;
+	
+	
+	/**
+	 * @Function updateOrg
+	 * @Description 删除后,组织启用
+	 * @param smapOrgCode 原始组织编码
+	 * @param parentCode 父级编码uuid
+	 * @param isManager 是否为行政组织
+	 * @throws BusinessException
+	 */
+	public void updateOrg(String smapOrgCode, String parentCode, String isManager) throws BusinessException;
+	
+	/**
+	 * 根据指定的行政组织编码，查询其所属省份内的所有行政组织
+	 * 
+	 * @param manOrgCode
+	 * 			行政组织编码
+	 * @return 行政组织编码集合
+	 * @throws BusinessException
+	 */
+	public List<String> searchManOrgCodesInProvince(String manOrgCode) throws BusinessException;
+	
+	
+	
+	/**
+	 * @Function refreshOrgCache
+	 * @Description 刷新组织机构缓存
+	 * @param orgCode
+	 * @throws BusinessException
+	 */
+	public void refreshOrgCache(String orgCode) throws BusinessException;
+}

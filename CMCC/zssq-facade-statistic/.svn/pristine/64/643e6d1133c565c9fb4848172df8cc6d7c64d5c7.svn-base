@@ -1,0 +1,139 @@
+package com.zssq.dao.pojo;
+
+import com.zssq.pojo.BasePage;
+
+public class StatisticVisitDetail extends BasePage {
+	
+	private static final long serialVersionUID = 1L;
+
+	private Long id;
+
+    private String orgCode;
+    
+    private String orgName;
+
+    private String teamCode;
+
+    private String peopleCode;
+
+    private String ip;
+    
+    private String visitCode;
+
+    private Integer type;
+
+    private Long createTime;
+    
+    private Long startTime;
+    
+    private Long endTime;
+    
+    private Integer isFlag;
+    
+    private String code;
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getOrgCode() {
+		return orgCode;
+	}
+
+	public void setOrgCode(String orgCode) {
+		this.orgCode = orgCode;
+	}
+
+	public String getOrgName() {
+		return orgName;
+	}
+
+	public void setOrgName(String orgName) {
+		this.orgName = orgName;
+	}
+
+	public String getTeamCode() {
+		return teamCode;
+	}
+
+	public void setTeamCode(String teamCode) {
+		this.teamCode = teamCode;
+	}
+
+	public String getPeopleCode() {
+		return peopleCode;
+	}
+
+	public void setPeopleCode(String peopleCode) {
+		this.peopleCode = peopleCode;
+	}
+
+	public String getIp() {
+		return ip;
+	}
+
+	public void setIp(String ip) {
+		this.ip = ip;
+	}
+
+	public String getVisitCode() {
+		return visitCode;
+	}
+
+	public void setVisitCode(String visitCode) {
+		this.visitCode = visitCode;
+	}
+
+	public Integer getType() {
+		return type;
+	}
+
+	public void setType(Integer type) {
+		this.type = type;
+	}
+
+	public Long getCreateTime() {
+		return createTime;
+	}
+
+	public void setCreateTime(Long createTime) {
+		this.createTime = createTime;
+	}
+
+	public Long getStartTime() {
+		return startTime;
+	}
+
+	public void setStartTime(Long startTime) {
+		this.startTime = startTime;
+	}
+
+	public Long getEndTime() {
+		return endTime;
+	}
+
+	public void setEndTime(Long endTime) {
+		this.endTime = endTime;
+	}
+
+	public Integer getIsFlag() {
+		return isFlag;
+	}
+
+	public void setIsFlag(Integer isFlag) {
+		this.isFlag = isFlag;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+    
+}

@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.relation.dao.mapper.RelationRecommendMapper">
+
+	<!-- new import 班组-->
+	<insert id="insertBanZuBlog" useGeneratedKeys="true" keyProperty="id" >
+		INSERT INTO relation_recommend (
+			rec_code, 
+			tenant_code,
+			create_time, 
+			modify_time, 
+			remark,
+			subject_code, 
+			subject_class, 
+			rec_source,
+			team_code, 
+			rec_user_code, 
+			rec_org_code,
+			rec_to_org_code,
+			rec_status, 
+			rec_quality_time, 
+			quality_code
+		) SELECT
+			REPLACE (UUID(), '-', '') AS rec_code,
+			'' AS tenant_code,
+			UNIX_TIMESTAMP(kr.create_time) * 1000 AS create_time, 
+			UNIX_TIMESTAMP(kr.create_time) * 1000 AS modify_time, 
+			'' AS remark,
+			tic.blog_code as subject_code, 
+			2 as subject_class,
+			1 as rec_source,
+			ti.team_code as team_code, 
+			sui.user_code as rec_user_code, 
+			soi.man_org_code as rec_org_code,
+			soi.parent_code as rec_to_org_code,
+			1 as rec_status, 
+			0 as rec_quality_time, 
+			'' as quality_code
+			FROM kc_blog_recommend kr
+			left join blog_temp tic on tic.old_id = kr.BLOG_ID 
+ 	   	left join sys_user_info sui on sui.user_id = kr.user_id
+ 	   	left join team_info ti on ti.team_id = kr.team_id 
+ 	   	left join sys_org_info soi on ti.org_code = soi.sys_org_code
+ 	   	where tic.old_id is not null and kr.STATE = 1 and sui.user_code is not null
+ 	   		and ti.team_code is not null
+	</insert>
+	
+	<!-- new import 市-->
+	<insert id="insertshiBlog" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO relation_recommend (
+			rec_code, 
+			tenant_code,
+			create_time, 
+			modify_time, 
+			remark,
+			subject_code, 
+			subject_class, 
+			rec_source,
+			team_code, 
+			rec_user_code, 
+			rec_org_code,
+			rec_to_org_code,
+			rec_status, 
+			rec_quality_time, 
+			quality_code
+		) SELECT
+			REPLACE (UUID(), '-', '') AS rec_code,
+			'' AS tenant_code,
+			UNIX_TIMESTAMP(kr.create_time) * 1000 AS create_time, 
+			UNIX_TIMESTAMP(kr.create_time) * 1000 AS modify_time, 
+			'' AS remark,
+			tic.blog_code as subject_code, 
+			2 as subject_class,
+			2 as rec_source,
+			ti.team_code as team_code, 
+			sui.user_code as rec_user_code, 
+			soi.man_org_code as rec_org_code,
+			soi.parent_code as rec_to_org_code,
+			1 as rec_status, 
+			0 as rec_quality_time, 
+			'' as quality_code
+			FROM kc_blog_recommend kr
+			left join blog_temp tic on tic.old_id = kr.BLOG_ID 
+ 	   	left join sys_user_info sui on sui.user_id = kr.user_id
+ 	   	left join team_info ti on ti.team_id = kr.team_id 
+ 	   	left join sys_org_info soi on sui.org_code = soi.sys_org_code
+ 	   	where tic.old_id is not null and kr.STATE = 2 and sui.user_code is not null
+	</insert>
+	
+	<!-- new import 省-->
+	<insert id="insertshengBlog" useGeneratedKeys="true" keyProperty="id" >
+		INSERT INTO relation_recommend (
+			rec_code, 
+			tenant_code,
+			create_time, 
+			modify_time, 
+			remark,
+			subject_code, 
+			subject_class, 
+			rec_source,
+			team_code, 
+			rec_user_code, 
+			rec_org_code,
+			rec_to_org_code,
+			rec_status, 
+			rec_quality_time, 
+			quality_code
+		) SELECT
+			REPLACE (UUID(), '-', '') AS rec_code,
+			'' AS tenant_code,
+			UNIX_TIMESTAMP(kr.create_time) * 1000 AS create_time, 
+			UNIX_TIMESTAMP(kr.create_time) * 1000 AS modify_time, 
+			'' AS remark,
+			tic.blog_code as subject_code, 
+			2 as subject_class,
+			2 as rec_source,
+			ti.team_code as team_code, 
+			sui.user_code as rec_user_code, 
+			soi.man_org_code as rec_org_code,
+			soi.parent_code as rec_to_org_code,
+			1 as rec_status, 
+			0 as rec_quality_time, 
+			'' as quality_code
+			FROM kc_blog_recommend kr
+			left join blog_temp tic on tic.old_id = kr.BLOG_ID 
+ 	   	left join sys_user_info sui on sui.user_id = kr.user_id
+ 	   	left join team_info ti on ti.team_id = kr.team_id 
+ 	   	left join sys_org_info soi on sui.org_code = soi.sys_org_code
+ 	   	where tic.old_id is not null and kr.STATE = 3 and sui.user_code is not null
+	</insert>
+	<!-- 微博 new import -->
+	<!-- new import 班组-->
+	<insert id="insertBanZuMBlog" useGeneratedKeys="true" keyProperty="id" >
+		INSERT INTO relation_recommend (
+			rec_code, 
+			tenant_code,
+			create_time, 
+			modify_time, 
+			remark,
+			subject_code, 
+			subject_class, 
+			rec_source,
+			team_code, 
+			rec_user_code, 
+			rec_org_code,
+			rec_to_org_code,
+			rec_status, 
+			rec_quality_time, 
+			quality_code
+		) SELECT
+			REPLACE (UUID(), '-', '') AS rec_code,
+			'' AS tenant_code,
+			kr.CREATETIME AS create_time, 
+			kr.CREATETIME AS modify_time, 
+			'' AS remark,
+			tic.mblog_code as subject_code, 
+			1 as subject_class,
+			1 as rec_source,
+			ti.team_code as team_code, 
+			sui.user_code as rec_user_code, 
+			soi.man_org_code as rec_org_code,
+			soi.parent_code as rec_to_org_code,
+			1 as rec_status, 
+			0 as rec_quality_time, 
+			'' as quality_code
+			FROM kc_mblog_recommend kr
+			left join transfer_id_code tic on tic.mblog_id = kr.MBLOG_ID 
+	 	   	left join sys_user_info sui on sui.user_id = kr.user_id
+	 	   	left join team_info ti on ti.team_id = kr.team_id 
+	 	   	left join sys_org_info soi on ti.org_code = soi.sys_org_code
+	 	   	where tic.mblog_code is not null and kr.STATE = 1 and sui.user_code is not null
+ 	   		and ti.team_code is not null
+	</insert>
+	
+	<!-- new import 市-->
+	<insert id="insertshiMBlog" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO relation_recommend (
+			rec_code, 
+			tenant_code,
+			create_time, 
+			modify_time, 
+			remark,
+			subject_code, 
+			subject_class, 
+			rec_source,
+			team_code, 
+			rec_user_code, 
+			rec_org_code,
+			rec_to_org_code,
+			rec_status, 
+			rec_quality_time, 
+			quality_code
+		) SELECT
+			REPLACE (UUID(), '-', '') AS rec_code,
+			'' AS tenant_code,
+			kr.CREATETIME AS create_time, 
+			kr.CREATETIME AS modify_time, 
+			'' AS remark,
+			tic.mblog_code as subject_code, 
+			1 as subject_class,
+			2 as rec_source,
+			ti.team_code as team_code, 
+			sui.user_code as rec_user_code, 
+			soi.man_org_code as rec_org_code,
+			soi.parent_code as rec_to_org_code,
+			1 as rec_status, 
+			0 as rec_quality_time, 
+			'' as quality_code
+			FROM kc_mblog_recommend kr
+			left join transfer_id_code tic on tic.mblog_id = kr.MBLOG_ID 
+ 	   	left join sys_user_info sui on sui.user_id = kr.user_id
+ 	   	left join team_info ti on ti.team_id = kr.team_id 
+ 	   	left join sys_org_info soi on sui.org_code = soi.sys_org_code
+ 	   	where tic.mblog_code is not null and kr.STATE = 2 and sui.user_code is not null
+	</insert>
+	
+	<!-- new import 省-->
+	<insert id="insertshengMBlog" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO relation_recommend (
+			rec_code, 
+			tenant_code,
+			create_time, 
+			modify_time, 
+			remark,
+			subject_code, 
+			subject_class, 
+			rec_source,
+			team_code, 
+			rec_user_code, 
+			rec_org_code,
+			rec_to_org_code,
+			rec_status, 
+			rec_quality_time, 
+			quality_code
+		) SELECT
+			REPLACE (UUID(), '-', '') AS rec_code,
+			'' AS tenant_code,
+			kr.CREATETIME AS create_time, 
+			kr.CREATETIME AS modify_time, 
+			'' AS remark,
+			tic.mblog_code as subject_code, 
+			1 as subject_class,
+			2 as rec_source,
+			ti.team_code as team_code, 
+			sui.user_code as rec_user_code, 
+			soi.man_org_code as rec_org_code,
+			soi.parent_code as rec_to_org_code,
+			1 as rec_status, 
+			0 as rec_quality_time, 
+			'' as quality_code
+			FROM kc_mblog_recommend kr
+			left join transfer_id_code tic on tic.mblog_id = kr.MBLOG_ID 
+			left join sys_user_info sui on sui.user_id = kr.user_id
+ 	   	left join team_info ti on ti.team_id = kr.team_id 
+ 	   	left join sys_org_info soi on sui.org_code = soi.sys_org_code
+ 	   	where tic.mblog_code is not null and kr.STATE = 3 and sui.user_code is not null
+	</insert>
+</mapper>

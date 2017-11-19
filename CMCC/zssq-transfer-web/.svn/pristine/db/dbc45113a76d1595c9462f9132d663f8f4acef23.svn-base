@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.blog.dao.mapper.BlogReplyMapper">
+
+	<!-- 插入评论数据  -->
+	<insert id="insertSourceReply" useGeneratedKeys="true" keyProperty="id" parameterType="list">
+		INSERT INTO blog_reply (
+			reply_code,
+			tenant_code,
+			org_code,
+			create_time,
+			modify_time,
+			remark,
+			blog_code,
+			comment_code,
+			user_code,
+			to_reply_user_code,
+			reply_content,
+			reply_is_delete,
+			replyt_is_shield,
+			reply_like_num
+		) SELECT
+			REPLACE (UUID(), '-', '') AS reply_code,
+			sui.saas_tenant_code AS tenant_code,
+			soi.man_org_code AS org_code,
+			UNIX_TIMESTAMP(sbr.create_time) * 1000 AS create_time,
+			UNIX_TIMESTAMP(sbr.update_time) * 1000 AS update_time,
+			'',
+			bc.blog_code,
+			bc.comment_code,
+			sui.user_code,
+			(
+				CASE
+				WHEN flag_reply = 1 THEN
+					''
+				ELSE
+					bc.user_code
+				END
+			) AS to_reply_user_code,
+			sbr.reply_content,
+			0,
+			0,
+			0
+		FROM
+			(
+				SELECT
+					id,
+					blog_id,
+					user_id,
+					parents_id,
+					create_time,
+					update_time,
+					reply_content,
+					flag_reply
+				FROM source_blog_reply
+				WHERE flag_reply != 0
+					AND del_flag = 0
+			) sbr
+		LEFT JOIN blog_comment bc 
+			ON sbr.parents_id = bc.old_id
+		LEFT JOIN sys_user_info sui 
+			ON sbr.user_id = sui.user_id
+		LEFT JOIN sys_org_info soi 
+			ON sui.org_code = soi.sys_org_code
+		WHERE bc.comment_code IS NOT NULL
+			AND sui.user_code IS NOT NULL
+	</insert>
+	
+</mapper>

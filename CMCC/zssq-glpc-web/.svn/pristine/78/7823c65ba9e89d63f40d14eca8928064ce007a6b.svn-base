@@ -1,0 +1,496 @@
+package com.zssq.activity.controller;
+
+import java.math.BigDecimal;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.activity.vo.AdvanceOfflineTimeVo;
+import com.zssq.activity.vo.DoScoringForWorksVo;
+import com.zssq.activity.vo.ExaminingActivityVo;
+import com.zssq.activity.vo.GetActivityHistoryListVo;
+import com.zssq.activity.vo.GetActivityJoinListVo;
+import com.zssq.activity.vo.GetActivityListForMonitorVo;
+import com.zssq.activity.vo.GetWorksListVo;
+import com.zssq.activity.vo.SubmitOrNotExamineVo;
+import com.zssq.annotation.RequireValid;
+import com.zssq.constants.ActivityConstants;
+import com.zssq.constants.RelationConstants;
+import com.zssq.constants.StatisticConstants;
+import com.zssq.dao.pojo.ActivityHistory;
+import com.zssq.dao.pojo.ActivityInfo;
+import com.zssq.dao.pojo.ActivityInfoWithBLOBs;
+import com.zssq.dao.pojo.ActivityJoin;
+import com.zssq.dao.pojo.ActivityJoinAdjunct;
+import com.zssq.dao.pojo.RelationSubjectInfo;
+import com.zssq.dao.pojo.StatisticCommon;
+import com.zssq.dao.pojo.SysUserInfo;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.service.IActivityManageService;
+import com.zssq.service.IStatisticService;
+import com.zssq.service.RelationThirdSubjectService;
+import com.zssq.utils.DateUtils;
+import com.zssq.utils.PageInfo;
+import com.zssq.utils.StringTools;
+import com.zssq.vote.controller.BaseController;
+
+/**
+ * 
+ * @ClassName: ActivityModelTwoController  
+ * @Description: 后台活动管理模块2
+ * @author liuzhijie  
+ * @date 2017年4月18日  
+ *
+ */
+@Controller
+@RequestMapping("/activity")
+public class ActivityModelTwoController extends BaseController {
+	
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private IActivityManageService activityManageService;
+	
+	@Autowired
+	private RelationThirdSubjectService relationThirdSubjectService;
+	
+	@Autowired
+	private IStatisticService statisticService;
+	
+	/**
+	 * 
+	    * @Title: submitOrNotExamine  
+	    * @Description: 提交/撤销活动审核
+	    * @param  vo 参数
+	    * @throws BusinessException      
+	    * @return ResultJSON    返回类型 
+	 */
+	@RequestMapping(value = "/submitOrNotExamine",method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON submitOrNotExamine(@RequireValid SubmitOrNotExamineVo vo) throws BusinessException{
+		try {
+			//查询用户信息
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			//组织入参
+			ActivityInfoWithBLOBs activity = new ActivityInfoWithBLOBs();
+			activity.setCode(vo.getActivityCode());
+			activity.setCreateUserCode(vo.getUserCode());
+			activity.setTenantCode(userInfo.getTenantCode());
+			activity.setOrgCode(userInfo.getManageOrgInfo().getSysOrgCode());
+			activity.setCreateUserName(userInfo.getUserName());
+			
+			activityManageService.updateSubmitRevoke(activity,vo.getOperateType());
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(new JSONObject());
+			return result;
+		} catch (BusinessException e){
+			throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelTwoController.submitOrNotExamine", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * 
+	 * @Title: getActivityHistoryList  
+	 * @Description: 查询活动历程列表
+	 * @param vo
+	 * @return ResultJSON
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value= "/getActivityHistoryList" ,method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getActivityHistoryList(@RequireValid GetActivityHistoryListVo vo) throws BusinessException{
+		try {
+			//准备参数
+			ActivityHistory history = new ActivityHistory();
+			history.setActivityCode(vo.getActivityCode());
+			PageInfo page = activityManageService.getActivityHistoryList(history, vo.getPageNo(), vo.getPageSize());
+			//组织返回数据
+			JSONObject jsonObj = new JSONObject();
+			JSONArray jsonAry = new JSONArray();
+			List<ActivityHistory> list = page.getList();
+			if(list.size() > 0){
+				for(ActivityHistory h : list){
+					JSONObject o = new JSONObject();
+					o.put("activityCode", StringTools.formatToString(h.getActivityCode()));
+					o.put("optUserCode", StringTools.formatToString(h.getOperationUserCode()));
+					o.put("optUserName", StringTools.formatToString(h.getOperationUserName()));
+					o.put("operation", StringTools.formatToString(h.getOperation()));
+					o.put("remark", StringTools.formatToString(h.getRemark()));
+					o.put("createTime", StringTools.formatToString(h.getCreateTime()));
+					jsonAry.add(o);
+				}
+			}
+			jsonObj.put("totalCount", StringTools.formatToString(page.getTotalItem()));
+			jsonObj.put("historyList", jsonAry);
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(jsonObj);
+			return result;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelTwoController.getActivityHistoryList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * @Title: examiningActivity
+	 * @Description: 审核活动(通过/驳回)
+	 * @param vo
+	 * @return ResultJSON
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value="/examiningActivity" ,method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON examiningActivity(@RequireValid ExaminingActivityVo vo) throws BusinessException{
+		try {
+			ActivityInfoWithBLOBs activity = new ActivityInfoWithBLOBs();
+			//查询用户信息
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			//验证、准备参数
+			activity.setTenantCode(userInfo.getTenantCode());
+			activity.setOrgCode(userInfo.getManageOrgInfo().getSysOrgCode());
+			activity.setRemark(vo.getRemark());
+			activity.setCreateUserCode(vo.getUserCode());
+			activity.setCreateUserName(userInfo.getUserName());
+			activity.setCode(vo.getActivityCode());
+			activity.setLastOperationUserCode(vo.getUserCode());
+			if(ActivityConstants.WINNING_TYPE_1.equals(vo.getExamineResult())){//如果是审核通过
+				
+				Date now = new Date();//当前时间
+				Date preheatDate = new Date();
+				Date startDate = new Date();
+				Date endDate = new Date();
+				Date offlineDate = new Date();
+				if(StringTools.isNotEmpty(vo.getPreheatTime())){//预热时间
+					preheatDate = DateUtils.getDateFromString(vo.getPreheatTime(),
+							DateUtils.DATE_FORMAT_DATEONLY);
+					if(DateUtils.compareDate(preheatDate, now, Calendar.DATE)>0){//预热时间大于当前时间
+						activity.setActivityStatus(ActivityConstants.ADOPT);//审核通过
+					} else if(DateUtils.compareDate(preheatDate, now, Calendar.DATE)==0){//预热时间等于当前时间
+						activity.setActivityStatus(ActivityConstants.PREHEAT);//预热中
+					}else{
+						throw BusinessException.build("ACTIVITY_23010");//预热时间要大于等于当前时间 
+					}
+					activity.setPreheatTime(DateUtils.getDayStart(preheatDate).getTime());
+				}
+				
+				if(StringTools.isNotEmpty(vo.getStartTime())){//开始时间
+					startDate = DateUtils.getDateFromString(vo.getStartTime(),
+							DateUtils.DATE_FORMAT_DATEONLY);
+					if(StringTools.isNotEmpty(vo.getPreheatTime())){
+						if(DateUtils.compareDate(startDate, preheatDate, Calendar.DATE)<=0){
+							throw BusinessException.build("ACTIVITY_23004");//开始时间要大于预热时间 
+						}
+					} else {
+						if(DateUtils.compareDate(startDate, now, Calendar.DATE)>0){//开始时间大于当前时间
+							activity.setActivityStatus(ActivityConstants.ADOPT);//审核通过
+						} else if(DateUtils.compareDate(startDate, now, Calendar.DATE)==0){//开始时间等于当前时间
+							activity.setActivityStatus(ActivityConstants.HAVE_IN_HAND);//进行中
+						}else{
+							throw BusinessException.build("ACTIVITY_23011");//开始时间要大于等于当前时间
+						}
+					}
+					activity.setStartTime(DateUtils.getDayStart(startDate).getTime());
+				}
+				
+				if(StringTools.isNotEmpty(vo.getEndTime())){//结束时间
+					endDate = DateUtils.getDateFromString(vo.getEndTime(),
+							DateUtils.DATE_FORMAT_DATEONLY);
+					if(DateUtils.compareDate(endDate, startDate, Calendar.DATE)<=0){
+						throw BusinessException.build("ACTIVITY_23005");//结束时间要大于开始时间 
+					}
+					activity.setEndTime(DateUtils.getDayEnd(endDate).getTime());
+				}
+				
+				if(StringTools.isNotEmpty(vo.getOfflineTime())){//下线时间
+					offlineDate = DateUtils.getDateFromString(vo.getOfflineTime(),
+							DateUtils.DATE_FORMAT_DATEONLY);
+					if(DateUtils.compareDate(offlineDate, endDate, Calendar.DATE)<=0){
+						throw BusinessException.build("ACTIVITY_23006");//下线时间要大于结束时间
+					}
+					activity.setOfflineTime(DateUtils.getDayEnd(offlineDate).getTime());
+				}
+				
+				activity = activityManageService.updateExaminingActivity(activity);
+				//保存内容信息
+				Long nowLong = DateUtils.getFormatDateLong();
+				RelationSubjectInfo relationSubjectInfo = new RelationSubjectInfo();
+				relationSubjectInfo.setSubjectCode(vo.getActivityCode());
+				relationSubjectInfo.setTenantCode(userInfo.getTenantCode());
+				relationSubjectInfo.setOrgCode(userInfo.getManageOrgInfo().getSysOrgCode());
+				relationSubjectInfo.setCreateTime(nowLong);
+				relationSubjectInfo.setModifyTime(nowLong);
+				relationSubjectInfo.setSubjectClass(RelationConstants.RELATION_SUBJECT_ACTIVITY);
+				relationSubjectInfo.setSubjectDepend(RelationConstants.RELATION_SUBJECT_DEPEND_ORG);
+				relationSubjectInfo.setUserCode(activity.getCreateUserCode());
+				relationSubjectInfo.setSubjectPublishTime(activity.getCreateTime());
+				relationSubjectInfo.setSubjectTitle(activity.getActivityName());
+				relationSubjectInfo.setSubjectSource(RelationConstants.RELATION_SUBJECT_SOURCE_ORIGINAL);
+				int roduceLength = activity.getIntroduce().length();
+				//活动说明前200个字
+				relationSubjectInfo.setSubjectDigest(activity.getIntroduce().substring(0, roduceLength > 200 ? 200 : roduceLength));
+				relationSubjectInfo.setSubjectIsDelete(activity.getIsDelete());
+				relationSubjectInfo.setSubjectIsShield(activity.getIsHide());
+				relationSubjectInfo.setSubjectStatus(activity.getActivityStatus());
+				relationThirdSubjectService.saveSubject(relationSubjectInfo);
+				
+				
+				//统计
+				StatisticCommon statisticCommon = new StatisticCommon();
+				statisticCommon.setOrgCode(userInfo.getOrgCode());
+				statisticCommon.setActivity(StatisticConstants.ACTIVITY);
+				statisticCommon.setCreateTime(DateUtils.nowTimeMillis());
+				statisticService.addRecord(statisticCommon);
+			}else{//驳回
+				activity.setActivityStatus(ActivityConstants.REJECT);
+				activityManageService.updateExaminingActivity(activity);
+			}
+			
+			
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(new JSONObject());
+			return result;
+		} catch (BusinessException e){
+			throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelTwoController.examiningActivity", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	/**
+	 * 
+	 * @Title: advanceOfflineTime  
+	 * @Description: 提前结束活动
+	 * @param vo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value="/advanceOfflineTime" ,method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON advanceOfflineTime(@RequireValid AdvanceOfflineTimeVo vo) throws BusinessException{
+		try {
+			//查询用户信息
+			SysUserInfo userInfo = getUserInfo(vo.getUserCode());
+			//组织参数
+			ActivityInfoWithBLOBs activity = new ActivityInfoWithBLOBs();
+			activity.setCode(vo.getActivityCode());
+			activity.setLastOperationUserCode(vo.getUserCode());
+			activity.setActivityStatus(ActivityConstants.END);
+			activity.setTenantCode(userInfo.getTenantCode());
+			activity.setOrgCode(userInfo.getManageOrgInfo().getSysOrgCode());
+			activity.setLastOperationUserName(userInfo.getUserName());
+			
+			activityManageService.updateAdvanceOfflineTime(activity);
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(new JSONObject());
+			return result;
+		} catch (BusinessException e){
+			throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelTwoController.advanceOfflineTime", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * 
+	 * @Title: getActivityJoinList  
+	 * @Description: 查询活动参与记录列表
+	 * @param vo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value="/getActivityJoinList" ,method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getActivityJoinList(@RequireValid GetActivityJoinListVo vo) throws BusinessException{
+		try {
+			//组织参数
+			ActivityJoin join = new ActivityJoin();
+			join.setActivityCode(vo.getActivityCode());
+			PageInfo page = activityManageService.getActivityJoinList(join, vo.getPageNo(),
+					vo.getPageSize(), vo.getQueryType());
+			//组织返回数据
+			JSONObject jsonObj = new JSONObject();
+			JSONArray jsonAry = new JSONArray();
+			List<ActivityJoin> list = page.getList();
+			if(list.size() > 0){
+				for(ActivityJoin h : list){
+					JSONObject o = new JSONObject();
+					SysUserInfo user = getUserInfo(h.getJoinUserCode());
+					o.put("activityCode", StringTools.formatToString(h.getActivityCode()));
+					o.put("joinCode", StringTools.formatToString(h.getCode()));
+					o.put("joinUserCode", StringTools.formatToString(h.getJoinUserCode()));
+					o.put("joinUserName", StringTools.formatToString(user.getUserName()));
+					o.put("joinUserPhone", StringTools.formatToString(user.getUserOfficePhone()));
+					o.put("joinUserRole", StringTools.formatToString(user.getRoleName()));
+					o.put("joinUserOrgCode", StringTools.formatToString(user.getManageOrgInfo().getSysOrgCode()));
+					o.put("joinUserOrgName", StringTools.formatToString(user.getManageOrgInfo().getSysOrgName()));
+					o.put("isRead", StringTools.formatToString(h.getIsRead()));
+					o.put("score", StringTools.formatToString(h.getScore()));
+					o.put("isWinning", StringTools.formatToString(h.getIsWinning()));
+					o.put("prizeCode", StringTools.formatToString(h.getPrizeCode()));
+					o.put("prizeName", StringTools.formatToString(h.getPrizeName()));
+					o.put("awardStatus", StringTools.formatToString(h.getAwardStatus()));
+					jsonAry.add(o);
+				}
+			}
+			jsonObj.put("totalCount", StringTools.formatToString(page.getTotalItem()));
+			jsonObj.put("joinRecordList", jsonAry);
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(jsonObj);
+			return result;
+		} catch (BusinessException e){
+			throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelTwoController.getActivityJoinList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * 
+	 * @Title: getWorksList  
+	 * @Description: 查询作品列表
+	 * @param vo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value="/getWorksList" ,method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getWorksList(@RequireValid GetWorksListVo vo) throws BusinessException{
+		try {
+			//组织活动参与记录参数
+			ActivityJoin join = new ActivityJoin();
+			join.setActivityCode(vo.getActivityCode());
+			join.setCode(vo.getJoinCode());
+			join = activityManageService.updateActivityJoin(join);
+			//活动参与作品参数
+			ActivityJoinAdjunct adjunct = new ActivityJoinAdjunct();
+			adjunct.setActivityCode(vo.getActivityCode());
+			adjunct.setActivityJoinCode(vo.getJoinCode());
+			List<ActivityJoinAdjunct> adjList = activityManageService.getActivityJoinAdjunctList(adjunct);
+			//组织返回数据
+			JSONObject jsonObj = new JSONObject();
+			JSONArray jsonAry = new JSONArray();
+			SysUserInfo user = getUserInfo(join.getJoinUserCode());
+			if(adjList.size() > 0){
+				for(ActivityJoinAdjunct h : adjList){
+					JSONObject o = new JSONObject();
+					o.put("worksCode", StringTools.formatToString(h.getCode()));
+					o.put("worksType", StringTools.formatToString(h.getFileType()));
+					o.put("worksName", StringTools.formatToString(h.getFileName()));
+					o.put("worksUrl", StringTools.formatToString(h.getFileUrl()));
+					jsonAry.add(o);
+				}
+			}
+			jsonObj.put("worksList", jsonAry);
+			jsonObj.put("activityCode", StringTools.formatToString(join.getActivityCode()));
+			jsonObj.put("joinCode", StringTools.formatToString(join.getCode()));
+			jsonObj.put("joinUserCode", StringTools.formatToString(join.getJoinUserCode()));
+			jsonObj.put("joinUserName", StringTools.formatToString(user.getUserName()));
+			jsonObj.put("joinUserPhone", StringTools.formatToString(user.getUserOfficePhone()));
+			jsonObj.put("joinUserRole", StringTools.formatToString(user.getRoleName()));
+			jsonObj.put("joinUserOrgName", StringTools.formatToString(user.getManageOrgInfo().getSysOrgName()));
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(jsonObj);
+			return result;
+		} catch (BusinessException e){
+			throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelTwoController.getWorksList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * 
+	 * @Title: doScoringForWorks  
+	 * @Description: 给作品评分
+	 * @param vo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value="/doScoringForWorks" ,method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON doScoringForWorks(@RequireValid DoScoringForWorksVo vo) throws BusinessException{
+		try {
+			//组织参数
+			ActivityJoin join = new ActivityJoin();
+			join.setActivityCode(vo.getActivityCode());
+			join.setCode(vo.getJoinCode());
+			join.setReason(vo.getReason());
+			join.setScore(new BigDecimal(vo.getScore()));
+			activityManageService.updateActivityJoinScore(join);
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(new JSONObject());
+			return result;
+		} catch (BusinessException e){
+			throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelTwoController.doScoringForWorks", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * 
+	 * @Title: getActivityListForMonitor
+	 * @Description: 内容监控-查询活动列表
+	 * @param vo
+	 * @return
+	 * @throws BusinessException
+	 */
+	@RequestMapping(value="/getActivityListForMonitor" ,method=RequestMethod.POST)
+	@ResponseBody
+	public ResultJSON getActivityListForMonitor(@RequireValid GetActivityListForMonitorVo vo) throws BusinessException{
+		try {
+			SysUserInfo user = getUserInfo(vo.getUserCode());
+			PageInfo page = activityManageService.getActivityListForMonitor(user.getManageOrgInfo().getSysOrgCode(),
+					user.getTenantCode(), vo.getPageNo(), vo.getPageSize());
+			List<ActivityInfo> list = page.getList();
+			//组织返回数据
+			JSONObject jsonObj = new JSONObject();
+			JSONArray jsonAry = new JSONArray();
+			if(list.size() > 0){
+				for(ActivityInfo h : list){
+					JSONObject o = new JSONObject();
+					SysUserInfo u = getUserInfo(h.getCreateUserCode());
+					o.put("id", StringTools.formatToString(h.getId()));
+					o.put("activityCode", StringTools.formatToString(h.getCode()));
+					o.put("templateCode", StringTools.formatToString(h.getTemplateCode()));
+					o.put("createUserCode", StringTools.formatToString(h.getCreateUserCode()));
+					o.put("createUserName", StringTools.formatToString(h.getCreateUserName()));
+					o.put("createUserCompany", StringTools.formatToString(u.getManageOrgInfo().getSysOrgName()));
+					o.put("createTime", StringTools.formatToString(h.getCreateTime()));
+					o.put("activityName", StringTools.formatToString(h.getActivityName()));
+					jsonAry.add(o);
+				}
+			}
+			jsonObj.put("activityList", jsonAry);
+			jsonObj.put("totalCount", page.getTotalItem());
+			ResultJSON result = new ResultJSON("COMMON_200");
+			result.setBody(jsonObj);
+			return result;
+		} catch (BusinessException e){
+			throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelTwoController.getActivityListForMonitor", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+}

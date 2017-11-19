@@ -1,0 +1,768 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.RelationHotMapper">
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.RelationHot">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="hot_code" jdbcType="VARCHAR" property="hotCode" />
+    <result column="tenant_code" jdbcType="VARCHAR" property="tenantCode" />
+    <result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+    <result column="create_time" jdbcType="BIGINT" property="createTime" />
+    <result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="subject_code" jdbcType="VARCHAR" property="subjectCode" />
+    <result column="subject_class" jdbcType="TINYINT" property="subjectClass" />
+    <result column="hot_weight" jdbcType="DECIMAL" property="hotWeight" />
+  </resultMap>
+  <!-- 管理 返回map -->
+  <resultMap id="resultHotMap" type="com.zssq.model.RelationHotListModel">
+    <result column="hot_code" jdbcType="VARCHAR" property="hotCode" />
+    <result column="subject_code" jdbcType="VARCHAR" property="subjectCode" />
+    <result column="subject_class" jdbcType="TINYINT" property="subjectClass" />
+    <result column="user_code" jdbcType="VARCHAR" property="userCode" />
+    <result column="subject_publish_time" jdbcType="BIGINT" property="subjectPublishTime" />
+    <result column="subject_title" jdbcType="VARCHAR" property="subjectTitle" />
+    <result column="like_num" jdbcType="INTEGER" property="likeNum" />
+    <result column="collect_num" jdbcType="INTEGER" property="collectNum" />
+  	<result column="comment_num" jdbcType="INTEGER" property="commentNum" />
+  </resultMap>
+  <!-- 门户  team返回map -->
+  <resultMap id="resultMHHotMap" type="com.zssq.model.RelationTeamHideHotModel">
+    <result column="hot_code" jdbcType="VARCHAR" property="hotCode" />
+    <result column="subject_code" jdbcType="VARCHAR" property="subjectCode" />
+    <result column="subject_class" jdbcType="TINYINT" property="subjectClass" />
+   	<result column="subject_depend" jdbcType="TINYINT" property="subjectDepend" />
+	<result column="team_code" jdbcType="VARCHAR" property="teamCode" />
+	<result column="user_code" jdbcType="VARCHAR" property="userCode" />
+	<result column="subject_publish_time" jdbcType="BIGINT" property="subjectPublishTime" />
+	<result column="subject_title" jdbcType="VARCHAR" property="subjectTitle" />
+	<result column="subject_url" jdbcType="VARCHAR" property="subjectUrl" />
+	<result column="subject_begin_time" jdbcType="BIGINT" property="subjectBeginTime" />
+	<result column="subject_end_time" jdbcType="BIGINT" property="subjectEndTime" />
+	<result column="subject_digest" jdbcType="LONGVARCHAR" property="subjectDigest" />
+	<result column="content_tips" jdbcType="LONGVARCHAR" property="contentTips" />
+	<result column="subject_source" jdbcType="TINYINT" property="subjectSource" />
+	<result column="dynamic_code" jdbcType="VARCHAR" property="dynamicCode" />
+	
+	<result column="rel_is_home_show" jdbcType="TINYINT" property="relIsHomeShow" />
+	<result column="rel_is_quality" jdbcType="TINYINT" property="relIsQuality" />
+	<result column="source_code" jdbcType="VARCHAR" property="sourceCode" />
+	<result column="source_user_code" jdbcType="VARCHAR" property="sourceUserCode" />
+	<result column="source_publish_time" jdbcType="BIGINT" property="sourcePublishTime" />
+	<result column="source_is_delete" jdbcType="TINYINT" property="sourceIsDelete" />
+	<result column="source_is_shield" jdbcType="TINYINT" property="sourceIsShield" />
+	<result column="source_depend" jdbcType="TINYINT" property="sourceDepend" />
+	<result column="source_team_code" jdbcType="VARCHAR" property="sourceTeamCode" />
+	
+	<result column="team_quality_num" jdbcType="INTEGER" property="teamQualityNum" />
+	<result column="group_quality_num" jdbcType="INTEGER" property="groupQualityNum" />
+	<result column="province_quality_num" jdbcType="INTEGER" property="provinceQualityNum" />
+	<result column="city_quality_num" jdbcType="INTEGER" property="cityQualityNum" />
+	<result column="join_num" jdbcType="INTEGER" property="joinNum" />
+	<result column="read_num" jdbcType="INTEGER" property="readNum" />
+	<result column="like_num" jdbcType="INTEGER" property="likeNum" />
+	<result column="collect_num" jdbcType="INTEGER" property="collectNum" />
+	<result column="forward_num" jdbcType="INTEGER" property="forwardNum" />
+	<result column="comment_num" jdbcType="INTEGER" property="commentNum" />
+	<result column="share_num" jdbcType="INTEGER" property="shareNum" />
+	<result column="hotIsLike" jdbcType="INTEGER" property="hotIsLike" />
+	<result column="hotIsCollect" jdbcType="INTEGER" property="hotIsCollect" />
+	<collection property="resList" ofType="com.zssq.model.ResourceModel">
+	    <result column="resCode" jdbcType="VARCHAR" property="resCode" />
+	    <result column="resUrl" jdbcType="VARCHAR" property="resUrl" />
+	    <result column="resClass" jdbcType="BIGINT" property="resClass" />
+    </collection>
+  </resultMap>
+  <!-- 门户返回map -->
+  <resultMap id="resultHotNoTeamMHMap" type="com.zssq.model.RelationPortalHotModel">
+    <result column="hot_code" jdbcType="VARCHAR" property="hotCode" />
+    <result column="subject_code" jdbcType="VARCHAR" property="subjectCode" />
+    <result column="subject_class" jdbcType="TINYINT" property="subjectClass" />
+   	<result column="subject_depend" jdbcType="TINYINT" property="subjectDepend" />
+	<result column="team_code" jdbcType="VARCHAR" property="teamCode" />
+	<result column="user_code" jdbcType="VARCHAR" property="userCode" />
+	<result column="subject_publish_time" jdbcType="BIGINT" property="subjectPublishTime" />
+	<result column="subject_title" jdbcType="VARCHAR" property="subjectTitle" />
+	<result column="subject_url" jdbcType="VARCHAR" property="subjectUrl" />
+	<result column="subject_begin_time" jdbcType="BIGINT" property="subjectBeginTime" />
+	<result column="subject_end_time" jdbcType="BIGINT" property="subjectEndTime" />
+	<result column="subject_digest" jdbcType="LONGVARCHAR" property="subjectDigest" />
+	<result column="content_tips" jdbcType="LONGVARCHAR" property="contentTips" />
+	<result column="subject_source" jdbcType="TINYINT" property="subjectSource" />
+	<result column="subject_status" jdbcType="TINYINT" property="subjectStatus" />
+	
+	<result column="source_code" jdbcType="VARCHAR" property="sourceCode" />
+	<result column="source_user_code" jdbcType="VARCHAR" property="sourceUserCode" />
+	<result column="source_publish_time" jdbcType="BIGINT" property="sourcePublishTime" />
+	<result column="source_is_delete" jdbcType="TINYINT" property="sourceIsDelete" />
+	<result column="source_is_shield" jdbcType="TINYINT" property="sourceIsShield" />
+	<result column="source_depend" jdbcType="TINYINT" property="sourceDepend" />
+	<result column="source_team_code" jdbcType="VARCHAR" property="sourceTeamCode" />
+	
+	<result column="team_quality_num" jdbcType="INTEGER" property="teamQualityNum" />
+	<result column="group_quality_num" jdbcType="INTEGER" property="groupQualityNum" />
+	<result column="province_quality_num" jdbcType="INTEGER" property="provinceQualityNum" />
+	<result column="city_quality_num" jdbcType="INTEGER" property="cityQualityNum" />
+	<result column="join_num" jdbcType="INTEGER" property="joinNum" />
+	<result column="read_num" jdbcType="INTEGER" property="readNum" />
+	<result column="like_num" jdbcType="INTEGER" property="likeNum" />
+	<result column="collect_num" jdbcType="INTEGER" property="collectNum" />
+	<result column="forward_num" jdbcType="INTEGER" property="forwardNum" />
+	<result column="comment_num" jdbcType="INTEGER" property="commentNum" />
+	<result column="share_num" jdbcType="INTEGER" property="shareNum" />
+	<result column="hotIsLike" jdbcType="INTEGER" property="hotIsLike" />
+	<result column="hotIsCollect" jdbcType="INTEGER" property="hotIsCollect" />
+	<collection property="resList" ofType="com.zssq.model.ResourceModel">
+	    <result column="resCode" jdbcType="VARCHAR" property="resCode" />
+	    <result column="resUrl" jdbcType="VARCHAR" property="resUrl" />
+	    <result column="resClass" jdbcType="BIGINT" property="resClass" />
+    </collection>
+  </resultMap>
+  <!-- 获取前台首页 热点 map -->
+  <resultMap id="frontHotMap" type="com.zssq.model.RelationPortalFrontHotModel">
+    <result column="hot_code" jdbcType="VARCHAR" property="hotCode" />
+    <result column="subject_code" jdbcType="VARCHAR" property="subjectCode" />
+    <result column="subject_class" jdbcType="TINYINT" property="subjectClass" />
+    <result column="subject_source" jdbcType="TINYINT" property="subjectSource" />
+    <result column="subject_title" jdbcType="VARCHAR" property="subjectTitle" />
+    <result column="subject_publish_time" jdbcType="BIGINT" property="subjectPublishTime" />
+    <result column="join_num" jdbcType="INTEGER" property="joinNum" />
+	<result column="read_num" jdbcType="INTEGER" property="readNum" />
+	<result column="like_num" jdbcType="INTEGER" property="likeNum" />
+	<result column="collect_num" jdbcType="INTEGER" property="collectNum" />
+	<result column="forward_num" jdbcType="INTEGER" property="forwardNum" />
+	<result column="comment_num" jdbcType="INTEGER" property="commentNum" />
+	<result column="share_num" jdbcType="INTEGER" property="shareNum" />
+	<result column="hotIsLike" jdbcType="INTEGER" property="hotIsLike" />
+	<result column="hotIsCollect" jdbcType="INTEGER" property="hotIsCollect" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, hot_code, tenant_code, org_code, create_time, modify_time, remark, subject_code, subject_class, hot_weight
+  </sql>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.RelationHot">
+    insert into relation_hot 
+	    (id,
+	     hot_code,
+	     tenant_code, 
+	     org_code,
+	     create_time, 
+	     modify_time, 
+	     remark, 
+	     subject_code,
+	     subject_class, 
+	     hot_weight)
+    values 
+	    (#{id,jdbcType=BIGINT}, 
+	     #{hotCode,jdbcType=VARCHAR},
+	     #{tenantCode,jdbcType=VARCHAR}, 
+	     #{orgCode,jdbcType=VARCHAR},
+	     #{createTime,jdbcType=BIGINT}, 
+	     #{modifyTime,jdbcType=BIGINT}, 
+	     #{remark,jdbcType=VARCHAR}, 
+	     #{subjectCode,jdbcType=VARCHAR},
+	     #{subjectClass,jdbcType=TINYINT},
+	     #{hotWeight,jdbcType=DECIMAL})
+  </insert>
+  <!--********************  管理端      start***************************  -->
+  <!-- 查询门户隐藏热点列表**管理端  -->
+  <select id="getHideHotListByGL" parameterType="map" resultMap="resultHotMap">
+		select 
+			rhhInfo.hot_code,
+			rhhInfo.subject_code,
+			rhhInfo.subject_class,
+			rhhInfo.user_code,
+			rhhInfo.subject_publish_time,
+			rhhInfo.subject_title,
+			rsd.like_num,
+			rsd.collect_num,
+			rsd.comment_num
+		from(
+			select 	rhh.hot_code,
+					rhh.create_time as createTime,
+					rsi.subject_code,
+					rsi.subject_class,
+					rsi.user_code,
+					rsi.subject_publish_time,
+					rsi.subject_title
+				from relation_hot_hide rhh
+<!-- 				LEFT JOIN relation_hot rh on rhh.hot_code = rh.hot_code -->
+				LEFT JOIN relation_subject_info rsi on rsi.subject_code = rhh.subject_code 
+				where
+					rhh.org_code = #{orgCode,jdbcType=VARCHAR} 
+					and rsi.subject_is_delete = 0 
+					and rsi.subject_is_shield = 0
+					<if test="subjectClass!=null">
+						and rsi.subject_class = #{subjectClass}
+					</if>
+					<if test="beginTime!=null">
+						and rsi.subject_publish_time &gt; #{beginTime}
+					</if>
+					<if test="endTime!=null">
+						and rsi.subject_publish_time &lt; #{endTime}
+					</if>
+					<if test="queryTime!=null">
+						and rhh.modify_time &lt; #{queryTime}
+					</if>
+					<if test="subjectTitle != null and subjectTitle != ''">
+						and rsi.subject_title like concat('%',#{subjectTitle,jdbcType=VARCHAR},'%')
+					</if>
+					<if test="hotHideDepend!=null and hotHideDepend!='' ">
+						and rhh.hot_hide_depend = #{hotHideDepend}
+					</if>
+					order by rhh.createTime desc
+					limit #{limitStart},#{limitCount}
+		) rhhInfo
+		LEFT JOIN relation_subject_data rsd on rsd.subject_code = rhhInfo.subject_code
+		 ORDER BY
+    	 rhhInfo.createTime DESC
+  </select>
+  
+  <!-- 查询门户展示热点列表**管理端  有数据后可 用exist 看效率 11-->
+  <select id="getShowHotListByGL" parameterType="map" resultMap="resultHotMap">
+		select 
+			rhInfo.hot_code,
+			rhInfo.subject_code,
+			rhInfo.subject_class,
+			rhInfo.user_code,
+			rhInfo.subject_publish_time,
+			rhInfo.subject_title,
+			rsd.like_num,
+			rsd.collect_num,
+			rsd.comment_num
+		FROM
+				(	select rsi.subject_code,rsi.subject_class,rsi.user_code,rsi.subject_publish_time,rsi.subject_title,myhot.hot_code 
+				from(
+					select rh.subject_code,rh.hot_code,rh.org_code,rh.modify_time,rh.hot_weight from relation_hot rh
+					LEFT JOIN relation_hot_hide rhh on rh.hot_code = rhh.hot_code and rhh.hot_hide_depend = 2
+					where rh.org_code = #{orgCode,jdbcType=VARCHAR} 
+						and rhh.hot_code is null		
+				) as myhot 
+				LEFT JOIN relation_subject_info rsi on rsi.subject_code = myhot.subject_code 
+				where myhot.org_code = #{orgCode,jdbcType=VARCHAR} 
+			and rsi.subject_is_delete = 0 
+			and rsi.subject_is_shield = 0
+			<if test="subjectClass!=null">
+				and rsi.subject_class = #{subjectClass}
+			</if>
+			<if test="beginTime!=null">
+				and rsi.subject_publish_time &gt; #{beginTime}
+			</if>
+			<if test="endTime!=null">
+				and rsi.subject_publish_time &lt; #{endTime}
+			</if>
+			<if test="queryTime!=null">
+				and myhot.modify_time &lt; #{queryTime}
+			</if>
+			<if test="subjectTitle != null and subjectTitle != ''">
+				and rsi.subject_title like concat('%',#{subjectTitle,jdbcType=VARCHAR},'%')
+			</if>
+			
+			order by myhot.hot_weight desc,rsi.subject_class desc,rsi.subject_publish_time desc
+			limit #{limitStart},#{limitCount}
+		) rhInfo
+		LEFT JOIN relation_subject_data rsd on rsd.subject_code = rhInfo.subject_code
+  </select>
+  <!-- 查询门户全部热点列表**管理端 22 -->
+  <select id="getAllHotListByGL" parameterType="map" resultMap="resultHotMap">
+		select 
+			rh.hot_code,
+			rsi.subject_code,
+			rsi.subject_class,
+			rsi.user_code,
+			rsi.subject_publish_time,
+			rsi.subject_title,
+			rsd.like_num,
+			rsd.collect_num,
+			rsd.comment_num
+		from  relation_hot rh
+		LEFT JOIN relation_subject_info rsi on rsi.subject_code = rh.subject_code 
+		LEFT JOIN relation_subject_data rsd on rsd.subject_code = rsi.subject_code
+		where 
+			rh.org_code = #{orgCode,jdbcType=VARCHAR} 
+			and rsi.subject_is_delete = 0 
+			and rsi.subject_is_shield = 0
+			<if test="subjectClass!=null">
+				and rsi.subject_class = #{subjectClass}
+			</if>
+			<if test="beginTime!=null">
+				and rsi.subject_publish_time &gt; #{beginTime}
+			</if>
+			<if test="endTime!=null">
+				and rsi.subject_publish_time &lt; #{endTime}
+			</if>
+			<if test="queryTime!=null">
+				and rh.modify_time &lt; #{queryTime}
+			</if>
+			<if test="subjectTitle != null and subjectTitle != ''">
+				and rsi.subject_title like concat('%',#{subjectTitle,jdbcType=VARCHAR},'%')
+			</if>
+			order by rh.hot_weight desc,rsi.subject_class desc,rsi.subject_publish_time desc
+			limit #{limitStart},#{limitCount}
+  </select>
+  <!-- 显示热点数量 222-->
+  <select id="selectShowCountByGL" parameterType="map" resultType="int">
+		select count(1) from (
+			select 
+				myhot.hot_code
+			FROM
+					(
+						select rh.subject_code,rh.hot_code,rh.org_code,rh.modify_time,rh.hot_weight from relation_hot rh
+						LEFT JOIN relation_hot_hide rhh on rh.hot_code = rhh.hot_code and rhh.hot_hide_depend = 2
+						where  rh.org_code = #{orgCode,jdbcType=VARCHAR} 
+								and rhh.hot_code is null 
+								
+					) as myhot 
+			LEFT JOIN relation_subject_info rsi on rsi.subject_code = myhot.subject_code 
+			where myhot.org_code = #{orgCode,jdbcType=VARCHAR} 
+				and rsi.subject_is_delete = 0 
+				and rsi.subject_is_shield = 0
+				<if test="subjectClass!=null">
+					and rsi.subject_class = #{subjectClass}
+				</if>
+				<if test="beginTime!=null">
+					and rsi.subject_publish_time &gt; #{beginTime}
+				</if>
+				<if test="endTime!=null">
+					and rsi.subject_publish_time &lt; #{endTime}
+				</if>
+				<if test="queryTime!=null">
+					and myhot.modify_time &lt; #{queryTime}
+				</if>
+				<if test="subjectTitle != null and subjectTitle != ''">
+					and rsi.subject_title like concat('%',#{subjectTitle,jdbcType=VARCHAR},'%')
+				</if>
+		) ab
+  </select>
+  <!-- 隐藏热点数量 22-->
+  <select id="selectHideCountByGL" parameterType="map" resultType="int">
+  		select count(1) from (
+  			select 
+				rhh.hot_code
+			from relation_hot_hide rhh
+			<!-- LEFT JOIN relation_hot rh on rhh.hot_code = rh.hot_code -->
+			LEFT JOIN relation_subject_info rsi on rsi.subject_code = rhh.subject_code 
+			where
+				rhh.org_code = #{orgCode,jdbcType=VARCHAR} 
+				and rsi.subject_is_delete = 0 
+				and rsi.subject_is_shield = 0
+				and rhh.hot_hide_depend = 2
+				<if test="subjectClass!=null">
+					and rsi.subject_class = #{subjectClass}
+				</if>
+				<if test="beginTime!=null">
+					and rsi.subject_publish_time &gt; #{beginTime}
+				</if>
+				<if test="endTime!=null">
+					and rsi.subject_publish_time &lt; #{endTime}
+				</if>
+				<if test="queryTime!=null">
+					and rhh.modify_time &lt; #{queryTime}
+				</if>
+				<if test="subjectTitle != null and subjectTitle != ''">
+					and rsi.subject_title like concat('%',#{subjectTitle,jdbcType=VARCHAR},'%')
+				</if>
+  		) ab
+  </select>
+  <!-- 全部热点数量22 -->
+  <select id="selectAllHotCountByGL" parameterType="map" resultType="int">
+  		select count(1) from(
+  			select 
+				rh.hot_code
+			from  relation_hot rh
+			LEFT JOIN relation_subject_info rsi on rsi.subject_code = rh.subject_code 
+			where 
+				rh.org_code = #{orgCode,jdbcType=VARCHAR} 
+				and rsi.subject_is_delete = 0 
+				and rsi.subject_is_shield = 0
+				<if test="subjectClass!=null">
+					and rsi.subject_class = #{subjectClass}
+				</if>
+				<if test="beginTime!=null">
+					and rsi.subject_publish_time &gt; #{beginTime}
+				</if>
+				<if test="endTime!=null">
+					and rsi.subject_publish_time &lt; #{endTime}
+				</if>
+				<if test="queryTime!=null">
+					and rh.modify_time &lt; #{queryTime}
+				</if>
+				<if test="subjectTitle != null and subjectTitle != ''">
+					and rsi.subject_title like concat('%',#{subjectTitle,jdbcType=VARCHAR},'%')
+				</if>
+  		) ab
+  </select>
+   <!--********************  管理端     end***************************  -->
+   
+   <!-- *******************	  门户 	start*************************** -->
+  	 <!-- 获取班组展示数量 11-->
+   	 <select id="getTeamShowHotCountByMH" parameterType="map" resultType="int">
+   	 	select count(hot_code) from(
+   	 		select 
+				 myhot.hot_code
+			FROM
+					(	
+						select rh.subject_code,rh.hot_code,rh.modify_time from relation_hot rh
+						LEFT JOIN relation_hot_hide rhh on rh.hot_code = rhh.hot_code and rhh.hot_hide_depend = 1 and rhh.team_code = #{teamCode}
+						where rhh.hot_code is null
+					) as myhot 
+			LEFT JOIN relation_subject_info rsi on rsi.subject_code =  myhot.subject_code
+			
+			where 
+				rsi.subject_is_delete = 0 and rsi.subject_is_shield = 0
+				and ((rsi.subject_depend = 2 and rsi.team_code = #{teamCode})
+						<if test="teamUserCodes!=null and teamUserCodes.size()>0">
+						or (rsi.subject_depend = 1 and rsi.user_code in 
+							<foreach collection="teamUserCodes" open="(" close=")" item="userCode" index="index" separator=",">
+								#{userCode,jdbcType=VARCHAR}
+							</foreach>
+						)
+						</if>
+					)
+				<if test="queryTime!=null">
+					and myhot.modify_time &lt; #{queryTime}
+				</if>
+   	 	) ab
+   	 </select>
+   	 <!-- 获取班组展示列表 -->
+   	 <select id="listTeamShowHotByMH" parameterType="map" resultMap="resultMHHotMap">
+   	 		select 
+				rhInfo.hot_code,
+				rhInfo.subject_code,
+				rhInfo.subject_class,
+				rhInfo.subject_depend,
+				rhInfo.team_code,
+				rhInfo.user_code,
+				rhInfo.subject_publish_time,
+				rhInfo.subject_title,
+				rhInfo.subject_url,
+				rhInfo.subject_begin_time,
+				rhInfo.subject_end_time,
+				rhInfo.subject_digest,
+				rhInfo.content_tips,
+				rhInfo.subject_source,
+				rhInfo.dynamic_code,
+				rhInfo.source_code,
+				rhInfo.source_user_code,
+				rhInfo.source_publish_time,
+				rhInfo.source_is_delete,
+				rhInfo.source_is_shield,
+				rhInfo.source_depend,
+				rhInfo.source_team_code,
+				
+				rdtr.rel_is_home_show,
+				rdtr.rel_is_quality,
+				
+				rsd.team_quality_num,
+				rsd.group_quality_num,
+				rsd.province_quality_num,
+				rsd.city_quality_num,
+				rsd.join_num,
+				rsd.read_num,
+				rsd.like_num,
+				rsd.collect_num,
+				rsd.forward_num,
+				rsd.comment_num,
+				rsd.share_num,
+				
+				rsr.subject_code as resCode,
+				rsr.res_url as resUrl,
+				rsr.res_class as resClass,
+				(
+					CASE 
+					WHEN rl.id IS NULL
+					THEN 0
+					ELSE 1
+					END
+				) AS hotIsLike,
+				(
+					CASE 
+					WHEN rc.id IS NULL
+					THEN 0
+					ELSE 1
+					END
+				) AS hotIsCollect
+			FROM(
+				select rsi.*,myhot.hot_code,myhot.hot_weight from (
+						select rh.subject_code,rh.hot_code,rh.modify_time,rh.hot_weight from relation_hot rh
+						LEFT JOIN relation_hot_hide rhh on rh.hot_code = rhh.hot_code and rhh.hot_hide_depend = 1 and rhh.team_code = #{teamCode}
+						where rhh.hot_code is null
+				) as myhot 
+				LEFT JOIN relation_subject_info rsi on rsi.subject_code = myhot.subject_code 
+				
+				where rsi.subject_is_delete = 0 and rsi.subject_is_shield = 0
+				and ((rsi.subject_depend = 2 and rsi.team_code = #{teamCode})
+					<if test="teamUserCodes!=null and teamUserCodes.size()>0">
+						or (rsi.subject_depend = 1 and rsi.user_code in 
+							<foreach collection="teamUserCodes" open="(" close=")" item="userCode" index="index" separator=",">
+								#{userCode,jdbcType=VARCHAR}
+						</foreach>
+						)
+					</if>
+					)
+				<if test="queryTime!=null">
+					and rsi.modify_time &lt; #{queryTime}
+				</if>
+				order by myhot.hot_weight desc,rsi.subject_class desc,rsi.subject_publish_time desc
+				 limit #{limitStart} , #{limitCount} 
+			) rhInfo
+
+			LEFT JOIN relation_subject_data rsd on rsd.subject_code = rhInfo.subject_code
+			LEFT JOIN relation_subject_resource rsr on rsr.subject_code = rhInfo.subject_code
+			LEFT JOIN relation_like rl ON rhInfo.subject_code = rl.subject_code AND rl.user_code = #{userCode,jdbcType=VARCHAR}
+			LEFT JOIN relation_collect rc ON rhInfo.subject_code = rc.subject_code AND rc.user_code = #{userCode,jdbcType=VARCHAR}
+			LEFT JOIN relation_dynamic_team_rel  rdtr ON rhInfo.dynamic_code = rdtr.dynamic_code
+   	 </select>
+   	 <!-- 获取班组隐藏数量 -->
+   	 <select id="getTeamHideHotCountByMH" parameterType="map" resultType="int">
+   	 	select count(hot_code) from(
+   	 		select 
+				rhh.hot_code
+			from relation_hot_hide rhh
+			<!-- LEFT JOIN relation_hot rh on rhh.hot_code = rh.hot_code -->
+			LEFT JOIN relation_subject_info rsi on rsi.subject_code = rhh.subject_code 
+			where 
+				rsi.subject_is_delete = 0 and rsi.subject_is_shield = 0
+				and rhh.hot_hide_depend = 1 and rhh.team_code = #{teamCode}
+				<if test="queryTime!=null">
+					and rhh.modify_time &lt; #{queryTime}
+				</if>
+   	 	) ab
+   	 </select>
+   	 <!-- 获取班组隐藏列表 -->
+   	 <select id="listTeamHideHotByMH" parameterType="map" resultMap="resultMHHotMap">
+   	 	select 
+			rhhInfo.hot_code,
+			rhhInfo.subject_code,
+			rhhInfo.subject_class,
+			rhhInfo.subject_depend,
+			rhhInfo.team_code,
+			rhhInfo.user_code,
+			rhhInfo.subject_publish_time,
+			rhhInfo.subject_title,
+			rhhInfo.subject_url,
+			rhhInfo.subject_begin_time,
+			rhhInfo.subject_end_time,
+			rhhInfo.subject_digest,
+			rhhInfo.content_tips,
+			rhhInfo.subject_source,
+			
+			rhhInfo.source_code,
+			rhhInfo.source_user_code,
+			rhhInfo.source_publish_time,
+			rhhInfo.source_is_delete,
+			rhhInfo.source_is_shield,
+			rhhInfo.source_depend,
+			rhhInfo.source_team_code,
+			rsd.team_quality_num,
+			rsd.group_quality_num,
+			rsd.province_quality_num,
+			rsd.city_quality_num,
+			rsd.join_num,
+			rsd.read_num,
+			rsd.like_num,
+			rsd.collect_num,
+			rsd.forward_num,
+			rsd.comment_num,
+			rsd.share_num,
+			rsr.subject_code as resCode,
+			rsr.res_url as resUrl,
+			rsr.res_class as resClass,
+			(
+					CASE 
+					WHEN rl.id IS NULL
+					THEN 0
+					ELSE 1
+					END
+				) AS hotIsLike,
+				(
+					CASE 
+					WHEN rc.id IS NULL
+					THEN 0
+					ELSE 1
+					END
+				) AS hotIsCollect
+			
+		from (
+			select rsi.*,rhh.hot_code,rhh.create_time as createTime from relation_hot_hide rhh
+			LEFT JOIN relation_subject_info rsi on rsi.subject_code = rhh.subject_code 
+			where 
+			rsi.subject_is_delete = 0 and rsi.subject_is_shield = 0
+			and rhh.hot_hide_depend = 1 and rhh.team_code = #{teamCode}
+			<if test="queryTime!=null">
+				and rhh.modify_time &lt; #{queryTime}
+			</if>
+			order by createTime desc
+			 limit #{limitStart} , #{limitCount} 
+		) rhhInfo
+
+		LEFT JOIN relation_subject_data rsd on rsd.subject_code = rhhInfo.subject_code
+		LEFT JOIN relation_subject_resource rsr on rsr.subject_code = rhhInfo.subject_code
+		LEFT JOIN relation_like rl ON rhhInfo.subject_code = rl.subject_code AND rl.user_code = #{userCode,jdbcType=VARCHAR}
+		LEFT JOIN relation_collect rc ON rhhInfo.subject_code = rc.subject_code AND rc.user_code = #{userCode,jdbcType=VARCHAR}
+	    ORDER BY
+    	rhhInfo.createTime DESC
+   	 </select>
+   	 <!-- 查询门户展示中热点列表 -->
+   	 <select id="getPortalHotList" parameterType="map" resultMap="resultHotNoTeamMHMap">
+   	 		select 
+				hotInfo.hot_code,
+				hotInfo.subject_code,
+				hotInfo.subject_class,
+				hotInfo.subject_depend,
+				hotInfo.team_code,
+				hotInfo.user_code,
+				hotInfo.subject_publish_time,
+				hotInfo.subject_title,
+				hotInfo.subject_url,
+				hotInfo.subject_begin_time,
+				hotInfo.subject_end_time,
+				hotInfo.subject_digest,
+				hotInfo.content_tips,
+				hotInfo.subject_source,
+				hotInfo.subject_status,
+				
+				hotInfo.source_code,
+				hotInfo.source_user_code,
+				hotInfo.source_publish_time,
+				hotInfo.source_is_delete,
+				hotInfo.source_is_shield,
+				hotInfo.source_depend,
+				hotInfo.source_team_code,
+				rsd.team_quality_num,
+				rsd.group_quality_num,
+				rsd.province_quality_num,
+				rsd.city_quality_num,
+				rsd.join_num,
+				rsd.read_num,
+				rsd.like_num,
+				rsd.collect_num,
+				rsd.forward_num,
+				rsd.comment_num,
+				rsd.share_num,
+				rsr.subject_code as resCode,
+				rsr.res_url as resUrl,
+				rsr.res_class as resClass,
+				(
+					CASE 
+					WHEN rl.id IS NULL
+					THEN 0
+					ELSE 1
+					END
+				) AS hotIsLike,
+				(
+					CASE 
+					WHEN rc.id IS NULL
+					THEN 0
+					ELSE 1
+					END
+				) AS hotIsCollect
+			from(
+			
+				select rsi.*,myhot.hot_code,myhot.hot_weight FROM
+						(
+							select rh.subject_code,rh.hot_code,rh.modify_time,rh.org_code,rh.hot_weight from relation_hot rh
+							LEFT JOIN relation_hot_hide rhh on rh.hot_code = rhh.hot_code and rhh.hot_hide_depend = 2
+							where rhh.hot_code is null and rh.org_code = #{orgCode}
+							
+							<if test="queryTime!=null">
+							and rh.create_time &lt; #{queryTime,jdbcType=BIGINT}
+							</if>
+							
+						) as myhot 
+				LEFT JOIN relation_subject_info rsi on rsi.subject_code = myhot.subject_code 
+				where rsi.subject_is_delete = 0 and rsi.subject_is_shield = 0  
+				order by myhot.hot_weight desc,rsi.subject_class desc,rsi.subject_publish_time desc
+ 		limit #{pageFirst} , #{pageSize} 
+				
+			) hotInfo
+			LEFT JOIN relation_subject_data rsd on rsd.subject_code = hotInfo.subject_code
+			LEFT JOIN relation_subject_resource rsr on rsr.subject_code = hotInfo.subject_code
+			LEFT JOIN relation_like rl ON hotInfo.subject_code = rl.subject_code AND rl.user_code = #{userCode,jdbcType=VARCHAR}
+			LEFT JOIN relation_collect rc ON hotInfo.subject_code = rc.subject_code AND rc.user_code = #{userCode,jdbcType=VARCHAR}
+   	 </select>
+   	 <!-- 查询门户首页展示热点列表 -->
+   	 <select id="getPortalFrontHotList" parameterType="map" resultMap="frontHotMap">
+   	 	select 
+   	 		myhot.hot_code,
+				myhot.subject_code,
+				rsi.subject_class,
+				rsi.subject_source,
+				rsi.subject_title,
+				rsi.subject_publish_time,
+				
+				rsd.join_num,
+				rsd.read_num,
+				rsd.like_num,
+				rsd.collect_num,
+				rsd.forward_num,
+				rsd.comment_num,
+				rsd.share_num,
+				(
+					CASE 
+					WHEN rl.id IS NULL
+					THEN 0
+					ELSE 1
+					END
+				) AS hotIsLike,
+				(
+					CASE 
+					WHEN rc.id IS NULL
+					THEN 0
+					ELSE 1
+					END
+				) AS hotIsCollect
+   	 		from 
+					(
+						select rh.subject_code,rh.hot_code,rh.modify_time,rh.org_code,rh.hot_weight from relation_hot rh
+						LEFT JOIN relation_hot_hide rhh on rh.hot_code = rhh.hot_code and rhh.hot_hide_depend = 2
+						where rhh.hot_code is null and rh.org_code = #{orgCode}
+					) as myhot 
+					
+			LEFT JOIN relation_subject_info rsi on rsi.subject_code = myhot.subject_code 
+			LEFT JOIN relation_subject_data rsd on rsd.subject_code = rsi.subject_code
+			LEFT JOIN relation_like rl ON rsi.subject_code = rl.subject_code AND rl.user_code = #{userCode,jdbcType=VARCHAR}
+			LEFT JOIN relation_collect rc ON rsi.subject_code = rc.subject_code AND rc.user_code = #{userCode,jdbcType=VARCHAR}
+			where 
+				rsi.subject_is_delete = 0 and rsi.subject_is_shield = 0
+				order by myhot.hot_weight desc,rsi.subject_class desc,rsi.subject_publish_time desc
+				limit #{showSize}
+   	 </select>
+   <!-- *******************	  门户 	end*************************** -->  
+   <delete id="deleteHotDataSevenDay" parameterType="long">
+   		delete from relation_hot where create_time &lt; #{time}
+   </delete>
+   
+   <select id="selectCountByJob" parameterType="map" resultType="int">
+   		select count(*) from relation_hot where create_time &lt; #{queryTime}
+   </select>
+   
+   <select id="selectHotByJob" parameterType="map" resultMap="BaseResultMap">
+   		select rsd.subject_code,(0.6*rsd.like_num+0.2*rsd.comment_num+rsd.collect_num*0.2)as hot_weight
+			from  
+			(
+				select 
+					subject_code 
+				from relation_hot 
+				where create_time &lt; #{queryTime}
+				limit #{limitStart} , #{limitCount} 
+			) rh 
+			left JOIN relation_subject_data rsd on rsd.subject_code = rh.subject_code
+			where rsd.subject_code is not null
+   </select>
+   
+   <update id="updateHotWeight" parameterType="java.util.List">
+	 
+	   <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+				update relation_hot 
+				<set>
+				  hot_weight = #{item.hotWeight,jdbcType=DECIMAL}
+				</set>
+				where subject_code = #{item.subjectCode,jdbcType=VARCHAR}
+	   </foreach>
+   </update>
+   
+   <select id="getHotByCode"  parameterType="map" resultMap="BaseResultMap">
+   			select <include refid="Base_Column_List"/>
+   			from relation_hot
+   			where subject_code = #{subjectCode,jdbcType=VARCHAR}
+   </select>
+</mapper>

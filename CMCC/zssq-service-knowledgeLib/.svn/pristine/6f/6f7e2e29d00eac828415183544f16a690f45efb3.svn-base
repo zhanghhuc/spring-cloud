@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.RepositoryKnowledgeMapperByGuoYang" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.RepositoryKnowledge" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="knowledge_code" property="knowledgeCode" jdbcType="VARCHAR" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="add_time" property="addTime" jdbcType="BIGINT" />
+    <result column="append_time" property="appendTime" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="repository_code" property="repositoryCode" jdbcType="VARCHAR" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="knowledge_title" property="knowledgeTitle" jdbcType="VARCHAR" />
+    <result column="knowledge_digest" property="knowledgeDigest" jdbcType="VARCHAR" />
+    <result column="content_code" property="contentCode" jdbcType="VARCHAR" />
+    <result column="share_num" property="shareNum" jdbcType="INTEGER" />
+    <result column="praise_num" property="praiseNum" jdbcType="INTEGER" />
+    <result column="collect_num" property="collectNum" jdbcType="INTEGER" />
+    <result column="append_num" property="appendNum" jdbcType="INTEGER" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, knowledge_code, tenant_code, org_code, create_time, modify_time, add_time, append_time, 
+    remark, repository_code, user_code, knowledge_title, knowledge_digest, content_code, 
+    share_num, praise_num, collect_num, append_num, is_delete
+  </sql>
+  
+  
+  <resultMap id="GetKnowledgeListByLibForGLModel" type="com.zssq.model.GetKnowledgeListByLibForGLModel" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="knowledge_code" property="knowledgeCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="knowledge_title" property="knowledgeTitle" jdbcType="VARCHAR" />
+    <result column="knowledge_digest" property="knowledgeDigest" jdbcType="VARCHAR" />
+    <result column="content_code" property="contentCode" jdbcType="VARCHAR" />
+    <result column="append_num" property="appendNum" jdbcType="INTEGER" />
+  </resultMap>
+  
+  
+  <resultMap id="GetKnowledgeByTitleForGLModel" type="com.zssq.model.GetKnowledgeByTitleForGLModel" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="knowledge_code" property="knowledgeCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="knowledge_title" property="knowledgeTitle" jdbcType="VARCHAR" />
+    <result column="knowledge_digest" property="knowledgeDigest" jdbcType="VARCHAR" />
+    <result column="content_code" property="contentCode" jdbcType="VARCHAR" />
+    <result column="append_num" property="appendNum" jdbcType="INTEGER" />
+  </resultMap>
+  
+  <resultMap id="RepositoryKnowledgeModelForSearch" type="com.zssq.model.RepositoryKnowledgeModelForSearch" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="knowledge_code" property="knowledgeCode" jdbcType="VARCHAR" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="knowledge_title" property="knowledgeTitle" jdbcType="VARCHAR" />
+    <result column="knowledge_digest" property="knowledgeDigest" jdbcType="VARCHAR" />
+    <result column="content_code" property="contentCode" jdbcType="VARCHAR" />
+    <result column="append_num" property="appendNum" jdbcType="INTEGER" />
+  </resultMap>
+  
+  <resultMap id="RepositoryKnowledgeModelForCollect" type="com.zssq.model.RepositoryKnowledgeModelForCollect" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="knowledge_code" property="knowledgeCode" jdbcType="VARCHAR" />
+    <result column="knowledge_title" property="knowledgeTitle" jdbcType="VARCHAR" />
+    <result column="knowledge_digest" property="knowledgeDigest" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="content_code" property="contentCode" jdbcType="VARCHAR" />
+    <result column="collectTime" property="collectTime" jdbcType="BIGINT" />
+  </resultMap>
+  
+  
+  
+  
+  <update id="updateRepositoryInfoForKnowledge" parameterType="com.zssq.dao.pojo.RepositoryKnowledge" >
+    update repository_knowledge
+    set
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      repository_code = #{repositoryCode,jdbcType=VARCHAR}
+    where knowledge_code = #{knowledgeCode,jdbcType=VARCHAR} AND is_delete = 0 and org_code = #{orgCode,jdbcType=VARCHAR}
+  </update>
+  
+  
+  <select id="selectShowCountByGL" resultType="java.lang.Integer" parameterType="map" >
+    select 
+    	count(1)
+    from repository_knowledge
+    where 
+    	is_delete = 0
+    <if test="keyWords != null">
+		and knowledge_title like concat('%',#{keyWords,jdbcType=VARCHAR},'%')
+	</if>
+    AND  org_code = #{orgCode,jdbcType=VARCHAR}
+  </select>
+  
+  <select id="getShowHotListByGL" resultMap="RepositoryKnowledgeModelForSearch" parameterType="map" >
+    select 
+    	<include refid="Base_Column_List" />
+    from repository_knowledge
+    where 
+    is_delete = 0
+    <if test="keyWords != null">
+		and knowledge_title like concat('%',#{keyWords,jdbcType=VARCHAR},'%')
+	</if>
+    and org_code = #{orgCode,jdbcType=VARCHAR}
+    LIMIT #{limitStart,jdbcType=INTEGER},#{limitCount,jdbcType=INTEGER}
+  </select>
+  
+  
+  <update id="deleteByKnowledgeCode" parameterType="com.zssq.dao.pojo.RepositoryKnowledge" >
+    update repository_knowledge
+    set
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      is_delete = 1
+    where knowledge_code = #{knowledgeCode,jdbcType=VARCHAR} and org_code = #{orgCode,jdbcType=VARCHAR} and is_delete = 0
+  </update>
+  
+  
+  <select id="selectByLib" resultMap="GetKnowledgeListByLibForGLModel" parameterType="map" >
+    select 
+    	<include refid="Base_Column_List" />
+    from repository_knowledge
+    where is_delete = 0 and repository_code = #{repositoryCode,jdbcType=VARCHAR}
+    <if test="keyWords != ''">
+		      	and knowledge_title like concat('%',#{keyWords,jdbcType=VARCHAR},'%')
+	</if>
+    LIMIT #{limitStart,jdbcType=INTEGER},#{limitCount,jdbcType=INTEGER}
+  </select>
+  
+  <select id="selectByLibCount" resultType="java.lang.Integer" parameterType="map" >
+    select 
+    	count(1)
+    from repository_knowledge
+    where is_delete = 0 and repository_code = #{repositoryCode,jdbcType=VARCHAR}
+    <if test="keyWords != null">
+		      	and knowledge_title like concat('%',#{keyWords,jdbcType=VARCHAR},'%')
+	</if>
+  </select>
+  
+  <select id="selectByTitle" resultMap="GetKnowledgeByTitleForGLModel" parameterType="com.zssq.dao.pojo.RepositoryKnowledge" >
+    select 
+    	<include refid="Base_Column_List" />
+    from repository_knowledge
+    where is_delete = 0 and knowledge_code = #{knowledgeCode,jdbcType=VARCHAR} and org_code = #{orgCode,jdbcType=VARCHAR}
+  </select>
+  
+  
+  <update id="deleteKnowledgeForDelLib" parameterType="com.zssq.dao.pojo.RepositoryKnowledge" >
+    update repository_knowledge
+    set
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      is_delete = 1
+    where repository_code = #{repositoryCode,jdbcType=VARCHAR} and org_code = #{orgCode,jdbcType=VARCHAR} and is_delete = 0
+  </update>
+  
+  <select id="getUserCollectKnowledgeList" resultMap="RepositoryKnowledgeModelForCollect" parameterType="map" >
+    select 
+    	rk.id,
+    	rk.knowledge_code,
+    	rk.knowledge_title,
+    	rk.knowledge_digest,
+    	rk.create_time,
+      	rk.user_code,
+        rk.content_code, 
+        rc.create_time as collectTime
+    from repository_collect rc LEFT JOIN repository_knowledge rk on rc.knowledge_code = rk.knowledge_code
+    where 
+    rk.is_delete = 0
+    and rc.org_code = #{orgCode,jdbcType=VARCHAR}
+    and rc.user_code = #{userCode,jdbcType=VARCHAR}
+    LIMIT #{limitStart,jdbcType=INTEGER},#{limitCount,jdbcType=INTEGER}
+  </select>
+  
+  <select id="getUserCollectKnowledgeListCount" resultType="java.lang.Integer" parameterType="map" >
+    select 
+    	count(1)
+    from repository_collect rc LEFT JOIN repository_knowledge rk on rc.knowledge_code = rk.knowledge_code
+    where 
+    rk.is_delete = 0
+    and rc.org_code = #{orgCode,jdbcType=VARCHAR}
+    and rc.user_code = #{userCode,jdbcType=VARCHAR}
+    LIMIT #{limitStart,jdbcType=INTEGER},#{limitCount,jdbcType=INTEGER}
+  </select>
+  
+  
+  <select id="selectByLibForMove" resultMap="GetKnowledgeListByLibForGLModel" parameterType="map" >
+    select 
+    	<include refid="Base_Column_List" />
+    from repository_knowledge
+    where is_delete = 0 and repository_code = #{repositoryCode,jdbcType=VARCHAR}
+  </select>
+  
+  <select id="getByCode" resultMap="GetKnowledgeListByLibForGLModel" parameterType="map" >
+    select 
+    	<include refid="Base_Column_List" />
+    from repository_knowledge
+    where is_delete = 0 and knowledge_code = #{knowledgeCode,jdbcType=VARCHAR}
+  </select>
+  
+  
+</mapper>

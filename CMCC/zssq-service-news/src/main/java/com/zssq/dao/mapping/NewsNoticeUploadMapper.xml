@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.NewsNoticeUploadMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.news.dao.pojo.NewsNoticeUpload" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="notice_upload_code" property="noticeUploadCode" jdbcType="VARCHAR" />
+    <result column="notice_content_code" property="noticeContentCode" jdbcType="VARCHAR" />
+    <result column="notice_type" property="noticeType" jdbcType="VARCHAR" />
+    <result column="notice_path" property="noticePath" jdbcType="VARCHAR" />
+    <result column="notice_org_name" property="noticeOrgName" jdbcType="VARCHAR" />
+    <result column="notice_new_name" property="noticeNewName" jdbcType="VARCHAR" />
+    <result column="notice_org_ext" property="noticeOrgExt" jdbcType="VARCHAR" />
+    <result column="notice_new_ext" property="noticeNewExt" jdbcType="VARCHAR" />
+    <result column="notice_upload_time" property="noticeUploadTime" jdbcType="BIGINT" />
+    <result column="create_time" property="createTime" jdbcType="BIGINT" />
+    <result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="org_level" property="orgLevel" jdbcType="TINYINT" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, notice_upload_code, notice_content_code, notice_type, notice_path, notice_org_name, 
+    notice_new_name, notice_org_ext, notice_new_ext, notice_upload_time, create_time, 
+    modify_time, remark, tenant_code, org_level, org_code
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from news_notice_upload
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from news_notice_upload
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.news.dao.pojo.NewsNoticeUpload" >
+    insert into news_notice_upload (id, notice_upload_code, notice_content_code, 
+      notice_type, notice_path, notice_org_name, 
+      notice_new_name, notice_org_ext, notice_new_ext, 
+      notice_upload_time, create_time, modify_time, 
+      remark, tenant_code, org_level, 
+      org_code)
+    values (#{id,jdbcType=BIGINT}, #{noticeUploadCode,jdbcType=VARCHAR}, #{noticeContentCode,jdbcType=VARCHAR}, 
+      #{noticeType,jdbcType=VARCHAR}, #{noticePath,jdbcType=VARCHAR}, #{noticeOrgName,jdbcType=VARCHAR}, 
+      #{noticeNewName,jdbcType=VARCHAR}, #{noticeOrgExt,jdbcType=VARCHAR}, #{noticeNewExt,jdbcType=VARCHAR}, 
+      #{noticeUploadTime,jdbcType=BIGINT}, #{createTime,jdbcType=BIGINT}, #{modifyTime,jdbcType=BIGINT}, 
+      #{remark,jdbcType=VARCHAR}, #{tenantCode,jdbcType=VARCHAR}, #{orgLevel,jdbcType=TINYINT}, 
+      #{orgCode,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.news.dao.pojo.NewsNoticeUpload" >
+    insert into news_notice_upload
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="noticeUploadCode != null" >
+        notice_upload_code,
+      </if>
+      <if test="noticeContentCode != null" >
+        notice_content_code,
+      </if>
+      <if test="noticeType != null" >
+        notice_type,
+      </if>
+      <if test="noticePath != null" >
+        notice_path,
+      </if>
+      <if test="noticeOrgName != null" >
+        notice_org_name,
+      </if>
+      <if test="noticeNewName != null" >
+        notice_new_name,
+      </if>
+      <if test="noticeOrgExt != null" >
+        notice_org_ext,
+      </if>
+      <if test="noticeNewExt != null" >
+        notice_new_ext,
+      </if>
+      <if test="noticeUploadTime != null" >
+        notice_upload_time,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="orgLevel != null" >
+        org_level,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="noticeUploadCode != null" >
+        #{noticeUploadCode,jdbcType=VARCHAR},
+      </if>
+      <if test="noticeContentCode != null" >
+        #{noticeContentCode,jdbcType=VARCHAR},
+      </if>
+      <if test="noticeType != null" >
+        #{noticeType,jdbcType=VARCHAR},
+      </if>
+      <if test="noticePath != null" >
+        #{noticePath,jdbcType=VARCHAR},
+      </if>
+      <if test="noticeOrgName != null" >
+        #{noticeOrgName,jdbcType=VARCHAR},
+      </if>
+      <if test="noticeNewName != null" >
+        #{noticeNewName,jdbcType=VARCHAR},
+      </if>
+      <if test="noticeOrgExt != null" >
+        #{noticeOrgExt,jdbcType=VARCHAR},
+      </if>
+      <if test="noticeNewExt != null" >
+        #{noticeNewExt,jdbcType=VARCHAR},
+      </if>
+      <if test="noticeUploadTime != null" >
+        #{noticeUploadTime,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.news.dao.pojo.NewsNoticeUpload" >
+    update news_notice_upload
+    <set >
+      <if test="noticeUploadCode != null" >
+        notice_upload_code = #{noticeUploadCode,jdbcType=VARCHAR},
+      </if>
+      <if test="noticeContentCode != null" >
+        notice_content_code = #{noticeContentCode,jdbcType=VARCHAR},
+      </if>
+      <if test="noticeType != null" >
+        notice_type = #{noticeType,jdbcType=VARCHAR},
+      </if>
+      <if test="noticePath != null" >
+        notice_path = #{noticePath,jdbcType=VARCHAR},
+      </if>
+      <if test="noticeOrgName != null" >
+        notice_org_name = #{noticeOrgName,jdbcType=VARCHAR},
+      </if>
+      <if test="noticeNewName != null" >
+        notice_new_name = #{noticeNewName,jdbcType=VARCHAR},
+      </if>
+      <if test="noticeOrgExt != null" >
+        notice_org_ext = #{noticeOrgExt,jdbcType=VARCHAR},
+      </if>
+      <if test="noticeNewExt != null" >
+        notice_new_ext = #{noticeNewExt,jdbcType=VARCHAR},
+      </if>
+      <if test="noticeUploadTime != null" >
+        notice_upload_time = #{noticeUploadTime,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=BIGINT},
+      </if>
+      <if test="modifyTime != null" >
+        modify_time = #{modifyTime,jdbcType=BIGINT},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="orgLevel != null" >
+        org_level = #{orgLevel,jdbcType=TINYINT},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.news.dao.pojo.NewsNoticeUpload" >
+    update news_notice_upload
+    set notice_upload_code = #{noticeUploadCode,jdbcType=VARCHAR},
+      notice_content_code = #{noticeContentCode,jdbcType=VARCHAR},
+      notice_type = #{noticeType,jdbcType=VARCHAR},
+      notice_path = #{noticePath,jdbcType=VARCHAR},
+      notice_org_name = #{noticeOrgName,jdbcType=VARCHAR},
+      notice_new_name = #{noticeNewName,jdbcType=VARCHAR},
+      notice_org_ext = #{noticeOrgExt,jdbcType=VARCHAR},
+      notice_new_ext = #{noticeNewExt,jdbcType=VARCHAR},
+      notice_upload_time = #{noticeUploadTime,jdbcType=BIGINT},
+      create_time = #{createTime,jdbcType=BIGINT},
+      modify_time = #{modifyTime,jdbcType=BIGINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      org_level = #{orgLevel,jdbcType=TINYINT},
+      org_code = #{orgCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

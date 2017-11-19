@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.BlogSubscribeMapper">
+
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.BlogSubscribe">
+		<id column="id" jdbcType="BIGINT" property="id" />
+		<result column="sub_code" jdbcType="VARCHAR" property="subCode" />
+		<result column="tenant_code" jdbcType="VARCHAR" property="tenantCode" />
+		<result column="org_code" jdbcType="VARCHAR" property="orgCode" />
+		<result column="create_time" jdbcType="BIGINT" property="createTime" />
+		<result column="modify_time" jdbcType="BIGINT" property="modifyTime" />
+		<result column="remark" jdbcType="VARCHAR" property="remark" />
+		<result column="user_code" jdbcType="VARCHAR" property="userCode" />
+		<result column="sub_class" jdbcType="TINYINT" property="subClass" />
+		<result column="team_code" jdbcType="VARCHAR" property="teamCode" />
+		<result column="sub_user_code" jdbcType="VARCHAR" property="subUserCode" />
+	</resultMap>
+	
+	<!-- 列列表 -->
+	<sql id="Base_Column_List">
+		id, sub_code, tenant_code, org_code, create_time, modify_time, remark,
+		user_code, sub_class, team_code, sub_user_code
+	</sql>
+	
+	<!-- 查询列表个数 -->
+	<select id="selectCount" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(1)
+		FROM blog_subscribe
+		WHERE sub_class = #{subClass,jdbcType=TINYINT}
+		AND user_code = #{userCode,jdbcType=VARCHAR}
+		<choose>
+		    <when test="subClass == 1">
+		        AND sub_user_code = #{subUserCode,jdbcType=VARCHAR}
+		    </when>
+		    <when test="subClass == 2">
+		        AND team_code = #{teamCode,jdbcType=VARCHAR}
+		    </when>
+		    <otherwise>
+		    </otherwise>
+		</choose>
+	</select>
+	
+	<!-- 插入 -->
+	<insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.zssq.dao.pojo.BlogSubscribe">
+		INSERT INTO blog_subscribe (
+			sub_code, 
+			tenant_code,
+			org_code, 
+			create_time,
+			modify_time, 
+			remark, 
+			user_code,
+			sub_class, 
+			team_code, 
+			sub_user_code
+		) VALUES (
+			#{subCode,jdbcType=VARCHAR},
+			#{tenantCode,jdbcType=VARCHAR},
+			#{orgCode,jdbcType=VARCHAR}, 
+			#{createTime,jdbcType=BIGINT},
+			#{modifyTime,jdbcType=BIGINT}, 
+			#{remark,jdbcType=VARCHAR},
+			#{userCode,jdbcType=VARCHAR},
+			#{subClass,jdbcType=TINYINT}, 
+			#{teamCode,jdbcType=VARCHAR}, 
+			#{subUserCode,jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<!-- 删除 -->
+	<delete id="delete" parameterType="map">
+		DELETE FROM blog_subscribe
+		WHERE sub_class = #{subClass,jdbcType=TINYINT}
+		AND user_code = #{userCode,jdbcType=VARCHAR}
+		<choose>
+		    <when test="subClass == 1">
+		        AND sub_user_code = #{subUserCode,jdbcType=VARCHAR}
+		    </when>
+		    <when test="subClass == 2">
+		        AND team_code = #{teamCode,jdbcType=VARCHAR}
+		    </when>
+		    <otherwise>
+		    </otherwise>
+		</choose>
+	</delete>
+
+</mapper>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.shiro.dao.mapper.PermissionMapper">
+  <resultMap id="BaseResultMap" type="com.example.shiro.entity.Permission">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="permission" jdbcType="VARCHAR" property="permission" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from permission
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.example.shiro.entity.Permission">
+    insert into permission (id, name, permission
+      )
+    values (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{permission,jdbcType=VARCHAR}
+      )
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.example.shiro.entity.Permission">
+    update permission
+    set name = #{name,jdbcType=VARCHAR},
+      permission = #{permission,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select id, name, permission
+    from permission
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select id, name, permission
+    from permission
+  </select>
+   <select id="selectByIds" resultMap="BaseResultMap" parameterType="list">
+  	select id, name, permission
+    from permission  
+    where id in 
+  <foreach collection="list" item="cid" open="(" separator="," close=")">
+	#{cid}  
+  </foreach>
+  </select>
+  <select id="selectByPermission" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select id, name, permission
+    from permission
+    where permission = #{permission,jdbcType=VARCHAR}
+  </select>
+</mapper>

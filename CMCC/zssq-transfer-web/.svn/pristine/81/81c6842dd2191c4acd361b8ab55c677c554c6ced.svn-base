@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.relation.dao.mapper.RelationThirdMapper">
+
+	<!-- 插入内容信息  -->
+	<insert id="insertSubjectInfoList" useGeneratedKeys="true" keyProperty="id" parameterType="list">
+		INSERT INTO relation_subject_info (
+			subject_code, 
+			tenant_code,
+			org_code, 
+			create_time, 
+			modify_time,
+			remark, 
+			dynamic_code,
+			subject_class, 
+			subject_depend,
+			team_code, 
+			user_code, 
+			subject_publish_time,
+			subject_title, 
+			source_depend, 
+			source_team_code,
+			subject_url, 
+			subject_source, 
+			source_code,
+			source_user_code, 
+			source_publish_time, 
+			source_is_delete,
+			source_is_shield, 
+			subject_is_delete, 
+			subject_is_shield,
+			subject_status, 
+			subject_begin_time, 
+			subject_end_time,
+			subject_digest, 
+			content_tips
+		) VALUES 
+			<foreach collection="list" item="item" index="index" separator=",">
+				(
+					#{item.subjectCode,jdbcType=VARCHAR},
+					#{item.tenantCode,jdbcType=VARCHAR},
+					#{item.orgCode,jdbcType=VARCHAR}, 
+					#{item.createTime,jdbcType=BIGINT}, 
+					#{item.modifyTime,jdbcType=BIGINT},
+					#{item.remark,jdbcType=VARCHAR}, 
+					#{item.dynamicCode,jdbcType=VARCHAR}, 
+					#{item.subjectClass,jdbcType=TINYINT},
+					#{item.subjectDepend,jdbcType=TINYINT},
+					#{item.teamCode,jdbcType=VARCHAR}, 
+					#{item.userCode,jdbcType=VARCHAR}, 
+					#{item.subjectPublishTime,jdbcType=BIGINT},
+					#{item.subjectTitle,jdbcType=VARCHAR}, 
+					#{item.sourceDepend,jdbcType=TINYINT},
+					#{item.sourceTeamCode,jdbcType=VARCHAR},
+					#{item.subjectUrl,jdbcType=VARCHAR}, 
+					#{item.subjectSource,jdbcType=TINYINT}, 
+					#{item.sourceCode,jdbcType=VARCHAR},
+					#{item.sourceUserCode,jdbcType=VARCHAR},
+					#{item.sourcePublishTime,jdbcType=BIGINT},
+					#{item.sourceIsDelete,jdbcType=TINYINT},
+					#{item.sourceIsShield,jdbcType=TINYINT},
+					#{item.subjectIsDelete,jdbcType=TINYINT},
+					#{item.subjectIsShield,jdbcType=TINYINT},
+					#{item.subjectStatus,jdbcType=TINYINT},
+					#{item.subjectBeginTime,jdbcType=BIGINT},
+					#{item.subjectEndTime,jdbcType=BIGINT},
+					#{item.subjectDigest,jdbcType=LONGVARCHAR},
+					#{item.contentTips,jdbcType=LONGVARCHAR}
+				)
+			</foreach>
+	</insert>
+
+	<!-- 插入内容数据信息  -->
+	<insert id="insertSubjectDataList" useGeneratedKeys="true" keyProperty="id" parameterType="list">
+		INSERT INTO relation_subject_data (
+			subject_data_code, 
+			tenant_code,
+			org_code,
+			create_time,
+			modify_time, 
+			remark, 
+			subject_code,
+			team_quality_num, 
+			group_quality_num, 
+			province_quality_num,
+			city_quality_num, 
+			join_num, 
+			read_num,
+			like_num, 
+			collect_num, 
+			forward_num,
+			comment_num, 
+			share_num
+		) VALUES 
+			<foreach collection="list" item="item" index="index" separator=",">
+				(
+					#{item.subjectDataCode,jdbcType=VARCHAR},
+					#{item.tenantCode,jdbcType=VARCHAR},
+					#{item.orgCode,jdbcType=VARCHAR}, 
+					#{item.createTime,jdbcType=BIGINT},
+					#{item.modifyTime,jdbcType=BIGINT}, 
+					#{item.remark,jdbcType=VARCHAR},
+					#{item.subjectCode,jdbcType=VARCHAR},
+					#{item.teamQualityNum,jdbcType=INTEGER}, 
+					#{item.groupQualityNum,jdbcType=INTEGER},
+					#{item.provinceQualityNum,jdbcType=INTEGER},
+					#{item.cityQualityNum,jdbcType=INTEGER}, 
+					#{item.joinNum,jdbcType=INTEGER},
+					#{item.readNum,jdbcType=INTEGER},
+					#{item.likeNum,jdbcType=INTEGER}, 
+					#{item.collectNum,jdbcType=INTEGER}, 
+					#{item.forwardNum,jdbcType=INTEGER},
+					#{item.commentNum,jdbcType=INTEGER}, 
+					#{item.shareNum,jdbcType=INTEGER}
+				)
+			</foreach>
+	</insert>
+	
+	<!-- 将博客信息迁移到关系内容信息中 -->
+	<insert id="insertSubjectInfoBlog" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO zssq_relation.relation_subject_info (
+			subject_code, 
+			tenant_code,
+			org_code, 
+			create_time, 
+			modify_time,
+			remark, 
+			dynamic_code,
+			subject_class, 
+			subject_depend,
+			team_code, 
+			user_code, 
+			subject_publish_time,
+			subject_title, 
+			source_depend, 
+			source_team_code,
+			subject_url, 
+			subject_source, 
+			source_code,
+			source_user_code, 
+			source_publish_time, 
+			source_is_delete,
+			source_is_shield, 
+			subject_is_delete, 
+			subject_is_shield,
+			subject_status, 
+			subject_begin_time, 
+			subject_end_time,
+			subject_digest, 
+			content_tips
+		) SELECT
+				bi.blog_code,
+				bi.tenant_code,
+				bi.org_code,
+				bi.create_time,
+				bi.modify_time,
+				bi.remark,
+				bi.dynamic_code,
+				2,
+				bi.blog_depend,
+				bi.team_code,
+				bi.user_code,
+				bi.blog_publish_time,
+				bi.blog_title,
+				0,
+				'',
+				bi.blog_logo,
+				bi.blog_source,
+				'',
+				'',
+				0,
+				0,
+				0,
+				bi.blog_is_delete,
+				bi.blog_is_shield,
+				0,
+				0,
+				0,
+				bi.blog_digest,
+				''
+			FROM
+				zssq_blog.blog_info bi
+	</insert>
+	
+	<!-- 将博客数据迁移到关系内容数据中 -->
+	<insert id="insertSubjectDataBlog" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO zssq_relation.relation_subject_data (
+			subject_data_code,
+			tenant_code,
+			org_code,
+			create_time,
+			modify_time,
+			remark,
+			subject_code,
+			team_quality_num,
+			group_quality_num,
+			province_quality_num,
+			city_quality_num,
+			join_num,
+			read_num,
+			like_num,
+			collect_num,
+			forward_num,
+			comment_num,
+			share_num
+		) SELECT
+				REPLACE (UUID(), '-', '') AS subject_data_code,
+				bd.tenant_code,
+				bd.org_code,
+				bd.create_time,
+				bd.modify_time,
+				bd.remark,
+				bd.blog_code,
+				bd.team_quality_num,
+				bd.group_quality_num,
+				bd.province_quality_num,
+				bd.city_quality_num,
+				0,
+				bd.read_num,
+				bd.like_num,
+				bd.collect_num,
+				bd.forward_num,
+				bd.comment_num,
+				bd.share_num
+			FROM
+				zssq_blog.blog_data bd
+	</insert>
+	
+</mapper>

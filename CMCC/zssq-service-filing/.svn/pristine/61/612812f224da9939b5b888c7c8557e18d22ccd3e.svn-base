@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.UserFriendGroupMapper">
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.UserFriendGroup">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="friend_group_code" property="friendGroupCode" jdbcType="VARCHAR" />
+		<result column="user_code" property="userCode" jdbcType="VARCHAR" />
+		<result column="group_name" property="groupName" jdbcType="VARCHAR" />
+		<result column="is_default" property="isDefault" jdbcType="TINYINT" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+		<result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+		<result column="org_level" property="orgLevel" jdbcType="TINYINT" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, friend_group_code, user_code, group_name, is_default, create_time,
+		modify_time,org_code, org_level
+	</sql>
+	
+	<select id="selectByCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+			<include refid="Base_Column_List" />
+		from 
+			user_friend_group
+		where friend_group_code = #{friendGroupCode,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectMyGroup" parameterType="java.lang.String" resultType="com.zssq.dao.pojo.MyGroup">
+		SELECT 
+		  t1.friend_group_code groupCode,
+		  t1.group_name groupName,
+		  IFNULL(t2.sumCount, '0') sumCount 
+		FROM
+		  user_friend_group t1 
+		  LEFT JOIN 
+		    (SELECT 
+		      friend_group_code,
+		      COUNT(1) sumCount 
+		    FROM
+		      user_friend 
+		    WHERE user_code = #{userCode,jdbcType=VARCHAR} group by friend_group_code) t2
+		      ON t1.friend_group_code = t2.friend_group_code 
+		    WHERE t1.user_code = #{userCode,jdbcType=VARCHAR} or t1.friend_group_code=#{defaultGroup,jdbcType=VARCHAR}
+		    ORDER BY t1.friend_group_code 
+	</select>
+	
+	<delete id="deleteByCode" parameterType="java.lang.String">
+		delete from user_friend_group where friend_group_code = #{code,jdbcType=VARCHAR}
+	</delete>
+	
+	<insert id="insertSelective" parameterType="com.zssq.dao.pojo.UserFriendGroup">
+		insert into user_friend_group
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="friendGroupCode != null">
+				friend_group_code,
+			</if>
+			<if test="userCode != null">
+				user_code,
+			</if>
+			<if test="groupName != null">
+				group_name,
+			</if>
+			<if test="isDefault != null">
+				is_default,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+			<if test="modifyTime != null">
+				modify_time,
+			</if>
+			<if test="orgCode != null">
+				org_code,
+			</if>
+			<if test="orgLevel != null">
+				org_level,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=BIGINT},
+			</if>
+			<if test="friendGroupCode != null">
+				#{friendGroupCode,jdbcType=VARCHAR},
+			</if>
+			<if test="userCode != null">
+				#{userCode,jdbcType=VARCHAR},
+			</if>
+			<if test="groupName != null">
+				#{groupName,jdbcType=VARCHAR},
+			</if>
+			<if test="isDefault != null">
+				#{isDefault,jdbcType=TINYINT},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=BIGINT},
+			</if>
+			<if test="modifyTime != null">
+				#{modifyTime,jdbcType=BIGINT},
+			</if>
+			<if test="orgCode != null">
+				#{orgCode,jdbcType=VARCHAR},
+			</if>
+			<if test="orgLevel != null">
+				#{orgLevel,jdbcType=TINYINT},
+			</if>
+		</trim>
+	</insert>
+	
+</mapper>

@@ -1,0 +1,186 @@
+package com.zssq.blog.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.blog.service.BlogSubscribeService;
+import com.zssq.blog.service.BlogThirdService;
+import com.zssq.blog.vo.DB2MsSubscribeRelation;
+import com.zssq.blog.vo.MySQLBlogSubscribe;
+import com.zssq.blog.vo.UserInfo;
+import com.zssq.constants.BlogConstants;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.StringTools;
+
+/**
+ * 
+ * @ClassName: BlogSubscribeController  
+ * @Description: 博客订阅数据迁移Controller  
+ * @author ZKZ  
+ * @date 2017年5月18日  
+ *
+ */
+@Controller
+@RequestMapping("blogSubscribeController")
+public class BlogSubscribeController {
+
+	@Autowired
+	private BlogSubscribeService blogSubscribeService;
+	@Autowired
+	private BlogThirdService blogThirdService;
+	
+	/**
+	 * 
+	 * @Title: transferSubData  
+	 * @Description: 迁移订阅数据
+	 * @param pageNo
+	 * @param pageSize    参数  
+	 * @return: void    返回类型
+	 */
+	@RequestMapping(value = "/transferSubData")  
+	@ResponseBody
+	public ResultJSON transferSubData(int pageNo, int pageSize) {
+		// 返回值
+		ResultJSON result = new ResultJSON("COMMON_200");
+		JSONObject body = new JSONObject();
+		
+		try {
+			// 参数校验
+			if (pageNo <= 0) {
+				pageNo = 0;
+			}
+			if (pageSize <= 0) {
+				pageSize = 100;
+			}
+			
+			// 查询DB2库中订阅数据总量
+//			int DB2SubCount = blogSubscribeService.getDB2SubCount();
+			int DB2SubCount = blogSubscribeService.getSourceDB2SubCount();
+			if (DB2SubCount <= 0) {
+				body.put("message", "查询源数据库中订阅数据总量时出错，查询出的个数为：" + DB2SubCount);
+				throw new Exception();
+			}
+			
+			// 总页数
+			int totalPage = DB2SubCount/pageSize + 1;
+			
+			// 循环处理数据
+			boolean arrangeFlag = true;
+			for (int i = pageNo; i < totalPage; i++) {
+				arrangeFlag = arrangeSubData(pageNo, pageSize);
+				if (!arrangeFlag) {
+					body.put("message", "处理数据时失败");
+					throw new Exception();
+				}
+				pageNo++;
+			}
+		} catch (Exception e) {
+			result = new ResultJSON("COMMON_400");
+			body.put("pageNo", pageNo);
+			result.setBody(body);
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+	public void transferSubDataMain(int pageNo, int pageSize) throws Exception {
+		// 参数校验
+		if (pageNo <= 0) {
+			pageNo = 0;
+		}
+		if (pageSize <= 0) {
+			pageSize = 1000;
+		}
+		
+		// 查询DB2库中订阅数据总量
+//		int DB2SubCount = blogSubscribeService.getDB2SubCount();
+		int DB2SubCount = blogSubscribeService.getSourceMySQLSubCount();
+		if (DB2SubCount <= 0) {
+			System.err.println(this.getClass() + "查询源数据库中订阅数据总量时出错，查询出的个数为：" + DB2SubCount);
+			throw new Exception();
+		}
+		
+		// 总页数
+		int totalPage = DB2SubCount/pageSize + 1;
+		System.out.println(this.getClass() + "订阅数据共" + totalPage + "页");
+		
+		// 循环处理数据
+		boolean arrangeFlag = true;
+		for (int i = pageNo; i < totalPage; i++) {
+			arrangeFlag = arrangeSubData(pageNo, pageSize);
+			if (!arrangeFlag) {
+				System.err.println(this.getClass() + "处理数据时失败");
+				throw new Exception();
+			}
+			System.out.println(this.getClass() + "订阅数据第" + pageNo + "页处理成功");
+			pageNo++;
+		}
+	}
+	
+	/**
+	 * 
+	 * @Title: arrangeSubData  
+	 * @Description: 整理订阅数据
+	 * @param pageStart
+	 * @param pageSize    参数  
+	 * @return: boolean    返回类型
+	 */
+	private boolean arrangeSubData(int pageNo, int pageSize) {
+		// 返回值
+		boolean result = true;
+		
+		try {
+			// 获取DB2库中的订阅数据
+//			List<DB2MsSubscribeRelation> DB2SubList = blogSubscribeService.getDB2SubList(pageNo, pageSize);
+			List<DB2MsSubscribeRelation> DB2SubList = blogSubscribeService.getSourceMySQLSubList(pageNo, pageSize);
+			
+			// 校验返回值
+			if (DB2SubList == null || DB2SubList.isEmpty()) {
+				return false;
+			}
+			
+			// 将DB2中的数据整理为MySQL中的数据
+			List<MySQLBlogSubscribe> mySQLSubList = new ArrayList<MySQLBlogSubscribe>();
+			for (DB2MsSubscribeRelation db2MsSubscribeRelation : DB2SubList) {
+				MySQLBlogSubscribe mySQLBlogSubscribe = new MySQLBlogSubscribe();
+				mySQLBlogSubscribe.setSubCode(UUIDHelper.getUUID());
+				
+				// 获取订阅人员信息
+				UserInfo userInfo = blogThirdService.getUserInfo(db2MsSubscribeRelation.getSubscribeUser());
+				
+				mySQLBlogSubscribe.setTenantCode(userInfo == null ? "" : StringTools.formatToString(userInfo.getTenantCode()));
+				mySQLBlogSubscribe.setOrgCode(userInfo == null ? "" : StringTools.formatToString(userInfo.getOrgCode()));
+				mySQLBlogSubscribe.setUserCode(userInfo == null ? "" : StringTools.formatToString(userInfo.getUserCode()));
+				mySQLBlogSubscribe.setCreateTime(db2MsSubscribeRelation.getCreateTime() == null ? 0L : db2MsSubscribeRelation.getCreateTime().getTime());
+				mySQLBlogSubscribe.setModifyTime(db2MsSubscribeRelation.getCreateTime() == null ? 0L : db2MsSubscribeRelation.getCreateTime().getTime());
+				mySQLBlogSubscribe.setSubClass(BlogConstants.BLOG_SUB_USER);
+				
+				// 获取被订阅人信息
+				String userCode = blogThirdService.getUserCode(db2MsSubscribeRelation.getPublishUser());
+				
+				mySQLBlogSubscribe.setSubUserCode(StringTools.formatToString(userCode));
+				mySQLSubList.add(mySQLBlogSubscribe);
+			}
+			
+			// 插入订阅数据到MySQL库中
+			boolean insertFlag = blogSubscribeService.insertMySQLSubList(mySQLSubList);
+			if (!insertFlag) {
+				result = false;
+			}
+		} catch (Exception e) {
+			result = false;
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+}

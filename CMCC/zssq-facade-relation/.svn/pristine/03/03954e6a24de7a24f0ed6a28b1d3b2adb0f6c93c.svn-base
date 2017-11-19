@@ -1,0 +1,33 @@
+package com.zssq.model;
+
+import java.io.Serializable;
+
+public class ResourceModel implements Serializable{
+	    
+	/**  
+	 * @Fields serialVersionUID : TODO
+	 */  
+	private static final long serialVersionUID = -1052979487267601236L;
+	private String resCode;//
+	private String resUrl;//
+	private String resClass;//
+	public String getResCode() {
+		return resCode;
+	}
+	public void setResCode(String resCode) {
+		this.resCode = resCode;
+	}
+	public String getResUrl() {
+		return resUrl;
+	}
+	public void setResUrl(String resUrl) {
+		this.resUrl = resUrl;
+	}
+	public String getResClass() {
+		return resClass;
+	}
+	public void setResClass(String resClass) {
+		this.resClass = resClass;
+	}
+	
+}

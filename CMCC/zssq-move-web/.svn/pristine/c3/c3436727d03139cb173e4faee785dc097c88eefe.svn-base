@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+   http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+   http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+	
+	<!-- 读入配置属性文件 -->
+	<context:property-placeholder location="classpath:mysql.properties,classpath:db2.properties"/>
+	
+	<!-- 读入配置属性文件 -->
+	<import resource="classpath:spring-mysql.xml"/>
+	<import resource="classpath:spring-db2.xml"/>
+	
+    <!-- 配置动态数据源 -->
+    <bean id="dynamicDataSource" class="com.zssq.datasource.DynamicDataSource">  
+	    <property name="targetDataSources">  
+	        <map key-type="java.lang.String">
+	            <!-- 指定lookupKey和与之对应的数据源 -->
+	            <entry key="mysqlsso" value-ref="mysqlsso"></entry>  
+	            <entry key="mysqlcomplaint" value-ref="mysqlcomplaint"></entry>  
+	            <entry key="mysqlhonor" value-ref="mysqlhonor"></entry>  
+	            <entry key="mysqlforum" value-ref="mysqlforum"></entry>  
+	            <entry key="mysqlteam" value-ref="mysqlteam"></entry>  
+	            <entry key="mysqlauth" value-ref="mysqlauth"></entry>  
+	            <entry key="mysqlfiling" value-ref="mysqlfiling"></entry>  
+	            <entry key="mysqlcredit" value-ref="mysqlcredit"></entry>  
+	            <entry key="mysqlmblog" value-ref="mysqlmblog"></entry>  
+	            <entry key="mysqlrelation" value-ref="mysqlrelation"></entry>  
+	            <entry key="mysqlblog" value-ref="mysqlblog"></entry>  
+	            <entry key="mysqlmessage" value-ref="mysqlmessage"></entry>  
+	            <entry key="mysqlvote" value-ref="mysqlvote"></entry>  
+	            <entry key="mysqlstatistic" value-ref="mysqlstatistic"></entry>  
+	            <entry key="mysqldisk" value-ref="mysqldisk"></entry>  
+	            <entry key="mysqlactivity" value-ref="mysqlactivity"></entry>  
+	            <entry key="mysqlknowledgeLib" value-ref="mysqlknowledgeLib"></entry>  
+	            <entry key="db2activity" value-ref="db2activity"></entry>  
+	            <entry key="db2album" value-ref="db2album"></entry>  
+	            <entry key="db2blog" value-ref="db2blog"></entry>  
+	            <entry key="db2dynamic" value-ref="db2dynamic"></entry>  
+	            <entry key="db2glory" value-ref="db2glory"></entry>  
+	            <entry key="db2mblog" value-ref="db2mblog"></entry>  
+	            <entry key="db2message" value-ref="db2message"></entry>  
+	            <entry key="db2portaldb" value-ref="db2portaldb"></entry>  
+	            <entry key="db2vote" value-ref="db2vote"></entry>  
+	            <entry key="db2zssqdb" value-ref="db2zssqdb"></entry>  
+	        </map>  
+	    </property>  
+	    <!-- 这里可以指定默认的数据源 -->
+	    <property name="defaultTargetDataSource" ref="mysqlsso" />  
+	</bean>
+
+	<!-- JdbcTemplate使用动态数据源的配置 -->  
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">  
+	    <property name="dataSource">  
+	        <ref bean="dynamicDataSource" />  
+	    </property>  
+	</bean>
+	<!-- 事务配置 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">  
+	    <property name="dataSource" ref="dynamicDataSource" />  
+	</bean>
+	<!--  配置事务传播特性 -->
+	<tx:advice id="advice" transaction-manager="transactionManager">
+	    <tx:attributes>
+	      <tx:method name="delete*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+	      <tx:method name="insert*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+	      <tx:method name="update*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+	      <tx:method name="save*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+	      <tx:method name="add*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+	      <tx:method name="modify*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+	      <tx:method name="select*" propagation="REQUIRED"  read-only="true"/>
+	      <tx:method name="find*" propagation="REQUIRED" read-only="true"/>
+	      <tx:method name="get*" propagation="REQUIRED" read-only="true"/>
+	      <tx:method name="apply*" propagation="REQUIRED" read-only="true"/>
+	      <tx:method name="query*" propagation="REQUIRED" read-only="true"/>
+	      <tx:method name="load*" propagation="REQUIRED" read-only="true"/>
+	    </tx:attributes>
+	</tx:advice>
+	<!--  配置参与事务的类 -->
+	<aop:config>
+		<aop:pointcut id="allServiceMethod" expression="execution(* com.zssq.*.service.*.*(..))"/>
+		<aop:advisor pointcut-ref="allServiceMethod" advice-ref="advice" order="3"/>
+	</aop:config>
+</beans>

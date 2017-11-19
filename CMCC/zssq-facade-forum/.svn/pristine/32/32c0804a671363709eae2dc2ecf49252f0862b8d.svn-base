@@ -1,0 +1,138 @@
+package com.zssq.service;
+
+import com.zssq.dao.pojo.ForumCommentReply;
+import com.zssq.dao.pojo.ForumPlatesMember;
+import com.zssq.dao.pojo.ForumTopics;
+import com.zssq.dao.pojo.ForumTopicsFollow;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.utils.PageInfo;
+/**
+ * 论坛管理模块接口
+ * @ClassName IForumManageService
+ * @Description 
+ * @author liurong
+ * @date 2017年3月23日 上午11:11:48
+ * @version 1.0
+ * @since JDK 1.7
+ */
+public interface IForumManageService {
+	/**
+	 * 根据所属CODE创建论坛版块
+	 * @Function insertForumForBelong
+	 * @Description 
+	 * @param tenantCode 租户标识（传入调用此接口人的租户标识）
+	 * @param orgCode    组织机构CODE（传入调用此接口人的组织机构CODE）
+	 * @param belongCode 论坛所属机构CODE（例如：班组CODE）
+	 * @param platesName 论坛名称（例如：班组名称）
+	 * @return
+	 * @throws BusinessException
+	 */
+	public String insertForumForBelong(String tenantCode, String orgCode, String belongCode, String platesName)
+			throws BusinessException;
+	/**
+	 * 解散（逻辑删除）belongCode论坛版块
+	 * @Function deleteForumWithBelong
+	 * @Description 
+	 * @param tenantCode 租户标识（传入调用此接口人的租户标识）
+	 * @param orgCode    组织机构CODE（传入调用此接口人的组织机构CODE）
+	 * @param belongCode 板块所属机构CODE（例如：班组CODE）
+	 * @throws BusinessException
+	 */
+	public void deleteForumWithBelong(String tenantCode, String orgCode, String belongCode) throws BusinessException;
+	/**
+	 * 新增一位论坛用户
+	 * @Function addOneForumMember
+	 * @Description 
+	 * @param tenantCode  租户标识（传入调用此接口人的租户标识）
+	 * @param orgCode     组织机构CODE（传入调用此接口人的组织机构CODE）
+	 * @param belongCode  板块所属机构CODE（例如：班组CODE）
+	 * @param memberCode  新增的论坛用户CODE
+	 * @param memberName  新增的论坛用户名称
+	 * @param isModerator 版主标识(0-普通用户；1-版主)
+	 * @return
+	 * @throws BusinessException
+	 */
+	public String addOneForumMember(String tenantCode, String orgCode, String belongCode, String memberCode,
+			String memberName, Byte isModerator) throws BusinessException;
+	/**
+	 * 删除(逻辑删除)一位论坛版块用户
+	 * @Function deleteOneForumMember
+	 * @Description 
+	 * @param tenantCode 租户标识（传入调用此接口人的租户标识）
+	 * @param orgCode    组织机构CODE（传入调用此接口人的组织机构CODE）
+	 * @param belongCode 板块所属机构CODE（例如：班组CODE）
+	 * @param memberCode 待删除的论坛用户CODE
+	 * @throws BusinessException
+	 */
+	public void deleteOneForumMember(String tenantCode, String orgCode, String belongCode, String memberCode) throws BusinessException;
+	/**
+	 * 设为/撤销版主
+	 * @Function addOneForumMember
+	 * @Description 
+	 * @param tenantCode  租户标识（传入调用此接口人的租户标识）
+	 * @param orgCode     组织机构CODE（传入调用此接口人的组织机构CODE）
+	 * @param belongCode  板块所属机构CODE（例如：班组CODE）
+	 * @param memberCode  论坛用户CODE
+	 * @param isModerator 版主标识(0-普通用户；1-版主)
+	 * @return
+	 * @throws BusinessException
+	 */
+	public void updateModerator(String tenantCode, String orgCode, String belongCode, String memberCode,
+			Byte isModerator) throws BusinessException;
+	
+	/**
+	 * 获取被举报信息所在页的数据 (跟帖)
+	 * @param follow
+	 * @return
+	 * @throws BusinessException
+	 */
+	public PageInfo getComplaintFollowTopic(ForumTopicsFollow follow)throws BusinessException;
+	
+	/**
+	 * 获取被举报信息所在页的数据(评论或回复)
+	 * @param reply
+	 * @return
+	 */
+	public PageInfo getComplaintReply(ForumCommentReply reply)throws BusinessException;
+	
+	/**
+	 * 查询主贴详情
+	 * @Function selectTopicInfo
+	 * @Description
+	 * @param tenantCode
+	 *            租户标识
+	 * @param topicCode
+	 *            主帖CODE
+	 * @param params 记录浏览记录参数，参数列表如下</br>
+	 *            params[0]:String orgCode     组织机构编码</br>
+	 *            params[1]:String orgLevel    组织机构等级</br>
+	 *            params[2]:String viewerCode  查看主帖的用户CODE</br>
+	 * @return
+	 * @throws BusinessException
+	 */
+	public ForumTopics selectTopicInfo(String tenantCode, String topicCode, String... params) throws BusinessException;
+	
+	/**
+	 * 查询userCode的论坛操作权限
+	 * @Function queryUserCanbeReplyTopic
+	 * @Description 
+	 * @param tenantCode 租户标识
+	 * @param platesCode 论坛版块CODE
+	 * @param userCode 用户CODE
+	 * @return
+	 * @throws BusinessException
+	 */
+	public ForumPlatesMember queryUserForumAuthority(String tenantCode, String platesCode, String userCode) throws BusinessException;
+	
+	/**
+	 * 查询userCode是否收藏了主帖
+	 * @Function isCollectionTopic
+	 * @Description 
+	 * @param tenantCode 租户信息
+	 * @param userCode 用户CODE
+	 * @param forumTopicsCode 主帖CODE
+	 * @return
+	 * @throws BusinessException
+	 */
+	public boolean isCollectionTopic(String tenantCode, String userCode, String forumTopicsCode)throws BusinessException ;
+}

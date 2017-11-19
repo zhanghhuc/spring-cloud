@@ -1,0 +1,282 @@
+package com.zssq.model;
+
+import java.io.Serializable;
+import java.util.List;
+import com.zssq.model.ResourceModel;
+public class EtRelationQualityModel  implements Serializable{
+	private static final long serialVersionUID = 1L;
+	private String userCode;//内容发布人编号
+	private String subjectPublishTime;//内容发布时间
+	private String subjectTitle;//内容标题
+	private String subjectDigest;//内容摘要
+	private Byte subjectDepend;
+	private String subjectUrl;//内容图片链接
+	private Integer teamQualityNum;//班组置精次数
+	private Integer groupQualityNum;//集团级别置精次数
+	private Integer provinceQualityNum;//省级别置精次数
+	private Integer cityQualityNum;//市级别置精次数
+	private Integer readNum;//浏览量
+	private Integer likeNum;//点赞量
+	private Integer collectNum;//收藏量
+	private Integer forwardNum;//转发量
+	private Integer commentNum;//评论量
+	private Integer shareNum;//分享量
+	private Byte qualityIsLike;//是否点赞：0.否；1.是
+	private Byte qualityIsCollect;//是否收藏：0.否；1.是
+	private String dynamicCode;//动态编号
+	private Byte relIsHomeShow;//动态编号
+	private String teamName;//内容发布人所属班组名称
+	private String subjectOrgCode;//内容发布人所属组织code
+	private String subjectTeamCode;//内容发布人所属班组code
+	private List<ResourceModel> resList;
+	
+	//原字段
+	private Long id;
+	private String qualityCode  ;
+    private String tenantCode ;
+    private String orgCode ;
+    private String teamCode ;
+    private Long createTime;
+    private Long modifyTime ;
+    private String remark ;
+    private String subjectCode ;
+    private Byte subjectClass ;
+    private Byte qualityDepend;
+    private Integer qualitySeqNum;
+    private Byte qualityIsTop ;
+    private Long qualityTopTime;
+    
+    
+	public String getUserCode() {
+		return userCode;
+	}
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
+	}
+	public String getSubjectPublishTime() {
+		return subjectPublishTime;
+	}
+	public void setSubjectPublishTime(String subjectPublishTime) {
+		this.subjectPublishTime = subjectPublishTime;
+	}
+	public String getSubjectTitle() {
+		return subjectTitle;
+	}
+	public void setSubjectTitle(String subjectTitle) {
+		this.subjectTitle = subjectTitle;
+	}
+	public String getSubjectDigest() {
+		return subjectDigest;
+	}
+	public void setSubjectDigest(String subjectDigest) {
+		this.subjectDigest = subjectDigest;
+	}
+	public Byte getSubjectDepend() {
+		return subjectDepend;
+	}
+	public void setSubjectDepend(Byte subjectDepend) {
+		this.subjectDepend = subjectDepend;
+	}
+	public String getSubjectUrl() {
+		return subjectUrl;
+	}
+	public void setSubjectUrl(String subjectUrl) {
+		this.subjectUrl = subjectUrl;
+	}
+	public Integer getTeamQualityNum() {
+		return teamQualityNum;
+	}
+	public void setTeamQualityNum(Integer teamQualityNum) {
+		this.teamQualityNum = teamQualityNum;
+	}
+	public Integer getGroupQualityNum() {
+		return groupQualityNum;
+	}
+	public void setGroupQualityNum(Integer groupQualityNum) {
+		this.groupQualityNum = groupQualityNum;
+	}
+	public Integer getProvinceQualityNum() {
+		return provinceQualityNum;
+	}
+	public void setProvinceQualityNum(Integer provinceQualityNum) {
+		this.provinceQualityNum = provinceQualityNum;
+	}
+	public Integer getCityQualityNum() {
+		return cityQualityNum;
+	}
+	public void setCityQualityNum(Integer cityQualityNum) {
+		this.cityQualityNum = cityQualityNum;
+	}
+	public Integer getReadNum() {
+		return readNum;
+	}
+	public void setReadNum(Integer readNum) {
+		this.readNum = readNum;
+	}
+	public Integer getLikeNum() {
+		return likeNum;
+	}
+	public void setLikeNum(Integer likeNum) {
+		this.likeNum = likeNum;
+	}
+	public Integer getCollectNum() {
+		return collectNum;
+	}
+	public void setCollectNum(Integer collectNum) {
+		this.collectNum = collectNum;
+	}
+	public Integer getForwardNum() {
+		return forwardNum;
+	}
+	public void setForwardNum(Integer forwardNum) {
+		this.forwardNum = forwardNum;
+	}
+	public Integer getCommentNum() {
+		return commentNum;
+	}
+	public void setCommentNum(Integer commentNum) {
+		this.commentNum = commentNum;
+	}
+	public Integer getShareNum() {
+		return shareNum;
+	}
+	public void setShareNum(Integer shareNum) {
+		this.shareNum = shareNum;
+	}
+	public Byte getQualityIsLike() {
+		return qualityIsLike;
+	}
+	public void setQualityIsLike(Byte qualityIsLike) {
+		this.qualityIsLike = qualityIsLike;
+	}
+	public Byte getQualityIsCollect() {
+		return qualityIsCollect;
+	}
+	public void setQualityIsCollect(Byte qualityIsCollect) {
+		this.qualityIsCollect = qualityIsCollect;
+	}
+	public String getDynamicCode() {
+		return dynamicCode;
+	}
+	public void setDynamicCode(String dynamicCode) {
+		this.dynamicCode = dynamicCode;
+	}
+	public Byte getRelIsHomeShow() {
+		return relIsHomeShow;
+	}
+	public void setRelIsHomeShow(Byte relIsHomeShow) {
+		this.relIsHomeShow = relIsHomeShow;
+	}
+	public String getTeamName() {
+		return teamName;
+	}
+	public void setTeamName(String teamName) {
+		this.teamName = teamName;
+	}
+	public String getSubjectOrgCode() {
+		return subjectOrgCode;
+	}
+	public void setSubjectOrgCode(String subjectOrgCode) {
+		this.subjectOrgCode = subjectOrgCode;
+	}
+	public String getSubjectTeamCode() {
+		return subjectTeamCode;
+	}
+	public void setSubjectTeamCode(String subjectTeamCode) {
+		this.subjectTeamCode = subjectTeamCode;
+	}
+	public List<ResourceModel> getResList() {
+		return resList;
+	}
+	public void setResList(List<ResourceModel> resList) {
+		this.resList = resList;
+	}
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
+	}
+	public String getQualityCode() {
+		return qualityCode;
+	}
+	public void setQualityCode(String qualityCode) {
+		this.qualityCode = qualityCode;
+	}
+	public String getTenantCode() {
+		return tenantCode;
+	}
+	public void setTenantCode(String tenantCode) {
+		this.tenantCode = tenantCode;
+	}
+	public String getOrgCode() {
+		return orgCode;
+	}
+	public void setOrgCode(String orgCode) {
+		this.orgCode = orgCode;
+	}
+	public String getTeamCode() {
+		return teamCode;
+	}
+	public void setTeamCode(String teamCode) {
+		this.teamCode = teamCode;
+	}
+	public Long getCreateTime() {
+		return createTime;
+	}
+	public void setCreateTime(Long createTime) {
+		this.createTime = createTime;
+	}
+	public Long getModifyTime() {
+		return modifyTime;
+	}
+	public void setModifyTime(Long modifyTime) {
+		this.modifyTime = modifyTime;
+	}
+	public String getRemark() {
+		return remark;
+	}
+	public void setRemark(String remark) {
+		this.remark = remark;
+	}
+	public String getSubjectCode() {
+		return subjectCode;
+	}
+	public void setSubjectCode(String subjectCode) {
+		this.subjectCode = subjectCode;
+	}
+	public Byte getSubjectClass() {
+		return subjectClass;
+	}
+	public void setSubjectClass(Byte subjectClass) {
+		this.subjectClass = subjectClass;
+	}
+	public Byte getQualityDepend() {
+		return qualityDepend;
+	}
+	public void setQualityDepend(Byte qualityDepend) {
+		this.qualityDepend = qualityDepend;
+	}
+	public Integer getQualitySeqNum() {
+		return qualitySeqNum;
+	}
+	public void setQualitySeqNum(Integer qualitySeqNum) {
+		this.qualitySeqNum = qualitySeqNum;
+	}
+	public Byte getQualityIsTop() {
+		return qualityIsTop;
+	}
+	public void setQualityIsTop(Byte qualityIsTop) {
+		this.qualityIsTop = qualityIsTop;
+	}
+	public Long getQualityTopTime() {
+		return qualityTopTime;
+	}
+	public void setQualityTopTime(Long qualityTopTime) {
+		this.qualityTopTime = qualityTopTime;
+	}
+	
+	
+    
+	
+}

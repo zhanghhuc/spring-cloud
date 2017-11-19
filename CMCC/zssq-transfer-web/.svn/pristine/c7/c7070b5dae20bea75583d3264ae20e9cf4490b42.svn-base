@@ -1,0 +1,52 @@
+package com.zssq.vote.dao.mapper;
+
+import com.zssq.vote.pojo.TransVote;
+import com.zssq.vote.pojo.TransVoteExample;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Param;
+
+public interface TransVoteMapper {
+    int countByExample(TransVoteExample example);
+
+    int deleteByExample(TransVoteExample example);
+
+    int deleteByPrimaryKey(Integer voteId);
+
+    int insert(TransVote record);
+
+    int insertSelective(TransVote record);
+
+    List<TransVote> selectByExample(TransVoteExample example);
+
+    TransVote selectByPrimaryKey(Integer voteId);
+
+    int updateByExampleSelective(@Param("record") TransVote record, @Param("example") TransVoteExample example);
+
+    int updateByExample(@Param("record") TransVote record, @Param("example") TransVoteExample example);
+
+    int updateByPrimaryKeySelective(TransVote record);
+
+    int updateByPrimaryKey(TransVote record);
+    
+    /**
+     * 分页查询待迁移投票
+     * @Function queryOriginalVote
+     * @Description 
+     * @param paramMap
+     * @return
+     */
+    List<Map<String, Object>> queryOriginalVote(Map<String, Object> paramMap);
+    /**
+     * 查询待迁移投票总数量
+     * @Function queryOriginalVoteOfCount
+     * @Description 
+     * @return
+     */
+    int queryOriginalVoteOfCount();
+    
+    
+    
+    
+}

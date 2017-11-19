@@ -1,0 +1,68 @@
+package com.zssq.biz;
+
+import com.zssq.dao.mapper.NewsReplyPraiseMapper;
+import com.zssq.news.dao.pojo.NewsCommentPraise;
+import com.zssq.news.dao.pojo.NewsReplyPraise;
+import com.zssq.news.model.NewsReplyPraiseModel;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+/**
+ * Created by admin on 2017-04-05.
+ */
+@Service
+public class NewsReplyPraiseBiz {
+
+    @Autowired
+    private NewsReplyPraiseMapper newsReplyPraiseMapper;
+
+    /**
+     * 新闻回复点赞
+     * @param newsCommentPraiseModel
+     * @return
+     */
+    public int addNewsReplyGood(NewsReplyPraiseModel newsCommentPraiseModel) {
+        long currentTime = System.currentTimeMillis() ;
+        NewsReplyPraise newsReplyPraise = generateNewsReplyPraise(newsCommentPraiseModel,currentTime,currentTime) ;
+        return newsReplyPraiseMapper.insertSelective(newsReplyPraise) ;
+    }
+
+
+    public int deleteNewsReplyGood(NewsReplyPraiseModel newsReplyPraiseModel) {
+        return newsReplyPraiseMapper.deleteNewsReplyGood(newsReplyPraiseModel);
+    }
+
+
+    public NewsCommentPraise selectByPraiseUser(String userCode, String replyCode) {
+        return newsReplyPraiseMapper.selectByPraiseUser(userCode, replyCode) ;
+    }
+
+    /**
+     *
+     * @param newsReplyPraiseModel
+     * @param createTime
+     * @param modifyTime
+     * @return
+     */
+    private NewsReplyPraise generateNewsReplyPraise(NewsReplyPraiseModel newsReplyPraiseModel, long createTime, long modifyTime ) {
+        NewsReplyPraise newsReplyPraise = new NewsReplyPraise() ;
+        newsReplyPraise.setReplyPraiseCode(UUIDHelper.getUUID());
+        newsReplyPraise.setNewsCode(newsReplyPraiseModel.getNewsCode());
+        newsReplyPraise.setCommentCode(newsReplyPraiseModel.getNewsCommentCode());
+        newsReplyPraise.setReplyCode(newsReplyPraiseModel.getNewsReplyCode());
+        newsReplyPraise.setPraisePeopleCode(newsReplyPraiseModel.getPraisePeopleCode());
+        newsReplyPraise.setPraisePeopleLevel(newsReplyPraiseModel.getRevertPeopleLevel());
+        newsReplyPraise.setPraisePeopleOrg(newsReplyPraiseModel.getRevertPeopleOrg());
+        newsReplyPraise.setRevertPeopleCode(newsReplyPraiseModel.getRevertPeopleCode());
+        newsReplyPraise.setRevertPeopleLevel(newsReplyPraiseModel.getRevertPeopleLevel());
+        newsReplyPraise.setRevertPeopleOrg(newsReplyPraiseModel.getRevertPeopleOrg());
+        newsReplyPraise.setCreateTime(createTime);
+        newsReplyPraise.setModifyTime(modifyTime);
+        newsReplyPraise.setTenantCode(newsReplyPraiseModel.getTenantCode());
+        newsReplyPraise.setOrgCode(newsReplyPraiseModel.getOrgCode());
+        newsReplyPraise.setOrgLevel(newsReplyPraiseModel.getOrgLevel());
+        return newsReplyPraise ;
+    }
+
+}

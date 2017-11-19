@@ -1,0 +1,467 @@
+package com.zssq.service.impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.constants.ActivityConstants;
+import com.zssq.dao.mapper.ActivityInfoMapper;
+import com.zssq.dao.mapper.ActivityPrizeMapper;
+import com.zssq.dao.mapper.ActivityResourceMapper;
+import com.zssq.dao.mapper.ActivityTemplateMapper;
+import com.zssq.dao.pojo.ActivityInfo;
+import com.zssq.dao.pojo.ActivityInfoExample;
+import com.zssq.dao.pojo.ActivityInfoWithBLOBs;
+import com.zssq.dao.pojo.ActivityJoinAuth;
+import com.zssq.dao.pojo.ActivityPrize;
+import com.zssq.dao.pojo.ActivityPrizeExample;
+import com.zssq.dao.pojo.ActivityResource;
+import com.zssq.dao.pojo.ActivityResourceExample;
+import com.zssq.dao.pojo.ActivityTemplate;
+import com.zssq.dao.pojo.ActivityTemplateExample;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.service.CommonService;
+import com.zssq.service.IActivityAuthService;
+import com.zssq.service.IActivityModelOneService;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.DateUtils;
+import com.zssq.utils.PageInfo;
+import com.zssq.utils.StringTools;
+
+@Service("activityModelOneServiceImpl")
+public class ActivityModelOneServiceImpl extends CommonService implements IActivityModelOneService {
+
+	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+	private ActivityTemplateMapper activityTemplateMapper;
+	@Autowired
+	private ActivityInfoMapper activityInfoMapper; 
+	@Autowired
+	private ActivityPrizeMapper activityPrizeMapper; 
+	@Autowired
+	private ActivityResourceMapper activityResourceMapper;
+	@Autowired
+	private IActivityAuthService activityAuthService;
+	
+	@Override
+	public PageInfo selectTemplateList(ActivityTemplate template, PageInfo page) throws BusinessException {
+		try {
+			ActivityTemplateExample example = new ActivityTemplateExample();
+			ActivityTemplateExample.Criteria criteria = example.createCriteria();
+			
+			criteria.andIsDeleteEqualTo(ActivityConstants.NO);
+			criteria.andIsDisableEqualTo(ActivityConstants.NO);
+			criteria.andTenantCodeEqualTo(template.getTenantCode());
+			
+			if(template.getTemplateName() != null){
+				//根据模板名称模糊查询
+				criteria.andTemplateNameLike("%"+template.getTemplateName()+"%");
+			}
+			if(template.getStartTime() != null){
+				//创建开始时间
+				criteria.andCreateTimeGreaterThanOrEqualTo(template.getStartTime());
+			}
+			if(template.getEndTime() != null){
+				//创建结束时间
+				criteria.andCreateTimeLessThanOrEqualTo(template.getEndTime());
+			}
+			if(template.getSellStatus() != null){
+				//是否上架
+				criteria.andSellStatusEqualTo(template.getSellStatus());
+			}
+			if(ActivityConstants.TEMPLATE_ORDER_ALL.equals(template.getOrderBy())){
+				//TODO 待定
+				example.setOrderByClause("create_time desc");
+			}
+			if(ActivityConstants.TEMPLATE_ORDER_NEW.equals(template.getOrderBy())){
+				//最新
+				example.setOrderByClause("create_time desc");
+			}
+			if(ActivityConstants.TEMPLATE_ORDER_HOT.equals(template.getOrderBy())){
+				//最热
+				example.setOrderByClause("used_num desc");
+			}
+			
+			int count= activityTemplateMapper.countByExample(example);
+			List<ActivityTemplate> list = new ArrayList<ActivityTemplate>();
+			if(count > 0){
+				if(page.isPageFlag()){
+					//设置分页
+					example.setLimitStart(page.getStartRow());
+					example.setLimitEnd(page.getPerPageSize());
+				}
+				list =  activityTemplateMapper.selectByExample(example);
+			}
+			page.setList(list);
+			page.setTotalItem(count);
+			
+			return page;
+		} catch (Exception e) {
+			log.error("ActivityModelOneServiceImpl.selectTemplateList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public void updateOnOffTemplate(ActivityTemplate template) throws BusinessException {
+		
+		try {
+			ActivityTemplateExample example = new ActivityTemplateExample();
+			ActivityTemplateExample.Criteria criteria = example.createCriteria();
+			
+			criteria.andIsDeleteEqualTo(ActivityConstants.NO);
+			criteria.andIsDisableEqualTo(ActivityConstants.NO);
+			criteria.andTenantCodeEqualTo(template.getTenantCode());
+			
+			criteria.andCodeEqualTo(template.getCode());
+			
+			template.setModifyTime(DateUtils.getFormatDateLong());
+			
+			activityTemplateMapper.updateByExampleSelective(template, example);
+		} catch (Exception e) {
+			log.error("ActivityModelOneServiceImpl.updateOnOffTemplate", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public String insertCreateActivityOne(ActivityInfoWithBLOBs activityInfo, ActivityJoinAuth joinAuth,
+			List<ActivityPrize> prizeList, List<ActivityResource> resourceList) throws BusinessException {
+		try {
+			String activityCode = UUIDHelper.getUUID();
+			Long currentTime = DateUtils.getFormatDateLong();
+			
+			/** 插入活动基本信息 */
+			activityInfo.setCode(activityCode);
+			activityInfo.setCreateTime(currentTime);
+			activityInfo.setModifyTime(currentTime);
+			activityInfo.setActivityNo(generateActivityNo());
+			activityInfo.setActivityType(ActivityConstants.ACTIVITY_TYPE_ONE);
+			activityInfo.setLastOperationTime(currentTime);
+			
+			int infoCount = activityInfoMapper.insertSelective(activityInfo);
+			
+			/**插入活动参与权限数据*/
+			if (infoCount > 0) {
+				joinAuth.setActivityCode(activityCode);
+				activityAuthService.insertAuthInfo(joinAuth);
+			}
+			
+			/** 插入活动奖项信息 */
+			if (infoCount > 0) {
+				for (ActivityPrize p : prizeList) {
+					p.setCode(UUIDHelper.getUUID());
+					p.setCreateTime(currentTime);
+					p.setModifyTime(currentTime);
+					p.setActivityCode(activityCode);
+				}
+				activityPrizeMapper.batchInsertPrize(prizeList);
+			}
+			
+			/** 插入活动资源信息 */
+			if (infoCount > 0) {
+				for (ActivityResource r : resourceList) {
+					r.setCode(UUIDHelper.getUUID());
+					r.setCreateTime(currentTime);
+					r.setModifyTime(currentTime);
+					r.setActivityCode(activityCode);
+				}
+				activityResourceMapper.batchInsertResource(resourceList);
+			}
+			
+			/** 活动模板使用次数加一 */
+			updateIncreaseUseNum(activityInfo.getTenantCode(),activityInfo.getTemplateCode(),currentTime);
+			
+			/** 生成活动历程 */
+			this.insertActivityHistory(activityInfo.getTenantCode(), activityInfo.getOrgCode(), null, activityCode,
+					activityInfo.getCreateUserCode(), activityInfo.getCreateUserName(), CommonService.map.get("create"));
+			
+			return activityCode;
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelOneServiceImpl.insertCreateActivityOne", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	
+	/**
+	 * 活动模板使用次数加一
+	 * @param tenantCode
+	 * @param code
+	 * @throws BusinessException 
+	 */
+	private void updateIncreaseUseNum(String tenantCode,String code,Long time) throws BusinessException{
+		try {
+			Map<String,Object> map = new HashMap<String,Object>();
+			map.put("tenantCode", tenantCode);
+			map.put("code", code);
+			map.put("time", time);
+			
+			activityTemplateMapper.updateUseNum(map);
+		} catch (Exception e) {
+			log.error("ActivityModelOneServiceImpl.increaseUseNum", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+	/**
+	 * 生成活动编号
+	 * @return
+	 */
+	private String generateActivityNo() {
+		String date = DateUtils.getFormatDate().replace("-", "").replace(":", "").replace(" ", "");
+		int a = (int) (Math.random() * (9999 - 1000 + 1)) + 1000;
+		return "NO" + date + a;
+	}
+
+	@Override
+	public PageInfo selectActivityList(ActivityInfo info, PageInfo page,List<Byte> statusList) throws BusinessException {
+		try {
+			ActivityInfoExample example = new ActivityInfoExample();
+			ActivityInfoExample.Criteria criteria = example.createCriteria();
+			
+			criteria.andIsDeleteEqualTo(ActivityConstants.NO);
+			criteria.andIsDisableEqualTo(ActivityConstants.NO);
+			criteria.andTenantCodeEqualTo(info.getTenantCode());
+			criteria.andOrgCodeEqualTo(info.getOrgCode());
+			
+			if (StringTools.isNotEmpty(info.getCreateUserCode())) {
+				// 创建人code
+				criteria.andCreateUserCodeEqualTo(info.getCreateUserCode());
+			}
+			if (StringTools.isNotEmpty(info.getActivityName())) {
+				// 活动名称模糊查询
+				criteria.andActivityNameLike("%" + info.getActivityName() + "%");
+			}
+			if (info.getStart() != null) {
+				// 活动创建时间大于
+				criteria.andStartTimeGreaterThanOrEqualTo(info.getStart());
+			}
+			if (info.getEnd() != null) {
+				// 活动创建时间小于
+				criteria.andStartTimeLessThanOrEqualTo(info.getEnd());
+			}
+			if (statusList.size() > 0) {
+				// 活动状态
+				criteria.andActivityStatusIn(statusList);
+			}
+			
+			int count = activityInfoMapper.countByExample(example);
+			List<ActivityInfo> list = new ArrayList<ActivityInfo>();
+			if(count > 0){
+				if(page.isPageFlag()){
+					example.setLimitStart(page.getStartRow());
+					example.setLimitEnd(page.getPerPageSize());
+				}
+				example.setOrderByClause("modify_time desc");
+				list = activityInfoMapper.selectByExample(example);
+			}
+			
+			page.setTotalItem(count);
+			page.setList(list);
+			return page;
+		} catch (Exception e) {
+			log.error("ActivityModelOneServiceImpl.selectActivityList", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public ActivityInfoWithBLOBs selectActivityDetail(ActivityInfo info) throws BusinessException {
+		
+		try {
+			ActivityInfoExample example = new ActivityInfoExample();
+			ActivityInfoExample.Criteria criteria = example.createCriteria();
+			
+			criteria.andIsDeleteEqualTo(ActivityConstants.NO);
+			criteria.andIsDisableEqualTo(ActivityConstants.NO);
+			criteria.andTenantCodeEqualTo(info.getTenantCode());
+			criteria.andOrgCodeEqualTo(info.getOrgCode());
+			
+			//活动模板
+			if (StringTools.isNotEmpty(info.getTemplateCode())) {
+				criteria.andTemplateCodeEqualTo(info.getTemplateCode());
+			}
+			//活动code
+			criteria.andCodeEqualTo(info.getCode());
+			
+			List<ActivityInfoWithBLOBs> list = activityInfoMapper.selectByExampleWithBLOBs(example);
+			if(list.size() > 0){
+				ActivityInfoWithBLOBs detail = list.get(0);
+				Map<String,Object> map = new HashMap<String,Object>();
+				map.put("tenantCode", info.getTenantCode());
+				map.put("orgCode", info.getOrgCode());
+				map.put("templateCode", info.getTemplateCode());
+				map.put("activityCode", info.getCode());
+				
+				ActivityInfoWithBLOBs activity = activityInfoMapper.selectPrizeAndResource(map);
+				detail.setPrizes(activity.getPrizes());
+				detail.setResources(activity.getResources());
+				return detail;
+			}
+			return null;
+		} catch (Exception e) {
+			log.error("ActivityModelOneServiceImpl.selectActivityDetail", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public void updateActivityOne(ActivityInfoWithBLOBs activityInfo, ActivityJoinAuth joinAuth,
+			List<ActivityPrize> prizeList, List<ActivityResource> resourceList) throws BusinessException {
+		
+		try {
+			Long currentTime = DateUtils.getFormatDateLong();
+			activityInfo.setModifyTime(currentTime);
+			activityInfo.setLastOperationTime(currentTime);
+			
+			ActivityInfoExample example = new ActivityInfoExample();
+			ActivityInfoExample.Criteria criteria = example.createCriteria();
+			criteria.andIsDeleteEqualTo(ActivityConstants.NO);
+			criteria.andIsDisableEqualTo(ActivityConstants.NO);
+			criteria.andIsHideEqualTo(ActivityConstants.NO);
+			criteria.andTenantCodeEqualTo(activityInfo.getTenantCode());
+			criteria.andOrgCodeEqualTo(activityInfo.getOrgCode());
+			//活动模板
+			criteria.andTemplateCodeEqualTo(activityInfo.getTemplateCode());
+			//活动code
+			criteria.andCodeEqualTo(activityInfo.getCode());
+			
+			/** 1.权限校验：活动状态是草稿*/
+			List<ActivityInfo> list = activityInfoMapper.selectByExample(example);
+			if (list.size() < 1) {
+				throw BusinessException.build("ACTIVITY_23002", "活动信息");
+			}
+			ActivityInfo info = list.get(0);
+			if (!info.getActivityStatus().equals(ActivityConstants.DRAFT) && !info.getActivityStatus().equals(ActivityConstants.REJECT)) {
+				// 活动状态不是是草稿或以驳回，不能修改
+				throw BusinessException.build("ACTIVITY_23009");
+			}
+			
+			/** 2.更新活动信息*/
+			activityInfoMapper.updateByExampleSelective(activityInfo, example);
+			
+			/** 3.更新活动参与范围信息*/
+			activityAuthService.updateAuthInfo(joinAuth);
+			
+			/** 4.更新奖项信息*/
+			ActivityPrizeExample prizeExample = new ActivityPrizeExample();
+			ActivityPrizeExample.Criteria prizeCriteria = prizeExample.createCriteria();
+			prizeCriteria.andIsDeleteEqualTo(ActivityConstants.NO);
+			prizeCriteria.andIsDisableEqualTo(ActivityConstants.NO);
+			prizeCriteria.andTenantCodeEqualTo(activityInfo.getTenantCode());
+			prizeCriteria.andOrgCodeEqualTo(activityInfo.getOrgCode());
+			//活动code
+			prizeCriteria.andActivityCodeEqualTo(activityInfo.getCode());
+			//先删除原先的数据
+			activityPrizeMapper.deleteByExample(prizeExample);
+			for (ActivityPrize p : prizeList) {
+				p.setCode(UUIDHelper.getUUID());
+				p.setCreateTime(currentTime);
+				p.setModifyTime(currentTime);
+				p.setActivityCode(activityInfo.getCode());
+			}
+			//在添加新数据
+			activityPrizeMapper.batchInsertPrize(prizeList);
+			
+			/** 5.更新活动资源信息*/
+			ActivityResourceExample resourceExample = new ActivityResourceExample();
+			ActivityResourceExample.Criteria resourceCriteria = resourceExample.createCriteria();
+			resourceCriteria.andIsDeleteEqualTo(ActivityConstants.NO);
+			resourceCriteria.andIsDisableEqualTo(ActivityConstants.NO);
+			resourceCriteria.andIsHideEqualTo(ActivityConstants.NO);
+			resourceCriteria.andTenantCodeEqualTo(activityInfo.getTenantCode());
+			resourceCriteria.andOrgCodeEqualTo(activityInfo.getOrgCode());
+			//活动code
+			resourceCriteria.andActivityCodeEqualTo(activityInfo.getCode());
+			//先删除原先的数据
+			activityResourceMapper.deleteByExample(resourceExample);
+			for (ActivityResource r : resourceList) {
+				r.setCode(UUIDHelper.getUUID());
+				r.setCreateTime(currentTime);
+				r.setModifyTime(currentTime);
+				r.setActivityCode(activityInfo.getCode());
+			}
+			//在添加新数据
+			activityResourceMapper.batchInsertResource(resourceList);
+			
+			/** 5.生成活动历程*/
+			this.insertActivityHistory(activityInfo.getTenantCode(), activityInfo.getOrgCode(), null, activityInfo.getCode(),
+					activityInfo.getLastOperationUserCode(), activityInfo.getLastOperationUserName(), CommonService.map.get("update"));
+		} catch (BusinessException e){	
+			throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelOneServiceImpl.updateActivityOne", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public void deleteActivity(ActivityInfo info) throws BusinessException {
+
+		try {
+			/** 1.删除活动数据*/
+			ActivityInfoExample example = new ActivityInfoExample();
+			ActivityInfoExample.Criteria criteria = example.createCriteria();
+			criteria.andIsDeleteEqualTo(ActivityConstants.NO);
+			criteria.andIsDisableEqualTo(ActivityConstants.NO);
+			criteria.andIsHideEqualTo(ActivityConstants.NO);
+			criteria.andTenantCodeEqualTo(info.getTenantCode());
+			criteria.andOrgCodeEqualTo(info.getOrgCode());
+			//活动模板
+			if (StringTools.isNotEmpty(info.getTemplateCode())) {
+				criteria.andTemplateCodeEqualTo(info.getTemplateCode());
+			}
+			//活动code
+			criteria.andCodeEqualTo(info.getCode());
+			
+			Long time = DateUtils.getFormatDateLong();
+			ActivityInfoWithBLOBs a = new ActivityInfoWithBLOBs();
+			a.setIsDelete(ActivityConstants.YES);
+			a.setModifyTime(time);
+			a.setLastOperationTime(time);
+			a.setLastOperationUserCode(info.getLastOperationUserCode());
+			//逻辑删除数据
+			activityInfoMapper.updateByExampleSelective(a, example);
+			
+			/** 2.生成活动历程*/
+			this.insertActivityHistory(info.getTenantCode(), info.getOrgCode(), null, info.getCode(),
+					info.getLastOperationUserCode(), info.getLastOperationUserName(), CommonService.map.get("cancel"));
+		} catch (BusinessException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("ActivityModelOneServiceImpl.deleteActivity", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+
+	@Override
+	public ActivityInfo selectActivityByCode(ActivityInfo info) throws BusinessException {
+		try {
+			ActivityInfoExample example = new ActivityInfoExample();
+			ActivityInfoExample.Criteria criteria = example.createCriteria();
+			criteria.andIsDeleteEqualTo(ActivityConstants.NO);
+			criteria.andIsDisableEqualTo(ActivityConstants.NO);
+			criteria.andIsHideEqualTo(ActivityConstants.NO);
+			criteria.andTenantCodeEqualTo(info.getTenantCode());
+			criteria.andOrgCodeEqualTo(info.getOrgCode());
+			//活动code
+			criteria.andCodeEqualTo(info.getCode());
+			
+			List<ActivityInfo> list = activityInfoMapper.selectByExample(example);
+			if(list.size()>0){
+				return list.get(0);
+			}
+			return null;
+		} catch (Exception e) {
+			log.error("ActivityModelOneServiceImpl.selectActivityByCode", e);
+			throw BusinessException.build("COMMON_400");
+		}
+	}
+}

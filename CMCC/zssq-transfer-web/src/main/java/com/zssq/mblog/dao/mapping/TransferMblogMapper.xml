@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.mblog.dao.mapper.TransferMblogMapper" >
+  
+  <!-- 
+  
+  		  			(SELECT  GROUP_CONCAT(IMG_URL) FROM transfer_mblog_image WHERE MBLOG_ID = transfer_mblog.ID) as IMG_URLS,
+	  			(SELECT MUSIC_URL FROM transfer_mblog_music WHERE ID = transfer_mblog.MUSIC_ID) as MUSIC_URL,
+	  			(SELECT VIDEO_URL FROM transfer_mblog_video WHERE ID = transfer_mblog.VIDEO_ID) as VIDEO_URL,
+   -->
+  <!-- 查询原创微博信息 -->
+  <sql id="selectSelfMblogInfo">
+	SELECT
+		trMblog.ID AS id, 
+  		userInfo.user_code AS userCode,
+  		userInfo.saas_tenant_code AS tenantCode,
+  		teamInfo.team_code AS teamCode,
+  		CONTENT_EXT AS content,
+  		REPLY_NUM AS comNum,
+  		FORWARD_NUM AS forNum,
+  		proOrgInfo.sys_org_code AS proCode,
+  		cityOrgInfo.sys_org_code AS cityCode,
+		MUSIC_ID AS musicId,
+		VIDEO_ID AS videoId,
+		unix_timestamp(PUB_TIME) * 1000 AS pubTime
+  	FROM
+  		(
+	  		SELECT 
+	  			ID,
+	  			PUB_TIME,
+	  			USER_ID,
+	  			TEAM_ID,
+	  			CONTENT_EXT,
+	  			MBLOG_TYPE,
+	  			ROOT_TID,
+	  			TO_MBLOG_ID,
+	  			TO_UID,
+	  			REPLY_NUM,
+	  			FORWARD_NUM,
+	  			ACTION_TYPE,
+	  			INSTEAD_USER,
+	  			DEL_FLAG,
+	  			INSTEAD_FLAG,
+	  			PRO_ID,
+	  			CITY_ID,
+	  			MUSIC_ID,
+	  			VIDEO_ID
+	  			<!-- (SELECT IMG_URL FROM transfer_mblog_image WHERE ID = transfer_mblog.IMAGE_ID) as IMAGE_URL -->
+	  		FROM
+	  			transfer_mblog
+				WHERE
+	  			DEL_FLAG = 0
+	  		AND
+	  			(BUSI_TYPE is null or BUSI_TYPE = 2 or BUSI_TYPE = 4 or BUSI_TYPE = 5)
+	  		AND
+	  			ACTION_TYPE = 1
+	  		ORDER BY ID
+	  		LIMIT
+  				#{startPage},#{pageSize}
+  		) AS trMblog
+  		LEFT JOIN
+  			sys_user_info AS userInfo ON trMblog.USER_ID = userInfo.user_id
+  		LEFT JOIN
+  			team_info AS teamInfo ON trMblog.TEAM_ID = teamInfo.team_id
+  		LEFT JOIN
+  			sys_org_info AS proOrgInfo ON trMblog.PRO_ID = proOrgInfo.org_id
+  		LEFT JOIN
+  			sys_org_info AS cityOrgInfo ON trMblog.CITY_ID = cityOrgInfo.org_id
+  </sql>
+  
+  <!-- 查询转发微博信息 -->
+  <sql id="selectForMblogInfo">
+  	SELECT 
+  		trMblog.ID AS id,
+  		userInfo.user_code AS userCode,
+  		teamInfo.team_code AS teamCode,
+  		CONTENT_EXT AS content,
+  		REPLY_NUM AS comNum,
+  		FORWARD_NUM AS forNum,
+  		proOrgInfo.sys_org_code AS proCode,
+  		cityOrgInfo.sys_org_code AS cityCode,
+		unix_timestamp(PUB_TIME) * 1000 AS pubTime,
+		userInfo.saas_tenant_code AS tenantCode,
+		idCode.mblog_code AS sourceMblogCode,
+		idCode.user_code AS sourceUserCode
+  	FROM
+  		(
+	  		SELECT 
+	  			ID,
+	  			PUB_TIME,
+	  			USER_ID,
+	  			TEAM_ID,
+	  			CONTENT_EXT,
+	  			MBLOG_TYPE,
+	  			ROOT_TID,
+	  			TO_MBLOG_ID,
+	  			TO_UID,
+	  			REPLY_NUM,
+	  			FORWARD_NUM,
+	  			ACTION_TYPE,
+	  			INSTEAD_USER,
+	  			DEL_FLAG,
+	  			INSTEAD_FLAG,
+	  			PRO_ID,
+	  			CITY_ID
+	  		FROM
+	  			transfer_mblog
+				WHERE
+	  			DEL_FLAG = 0
+	  		AND
+	  			(BUSI_TYPE is null or BUSI_TYPE = 2 or BUSI_TYPE = 4 or BUSI_TYPE = 5)
+	  		AND
+	  			ACTION_TYPE = 2
+	  		ORDER BY ID
+	  		LIMIT
+  				#{startPage},#{pageSize}
+  		) AS trMblog
+  		LEFT JOIN
+  			sys_user_info AS userInfo ON trMblog.USER_ID = userInfo.user_id
+  		LEFT JOIN
+  			team_info AS teamInfo ON trMblog.TEAM_ID = teamInfo.team_id
+  		LEFT JOIN
+  			sys_org_info AS proOrgInfo ON trMblog.PRO_ID = proOrgInfo.org_id
+  		LEFT JOIN
+  			sys_org_info AS cityOrgInfo ON trMblog.CITY_ID = cityOrgInfo.org_id
+  		LEFT JOIN
+  			transfer_id_code AS idCode ON trMblog.ROOT_TID = idCode.mblog_id
+  </sql>
+  
+  
+  <!-- 查询详细的原创微博信息 -->
+  <select id="selectAllSelfMblogInfo" parameterType="java.util.Map" resultType="com.zssq.mblog.pojo.MoveMblogVo">
+  	 
+  	 	<include refid="selectSelfMblogInfo" />
+  	 	
+  </select>
+  <!-- 获取原创微博个数 -->
+  <select id="selectAllSelfMblogInfoCount" resultType="java.lang.Integer">
+  	 SELECT
+  	 	COUNT(*)
+  	 FROM
+  	 	transfer_mblog
+  	 WHERE
+  			DEL_FLAG = 0
+  		AND
+  			(BUSI_TYPE is null or BUSI_TYPE = 2 or BUSI_TYPE = 4 or BUSI_TYPE = 5)
+  		AND
+  			ACTION_TYPE = 1
+  </select>
+  
+  <!-- 查询详细的转发微博信息 -->
+  <select id="selectAllForMblogInfo" parameterType="java.util.Map" resultType="com.zssq.mblog.pojo.MoveMblogVo">
+  	
+  	 <include refid="selectForMblogInfo" /> 
+  	 
+  </select>
+  
+  <!-- 获取转发微博个数 -->
+  <select id="selectAllForMblogInfoCount" resultType="java.lang.Integer">
+  	 SELECT
+  	 	COUNT(*)
+  	 FROM
+  	 	transfer_mblog
+  	 WHERE
+  			DEL_FLAG = 0
+  		AND
+  			(BUSI_TYPE is null or BUSI_TYPE = 2 or BUSI_TYPE = 4 or BUSI_TYPE = 5)
+  		AND
+  			ACTION_TYPE = 2
+  </select>
+  
+  <!-- 获取转发历程 -->
+  <select id="selectForPro" parameterType="java.util.Map" resultType="com.zssq.mblog.pojo.TransferForMblog">
+  	 SELECT
+  	 	user_code AS userCode,
+  	 	mblog_code AS curMblogCode,
+  	 	(SELECT mblog_code FROM transfer_id_code WHERE mblog_id = trMblog.ROOT_TID) AS sourceMblogCode,
+  	 	(SELECT mblog_code FROM transfer_id_code WHERE mblog_id = trMblog.TO_MBLOG_ID) AS forMblogCode
+  	 FROM
+	  	 (
+	  	 	SELECT 
+	  	 		ID,
+	  	 		ROOT_TID,
+	  	 		TO_MBLOG_ID
+	  		FROM
+	  			transfer_mblog
+	  		WHERE
+	  			DEL_FLAG = 0
+	  		AND
+	  			(BUSI_TYPE is null or BUSI_TYPE = 2 or BUSI_TYPE = 4 or BUSI_TYPE = 5)
+	  		AND
+	  			ACTION_TYPE = 2
+	  		ORDER BY ID
+	  		LIMIT
+  				#{startPage},#{pageSize}
+	  	 ) AS trMblog
+	 LEFT JOIN
+	 	transfer_id_code
+	 ON
+	  	transfer_id_code.mblog_id = trMblog.ID
+  </select>
+  
+</mapper>

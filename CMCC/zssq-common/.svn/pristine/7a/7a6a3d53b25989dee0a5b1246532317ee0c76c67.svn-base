@@ -1,0 +1,10 @@
+#\u672c\u5730\u5730\u5740
+#sso_certification=http://localhost:8083/zssq-sso-web/sso/certification
+#sso_logout=http://localhost:8083/zssq-sso-web/sso/logout
+
+#\u6d4b\u8bd5\u5730\u5740
+sso_certification=http://172.16.126.187:8080/zssq-sso-web/sso/certification
+sso_logout=http://172.16.126.187:8080/zssq-sso-web/sso/logout
+
+localAppId=
+authenticateUrls=

@@ -1,0 +1,581 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.DiskFileMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.DiskFile" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="file_code" property="fileCode" jdbcType="VARCHAR" />
+    <result column="file_name" property="fileName" jdbcType="VARCHAR" />
+    <result column="file_size" property="fileSize" jdbcType="VARCHAR" />
+    <result column="file_type" property="fileType" jdbcType="INTEGER" />
+    <result column="file_url" property="fileUrl" jdbcType="VARCHAR" />
+    <result column="file_suffix" property="fileSuffix" jdbcType="VARCHAR" />
+    <result column="parent_code" property="parentCode" jdbcType="VARCHAR" />
+    <result column="creat_time" property="creatTime" jdbcType="BIGINT" />
+    <result column="edit_time" property="editTime" jdbcType="BIGINT" />
+    <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="edit_user_code" property="editUserCode" jdbcType="VARCHAR" />
+    <result column="report_type" property="reportType" jdbcType="INTEGER" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, file_code, file_name, file_size, file_type, file_url, file_suffix, parent_code, 
+    creat_time, edit_time, is_delete, user_code, edit_user_code, report_type, org_code, 
+    tenant_code
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from disk_file
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from disk_file
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.DiskFile" >
+    insert into disk_file (id, file_code, file_name, 
+      file_size, file_type, file_url, 
+      file_suffix, parent_code, creat_time, 
+      edit_time, is_delete, user_code, 
+      edit_user_code, report_type, org_code, 
+      tenant_code)
+    values (#{id,jdbcType=BIGINT}, #{fileCode,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, 
+      #{fileSize,jdbcType=VARCHAR}, #{fileType,jdbcType=INTEGER}, #{fileUrl,jdbcType=VARCHAR}, 
+      #{fileSuffix,jdbcType=VARCHAR}, #{parentCode,jdbcType=VARCHAR}, #{creatTime,jdbcType=BIGINT}, 
+      #{editTime,jdbcType=BIGINT}, #{isDelete,jdbcType=INTEGER}, #{userCode,jdbcType=VARCHAR}, 
+      #{editUserCode,jdbcType=VARCHAR}, #{reportType,jdbcType=INTEGER}, #{orgCode,jdbcType=VARCHAR}, 
+      #{tenantCode,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.DiskFile" >
+    insert into disk_file
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="fileCode != null" >
+        file_code,
+      </if>
+      <if test="fileName != null" >
+        file_name,
+      </if>
+      <if test="fileSize != null" >
+        file_size,
+      </if>
+      <if test="fileType != null" >
+        file_type,
+      </if>
+      <if test="fileUrl != null" >
+        file_url,
+      </if>
+      <if test="fileSuffix != null" >
+        file_suffix,
+      </if>
+      <if test="parentCode != null" >
+        parent_code,
+      </if>
+      <if test="creatTime != null" >
+        creat_time,
+      </if>
+      <if test="editTime != null" >
+        edit_time,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+      <if test="userCode != null" >
+        user_code,
+      </if>
+      <if test="editUserCode != null" >
+        edit_user_code,
+      </if>
+      <if test="reportType != null" >
+        report_type,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="fileCode != null" >
+        #{fileCode,jdbcType=VARCHAR},
+      </if>
+      <if test="fileName != null" >
+        #{fileName,jdbcType=VARCHAR},
+      </if>
+      <if test="fileSize != null" >
+        #{fileSize,jdbcType=VARCHAR},
+      </if>
+      <if test="fileType != null" >
+        #{fileType,jdbcType=INTEGER},
+      </if>
+      <if test="fileUrl != null" >
+        #{fileUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="fileSuffix != null" >
+        #{fileSuffix,jdbcType=VARCHAR},
+      </if>
+      <if test="parentCode != null" >
+        #{parentCode,jdbcType=VARCHAR},
+      </if>
+      <if test="creatTime != null" >
+        #{creatTime,jdbcType=BIGINT},
+      </if>
+      <if test="editTime != null" >
+        #{editTime,jdbcType=BIGINT},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=INTEGER},
+      </if>
+      <if test="userCode != null" >
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="editUserCode != null" >
+        #{editUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="reportType != null" >
+        #{reportType,jdbcType=INTEGER},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.DiskFile" >
+    update disk_file
+    <set >
+      <if test="fileCode != null" >
+        file_code = #{fileCode,jdbcType=VARCHAR},
+      </if>
+      <if test="fileName != null" >
+        file_name = #{fileName,jdbcType=VARCHAR},
+      </if>
+      <if test="fileSize != null" >
+        file_size = #{fileSize,jdbcType=VARCHAR},
+      </if>
+      <if test="fileType != null" >
+        file_type = #{fileType,jdbcType=INTEGER},
+      </if>
+      <if test="fileUrl != null" >
+        file_url = #{fileUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="fileSuffix != null" >
+        file_suffix = #{fileSuffix,jdbcType=VARCHAR},
+      </if>
+      <if test="parentCode != null" >
+        parent_code = #{parentCode,jdbcType=VARCHAR},
+      </if>
+      <if test="creatTime != null" >
+        creat_time = #{creatTime,jdbcType=BIGINT},
+      </if>
+      <if test="editTime != null" >
+        edit_time = #{editTime,jdbcType=BIGINT},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=INTEGER},
+      </if>
+      <if test="userCode != null" >
+        user_code = #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="editUserCode != null" >
+        edit_user_code = #{editUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="reportType != null" >
+        report_type = #{reportType,jdbcType=INTEGER},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.DiskFile" >
+    update disk_file
+    set file_code = #{fileCode,jdbcType=VARCHAR},
+      file_name = #{fileName,jdbcType=VARCHAR},
+      file_size = #{fileSize,jdbcType=VARCHAR},
+      file_type = #{fileType,jdbcType=INTEGER},
+      file_url = #{fileUrl,jdbcType=VARCHAR},
+      file_suffix = #{fileSuffix,jdbcType=VARCHAR},
+      parent_code = #{parentCode,jdbcType=VARCHAR},
+      creat_time = #{creatTime,jdbcType=BIGINT},
+      edit_time = #{editTime,jdbcType=BIGINT},
+      is_delete = #{isDelete,jdbcType=INTEGER},
+      user_code = #{userCode,jdbcType=VARCHAR},
+      edit_user_code = #{editUserCode,jdbcType=VARCHAR},
+      report_type = #{reportType,jdbcType=INTEGER},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+ 
+  
+    <!-- 查询主列表 -->
+   <select id="getDiskMainList" parameterType="com.zssq.model.GetManListVO" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from disk_file
+    where org_code=#{orgCode} and  is_delete = 0 and report_type= 0
+    
+    <if test="fileName == null or fileName == '' ">
+   		and parent_code ='-1'   
+    </if>
+    
+    <if test="fileName !=null and fileName !='' ">
+   	 and file_type=2 and file_name like CONCAT('%','${fileName}','%' )  
+    </if>
+    
+   
+   
+    
+     ORDER BY file_type asc , creat_time desc
+    
+    <if test="pageNo != null and pageSize&gt;=0">
+     limit #{pageNo} , #{pageSize}
+    </if>
+    
+  </select>
+  
+  
+  	<!-- 主列表总条数 -->
+   <select id="getDiskMainCount" parameterType="com.zssq.model.GetManListVO" resultType="int">
+	    select 
+	   count(1)
+	    from disk_file
+	    where org_code=#{orgCode}  and is_delete = 0 and report_type= 0
+	    
+	<if test="fileName == null or fileName == '' ">
+   		and parent_code ='-1'   
+    </if>
+	    
+	 <if test="fileName !=null and fileName !=''">
+    	and file_type=2 and file_name like CONCAT('%','${fileName}','%' )  
+    </if>
+	    
+  </select>
+  
+  
+   
+    <!-- 打开文件夹 -->
+   <select id="OpentDiskFolderList" parameterType="com.zssq.model.OpenFolderVO" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from disk_file
+    where parent_code=#{fileCode}  and is_delete = 0 and report_type= 0 
+    
+      ORDER BY file_type asc ,creat_time desc
+      
+    <if test="pageNo != null and pageSize&gt;=0">
+     limit #{pageNo} , #{pageSize}
+    </if>
+    
+  </select>
+  
+   <select id="OpentFolderCount" parameterType="com.zssq.model.OpenFolderVO" resultType="int">
+    select 
+    count(1)
+    from disk_file
+    where parent_code=#{fileCode}  and is_delete = 0 and report_type= 0 
+  </select>
+  
+  
+  
+  
+  
+  
+  
+  <!-- 删除文件 -->
+   <update id="delFile" parameterType="com.zssq.model.FileVO">
+    update disk_file
+    set 
+      is_delete = #{delete},
+      edit_time = #{editTime},
+      edit_user_code = #{editUserCode}
+    where file_code = #{fileCode}
+  </update>
+  
+  
+   <!--获取文件夹列表 -->
+   <select id="getFolderList" parameterType="com.zssq.model.FileVO" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from disk_file
+    where  is_delete = 0 and file_type = 1 and report_type= 0 and org_code =#{orgCode} and parent_code=#{fileCode}
+  </select>
+  
+  
+   <!-- 移动文件 -->
+   <update id="moveFile" parameterType="com.zssq.model.MoveFileVO">
+    update disk_file
+    set 
+     parent_code =#{newFolderCode} ,
+      edit_time = #{editTime},
+      edit_user_code = #{userCode}
+     
+     <if test="fileName != null and fileName !=''">
+     	,file_name = #{fileName}
+     </if>
+     
+    where file_code = #{fileCode} and   parent_code = #{parentCode} and report_type= 0 and is_delete = 0
+  </update>
+  
+  
+  
+    <!--校验文件名字 -->
+   <select id="checkFileName" parameterType="com.zssq.model.CheckFileNameVO" resultType="int">
+   
+   SELECT COUNT(1) as count from disk_file 
+   
+   where  parent_code=#{folderCode} and 
+   
+   <!--   and file_code =#{fileCode} and -->
+   
+    file_name =	#{fileName} 
+    
+    <if test="fileSuffix != null and fileSuffix != '' "> 
+    
+    	and file_suffix = #{fileSuffix}
+    
+    </if>
+   and report_type= 0 and is_delete = 0
+    
+  </select>
+  
+  
+    <!-- 重命名 -->
+   <update id="rnameFile" parameterType="com.zssq.model.RnameVO">
+    update disk_file
+    set 
+     
+     	file_name = #{newName},
+     	edit_time = #{editTime},
+        edit_user_code = #{editUserCode}
+     
+    where file_code = #{fileCode}  and report_type= 0 and is_delete = 0
+  </update>
+  
+  <!-- 查看code -->
+   <select id="countCode" parameterType="String" resultType="int">
+   SELECT COUNT(1) as count from disk_file 
+   where file_code=#{code} and report_type= 0 and is_delete = 0
+  </select>
+  
+  
+  <!-- 垃圾回收站-->
+   <select id="getRecoveryFileList" resultMap="BaseResultMap" parameterType="com.zssq.model.RecoveryListVO">
+   
+   	SELECT  
+   	<include refid="Base_Column_List" />
+    from disk_file 
+	where org_code=#{orgCode} and is_delete=1  
+	
+    ORDER BY file_type asc
+    
+    <if test="pageNo != null and pageSize&gt;=0">
+     limit #{pageNo} , #{pageSize}
+    </if>
+    
+  </select>
+  
+  <select id="getRecoveryFileCount"  parameterType="com.zssq.model.RecoveryListVO" resultType="int">
+  
+   	SELECT  
+   	count(1)
+    from disk_file 
+	where org_code=#{orgCode} and is_delete=1  
+	
+  </select>
+  
+  
+  
+
+	
+	<!-- 还原文件 -->
+   <update id="ReductionFile" parameterType="com.zssq.model.RFileVO">
+    update disk_file
+    set 
+      is_delete = 0 ,
+	  edit_time = #{editTime} ,
+      edit_user_code = #{editUserCode}   
+    where file_code = #{fileCode} and org_code=#{orgCode}
+    
+    
+  </update>
+  
+
+  <!-- 获取没有删除文件详细信息-->
+   <select id="getFileInfo" resultMap="BaseResultMap" parameterType="com.zssq.model.FileInfoVo">
+   
+   	SELECT  
+   	<include refid="Base_Column_List" />
+    from disk_file 
+	where file_code=#{fileCode} and parent_code=#{parentCode} and report_type= 0 and is_delete = 0
+   
+  </select>
+  
+  
+  <!-- 获取所有文件 -->
+   <select id="getFileListAll" resultMap="BaseResultMap" parameterType="com.zssq.model.FileListAllVO">
+   	SELECT  
+   	<include refid="Base_Column_List" />
+    from disk_file 
+	where  parent_code=#{fileCode} and report_type= 0 
+   
+  </select>
+  
+    
+   <!-- 批量插入 -->
+  <insert id="batchAddFile"  parameterType="com.zssq.dao.pojo.DiskFile">  
+    insert into disk_file ( file_code, file_name, 
+      file_size, file_type, file_url, 
+      file_suffix, parent_code, creat_time, 
+      edit_time, is_delete, user_code, 
+      edit_user_code, report_type, org_code
+      )
+	    values    
+	    <foreach collection="list" item="item" index="index" separator="," >  
+	  ( #{item.fileCode,jdbcType=VARCHAR}, #{item.fileName,jdbcType=VARCHAR}, 
+      #{item.fileSize,jdbcType=VARCHAR}, #{item.fileType,jdbcType=INTEGER}, #{item.fileUrl,jdbcType=VARCHAR}, 
+      #{item.fileSuffix,jdbcType=VARCHAR}, #{item.parentCode,jdbcType=VARCHAR}, #{item.creatTime,jdbcType=BIGINT}, 
+      #{item.editTime,jdbcType=BIGINT}, #{item.isDelete,jdbcType=INTEGER}, #{item.userCode,jdbcType=VARCHAR}, 
+      #{item.editUserCode,jdbcType=VARCHAR}, #{item.reportType,jdbcType=INTEGER}, #{item.orgCode,jdbcType=VARCHAR}
+      )
+	    </foreach>  
+ </insert>
+  
+  
+  	<!-- 举报文件 -->
+   <update id="reportFileFile" parameterType="com.zssq.model.ReportFileVO">
+   
+    update disk_file
+    set 
+      report_type= #{reportType},
+	  edit_time = #{editTime},
+      edit_user_code = #{editUserCode}	      
+    where file_code = #{fileCode}  
+    
+  </update>
+  
+  
+  
+  <!-- 删除文件夹 -->
+  
+   <update id="delFolder" parameterType="com.zssq.model.DelFolderModel">
+   
+    update disk_file
+    set 
+      is_delete= #{delete},
+	  edit_time = #{editTime},
+      edit_user_code = #{editUserCode}	      
+      
+     where     
+     
+   		file_code in
+   	
+	 <foreach item="item" index="index" collection="list" open="(" separator="," close=")">  
+ 		 #{item}  
+ 	</foreach> 
+    
+    
+  </update>
+  
+  
+    <!-- 获取文件详细信息-->
+   <select id="getFile" resultMap="BaseResultMap" parameterType="string">
+   
+   	SELECT  
+   	<include refid="Base_Column_List" />
+    from disk_file 
+	where file_code=#{fileCode}  and report_type= 0 
+   
+  </select>
+  
+  <!-- 物理删除文件 -->
+   <delete id="thoroughDeleteFile" parameterType="string" >
+    delete from disk_file
+    where file_code = #{fileCode}
+  </delete>
+  
+  
+  <!-- 物理删除文件夹 -->
+  <delete id="thoroughDeleteFolder" parameterType="list" >
+    delete from disk_file
+    where     
+    	file_code in
+	 <foreach item="item" index="index" collection="list" open="(" separator="," close=")">  
+ 		 #{item}  
+ 	</foreach> 
+  </delete>
+  
+   <!-- 模糊查询文件名称 -->
+   <select id="queryFileName" resultMap="BaseResultMap" parameterType="com.zssq.model.QuerFileNameVO">
+   
+   	SELECT  
+   	<include refid="Base_Column_List" />
+    from disk_file 
+	where org_code=#{orgCode} and file_name like CONCAT('%','${fileName}','%' )  
+   
+  </select>
+  
+    <!-- 查看清空的文件 -->
+   <select id="queryEmptyFile" resultMap="BaseResultMap" parameterType="com.zssq.model.QuerFileNameVO">
+   
+   	SELECT  
+   	<include refid="Base_Column_List" />
+    from disk_file 
+	where org_code=#{orgCode} and  is_delete= 1 or is_delete= 2  
+   
+  </select>
+  
+   <!-- 清空回收站  -->
+   <delete id="emptyFile" parameterType="string" >
+    delete from disk_file
+    where org_code = #{orgCode} and is_delete= 1 or is_delete= 2 
+  </delete>
+  
+  
+   <!--获取文件夹列表 -->
+   <select id="getIndexFile" parameterType="com.zssq.model.GetIndexVO" resultMap="BaseResultMap">
+   
+    select 
+    <include refid="Base_Column_List" />
+    from disk_file
+    where  is_delete = 0 and file_type = 2 and report_type= 0 and 
+    org_code =#{orgCode} and parent_code= -1  ORDER BY creat_time desc
+    limit 0 , #{pageSize}
+    
+  </select>
+  
+  
+  
+   <!--获取文件夹列表 -->
+   <select id="getTenDaysDelete" parameterType="Long" resultMap="BaseResultMap">
+   
+		SELECT * FROM disk_file where 1=1 
+		and (is_delete=2 or is_delete=1) and creat_time &lt; #{time}
+    
+  </select>
+  
+  
+  <!-- 清空回收站  -->
+   <delete id="deleteTenDaysFile" parameterType="Long" >
+    delete from disk_file
+    where 1=1 and (is_delete=2 or is_delete=1) and creat_time &lt; #{time}
+  </delete>
+  
+  
+  
+</mapper>

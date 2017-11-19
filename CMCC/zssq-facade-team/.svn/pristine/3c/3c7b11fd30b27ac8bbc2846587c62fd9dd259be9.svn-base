@@ -1,0 +1,29 @@
+package com.zssq.dao.pojo;
+
+import java.io.Serializable;
+
+public class UserTeamState implements Serializable{
+
+	private static final long serialVersionUID = 1L;
+
+	private Byte isConcern;
+	
+	private Byte isFriendTeam;
+
+	public Byte getIsConcern() {
+		return isConcern;
+	}
+
+	public void setIsConcern(Byte isConcern) {
+		this.isConcern = isConcern;
+	}
+
+	public Byte getIsFriendTeam() {
+		return isFriendTeam;
+	}
+
+	public void setIsFriendTeam(Byte isFriendTeam) {
+		this.isFriendTeam = isFriendTeam;
+	}
+	
+}

@@ -1,0 +1,108 @@
+package com.zssq.biz;
+
+import com.zssq.constants.NewsReplyConstants;
+import com.zssq.dao.mapper.NewsReplyMapper;
+import com.zssq.news.dao.pojo.NewsReply;
+import com.zssq.news.model.NewsReplyModel;
+import com.zssq.news.model.NewsReplyPraiseModel;
+import com.zssq.news.model.NewsReplyQuery;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+/**
+ * Created by admin on 2017-04-05.
+ */
+@Service
+public class NewsReplyBiz {
+
+    @Autowired
+    private NewsReplyMapper newsReplyMapper;
+
+    public int addNewsReply(NewsReplyModel newsReplyModel) {
+        long currentTime = System.currentTimeMillis() ;
+        NewsReply record = generateNewsReply(newsReplyModel,currentTime,currentTime);
+        return  newsReplyMapper.insertSelective(record) ;
+    }
+
+    public NewsReply addNewsReplyPC(NewsReplyModel newsReplyModel) {
+        long currentTime = System.currentTimeMillis() ;
+        NewsReply record = generateNewsReply(newsReplyModel,currentTime,currentTime);
+        int number = newsReplyMapper.insertSelective(record) ;
+        if(number >0){
+            return  record ;
+        }
+        return null ;
+    }
+
+    public boolean deleteNewsReply(NewsReplyModel newsReplyModel) {
+    	long currentTime = System.currentTimeMillis() ;
+    	newsReplyModel.setModifyTime(currentTime);
+        return newsReplyMapper.deleteNewsReply(newsReplyModel);
+    }
+
+    public NewsReply getNewsReplyDetail(NewsReplyQuery newsReplyQuery) {
+        return newsReplyMapper.selectByReplyCode(newsReplyQuery.getReplyCode()) ;
+    }
+    public int selectCount(NewsReplyQuery newsReplyQuery) {
+        return  newsReplyMapper.selectCount(newsReplyQuery) ;
+    }
+
+    public int updateThirdNewsReply(NewsReplyModel newsReplyModel) {
+        return newsReplyMapper.modifyNewsReplyShield(newsReplyModel);
+    }
+
+    public List<NewsReply> selectList(NewsReplyQuery newsReplyQuery) {
+        return  newsReplyMapper.selectList(newsReplyQuery) ;
+    }
+
+    public List<NewsReply> selectReplyList(NewsReplyQuery newsReplyQuery) {
+        return  newsReplyMapper.selectReplyList(newsReplyQuery) ;
+    }
+
+
+    public int updateReplyLikeNumber(NewsReplyPraiseModel newsReplyPraiseModel) {
+        NewsReply newsReply = newsReplyMapper.selectByReplyCode(newsReplyPraiseModel.getNewsReplyCode()) ;
+        if(null == newsReply){
+            return 0 ;
+        }
+        if(newsReplyPraiseModel.getActionType()== NewsReplyConstants.NEWS_REPLY_NOT_PRAISE) {//表示取消点赞
+            if(newsReply.getReplyLikeNum() != null && newsReply.getReplyLikeNum()>0){
+                newsReply.setReplyLikeNum(newsReply.getReplyLikeNum()-1);
+            }
+        }else{
+            if(newsReply.getReplyLikeNum() != null ){
+                newsReply.setReplyLikeNum(newsReply.getReplyLikeNum()+1);
+            }else{
+                newsReply.setReplyLikeNum(1);
+            }
+        }
+        return newsReplyMapper.updateByPrimaryKeySelective(newsReply) ;
+    }
+
+    private NewsReply generateNewsReply(NewsReplyModel newsReplyModel,long createTime,long modifyTime) {
+        NewsReply record = new NewsReply() ;
+        record.setTenantCode(newsReplyModel.getTenantCode());
+        record.setNewsCode(newsReplyModel.getNewsCode());
+        record.setCommentCode(newsReplyModel.getCommentCode());
+        record.setUserCode(newsReplyModel.getUserCode());
+        record.setOrgCode(newsReplyModel.getOrgCode());
+        record.setOrgLevel(newsReplyModel.getOrgLevel());
+        record.setReplyCode(UUIDHelper.getUUID());
+        record.setToReplyUserCode(newsReplyModel.getRevertPeopleCode());
+        record.setToReplyOrgCode(newsReplyModel.getRevertOrgCode());
+        record.setReplyContent(newsReplyModel.getReplyContent());
+        record.setReplyIsShield(newsReplyModel.getIsShield());
+        record.setReplyIsDelete(newsReplyModel.getIsDelete());
+        record.setReplyLikeNum(newsReplyModel.getCommentLikeNum());
+        record.setReplyReportNum(newsReplyModel.getCommentReportNum());
+        if(modifyTime > 0){
+            record.setCreateTime(createTime);
+        }
+        record.setModifyTime(modifyTime);
+        return record ;
+    }
+
+}

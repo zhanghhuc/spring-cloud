@@ -1,0 +1,51 @@
+package com.zssq.msg.vo;
+
+import org.hibernate.validator.constraints.NotBlank;
+
+import com.zssq.annotation.validation.IntType;
+
+public class BoardListVO {
+	
+	@NotBlank(message = "{empty.message}")
+	private String otherUserCode;
+	
+	private int pageSize;
+	
+	private int pageNo;
+	//查询类型 ：1我收到的留言，2我发出的留言
+	@IntType(expression = ">0")
+	private int type; 
+	
+	
+	
+	
+	
+	public String getOtherUserCode() {
+		return otherUserCode;
+	}
+	public void setOtherUserCode(String otherUserCode) {
+		this.otherUserCode = otherUserCode;
+	}
+	public int getPageSize() {
+		return pageSize;
+	}
+	public void setPageSize(int pageSize) {
+		this.pageSize = pageSize;
+	}
+	public int getPageNo() {
+		return pageNo;
+	}
+	public void setPageNo(int pageNo) {
+		this.pageNo = pageNo;
+	}
+	public int getType() {
+		return type;
+	}
+	public void setType(int type) {
+		this.type = type;
+	}
+	
+	
+}
+
+

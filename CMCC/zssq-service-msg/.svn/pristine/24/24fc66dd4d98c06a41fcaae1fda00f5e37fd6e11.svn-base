@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.UserMsgBoardReplyMapper" >
+  <resultMap id="BaseResultMap" type="com.zssq.dao.pojo.UserMsgBoardReply" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="reply_code" property="replyCode" jdbcType="VARCHAR" />
+    <result column="board" property="board" jdbcType="VARCHAR" />
+    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+    <result column="creat_time" property="creatTime" jdbcType="BIGINT" />
+    <result column="org_code" property="orgCode" jdbcType="VARCHAR" />
+    <result column="tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+    <result column="is_delete" property="isDelete" jdbcType="TINYINT" />
+    <result column="reply_user_code" property="replyUserCode" jdbcType="VARCHAR" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.zssq.dao.pojo.UserMsgBoardReply" extends="BaseResultMap" >
+    <result column="reply_content" property="replyContent" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, reply_code, board, user_code, creat_time, org_code, tenant_code, is_delete, reply_user_code
+  </sql>
+  <sql id="Blob_Column_List" >
+    reply_content
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from user_message_board_reply
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from user_message_board_reply
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.zssq.dao.pojo.UserMsgBoardReply" >
+    insert into user_message_board_reply (id, reply_code, board, 
+      user_code, creat_time, org_code, 
+      tenant_code, is_delete, reply_user_code, 
+      reply_content)
+    values (#{id,jdbcType=BIGINT}, #{replyCode,jdbcType=VARCHAR}, #{board,jdbcType=VARCHAR}, 
+      #{userCode,jdbcType=VARCHAR}, #{creatTime,jdbcType=BIGINT}, #{orgCode,jdbcType=VARCHAR}, 
+      #{tenantCode,jdbcType=VARCHAR}, #{isDelete,jdbcType=TINYINT}, #{replyUserCode,jdbcType=VARCHAR}, 
+      #{replyContent,jdbcType=LONGVARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.zssq.dao.pojo.UserMsgBoardReply" >
+    insert into user_message_board_reply
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="replyCode != null" >
+        reply_code,
+      </if>
+      <if test="board != null" >
+        board,
+      </if>
+      <if test="userCode != null" >
+        user_code,
+      </if>
+      <if test="creatTime != null" >
+        creat_time,
+      </if>
+      <if test="orgCode != null" >
+        org_code,
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+      <if test="replyUserCode != null" >
+        reply_user_code,
+      </if>
+      <if test="replyContent != null" >
+        reply_content,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="replyCode != null" >
+        #{replyCode,jdbcType=VARCHAR},
+      </if>
+      <if test="board != null" >
+        #{board,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="creatTime != null" >
+        #{creatTime,jdbcType=BIGINT},
+      </if>
+      <if test="orgCode != null" >
+        #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="replyUserCode != null" >
+        #{replyUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="replyContent != null" >
+        #{replyContent,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.zssq.dao.pojo.UserMsgBoardReply" >
+    update user_message_board_reply
+    <set >
+      <if test="replyCode != null" >
+        reply_code = #{replyCode,jdbcType=VARCHAR},
+      </if>
+      <if test="board != null" >
+        board = #{board,jdbcType=VARCHAR},
+      </if>
+      <if test="userCode != null" >
+        user_code = #{userCode,jdbcType=VARCHAR},
+      </if>
+      <if test="creatTime != null" >
+        creat_time = #{creatTime,jdbcType=BIGINT},
+      </if>
+      <if test="orgCode != null" >
+        org_code = #{orgCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tenantCode != null" >
+        tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=TINYINT},
+      </if>
+      <if test="replyUserCode != null" >
+        reply_user_code = #{replyUserCode,jdbcType=VARCHAR},
+      </if>
+      <if test="replyContent != null" >
+        reply_content = #{replyContent,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.zssq.dao.pojo.UserMsgBoardReply" >
+    update user_message_board_reply
+    set reply_code = #{replyCode,jdbcType=VARCHAR},
+      board = #{board,jdbcType=VARCHAR},
+      user_code = #{userCode,jdbcType=VARCHAR},
+      creat_time = #{creatTime,jdbcType=BIGINT},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      reply_user_code = #{replyUserCode,jdbcType=VARCHAR},
+      reply_content = #{replyContent,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.zssq.dao.pojo.UserMsgBoardReply" >
+    update user_message_board_reply
+    set reply_code = #{replyCode,jdbcType=VARCHAR},
+      board = #{board,jdbcType=VARCHAR},
+      user_code = #{userCode,jdbcType=VARCHAR},
+      creat_time = #{creatTime,jdbcType=BIGINT},
+      org_code = #{orgCode,jdbcType=VARCHAR},
+      tenant_code = #{tenantCode,jdbcType=VARCHAR},
+      is_delete = #{isDelete,jdbcType=TINYINT},
+      reply_user_code = #{replyUserCode,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  
+  <!-- 留言墙中的回复条数  -->
+   <select id="selectBoardReplyCount" resultType="java.util.Map" parameterType="list" >
+   
+    SELECT COUNT(1) as total ,board  from user_message_board_reply 
+    
+	
+	where 
+	    board in <foreach collection="list" item="item" index="index" 
+	    
+	open="(" separator="," close=")">#{item}</foreach>
+	
+	and is_delete=0
+	
+	GROUP BY board
+    
+  </select>
+  
+  <!--留言墙中的回复信息  -->
+  
+   <select id="selectBoardReply" resultType="java.util.Map" parameterType="com.zssq.model.QueryBoradReplyMode" >
+   
+      SELECT <include refid="Base_Column_List" /> ,reply_content from user_message_board_reply  
+     
+      where board in <foreach collection="list" item="item" index="index" 
+	    
+	  open="(" separator="," close=")">#{item}</foreach>
+	  
+	  ORDER BY creat_time  DESC   limit #{pageNo} , #{pageSize}
+    
+  </select>
+  
+  
+  
+  
+  
+  <!-- 分页查询  -->
+   <select id="selectPage" resultMap="ResultMapWithBLOBs" parameterType="com.zssq.model.MessageBoardReplyModel" >
+    select 
+    <include refid="Base_Column_List" /> ,    reply_content
+    from user_message_board_reply
+    where 1 = 1
+     	
+     <if test="boardCode !=null">
+       and board=#{boardCode}
+   	</if>
+   	and  is_delete=0
+   	
+    <if test="id != null and id>0" >
+		AND id <![CDATA[<]]> #{id} 
+	  </if>
+	ORDER BY id DESC 
+	LIMIT #{pageSize}
+  
+  </select>
+  
+  <!-- 总条数 -->
+   <select id="selectCount" resultType="int" parameterType="com.zssq.model.MessageCommentModel" >
+   select count(1)
+   from user_message_board_reply
+   where 1 = 1
+   
+    <if test="boardCode !=null">
+       and board=#{boardCode}
+   	</if>
+ 
+ 	and  is_delete=0
+  </select>
+  
+   <update id="delBoardReply" parameterType="com.zssq.dao.pojo.UserMsgBoardReply" >
+    update user_message_board_reply
+    <set >
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=TINYINT},
+      </if>
+    </set>
+    where 1=1
+    
+      <if test="replyCode != null" >
+      and  reply_code = #{replyCode,jdbcType=VARCHAR}
+      </if>
+    
+    
+  </update>
+  
+  
+
+   <update id="reportRely" parameterType="com.zssq.model.ReporyReplyModel" >
+    update user_message_board_reply
+    <set >
+        is_delete = #{delete}
+    </set>
+    where 1=1
+    
+      and  reply_code = #{msgCode}
+    
+  </update>
+  
+  
+  
+</mapper>

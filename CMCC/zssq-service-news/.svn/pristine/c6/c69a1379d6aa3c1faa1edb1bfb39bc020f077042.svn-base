@@ -1,0 +1,113 @@
+package com.zssq.service.impl;
+
+import com.zssq.biz.NewsNoticeContentBiz;
+import com.zssq.biz.NewsNoticeHistoryBiz;
+import com.zssq.constants.NewsNoticeConstants;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.news.dao.pojo.NewsNoticeContent;
+import com.zssq.news.dao.pojo.NewsNoticeHistory;
+import com.zssq.news.model.NoticeHistoryQuery;
+import com.zssq.news.model.NoticeModel;
+import com.zssq.news.model.NoticeQuery;
+import com.zssq.news.service.NewsNoticeContentService;
+import com.zssq.utils.PageBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class NewsNoticeContentServiceImpl implements NewsNoticeContentService {
+
+    @Autowired
+    private NewsNoticeContentBiz newsNoticeContentBiz;
+
+    @Autowired
+    private NewsNoticeHistoryBiz newsNoticeHistoryBiz;
+
+
+    @Override
+    public PageBean getNotices(NoticeQuery noticeQuery) throws BusinessException {
+        if(null != noticeQuery.getSelfFlag() && noticeQuery.getSelfFlag()==1){
+            noticeQuery.setOrderByClause(" modify_time desc");
+        }else{
+            noticeQuery.setOrderByClause("is_top desc ,notice_sort asc ,modify_time desc");
+        }
+        PageBean pageBean = new PageBean() ;
+        int totalCount = newsNoticeContentBiz.getNoticesCount(noticeQuery) ;
+        List<NewsNoticeContent> list = newsNoticeContentBiz.getNotices(noticeQuery) ;
+        pageBean.setTotalCount(totalCount);
+        pageBean.setRecordList(list);
+        noticeQuery.setIsTop(1);
+        int topCount = newsNoticeContentBiz.getNoticesCount(noticeQuery) ;//查询置顶总数
+        pageBean.setNumPerPage(topCount);
+        return pageBean;
+    }
+    @Override
+    public NewsNoticeContent getNoticeDetail(NoticeQuery noticeQuery) throws BusinessException {
+        return newsNoticeContentBiz.getNoticeDetail(noticeQuery);
+    }
+
+    @Override
+    public boolean addNoticeInfo(NoticeModel noticeModel) throws BusinessException {
+        int number =  newsNoticeContentBiz.addNoticeInfo(noticeModel);
+        number = newsNoticeHistoryBiz.addNoticeHistory(noticeModel);
+        return number >0 ;
+    }
+
+    @Override
+    public boolean updateNotice(NoticeModel noticeModel) throws BusinessException {
+        int number =  newsNoticeContentBiz.updateNotice(noticeModel);
+        return number >0 ;
+    }
+
+    @Override
+    public boolean deleteNotice(NoticeModel  noticeModel) throws BusinessException {
+        int number =  newsNoticeContentBiz.deleteNotice(noticeModel);
+//        number = newsNoticeHistoryBiz.addNoticeHistory(noticeModel);
+        return number >0 ;
+    }
+
+    @Override
+    public boolean updateNewsNoticeUp(NoticeModel noticeModel) throws BusinessException {
+        int number =  newsNoticeContentBiz.updateNewsNoticeUp(noticeModel);
+        return number >0 ;
+    }
+
+    @Override
+    public boolean addNoticeInfoHistory(NoticeModel noticeHistoryModel) throws BusinessException {
+        int number = newsNoticeContentBiz.auditNotice(noticeHistoryModel) ;
+        number  = newsNoticeHistoryBiz.addNoticeHistory(noticeHistoryModel);
+        return number > 0  ;
+    }
+
+    @Override
+    public boolean updateNoticeMove(NoticeModel noticeModel) throws BusinessException {
+        int number =  newsNoticeContentBiz.updateNoticeMove(noticeModel);
+        return number >0 ;
+    }
+
+    @Override
+    public boolean updateNewsNoticeHidden(NoticeModel noticeModel) {
+        if(noticeModel.getIsHidden() == NewsNoticeConstants.NOTICE_IS_HIDDEN ){
+            noticeModel.setNoticeStatus(NewsNoticeConstants.NOTICE_STATUS_HIDDENED);
+        }else{
+            noticeModel.setNoticeStatus(NewsNoticeConstants.NOTICE_STATUS_PUBLISHED);
+        }
+        int number =  newsNoticeContentBiz.updateNewsNoticeHidden(noticeModel);
+        return number >0 ;
+    }
+
+    @Override
+    public List<NewsNoticeHistory> getNoticeHistorys(NoticeHistoryQuery noticeHistoryQuery) throws BusinessException {
+        return newsNoticeHistoryBiz.getNoticeHistorys(noticeHistoryQuery);
+    }
+
+    @Override
+    public boolean updateNewsNoticeRepeal(NoticeModel noticeModel) {
+        int number =  newsNoticeContentBiz.updateNewsNoticeRepeal(noticeModel);
+        return number >0 ;
+    }
+
+
+}

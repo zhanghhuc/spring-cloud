@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zssq.dao.mapper.SaasTenantMapper">
+	
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.SysAdminInfo">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="sys_admin_account" property="adminAccount" jdbcType="VARCHAR" />
+		<result column="sys_admin_pass" property="adminPass" jdbcType="VARCHAR" />
+		<result column="sys_admin_type" property="adminType" jdbcType="TINYINT" />
+		<result column="saas_tenant_code" property="tenantCode" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="BIGINT" />
+		<result column="modify_time" property="modifyTime" jdbcType="BIGINT" />
+		<result column="is_enable" property="isEnable" jdbcType="TINYINT" />
+	</resultMap>
+	
+	<sql id="Base_Column_List">
+		id, sys_admin_account, sys_admin_pass, sys_admin_type, saas_tenant_code, 
+		create_time, modify_time, is_enable
+	</sql>
+	
+	<!-- 根据管理员帐号获取详细信息 -->
+	<select id="selectByAccount" resultMap="BaseResultMap" parameterType="com.zssq.dao.pojo.SysAdminInfo">
+		select
+			<include refid="Base_Column_List" />
+		from 
+			sys_admin_info
+		where 
+			sys_admin_account = #{adminAccount, jdbcType=VARCHAR} 
+		<if test="adminType != null">
+			and sys_admin_type = ${adminType}
+		</if>			
+	</select>
+	
+	<!-- 插入 -->
+	<insert id="insertSelective" parameterType="com.zssq.dao.pojo.SysAdminInfo">
+		insert into sys_admin_info
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="adminAccount != null">
+				sys_admin_account,
+			</if>
+			<if test="adminPass != null">
+				sys_admin_pass,
+			</if>
+			<if test="adminType != null">
+				sys_admin_type,
+			</if>
+			<if test="tenantCode != null">
+				saas_tenant_code,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+			<if test="modifyTime != null">
+				modify_time,
+			</if>
+			<if test="isEnable != null">
+				is_enable,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=BIGINT},
+			</if>
+			<if test="adminAccount != null">
+				#{adminAccount,jdbcType=VARCHAR},
+			</if>
+			<if test="adminPass != null">
+				#{adminPass,jdbcType=VARCHAR},
+			</if>
+			<if test="adminType != null">
+				#{adminType,jdbcType=TINYINT},
+			</if>
+			<if test="tenantCode != null">
+				#{tenantCode,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=BIGINT},
+			</if>
+			<if test="modifyTime != null">
+				#{modifyTime,jdbcType=BIGINT},
+			</if>
+			<if test="isEnable != null">
+				#{isEnable,jdbcType=TINYINT},
+			</if>
+		</trim>
+	</insert>
+	
+	<update id="updatePassword" parameterType="com.zssq.dao.pojo.SysAdminInfo">
+		UPDATE 
+		  sys_admin_info 
+		SET
+		  sys_admin_pass = #{adminPass,jdbcType=VARCHAR}
+		WHERE sys_admin_account = #{adminAccount,jdbcType=VARCHAR} 
+	</update>
+	
+</mapper>

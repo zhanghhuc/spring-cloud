@@ -1,0 +1,40 @@
+package com.zssq.team.vo;
+
+import org.hibernate.validator.constraints.NotBlank;
+
+public class ToSuperiorVo {
+
+	@NotBlank(message = "{empty.message}")
+	private String teamCode;
+	
+	/** 推荐原因 */
+	private String reason;
+	
+	@NotBlank(message = "{empty.message}")
+	private String userCode;
+
+	public String getTeamCode() {
+		return teamCode;
+	}
+
+	public void setTeamCode(String teamCode) {
+		this.teamCode = teamCode;
+	}
+
+	public String getReason() {
+		return reason;
+	}
+
+	public void setReason(String reason) {
+		this.reason = reason;
+	}
+
+	public String getUserCode() {
+		return userCode;
+	}
+
+	public void setUserCode(String userCode) {
+		this.userCode = userCode;
+	}
+	
+}

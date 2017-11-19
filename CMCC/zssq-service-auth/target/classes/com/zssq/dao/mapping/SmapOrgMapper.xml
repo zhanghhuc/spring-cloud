@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.SmapOrgMapper">
+	
+	<!-- smap_org 表字段实体映射 -->
+	<resultMap id="BaseResultMap" type="com.mdcl.smap.bean.OrgInfo">
+		<result column="synId" property="synId" jdbcType="VARCHAR" />
+		<result column="changeType" property="changeType" jdbcType="VARCHAR" />
+		<result column="changeTime" property="changeTime" jdbcType="VARCHAR" />
+		<result column="o" property="o" jdbcType="VARCHAR" />
+		<result column="areaId" property="areaId" jdbcType="VARCHAR" />
+		<result column="admin" property="admin" jdbcType="VARCHAR" />
+		<result column="description" property="description" jdbcType="VARCHAR" />
+		<result column="displayOrder" property="displayOrder" jdbcType="VARCHAR" />
+		<result column="displayName" property="displayName" jdbcType="VARCHAR" />
+		<result column="endTime" property="endTime" jdbcType="VARCHAR" />
+		<result column="startTime" property="startTime" jdbcType="VARCHAR" />
+		<result column="erpid" property="erpid" jdbcType="VARCHAR" />
+		<result column="facsimiletelephonenumber" property="facsimiletelephonenumber" jdbcType="VARCHAR" />
+		<result column="initials" property="initials" jdbcType="VARCHAR" />
+		<result column="manageOrgId" property="manageOrgId" jdbcType="VARCHAR" />
+		<result column="orgManager" property="orgManager" jdbcType="VARCHAR" />
+		<result column="l" property="l" jdbcType="VARCHAR" />
+		<result column="orgLevel" property="orgLevel" jdbcType="VARCHAR" />
+		<result column="parentOrgId" property="parentOrgId" jdbcType="VARCHAR" />
+		<result column="postalAddress" property="postalAddress" jdbcType="VARCHAR" />
+		<result column="postalCode" property="postalCode" jdbcType="VARCHAR" />
+		<result column="status" property="status" jdbcType="VARCHAR" />
+		<result column="style" property="style" jdbcType="VARCHAR" />
+		<result column="supervisor" property="supervisor" jdbcType="VARCHAR" />
+		<result column="telephoneNumber" property="telephoneNumber" jdbcType="VARCHAR" />
+		<result column="viceManager" property="viceManager" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<!-- smap_org 表字段列表 -->
+	<sql id="Base_Column_List">
+		synId, changeType, changeTime, o, areaId, admin,
+		description, displayOrder, displayName,
+		endTime, startTime, erpid,
+		facsimiletelephonenumber, initials, manageOrgId,
+		orgManager,
+		l, orgLevel, parentOrgId, postalAddress, postalCode, status, style,
+		supervisor, telephoneNumber, viceManager
+	</sql>
+	
+	<!-- 根据 orgCode 查询 -->
+	<select id="selectByOrgCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from
+		smap_org
+		where o = #{value}
+	</select>
+	
+	<!-- 根据 parentOrgCode 查询 -->
+	<select id="selectByParentOrgCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from
+		smap_org
+		where parentOrgId = #{value}
+	</select>
+	
+	<!-- 新增组织 -->
+	<insert id="insert" parameterType="com.mdcl.smap.bean.OrgInfo">
+		INSERT INTO smap_org (
+		synId,
+		changeType,
+		changeTime,
+		o,
+		areaId,
+		admin,
+		description,
+		displayOrder,
+		displayName,
+		endTime,
+		startTime,
+		erpid,
+		facsimiletelephonenumber,
+		initials,
+		manageOrgId,
+		orgManager,
+		l,
+		orgLevel,
+		parentOrgId,
+		postalAddress,
+		postalCode,
+		status,
+		style,
+		supervisor,
+		telephoneNumber,
+		viceManager
+		)
+		VALUES
+		(
+		#{synId,jdbcType=VARCHAR},
+		#{changeType,jdbcType=VARCHAR},
+		#{changeTime,jdbcType=VARCHAR},
+		#{o,jdbcType=VARCHAR},
+		#{areaId,jdbcType=VARCHAR},
+		#{admin,jdbcType=VARCHAR},
+		#{description,jdbcType=VARCHAR},
+		#{displayOrder,jdbcType=VARCHAR},
+		#{displayName,jdbcType=VARCHAR},
+		#{endTime,jdbcType=VARCHAR},
+		#{startTime,jdbcType=VARCHAR},
+		#{erpid,jdbcType=VARCHAR},
+		#{facsimiletelephonenumber,jdbcType=VARCHAR},
+		#{initials,jdbcType=VARCHAR},
+		#{manageOrgId,jdbcType=VARCHAR},
+		#{orgManager,jdbcType=VARCHAR},
+		#{l,jdbcType=VARCHAR},
+		#{orgLevel,jdbcType=VARCHAR},
+		#{parentOrgId,jdbcType=VARCHAR},
+		#{postalAddress,jdbcType=VARCHAR},
+		#{postalCode,jdbcType=VARCHAR},
+		#{status,jdbcType=VARCHAR},
+		#{style,jdbcType=VARCHAR},
+		#{supervisor,jdbcType=VARCHAR},
+		#{telephoneNumber,jdbcType=VARCHAR},
+		#{viceManager,jdbcType=VARCHAR})
+	</insert>
+	
+		<!-- 新增组织 -->
+	<insert id="insertStatic" parameterType="com.mdcl.smap.bean.OrgInfo">
+		INSERT INTO smap_org_static (
+		synId,
+		changeType,
+		changeTime,
+		o,
+		areaId,
+		admin,
+		description,
+		displayOrder,
+		displayName,
+		endTime,
+		startTime,
+		erpid,
+		facsimiletelephonenumber,
+		initials,
+		manageOrgId,
+		orgManager,
+		l,
+		orgLevel,
+		parentOrgId,
+		postalAddress,
+		postalCode,
+		status,
+		style,
+		supervisor,
+		telephoneNumber,
+		viceManager
+		)
+		VALUES
+		(
+		#{synId,jdbcType=VARCHAR},
+		#{changeType,jdbcType=VARCHAR},
+		#{changeTime,jdbcType=VARCHAR},
+		#{o,jdbcType=VARCHAR},
+		#{areaId,jdbcType=VARCHAR},
+		#{admin,jdbcType=VARCHAR},
+		#{description,jdbcType=VARCHAR},
+		#{displayOrder,jdbcType=VARCHAR},
+		#{displayName,jdbcType=VARCHAR},
+		#{endTime,jdbcType=VARCHAR},
+		#{startTime,jdbcType=VARCHAR},
+		#{erpid,jdbcType=VARCHAR},
+		#{facsimiletelephonenumber,jdbcType=VARCHAR},
+		#{initials,jdbcType=VARCHAR},
+		#{manageOrgId,jdbcType=VARCHAR},
+		#{orgManager,jdbcType=VARCHAR},
+		#{l,jdbcType=VARCHAR},
+		#{orgLevel,jdbcType=VARCHAR},
+		#{parentOrgId,jdbcType=VARCHAR},
+		#{postalAddress,jdbcType=VARCHAR},
+		#{postalCode,jdbcType=VARCHAR},
+		#{status,jdbcType=VARCHAR},
+		#{style,jdbcType=VARCHAR},
+		#{supervisor,jdbcType=VARCHAR},
+		#{telephoneNumber,jdbcType=VARCHAR},
+		#{viceManager,jdbcType=VARCHAR})
+	</insert>		
+	
+	<!-- 更新组织信息 -->
+	<update id="updateByOrgCode" parameterType="com.mdcl.smap.bean.OrgInfo">
+		UPDATE 
+		  smap_org 
+		SET
+		  synId = #{synid,jdbcType=VARCHAR},
+		  changeType = #{changetype,jdbcType=VARCHAR},
+		  changeTime = #{changetime,jdbcType=VARCHAR},
+		  o = #{o,jdbcType=VARCHAR},
+		  areaId = #{areaid,jdbcType=VARCHAR},
+		  admin = #{admin,jdbcType=VARCHAR},
+		  description = #{description,jdbcType=VARCHAR},
+		  displayOrder = #{displayorder,jdbcType=VARCHAR},
+		  displayName = #{displayname,jdbcType=VARCHAR},
+		  endTime = #{endtime,jdbcType=VARCHAR},
+		  startTime = #{starttime,jdbcType=VARCHAR},
+		  erpid = #{erpid,jdbcType=VARCHAR},
+		  facsimiletelephonenumber = #{facsimiletelephonenumber,jdbcType=VARCHAR},
+		  initials = #{initials,jdbcType=VARCHAR},
+		  manageOrgId = #{manageorgid,jdbcType=VARCHAR},
+		  orgManager = #{orgmanager,jdbcType=VARCHAR},
+		  l = #{l,jdbcType=VARCHAR},
+		  orgLevel = #{orglevel,jdbcType=VARCHAR},
+		  parentOrgId = #{parentorgid,jdbcType=VARCHAR},
+		  postalAddress = #{postaladdress,jdbcType=VARCHAR},
+		  postalCode = #{postalcode,jdbcType=VARCHAR},
+		  STATUS = #{status,jdbcType=VARCHAR},
+		  style = #{style,jdbcType=VARCHAR},
+		  supervisor = #{supervisor,jdbcType=VARCHAR},
+		  telephoneNumber = #{telephonenumber,jdbcType=VARCHAR},
+		  viceManager = #{vicemanager,jdbcType=VARCHAR}
+		WHERE o = #{value} 
+	</update>
+	
+	
+	
+	
+	
+	<!-- ======================= 以下为测试代码 ======================= -->
+	
+	<select id="selectStaticAll" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from
+		smap_org_static
+	</select>
+</mapper>

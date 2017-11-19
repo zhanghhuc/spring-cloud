@@ -1,0 +1,71 @@
+package com.zssq.service;
+
+import com.zssq.dao.pojo.RelationQuality;
+import com.zssq.dao.pojo.RelationRecommend;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.vo.RelationRecVO;
+
+/**
+ * 
+ * @ClassName: RelationRecService  
+ * @Description: 推荐  
+ * @author ZKZ 
+ * @date 2017年3月16日  
+ *
+ */
+public interface RelationRecService {
+	
+	/**
+	 * 
+	 * @Title: getPortalRecList  
+	 * @Description: 查询推荐列表-门户
+	 * @param pageParam 分页参数
+	 * @param relationRecVO
+	 * @throws BusinessException    参数  
+	 * @return: PageBean    返回类型
+	 */
+	public PageBean getPortalRecList(PageParam pageParam, RelationRecVO relationRecVO) throws BusinessException;
+	
+	
+	/**
+	 * 
+	 * @Title: saveRec  
+	 * @Description: 保存推荐信息-门户
+	 * @param relationRecommend 推荐信息
+	 * @throws BusinessException    参数  
+	 * @return: boolean    返回类型
+	 */
+	public boolean saveRec(RelationRecommend relationRecommend) throws BusinessException;
+	
+	/**
+	 * 
+	 * @Title: updateRecStatus  
+	 * @Description: 更改推荐状态-门户：忽略、置精、取消置精
+	 * @param relationRecVO
+	 * @param relationQuality 精华信息
+	 * @throws BusinessException    参数  
+	 * @return: boolean    返回类型
+	 */
+	public boolean updateRecStatus(RelationRecVO relationRecVO, RelationQuality relationQuality) throws BusinessException;
+
+
+	/**
+	 * @Function getQualityInfoByCond
+	 * @Description 通过推荐编号获取推荐详情
+	 * @param recCode
+	 * @return
+	 */
+
+	RelationRecommend getQualityInfoByCond(RelationRecommend recCode)throws BusinessException;
+
+	/**
+	 * @Function isRecommend
+	 * @Description 判断是否已经推荐
+	 * @param recommend
+	 * @return
+	 */
+	public boolean isRecommend(RelationRecommend recommend)throws BusinessException;
+	
+}

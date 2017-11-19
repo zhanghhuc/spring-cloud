@@ -1,0 +1,5 @@
+bootstrap.servers=172.16.126.163:9092,172.16.126.164:9093,172.16.126.165:9094
+keyDeserializer=org.apache.kafka.common.serialization.StringDeserializer
+valueDeserializer=org.apache.kafka.common.serialization.StringDeserializer
+group.id=microblog
+enable.auto.commit=false

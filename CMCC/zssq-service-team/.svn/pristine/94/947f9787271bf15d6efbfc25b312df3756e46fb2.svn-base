@@ -1,0 +1,24 @@
+package com.zssq.dao.mapper;
+
+import java.util.List;
+
+import com.zssq.dao.pojo.HonorTeam;
+import com.zssq.dao.pojo.TeamCourse;
+
+public interface TeamCourseMapper {
+
+    int insertSelective(TeamCourse record);
+    
+    int updateByCode(TeamCourse record);
+
+    List<TeamCourse> selectByRecord(TeamCourse record);
+
+    List<HonorTeam> selectHonorTeamHisPage(TeamCourse record);
+    
+    int selectHonorTeamHisCount(TeamCourse record);
+    
+    int deleteHonorTeam(TeamCourse record);
+    
+    /** 查询百强班组(颁发荣誉) */
+    List<HonorTeam> selectLastHonorTeam(String electCode);
+}

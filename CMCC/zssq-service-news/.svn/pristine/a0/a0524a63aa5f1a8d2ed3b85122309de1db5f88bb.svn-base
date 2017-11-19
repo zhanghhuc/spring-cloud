@@ -1,0 +1,168 @@
+package com.zssq.service.impl;
+
+import com.zssq.biz.*;
+import com.zssq.constants.NewsConstants;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.news.dao.pojo.NewsInfoContent;
+import com.zssq.news.model.NewsModel;
+import com.zssq.news.model.NewsQuery;
+import com.zssq.news.service.NewsInfoContentService;
+import com.zssq.utils.PageBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class NewsInfoContentServiceImpl  implements NewsInfoContentService {
+
+    @Autowired
+    private NewsInfoContentBiz newsInfoContentBiz;
+
+    @Autowired
+    private NewsPraiseBiz newsPraiseBiz;
+    @Autowired
+    private NewsCollectBiz newsCollectBiz;
+    @Autowired
+    private NewsInfoUploadBiz newsInfoUploadBiz;
+
+    @Autowired
+    private NewsInfoHistoryBiz newsInfoHistoryBiz;
+
+    /**
+     * 新闻列表
+     * @param newsQuery
+     * @return
+     * @throws BusinessException
+     */
+    @Override
+    public PageBean getNewsInfos(NewsQuery newsQuery) throws BusinessException {
+        //当查询我的新闻或者不为全部并且不是已发布，仅按照时间倒序
+        newsQuery.setOrderByClause("t.is_top desc , t.top_time desc ,t.info_sort asc ,t.modify_time desc");
+        if(null == newsQuery.getInfoStatus() || (null != newsQuery.getSelfFlag() && newsQuery.getSelfFlag()==NewsConstants.NEWS_IS_SELF) ||
+                (null != newsQuery.getInfoStatus() &&
+                newsQuery.getInfoStatus() != NewsConstants.NEWS_STATUS_PUBLISHED)){
+            newsQuery.setOrderByClause("modify_time desc");
+        }
+        PageBean pageBean = new PageBean() ;
+        int count = newsInfoContentBiz.getNewsInfoCount(newsQuery) ;
+        List<NewsInfoContent>  list = newsInfoContentBiz.getNewsInfos(newsQuery) ;
+        pageBean.setTotalCount(count);
+        pageBean.setRecordList(list);
+        newsQuery.setIsTop(NewsConstants.NEWS_IS_TOP);
+        int topCount = newsInfoContentBiz.getNewsInfoCount(newsQuery) ;//查询置顶总数
+        pageBean.setNumPerPage(topCount);
+        return pageBean;
+    }
+
+    /**
+     * 新闻添加
+     * @param newsModel
+     * @return
+     * @throws BusinessException
+     */
+    @Override
+    public boolean addNewsInfo(NewsModel newsModel) throws BusinessException {
+        int effNumber = newsInfoContentBiz.addNews(newsModel) ;
+        //新闻历程
+        effNumber = newsInfoHistoryBiz.addNewsHistory(newsModel);
+        return effNumber>0;
+    }
+
+    /**
+     * 新闻修改或者删除
+     * @param newsModel
+     * @return
+     * @throws BusinessException
+     */
+    @Override
+    public boolean updateNewsInfo(NewsModel newsModel) throws BusinessException {
+        int effNumber = newsInfoContentBiz.updateNews(newsModel) ;
+        if(NewsConstants.NEWS_STATUS_WAITING_AUDIT == newsModel.getInfoStatus() || NewsConstants.NEWS_STATUS_REPEALED == newsModel.getInfoStatus() ){
+            effNumber = newsInfoHistoryBiz.addNewsHistory(newsModel);
+        }
+        return effNumber>0;
+    }
+
+    @Override
+    public boolean deleteNewsInfo(NewsModel newsModel) throws BusinessException {
+        int effNumber = newsInfoContentBiz.deleteNewsByCode(newsModel) ;
+        effNumber = newsInfoHistoryBiz.addNewsHistory(newsModel);
+        return effNumber>0;
+    }
+
+    /**
+     * 新闻置顶
+     */
+    @Override
+    public boolean updateNewsInfosUp(NewsModel newsModel) throws BusinessException {
+        int effNumber = newsInfoContentBiz.updateNewsInfosUp(newsModel) ;
+        return effNumber>0;
+    }
+
+    @Override
+    public boolean addNewsInfoHistory(NewsModel newsModel) throws BusinessException {
+        int effNumber = newsInfoContentBiz.auditNews(newsModel) ;
+        effNumber = newsInfoHistoryBiz.addNewsHistory(newsModel);
+        return effNumber>0;
+    }
+
+    /**
+     * 新闻上移或者下移接口
+     */
+    @Override
+    public boolean updateNewsInfoSort(NewsModel newsModel) throws BusinessException {
+        int effNumber = newsInfoContentBiz.updateNewsInfoSort(newsModel) ;
+        return effNumber>0;
+    }
+
+    @Override
+    public boolean updateNewsInfosHidden(NewsModel newsModel) {
+        int cancelHidden = NewsConstants.NEWS_STATUS_HIDDENED ;
+        if(newsModel.getIsHidden() == NewsConstants.NEWS_IS_HIDDEN ){
+            newsModel.setInfoStatus(NewsConstants.NEWS_STATUS_HIDDENED);
+        }else{
+            cancelHidden =NewsConstants.NEWS_CANCEL_HIDDENED ;
+            newsModel.setInfoStatus(NewsConstants.NEWS_STATUS_PUBLISHED);
+        }
+        int effNumber = newsInfoContentBiz.updateNewsInfosHidden(newsModel) ;
+        newsModel.setInfoStatus(cancelHidden);
+        effNumber = newsInfoHistoryBiz.addNewsHistory(newsModel);
+        return effNumber>0;
+    }
+
+    @Override
+    public PageBean getNewsInfosPc(NewsQuery newsModel) throws BusinessException {
+        newsModel.setOrderByClause("t.is_top desc , t.top_time desc ,t.info_sort asc ,t.modify_time desc");
+        PageBean pageBean = new PageBean() ;
+        int count = newsInfoContentBiz.getNewsInfoCount(newsModel) ;
+        List<NewsInfoContent>  list = newsInfoContentBiz.getNewsInfosPc(newsModel) ;
+        pageBean.setTotalCount(count);
+        pageBean.setRecordList(list);
+        return pageBean;
+    }
+
+    @Override
+    public NewsInfoContent getNewsInfoDetail(NewsQuery newsModel) throws BusinessException {
+       return  newsInfoContentBiz.getNewsInfoDetail(newsModel) ;
+    }
+
+    @Override
+    public NewsInfoContent getNewsInfoDetailPC(NewsQuery newsModel) throws BusinessException {
+        NewsInfoContent newsInfoContent = newsInfoContentBiz.getNewsInfoDetail(newsModel) ;
+
+        return newsInfoContent ;
+    }
+
+    @Override
+    public PageBean getUserCollectNewsPc(NewsQuery newsQuery) {
+        newsQuery.setOrderByClause(" create_time desc");
+        PageBean pageBean = new PageBean() ;
+        int count = newsInfoContentBiz.getCollectNewsCount(newsQuery) ;
+        List<NewsInfoContent>  list = newsInfoContentBiz.getUserCollectNews(newsQuery) ;
+        pageBean.setTotalCount(count);
+        pageBean.setRecordList(list);
+        return pageBean;
+    }
+
+}

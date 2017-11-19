@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zssq.dao.mapper.SysMenuMapper">
+
+	<!-- 查询字段与实体属性映射关系 -->
+	<resultMap id="BaseResultMap" type="com.zssq.dao.pojo.SysMenuInfo">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="sys_menu_code" property="menuCode" jdbcType="VARCHAR" />
+		<result column="sys_menu_name" property="menuName" jdbcType="VARCHAR" />
+		<result column="parent_code" property="parentCode" jdbcType="VARCHAR" />
+		<result column="menu_order" property="menuOrder" jdbcType="TINYINT" />
+		<result column="is_sel" property="isSel" jdbcType="VARCHAR" />
+		<result column="is_enable" property="isEnable" jdbcType="TINYINT" />
+	</resultMap>
+
+	<!-- 查询指定用户可操作的接口资源 -->
+	<select id="selectUserPermissions" resultType="java.lang.String" parameterType="java.lang.String">
+		select
+			sys_menu_permissions.menu_permission 
+		from
+			sys_user_menu 
+			join sys_menu_permissions on sys_user_menu.sys_menu_code = sys_menu_permissions.sys_menu_code 
+		where
+			sys_user_menu.sys_user_code = #{value}
+	</select>
+	
+	<!-- 根据父级编号查询菜单 -->
+	<select id="selectByParentCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select * from sys_menu_info where parent_code = #{value} order by menu_order
+	</select>
+	
+	<!-- 查询用户一级菜单 -->
+	<select id="selectByUserParentCode" resultMap="BaseResultMap" parameterType="java.util.Map">
+		select 
+			t1.* 
+		from 
+			sys_menu_info t1
+		join sys_user_menu t2 
+		on t1.sys_menu_code = t2.sys_menu_code and t2.sys_user_code = #{userCode}
+		where parent_code = #{parentCode}
+		order by menu_order
+	</select>
+	
+	<!-- 获取菜单信息，判断当前菜单是否已授权给某个用户 -->
+	<select id="selectForUserAuth" resultMap="BaseResultMap" parameterType="java.util.Map">
+		select
+			t1.*
+		from
+			sys_menu_info t1
+			join sys_user_menu t2 
+			on t1.sys_menu_code = t2.sys_menu_code and t2.sys_user_code = #{userCode}
+		where
+			t1.parent_code= #{menuCode} 
+		order by t1.menu_order
+	</select>
+	
+	<!-- 获取菜单信息，判断当前菜单是否已授权给某个用户 -->
+	<select id="selectForAuth" resultMap="BaseResultMap" parameterType="java.util.Map">
+		select
+			t1.*, 
+			case when isnull(t2.id) = 0 then '1' else '0' end as is_sel
+		from
+			sys_menu_info t1
+			left join sys_user_menu t2 on t1.sys_menu_code = t2.sys_menu_code and t2.sys_user_code = #{userCode}
+		where
+			t1.parent_code= #{menuCode} 
+		order by t1.menu_order
+	</select>
+	
+	<!-- 删除用户与菜单的关联关系 -->
+	<delete id="deleteUserMenuRelation" parameterType="java.lang.String">
+		delete from sys_user_menu where sys_user_code = #{value}
+	</delete>
+	
+	<!-- 设置用户与菜单的关联关系 -->
+	<insert id="insertUserMenuRelation" parameterType="java.util.List">
+		insert into sys_user_menu 
+		(
+			sys_user_code,
+			sys_menu_code,
+			createtime
+		)
+		values 
+		<foreach collection="list" index="index" item="item" separator=",">
+			(
+				#{item.userCode,jdbcType=VARCHAR},
+				#{item.menuCode,jdbcType=VARCHAR},
+				#{item.createTime,jdbcType=BIGINT}
+			)
+		</foreach>
+	</insert>
+</mapper>

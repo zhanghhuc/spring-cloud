@@ -1,0 +1,101 @@
+package com.zssq.biz;
+
+import com.zssq.dao.mapper.NewsInfoCommentMapper;
+import com.zssq.news.dao.pojo.NewsInfoComment;
+import com.zssq.news.model.NewsCommentModel;
+import com.zssq.news.model.NewsCommentPraiseModel;
+import com.zssq.news.model.NewsCommentQuery;
+import com.zssq.news.model.NewsReplyModel;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+/**
+ * Created by admin on 2017-04-05.
+ */
+@Service
+public class NewsCommentBiz {
+
+    @Autowired
+    private NewsInfoCommentMapper newsInfoCommentMapper;
+
+    public NewsInfoComment addNewsComment(NewsCommentModel newsCommentModel) {
+        long currentTime = System.currentTimeMillis() ;
+        NewsInfoComment record = generateNewsInfoComment(newsCommentModel,currentTime,currentTime);
+        int number =  newsInfoCommentMapper.insertSelective(record) ;
+        if(number>0){
+            return record ;
+        }
+        return null ;
+    }
+
+    public Integer selectCount(NewsCommentQuery newsCommentQuery) {
+        return  newsInfoCommentMapper.selectCount(newsCommentQuery) ;
+    }
+
+    public int updateThirdNewsComment(NewsCommentModel newsCommentModel) {
+        return newsInfoCommentMapper.modifyNewsCommentShield(newsCommentModel);
+    }
+
+    public List<NewsInfoComment> selectList(NewsCommentQuery newsCommentQuery) {
+        return  newsInfoCommentMapper.selectList(newsCommentQuery) ;
+    }
+
+    public List<NewsCommentModel> selectComments(NewsCommentQuery newsCommentQuery) {
+        return  newsInfoCommentMapper.selectComments(newsCommentQuery) ;
+    }
+
+    public int updateNewsCommentGoodNum(NewsCommentPraiseModel newsCommentPraiseModel) {
+        NewsInfoComment  newsInfoComment = newsInfoCommentMapper.selectByCommentCode(newsCommentPraiseModel.getCommentCode()) ;
+        if(newsCommentPraiseModel.getActionType()==0){
+            if(newsInfoComment.getCommentLikeNum()>1){
+                newsInfoComment.setCommentLikeNum(newsInfoComment.getCommentLikeNum()-1);
+            }
+        }else{
+            newsInfoComment.setCommentLikeNum(newsInfoComment.getCommentLikeNum()+1);
+        }
+        return newsInfoCommentMapper.updateByPrimaryKey(newsInfoComment) ;
+    }
+
+    public int updateNewsCommentReplyNum(NewsReplyModel newsReplyModel) {
+        NewsInfoComment  newsInfoComment = newsInfoCommentMapper.selectByCommentCode(newsReplyModel.getCommentCode()) ;
+        if(newsReplyModel.getReplyType()==0){
+            if(newsInfoComment.getCommentReplyNum()>1){
+                newsInfoComment.setCommentReplyNum(newsInfoComment.getCommentReplyNum()-1);
+            }
+        }else{
+            newsInfoComment.setCommentReplyNum(newsInfoComment.getCommentReplyNum()+1);
+        }
+        return newsInfoCommentMapper.updateByPrimaryKeySelective(newsInfoComment) ;
+    }
+
+    public boolean deleteNewsComment(NewsCommentModel newsCommentModel) {
+        return newsInfoCommentMapper.deleteNewsComment(newsCommentModel) ;
+    }
+
+    private NewsInfoComment generateNewsInfoComment(NewsCommentModel newsCommentModel,long createTime,long modifyTime) {
+        NewsInfoComment record = new NewsInfoComment() ;
+        record.setTenantCode(newsCommentModel.getTenantCode());
+        record.setUserCode(newsCommentModel.getUserCode());
+        record.setOrgCode(newsCommentModel.getOrgCode());
+        record.setOrgLevel(newsCommentModel.getOrgLevel());
+        record.setNewsCode(newsCommentModel.getNewsCode());
+        record.setCommentCode(UUIDHelper.getUUID());
+        record.setCommentContent(newsCommentModel.getCommentContent());
+        record.setIsDelete(newsCommentModel.getIsShield());
+        record.setIsShield(newsCommentModel.getIsDelete());
+        record.setCommentLikeNum(newsCommentModel.getCommentLikeNum());
+        record.setCommentReplyNum(newsCommentModel.getCommentReplyNum());
+        record.setCommentReportNum(newsCommentModel.getCommentReportNum());
+        if(modifyTime > 0){
+            record.setCreateTime(createTime);
+        }
+        record.setModifyTime(modifyTime);
+        record.setIsDelete(0);
+        record.setIsShield(0);
+        return record ;
+    }
+
+}

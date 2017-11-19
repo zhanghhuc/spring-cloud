@@ -1,0 +1,193 @@
+package com.zssq.dao.mapper;
+
+import java.util.List;
+import java.util.Map;
+
+import com.zssq.dao.pojo.MblogInfo;
+import com.zssq.dao.pojo.MblogModel;
+import com.zssq.pojo.RssReturnPo;
+
+/**
+ * 
+    * @ClassName: MblogInfoMapper  
+    * @Description: 微博信息Mapper  
+    * @author Mr.B  
+    * @date 2017年3月20日  
+    *
+ */
+public interface MblogInfoMapper {
+
+	/**
+	 * 
+	    * @Title: insert  
+	    * @Description: 添加
+	    * @param record
+		* @return int    返回类型
+	 */
+    int insert(MblogInfo record);
+
+    /**
+     * 
+        * @Title: insertSelective  
+        * @Description: 选择性的添加
+        * @param record
+    	* @return int    返回类型
+     */
+    int insertSelective(MblogInfo record);
+
+    /**
+     * 
+        * @Title: selectByPrimaryKey  
+        * @Description: 根据主键获取信息
+        * @param id
+    	* @return MblogInfo    返回类型
+     */
+    MblogInfo selectByPrimaryKey(Long id);
+
+ 
+    /**
+     * 
+        * @Title: queryInfoByPage  
+        * @Description: 分页查询数据
+        * @param paramsMap
+    	* @return List<MblogModel>    返回类型
+     */
+    List<MblogModel> queryInfoByPage(Map<String,Object> paramsMap);
+    
+    /**
+     * 
+        * @Title: queryInfoByPageCount  
+        * @Description: 分页查询数据的总数
+        * @param paramsMap
+    	* @return long    返回类型
+     */
+    long queryInfoByPageCount(Map<String,Object> paramsMap);
+    
+    /**
+     * 
+     * @Title: queryAgentList  
+     * @Description: 分页查询代发数据
+     * @param paramsMap
+     * @return List<MblogModel>    返回类型
+     */
+    List<MblogModel> queryAgentList(Map<String,Object> paramsMap);
+    
+    /**
+     * 
+     * @Title: queryAgentListCount  
+     * @Description: 分页查询代发数据的总数
+     * @param paramsMap
+     * @return long    返回类型
+     */
+    long queryAgentListCount(Map<String,Object> paramsMap);
+    
+    
+    /**
+     * 
+        * @Title: deleteInfoByCode  
+        * @Description: 删除微博信息
+        * @param paramsMap
+    	* @return int    返回类型
+     */
+    int deleteInfoByCode(Map<String,Object> paramsMap);
+    
+    /**
+     * 
+        * @Title: deleteInfoByTeamCode  
+        * @Description: 班组长删除微博信息
+        * @param paramsMap
+    	* @return int    返回类型
+     */
+    int deleteInfoByTeamCode(Map<String,Object> paramsMap);
+    
+    /**
+     * 
+        * @Title: shieldInfoByCode  
+        * @Description: 屏蔽微博信息
+        * @param paramsMap
+    	* @return int    返回类型
+     */
+    int shieldInfoByCode(Map<String,Object> paramsMap);
+    
+    
+    /**
+     * 
+        * @Title: getInfoByCode  
+        * @Description: 获取微博详情
+        * @param paramsMap
+    	* @return MblogModel    返回类型
+     */
+    MblogModel getInfoByCode(Map<String,Object> paramsMap);
+    
+    /**
+     * 
+        * @Title: getDetailByCode  
+        * @Description: 获取微博详情
+        * @param mblogCode
+    	* @return MblogInfo    返回类型
+     */
+    MblogInfo getDetailByCode(String mblogCode);
+    
+    /**
+     * 
+        * @Title: queryMyCollectByPage  
+        * @Description: 查询我收藏的微博列表 ----分页查询
+        * @param paramsMap
+    	* @return List<MblogModel>    返回类型
+     */
+    List<MblogModel> queryMyCollectByPage(Map<String,Object> paramsMap);
+    
+    /**
+     * 
+        * @Title: queryMyCollectByPageCount  
+        * @Description: 查询我收藏的微博列表---分页查询总数
+        * @param paramsMap
+    	* @return long    返回类型
+     */
+    long queryMyCollectByPageCount(Map<String,Object> paramsMap);
+  
+    /**
+     * 
+     * @Title: queryMySubByPage  
+     * @Description: 查询我订阅的微博列表 ----分页查询
+     * @param paramsMap
+     * @return List<MblogModel>    返回类型
+     */
+    List<MblogModel> queryMySubByPage(Map<String,Object> paramsMap);
+    
+    /**
+     * 
+     * @Title: queryMySubByPageCount  
+     * @Description: 查询我订阅的微博列表---分页查询总数
+     * @param paramsMap
+     * @return long    返回类型
+     */
+    long queryMySubByPageCount(Map<String,Object> paramsMap);
+    
+    /**
+     * 
+        * @Title: queryMonitoredList  
+        * @Description: 查询监控内容列表
+        * @param paramsMap
+    	* @return List<MblogInfo>    返回类型
+     */
+    List<MblogInfo> queryMonitoredList(Map<String,Object> paramsMap);
+    
+    /**
+     * 
+        * @Title: queryMonitoredListCount  
+        * @Description: 查询监控内容列表总数
+        * @param paramsMap
+    	* @return long    返回类型
+     */
+    long queryMonitoredListCount(Map<String,Object> paramsMap);
+
+    /**
+     * 
+        * @Title: queryRssMblogList  
+        * @Description: 获取RSS订阅的微博列表
+        * @param paramsMap
+    	* @return List<RssReturnPo>    返回类型
+     */
+    List<RssReturnPo> queryRssMblogList(Map<String,Object> paramsMap);
+}

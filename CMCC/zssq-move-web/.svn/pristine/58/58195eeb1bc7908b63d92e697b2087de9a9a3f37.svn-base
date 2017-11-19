@@ -1,0 +1,326 @@
+package com.zssq.blog.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONObject;
+import com.zssq.blog.service.BlogClassService;
+import com.zssq.blog.service.BlogService;
+import com.zssq.blog.service.BlogThirdService;
+import com.zssq.blog.vo.DB2Blog;
+import com.zssq.blog.vo.MySQLBlogContent;
+import com.zssq.blog.vo.MySQLBlogData;
+import com.zssq.blog.vo.MySQLBlogInfo;
+import com.zssq.blog.vo.TeamInfo;
+import com.zssq.blog.vo.UserInfo;
+import com.zssq.constants.BlogConstants;
+import com.zssq.pojo.ResultJSON;
+import com.zssq.shiro.mysecurity.UUIDHelper;
+import com.zssq.utils.EmojiConvertUtil;
+import com.zssq.utils.StringTools;
+
+/**
+ * 
+ * @ClassName: BlogController  
+ * @Description: 博客数据迁移Controller  
+ * @author ZKZ  
+ * @date 2017年5月22日  
+ *
+ */
+@Controller
+@RequestMapping("blogController")
+public class BlogController {
+
+	@Autowired
+	private BlogService blogService;
+	@Autowired
+	private BlogClassService blogClassService;
+	@Autowired
+	private BlogThirdService blogThirdService;
+	
+	/**
+	 * 
+	 * @Title: transferSubData  
+	 * @Description: 迁移博客数据
+	 * @param pageNo
+	 * @param pageSize    参数  
+	 * @return: void    返回类型
+	 */
+	@RequestMapping(value = "/transferBlogData")  
+	@ResponseBody
+	public ResultJSON transferBlogData(int pageNo, int pageSize) {
+		// 返回值
+		ResultJSON result = new ResultJSON("COMMON_200");
+		JSONObject body = new JSONObject();
+		
+		try {
+			// 参数校验
+			if (pageNo <= 0) {
+				pageNo = 0;
+			}
+			if (pageSize <= 0) {
+				pageSize = 100;
+			}
+			
+			// 创建临时表
+			boolean createFlag = createTempTable();
+			if (!createFlag) {
+				body.put("message", "新建临时表失败");
+				throw new Exception();
+			}
+			
+			// 查询DB2库中博客数据总量
+			int DB2BlogCount = blogService.getDB2BlogCount();
+			if (DB2BlogCount <= 0) {
+				body.put("message", "查询DB2库中博客数据总量时出错，查询出的个数为：" + DB2BlogCount);
+				throw new Exception();
+			}
+			
+			// 总页数
+			int totalPage = DB2BlogCount/pageSize + 1;
+			
+			// 循环处理数据
+			boolean arrangeFlag = true;
+			for (int i = pageNo; i < totalPage; i++) {
+				arrangeFlag = arrangeBlogData(pageNo, pageSize);
+				if (!arrangeFlag) {
+					body.put("message", "处理数据时失败");
+					throw new Exception();
+				}
+				pageNo++;
+			}
+		} catch (Exception e) {
+			result = new ResultJSON("COMMON_400");
+			body.put("pageNo", pageNo);
+			result.setBody(body);
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+	public void transferBlogDataMain(int pageNo, int pageSize) throws Exception {
+		// 参数校验
+		if (pageNo <= 0) {
+			pageNo = 0;
+		}
+		if (pageSize <= 0) {
+			pageSize = 100;
+		}
+		
+		// 创建临时表
+		boolean createFlag = createTempTable();
+		if (!createFlag) {
+			System.err.println(this.getClass() + "新建临时表失败");
+			throw new Exception();
+		}
+		
+		// 查询DB2库中博客数据总量
+		int DB2BlogCount = blogService.getDB2BlogCount();
+		if (DB2BlogCount <= 0) {
+			System.err.println(this.getClass() + "查询DB2库中博客数据总量时出错，查询出的个数为：" + DB2BlogCount);
+			throw new Exception();
+		}
+		
+		// 总页数
+		int totalPage = DB2BlogCount/pageSize + 1;
+		System.out.println(this.getClass() + "博客数据共" + totalPage + "页");
+		
+		// 循环处理数据
+		boolean arrangeFlag = true;
+		for (int i = pageNo; i < totalPage; i++) {
+			arrangeFlag = arrangeBlogData(pageNo, pageSize);
+			if (!arrangeFlag) {
+				System.err.println(this.getClass() + "处理数据时失败");
+				throw new Exception();
+			}
+			System.out.println(this.getClass() + "博客数据第" + pageNo + "页处理成功");
+			pageNo++;
+		}
+	}
+	
+	/**
+	 * 
+	 * @Title: createTempTable  
+	 * @Description: 创建临时表
+	 * @return: boolean    返回类型
+	 */
+	private boolean createTempTable() {
+		// 返回值
+		boolean result = true;
+		
+		try {
+			// 新建临时表
+			blogService.createMySQLBlogTemp();
+		} catch (Exception e) {
+			result = false;
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @Title: arrangeBlogData  
+	 * @Description: 整理博客数据
+	 * @param pageStart
+	 * @param pageSize    参数  
+	 * @return: boolean    返回类型
+	 */
+	private boolean arrangeBlogData(int pageNo, int pageSize) {
+		// 返回值
+		boolean result = true;
+		
+		try {
+			// 获取DB2库中的博客数据
+			List<DB2Blog> DB2BlogList = blogService.getDB2BlogList(pageNo, pageSize);
+			
+			// 校验返回值
+			if (DB2BlogList == null || DB2BlogList.isEmpty()) {
+				return false;
+			}
+			
+			// 将DB2中的数据整理为MySQL中的数据
+			List<MySQLBlogInfo> mySQLBlogInfoList = new ArrayList<MySQLBlogInfo>(); // 博客
+			List<MySQLBlogContent> mySQLBlogContentList = new ArrayList<MySQLBlogContent>(); // 博客内容
+			List<MySQLBlogData> mySQLBlogDataList = new ArrayList<MySQLBlogData>(); // 博客数据
+			for (DB2Blog db2Blog : DB2BlogList) {
+				// 共用
+				String blogCode = UUIDHelper.getUUID(); // 博客编号
+				String tenantCode = null; // 租户编号
+				String orgCode = null; // 组织编号
+				String teamCode = null; // 班组编号
+				String userCode = null; // 人员编号
+				
+				// 获取组织编号
+				if (db2Blog.getCityId() != null && db2Blog.getCityId() != 0) {
+					// 获取组织code
+					orgCode = blogThirdService.getOrgCode(db2Blog.getCityId());
+				} else if (db2Blog.getProvinceId() != null && db2Blog.getProvinceId() != 0) {
+					// 获取组织code
+					orgCode = blogThirdService.getOrgCode(db2Blog.getProvinceId());
+				}
+				
+				// 获取共用信息
+				if (db2Blog.getTeamId() != null && db2Blog.getTeamId() != 0) {
+					TeamInfo teamInfo = blogThirdService.getTeamInfo(db2Blog.getTeamId());
+					tenantCode = teamInfo == null ? "" : teamInfo.getTenantCode();
+					teamCode = teamInfo == null ? "" : teamInfo.getTeamCode();
+				} else {
+					UserInfo userInfo = blogThirdService.getUserInfo(db2Blog.getUserId());
+					tenantCode = userInfo == null ? "" : userInfo.getTenantCode();
+					userCode = userInfo == null ? "" : userInfo.getUserCode();
+				}
+				
+				// 获取用户code
+				if (userCode == null) {
+					userCode = blogThirdService.getUserCode(db2Blog.getUserId());
+				}
+				
+				// 博客
+				MySQLBlogInfo mySQLBlogInfo = new MySQLBlogInfo();
+				mySQLBlogInfo.setBlogCode(blogCode);
+				mySQLBlogInfo.setTenantCode(StringTools.formatToString(tenantCode));
+				mySQLBlogInfo.setOrgCode(StringTools.formatToString(orgCode));
+				mySQLBlogInfo.setCreateTime(db2Blog.getCreateTime() == null ? 0L : db2Blog.getCreateTime().getTime());
+				mySQLBlogInfo.setModifyTime(db2Blog.getUpdatetime() == null ? 0L : db2Blog.getUpdatetime().getTime());
+				mySQLBlogInfo.setDynamicCode(UUIDHelper.getUUID());
+				
+				// 代发
+				if (db2Blog.getInsteadFlag() != null && db2Blog.getInsteadFlag() == 1) {
+					mySQLBlogInfo.setBlogAgentFlag(BlogConstants.BLOG_YES);
+					// 获取被代发人code（领导code）
+					String agentUserCode = blogThirdService.getUserCode(db2Blog.getInsteadUser());
+					mySQLBlogInfo.setAgentUserCode(StringTools.formatToString(userCode));
+					mySQLBlogInfo.setUserCode(StringTools.formatToString(agentUserCode));
+				} else {
+					mySQLBlogInfo.setBlogAgentFlag(BlogConstants.BLOG_NO);
+					mySQLBlogInfo.setUserCode(StringTools.formatToString(userCode));
+				}
+				
+				// 来源
+				if (db2Blog.getBlogType() != null && db2Blog.getBlogType() == 2) {
+					mySQLBlogInfo.setBlogSource(BlogConstants.BLOG_SOURCE_FORWARD);
+				} else {
+					mySQLBlogInfo.setBlogSource(BlogConstants.BLOG_SOURCE_ORIGINAL);
+				}
+				
+				// 从属关系
+				if (db2Blog.getTeamId() != null && db2Blog.getTeamId() != 0) {
+					mySQLBlogInfo.setBlogDepend(BlogConstants.BLOG_DEPEND_TEAM);
+					// 获取班组code
+					mySQLBlogInfo.setTeamCode(StringTools.formatToString(teamCode));
+				} else {
+					mySQLBlogInfo.setBlogDepend(BlogConstants.BLOG_DEPEND_USER);
+				}
+				mySQLBlogInfo.setBlogTitle(StringTools.formatToString(db2Blog.getTitle()));
+				mySQLBlogInfo.setBlogDigest(StringTools.formatToString(db2Blog.getDigest()));
+				
+				// 获取分类编号
+				if (db2Blog.getCataLevelTwoId() != null) {
+					String classCode = blogClassService.getClassCode(mySQLBlogInfo.getBlogDepend(), mySQLBlogInfo.getUserCode(), mySQLBlogInfo.getTeamCode(), db2Blog.getCataLevelTwoId());
+					mySQLBlogInfo.setClassCode(StringTools.formatToString(classCode));
+				} else {
+					mySQLBlogInfo.setClassCode("");
+				}
+				
+				mySQLBlogInfo.setBlogPlanPublishTime(0L);
+				mySQLBlogInfo.setBlogPublishTime(db2Blog.getCreateTime() == null ? 0L : db2Blog.getCreateTime().getTime());
+				mySQLBlogInfo.setBlogLogo(StringTools.formatToString(db2Blog.getBlogLogo()));
+				mySQLBlogInfo.setBlogIsDelete(BlogConstants.BLOG_NO);
+				mySQLBlogInfo.setBlogIsShield(BlogConstants.BLOG_NO);
+				mySQLBlogInfo.setOldId(db2Blog.getBlogId());
+				mySQLBlogInfoList.add(mySQLBlogInfo);
+				
+				// 博客内容
+				MySQLBlogContent mySQLBlogContent = new MySQLBlogContent();
+				mySQLBlogContent.setContentCode(UUIDHelper.getUUID());
+				mySQLBlogContent.setTenantCode(StringTools.formatToString(tenantCode));
+				mySQLBlogContent.setOrgCode(StringTools.formatToString(orgCode));
+				mySQLBlogContent.setCreateTime(db2Blog.getCreateTime() == null ? 0L : db2Blog.getCreateTime().getTime());
+				mySQLBlogContent.setModifyTime(db2Blog.getUpdatetime() == null ? 0L : db2Blog.getUpdatetime().getTime());
+				mySQLBlogContent.setBlogCode(blogCode);
+				mySQLBlogContent.setContentInfo(EmojiConvertUtil.emojiConvert(StringTools.formatToString(db2Blog.getContent())));
+				mySQLBlogContentList.add(mySQLBlogContent);
+				
+				// 博客数据
+				MySQLBlogData mySQLBlogData = new MySQLBlogData();
+				mySQLBlogData.setDataCode(UUIDHelper.getUUID());
+				mySQLBlogData.setTenantCode(StringTools.formatToString(tenantCode));
+				mySQLBlogData.setOrgCode(StringTools.formatToString(orgCode));
+				mySQLBlogData.setCreateTime(db2Blog.getCreateTime().getTime());
+				mySQLBlogData.setModifyTime(db2Blog.getUpdatetime().getTime());
+				mySQLBlogData.setBlogCode(blogCode);
+				mySQLBlogData.setTeamQualityNum(0);
+				mySQLBlogData.setGroupQualityNum(0);
+				mySQLBlogData.setProvinceQualityNum(0);
+				mySQLBlogData.setCityQualityNum(0);
+				mySQLBlogData.setReadNum(db2Blog.getViewNum());
+				mySQLBlogData.setLikeNum(0);
+				mySQLBlogData.setCollectNum(0);
+				mySQLBlogData.setForwardNum(0);
+				mySQLBlogData.setCommentNum(0);
+				mySQLBlogData.setShareNum(0);
+				mySQLBlogDataList.add(mySQLBlogData);
+			}
+			
+			// 插入博客数据到MySQL库中
+			boolean insertFlag = blogService.insertMySQLBlogList(mySQLBlogInfoList, mySQLBlogContentList, mySQLBlogDataList);
+			if (!insertFlag) {
+				result = false;
+			}
+		} catch (Exception e) {
+			result = false;
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+}

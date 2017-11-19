@@ -1,0 +1,237 @@
+package com.zssq.service.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.zssq.constants.RelationConstants;
+import com.zssq.dao.mapper.RelationDynamicMapper;
+import com.zssq.dao.mapper.RelationRecommendMapper;
+import com.zssq.dao.pojo.RelationDynamic;
+import com.zssq.dao.pojo.RelationRecommend;
+import com.zssq.exceptions.BusinessException;
+import com.zssq.model.RelationQualityModel;
+import com.zssq.service.RelationRecService;
+import com.zssq.utils.PageBean;
+import com.zssq.utils.PageParam;
+import com.zssq.vo.RelationRecVO;
+
+/**
+ * 
+ * @ClassName: RelationRecServiceImpl
+ * @Description: 推荐
+ * @author ZKZ
+ * @date 2017年3月18日
+ *
+ */
+@Service("relationRecService")
+public class RelationRecServiceImpl implements RelationRecService {
+
+	private Logger log = Logger.getLogger(this.getClass());
+
+	@Autowired
+	private RelationRecommendMapper relationRecommendMapper;
+	@Autowired
+	private RelationDynamicMapper relationDynamicMapper;
+
+	/**
+	 * 查询推荐列表-门户
+	 */
+	@Override
+	public PageBean getPortalRecList(PageParam pageParam, RelationRecVO relationRecVO) throws BusinessException {
+		//返回值
+		PageBean pageBean = null;
+		
+		try {
+			// 参数校验
+			if (pageParam == null || relationRecVO == null) {
+				log.error("RelationRecServiceImpl.getPortalRecList：参数为空");
+				throw BusinessException.build("COMMON_402","参数");
+			}
+
+			// 获取参数
+			Integer pageSize = pageParam.getPageSize(); // 每页记录数
+			Integer pageNo = pageParam.getPageNo(); // 当前页数
+			String orgCode = relationRecVO.getOrgCode(); // 组织编号
+			Byte recStatus = relationRecVO.getRecStatus(); // 推荐状态
+			Long queryTime = relationRecVO.getQueryTime(); // 首次查询时间
+			
+			String subjectTitle = relationRecVO.getSubjectTitle(); // 标题
+			Byte subjectClass = relationRecVO.getSubjectClass(); // 应用类型
+			Long beginTime = relationRecVO.getBeginTime(); // 推荐开始时间
+			Long endTime = relationRecVO.getEndTime(); // 推荐结束时间
+			
+			// 参数校验
+			if (pageSize == null || pageNo == null) {
+				log.error("RelationRecServiceImpl.getPortalRecList：分页信息为空");
+				throw BusinessException.build("COMMON_402","分页信息");
+			}
+			if (queryTime == null) {
+				log.error("RelationRecServiceImpl.getPortalRecList：queryTime为空");
+				throw BusinessException.build("COMMON_402","queryTime");
+			}
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("RelationRecServiceImpl.getPortalRecList：orgCode为空");
+				throw BusinessException.build("COMMON_402","orgCode");
+			}
+
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("limitStart", pageNo*pageSize); // 查询开始条数
+			paramMap.put("limitCount", pageSize); // 查询结果条数
+			paramMap.put("queryTime", queryTime); // 首次查询时间
+			paramMap.put("recStatus", recStatus); // 推荐状态
+			paramMap.put("orgCode", orgCode); // 组织编号
+			paramMap.put("subjectTitle", subjectTitle); // 标题
+			paramMap.put("subjectClass", subjectClass); // 应用类型
+			paramMap.put("beginTime", beginTime); // 推荐开始时间
+			paramMap.put("endTime", endTime); // 推荐结束时间
+			
+			// 查询列表总数
+			int count = relationRecommendMapper.selectPortalRecCount(paramMap);
+			
+			// 查询列表内容
+			List<RelationQualityModel> qualityList = relationRecommendMapper.selectPortalRecList(paramMap);
+			
+			// 返回值
+			pageBean= new PageBean(pageNo, pageSize, count, qualityList);
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return pageBean;
+	}
+	
+	/**
+	 * 判断是否已经推荐过
+	 */
+	@Override
+	public boolean getRecStatus(RelationRecVO relationRecVO) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationRecVO == null) {
+				log.error("RelationRecServiceImpl.getRecStatus：relationRecVO为空");
+				throw BusinessException.build("COMMON_402","relationRecVO");
+			}
+			
+			// 获取参数
+			String subjectCode = relationRecVO.getSubjectCode(); // 内容编号
+			String orgCode = relationRecVO.getOrgCode(); // 门户编号
+			String recToOrgCode = relationRecVO.getRecToOrgCode(); // 被推荐门户编号
+			Byte recStatus = relationRecVO.getRecStatus(); // 推荐状态
+			
+			// 参数校验
+			if (StringUtils.isBlank(subjectCode)) {
+				log.error("RelationRecServiceImpl.getRecStatus ：subjectCodwe为空");
+				throw BusinessException.build("COMMON_402","subjectCodwe");
+			}
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("RelationRecServiceImpl.getRecStatus：orgCode为空");
+				throw BusinessException.build("COMMON_402","orgCode");
+			}
+			if (StringUtils.isBlank(recToOrgCode)) {
+				log.error("RelationRecServiceImpl.getRecStatus：recToOrgCode为空");
+				throw BusinessException.build("COMMON_402","recToOrgCode");
+			}
+			
+			// 拼接参数
+			Map<String, Object> paramMap = new HashMap<String, Object>();
+			paramMap.put("subjectCode", subjectCode);
+			paramMap.put("orgCode", orgCode);
+			paramMap.put("recToOrgCode", recToOrgCode);
+			paramMap.put("recStatus", recStatus);
+			
+			// 获取推荐数量
+			int recNum = relationRecommendMapper.getRecStatus(paramMap);
+			if (recNum > 0) {
+				return true;
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * 保存推荐信息
+	 */
+	@Override
+	public boolean saveRec(RelationRecommend relationRecommend, RelationDynamic relationDynamic) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationRecommend == null || relationDynamic == null) {
+				log.error("RelationRecServiceImpl.saveRec：参数为空");
+				throw BusinessException.build("COMMON_402","参数");
+			}
+			
+			// 保存推荐信息
+			int insertRecNum = relationRecommendMapper.insert(relationRecommend);
+			if (insertRecNum != 1) {
+				log.error("RelationRecServiceImpl.saveRec：插入" + insertRecNum + "条推荐信息 ");
+				throw BusinessException.build("BLOG_13002", "操作");
+			}
+			
+			// 保存动态信息
+			int insertDynamicNum = relationDynamicMapper.insert(relationDynamic);
+			if (insertDynamicNum != 1) {
+				log.error("RelationRecServiceImpl.saveRec：插入" + insertDynamicNum + "条动态信息 ");
+				throw BusinessException.build("BLOG_13002", "操作");
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+
+		return true;
+	}
+	
+	/**
+	 * 修改推荐状态（忽略）
+	 */
+	@Override
+	public boolean updateRecStatus(RelationRecVO relationRecVO) throws BusinessException {
+		try {
+			// 参数校验
+			if (relationRecVO == null) {
+				log.error("RelationRecServiceImpl.updateRecStatus：relationRecVO为空");
+				throw BusinessException.build("COMMON_402","relationRecVO");
+			}
+			
+			// 获取参数
+			String recCode = relationRecVO.getRecCode(); // 推荐编号
+			String orgCode = relationRecVO.getOrgCode(); // 组织编号
+
+			// 参数校验
+			if (StringUtils.isBlank(recCode)) {
+				log.error("RelationRecServiceImpl.updateRecStatus：recCode为空");
+				throw BusinessException.build("COMMON_402","recCode");
+			}
+			if (StringUtils.isBlank(orgCode)) {
+				log.error("RelationRecServiceImpl.updateRecStatus：orgCode为空");
+				throw BusinessException.build("COMMON_402","orgCode");
+			}
+			
+			// 修改推荐状态
+			Map<String, Object> recMap = new HashMap<String, Object>();
+			recMap.put("recCode", recCode); // 推荐编号
+			recMap.put("orgCode", orgCode); // 组织编号
+			recMap.put("recStatus", RelationConstants.RELATION_REC_STATUS_IGNORE); // 推荐状态
+			recMap.put("modifyTime", relationRecVO.getModifyTime()); // 修改时间
+			int updateRecNum = relationRecommendMapper.updateStatus(recMap);
+			if (updateRecNum != 1) {
+				log.error("relationQualityService.updateRecStatus：修改" + updateRecNum + "条推荐信息 ");
+				return false;
+			}
+		} catch (BusinessException e) {
+			throw e;
+		}
+		
+		return true;
+	}
+
+}
